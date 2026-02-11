@@ -19,3 +19,7 @@
 ###< symfony/asset-mapper ###
 
 .idea
+
+###> friendsofphp/php-cs-fixer ###
+/.php-cs-fixer.cache
+###< friendsofphp/php-cs-fixer ###
