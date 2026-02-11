@@ -5,6 +5,7 @@ declare(strict_types=1);
 $finder = PhpCsFixer\Finder::create()
     ->in(__DIR__)
     ->exclude('var')
+    ->notPath('config/reference.php')
     ->ignoreVCSIgnored(true);
 
 return (new PhpCsFixer\Config())
