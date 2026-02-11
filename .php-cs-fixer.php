@@ -8,7 +8,7 @@ $finder = PhpCsFixer\Finder::create()
     ->ignoreVCSIgnored(true);
 
 return (new PhpCsFixer\Config())
-    ->setRiskyAllowed(false)
+    ->setRiskyAllowed(true)
     ->setRules([
         '@Symfony' => true,
         '@PSR12' => true,
