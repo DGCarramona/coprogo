@@ -10,6 +10,6 @@ require dirname(__DIR__).'/vendor/autoload.php';
 
 $appDebug = filter_var($_SERVER['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOL);
 
-if ($appDebug === true) {
+if ($appDebug) {
     umask(0000);
 }
