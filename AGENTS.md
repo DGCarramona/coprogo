@@ -48,11 +48,19 @@ Generate production-ready code that follows Clean Architecture (Uncle Bob), is f
 3. Fail fast on invalid input.
 4. Prefer immutability in domain code when practical.
 
+## Static Analysis and Style (Mandatory)
+1. Every newly created or modified PHP file must comply with repository PHPStan rules.
+2. Every newly created or modified PHP file must comply with repository PHP-CS-Fixer rules.
+3. Work is not complete if PHPStan or PHP-CS-Fixer reports violations.
+4. Do not bypass rules; fix code to satisfy the configured standards.
+
 ## PR/Change Checklist
 - [ ] Clean Architecture boundaries preserved.
 - [ ] Dependencies point inward.
 - [ ] Tests added/updated and passing.
 - [ ] No external-library/framework mocking introduced.
+- [ ] New/changed files pass PHPStan checks.
+- [ ] New/changed files pass PHP-CS-Fixer checks.
 
 ## Commit Message Policy (Mandatory)
 Use Conventional Commits format:
