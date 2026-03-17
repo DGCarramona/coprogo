@@ -57,3 +57,13 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+## API client generation (OpenAPI)
+
+The frontend can generate a typed API client from the backend OpenAPI specification with:
+
+```bash
+npm run generate:api
+```
+
+By default, the generator reads the public backend endpoint `http://localhost:8080/swagger/coprogo-1.0.0.yml`. Ensure the backend is running before generating the client.
