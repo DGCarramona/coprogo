@@ -1,25 +1,46 @@
-###> symfony/framework-bundle ###
-/.env.local
-/.env.local.php
-/.env.*.local
-/config/secrets/prod/prod.decrypt.private.php
-/public/bundles/
-/var/
-/vendor/
-###< symfony/framework-bundle ###
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
 
-###> phpunit/phpunit ###
-/phpunit.xml
-/.phpunit.cache/
-###< phpunit/phpunit ###
+.idea/
+.vscode/
+*.iml
 
-###> symfony/asset-mapper ###
-/public/assets/
-/assets/vendor/
-###< symfony/asset-mapper ###
+# --- Angular frontend ---
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/cache/
 
-.idea
+# --- Gradle / Kotlin / Micronaut backend ---
+backend/.gradle/
+backend/build/
+backend/.kotlin/
+backend/out/
 
-###> friendsofphp/php-cs-fixer ###
-/.php-cs-fixer.cache
-###< friendsofphp/php-cs-fixer ###
+# --- Logs ---
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Local env / secrets ---
+.env
+.env.*
+!.env.example
+
+# Optional app-local configs if you use them later
+backend/src/main/resources/application-local.yml
+backend/src/main/resources/application-local.yaml
+backend/src/main/resources/application-local.properties
+
+# --- Temporary / coverage ---
+coverage/
+.tmp/
+tmp/
+temp/
+
+# --- Archives / misc local outputs ---
+*.tmp
+*.swp
+*.swo

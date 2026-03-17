@@ -1,17 +1,34 @@
-# editorconfig.org
-
 root = true
 
 [*]
 charset = utf-8
 end_of_line = lf
-indent_size = 4
-indent_style = space
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-[{compose.yaml,compose.*.yaml}]
-indent_size = 2
-
 [*.md]
 trim_trailing_whitespace = false
+
+# Kotlin / Gradle Kotlin DSL
+[*.{kt,kts}]
+indent_style = space
+indent_size = 4
+tab_width = 4
+
+# Web / Angular / JSON / YAML
+[*.{ts,tsx,js,mjs,cjs,jsx,html,css,scss,json,yml,yaml}]
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+# Keep shell and Docker readable
+[*.{sh,bash,zsh,Dockerfile}]
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+# XML sometimes benefits from 2 spaces in JVM projects too
+[*.xml]
+indent_style = space
+indent_size = 2
+tab_width = 2
