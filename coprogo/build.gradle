@@ -49,13 +49,14 @@ application {
 }
 
 java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
     sourceCompatibility = JavaVersion.toVersion("21")
 }
 
 
 
 
-graalvmNative.toolchainDetection = false
+graalvmNative.toolchainDetection = true
 
 
 
