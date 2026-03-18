@@ -19,7 +19,7 @@ updates:
           - "*"
 
   - package-ecosystem: "gradle"
-    directory: "/backend"
+    directory: "/coprogo"
     schedule:
       interval: "weekly"
       day: "monday"
