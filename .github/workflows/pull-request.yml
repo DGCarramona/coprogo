@@ -1,17 +1,13 @@
-name: CI
+name: Pull Request
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
-  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: pull-request-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
@@ -40,35 +36,6 @@ jobs:
 
       - name: Run backend checks
         run: ./gradlew --no-daemon check
-
-  backend-native:
-    name: Backend native compile
-    runs-on: ubuntu-latest
-    needs: backend-quality-and-tests
-    defaults:
-      run:
-        working-directory: coprogo
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup GraalVM
-        uses: graalvm/setup-graalvm@v1
-        with:
-          distribution: graalvm-community
-          java-version: '21'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          cache: gradle
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
-
-      - name: Make Gradle wrapper executable
-        run: chmod +x ./gradlew
-
-      - name: Build native executable
-        run: ./gradlew --no-daemon nativeCompile
 
   frontend-quality-and-tests:
     name: Frontend quality and tests
@@ -99,6 +66,3 @@ jobs:
 
       - name: Run tests
         run: npm run test -- --watch=false
-
-      - name: Build frontend
-        run: npm run build
