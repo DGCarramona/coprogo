@@ -10,7 +10,8 @@
     "format:check": "prettier --check .",
     "format:write": "prettier --write .",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "generate:api": "ng-openapi -c openapi.config.ts && prettier --write src/app/infrastructure/api/generated"
   },
   "private": true,
   "packageManager": "npm@11.9.0",
@@ -32,6 +33,7 @@
     "angular-eslint": "21.3.1",
     "eslint": "^10.0.3",
     "jsdom": "^29.0.0",
+    "ng-openapi": "^0.2.18",
     "prettier": "^3.8.1",
     "typescript": "~5.9.2",
     "typescript-eslint": "8.57.1",
