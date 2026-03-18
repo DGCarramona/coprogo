@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import jakarta.inject.Inject
 
-@MicronautTest(transactional = false, environments = ["smoke"])
+@MicronautTest(transactional = false)
 class CoprogoTest {
 
     @Inject
