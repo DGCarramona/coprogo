@@ -33,6 +33,13 @@ updates:
       include: "scope"
     open-pull-requests-limit: 10
     groups:
+      kotlin-tooling:
+        patterns:
+          - "org.jetbrains.kotlin*"
+          - "com.google.devtools.ksp*"
+      micronaut-stack:
+        patterns:
+          - "io.micronaut*"
       backend-non-major:
         update-types:
           - "minor"
@@ -53,6 +60,18 @@ updates:
       include: "scope"
     open-pull-requests-limit: 10
     groups:
+      angular-stack:
+        patterns:
+          - "@angular/*"
+          - "angular-eslint"
+          - "typescript"
+          - "rxjs"
+          - "tslib"
+      eslint-tooling:
+        patterns:
+          - "eslint"
+          - "@eslint/*"
+          - "typescript-eslint"
       frontend-non-major:
         update-types:
           - "minor"
