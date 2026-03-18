@@ -13,9 +13,11 @@ import jakarta.validation.constraints.Positive
 import tech.justdev.application.revenue.PreviewRevenueDistributionCommand
 import tech.justdev.application.revenue.PreviewRevenueDistributionMember
 import tech.justdev.application.revenue.PreviewRevenueDistributionUseCase
+import tech.justdev.interfaces.openapi.AuthenticatedApi
 import java.math.BigDecimal
 
 @Controller("/api/revenue-distribution")
+@AuthenticatedApi
 @Tag(name = "RevenueDistribution")
 class RevenueDistributionController(
     private val previewRevenueDistributionUseCase: PreviewRevenueDistributionUseCase,
