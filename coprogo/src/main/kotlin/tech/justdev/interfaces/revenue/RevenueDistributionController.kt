@@ -24,7 +24,7 @@ class RevenueDistributionController(
     @Post("/preview")
     @Operation(summary = "Preview ownership-share-based revenue distribution")
     fun preview(@Valid @Body request: RevenueDistributionPreviewRequest): RevenueDistributionPreviewResponse {
-        val distribution = previewRevenueDistributionUseCase.execute(
+        val distribution = previewRevenueDistributionUseCase(
             PreviewRevenueDistributionCommand(
                 amountInCents = request.amountInCents,
                 members = request.members.map { member ->

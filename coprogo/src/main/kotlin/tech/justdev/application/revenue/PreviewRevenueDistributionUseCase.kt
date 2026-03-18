@@ -11,7 +11,7 @@ class PreviewRevenueDistributionUseCase(
     private val revenueDistributionService: RevenueDistributionService,
 ) {
 
-    fun execute(command: PreviewRevenueDistributionCommand): RevenueDistribution {
+    operator fun invoke(command: PreviewRevenueDistributionCommand): RevenueDistribution {
         val shares = command.members
             .map { member ->
                 OwnershipShare(

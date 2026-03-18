@@ -324,6 +324,7 @@ Do not force functional or reactive patterns where they make the code harder to 
 - External integrations must go through project-owned ports.
 - Configuration must enter through explicit adapters/config abstractions.
 - Persistence models must not become domain models by accident.
+- Kotlin application use cases should be invokable classes, exposing their primary entry point as `operator fun invoke(...)`.
 - Financial calculations must use appropriate money-safe representations and deterministic rounding rules.
 - Prefer immutable value objects and pure domain services where practical.
 - Prefer collection and batch-oriented operations over procedural per-item orchestration when possible.
