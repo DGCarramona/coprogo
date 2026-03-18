@@ -66,4 +66,4 @@ The frontend can generate a typed API client from the backend OpenAPI specificat
 npm run generate:api
 ```
 
-By default, the generator reads the public backend endpoint `http://localhost:8080/swagger/coprogo-1.0.0.yml`. Ensure the backend is running before generating the client.
+By default, the generator reads the public backend endpoint `http://localhost:8080/openapi.yml`. Ensure the backend is running before generating the client.
