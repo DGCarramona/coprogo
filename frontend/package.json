@@ -31,7 +31,7 @@
     "@angular/compiler-cli": "^21.2.0",
     "@eslint/js": "^10.0.1",
     "angular-eslint": "21.3.1",
-    "eslint": "^10.0.3",
+    "eslint": "^10.1.0",
     "jsdom": "^29.0.0",
     "ng-openapi": "^0.2.18",
     "prettier": "^3.8.1",
