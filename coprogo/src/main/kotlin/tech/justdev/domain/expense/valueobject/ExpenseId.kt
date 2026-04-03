@@ -1,8 +1,10 @@
 package tech.justdev.domain.expense.valueobject
 
+import java.util.UUID
+
 @JvmInline
-value class ExpenseId(val value: String) {
-    init {
-        require(value.isNotBlank()) { "expenseId must not be blank" }
+value class ExpenseId(val value: UUID) {
+    override fun toString(): String {
+        return value.toString()
     }
 }

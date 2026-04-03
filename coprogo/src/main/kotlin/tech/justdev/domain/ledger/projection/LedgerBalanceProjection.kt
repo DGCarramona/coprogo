@@ -13,8 +13,8 @@ fun Iterable<LedgerEvent>.projectMemberBalances(): Set<MemberLedgerBalance> {
     val balancesByMember = fold(mutableMapOf<MemberId, NetBalanceAmount>()) { balances, event ->
         event.transfers.fold(balances) { currentBalances, transfer ->
             currentBalances.also {
-                it.accumulate(transfer.fromMemberId, NetBalanceAmount.debt(transfer.amount))
-                it.accumulate(transfer.toMemberId, NetBalanceAmount.credit(transfer.amount))
+                it.accumulate(transfer.fromMember, NetBalanceAmount.debt(transfer.amount))
+                it.accumulate(transfer.toMember, NetBalanceAmount.credit(transfer.amount))
             }
         }
     }

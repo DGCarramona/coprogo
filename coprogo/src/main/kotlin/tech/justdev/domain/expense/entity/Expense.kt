@@ -14,9 +14,9 @@ import java.time.Instant
 
 data class Expense(
     val id: ExpenseId,
-    val groupId: GroupId,
+    val group: GroupId,
     val title: String,
-    val createdByMemberId: MemberId,
+    val createdBy: MemberId,
     val totalAmount: MoneyAmount,
     val createdAt: Instant,
     val participations: Set<ExpenseParticipation>,
@@ -24,13 +24,13 @@ data class Expense(
     init {
         require(title.isNotBlank()) { "title must not be blank" }
         require(participations.isNotEmpty()) { "participations must not be empty" }
-        require(participations.map { it.memberId }.toSet().size == participations.size) {
+        require(participations.map { it.member }.toSet().size == participations.size) {
             "participations must contain unique members"
         }
         require(participations.map { it.amount }.sum() == totalAmount) {
             "participation amounts must add up to totalAmount"
         }
-        require(participations.any { it.memberId == createdByMemberId && it.amount > MoneyAmount.ZERO }) {
+        require(participations.any { it.member == createdBy && it.amount > MoneyAmount.ZERO }) {
             "creator must participate in the expense"
         }
     }
@@ -43,14 +43,14 @@ data class Expense(
         }
 
     fun recordParticipationDecision(
-        memberId: MemberId,
+        member: MemberId,
         decision: ExpenseParticipationDecision,
         decidedAt: Instant,
     ): Expense {
         require(status == ExpenseStatus.PROPOSED) { "expense is not awaiting participant decisions" }
-        require(memberId != createdByMemberId) { "creator participation is approved at creation time" }
+        require(member != createdBy) { "creator participation is approved at creation time" }
 
-        val currentParticipation = participations.find { it.memberId == memberId }
+        val currentParticipation = participations.find { it.member == member }
             ?: throw IllegalArgumentException("member is not part of this expense")
 
         require(currentParticipation.status is ExpenseParticipationStatus.Pending) {
@@ -111,9 +111,9 @@ data class Expense(
 
             return propose(
                 id = id,
-                groupId = group,
+                group = group,
                 title = title,
-                createdByMemberId = createdBy,
+                createdBy = createdBy,
                 totalAmount = totalAmount,
                 createdAt = createdAt,
                 shares = shares,
@@ -122,24 +122,24 @@ data class Expense(
 
         fun propose(
             id: ExpenseId,
-            groupId: GroupId,
+            group: GroupId,
             title: String,
-            createdByMemberId: MemberId,
+            createdBy: MemberId,
             totalAmount: MoneyAmount,
             createdAt: Instant,
             shares: Set<ExpenseShare>,
         ): Expense {
             require(shares.isNotEmpty()) { "shares must not be empty" }
             require(shares.map { it.memberId }.toSet().size == shares.size) { "shares must contain unique members" }
-            require(shares.any { it.memberId == createdByMemberId && it.amount > MoneyAmount.ZERO }) {
+            require(shares.any { it.memberId == createdBy && it.amount > MoneyAmount.ZERO }) {
                 "creator must participate in the expense"
             }
 
             val participations = shares.map { share ->
                 ExpenseParticipation(
-                    memberId = share.memberId,
+                    member = share.memberId,
                     amount = share.amount,
-                    status = if (share.memberId == createdByMemberId) {
+                    status = if (share.memberId == createdBy) {
                         ExpenseParticipationStatus.Approved(createdAt)
                     } else {
                         ExpenseParticipationStatus.Pending
@@ -149,9 +149,9 @@ data class Expense(
 
             return Expense(
                 id = id,
-                groupId = groupId,
+                group = group,
                 title = title,
-                createdByMemberId = createdByMemberId,
+                createdBy = createdBy,
                 totalAmount = totalAmount,
                 createdAt = createdAt,
                 participations = participations,

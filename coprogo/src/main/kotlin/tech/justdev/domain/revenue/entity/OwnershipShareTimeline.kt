@@ -6,11 +6,12 @@ import tech.justdev.domain.shared.valueobject.GroupId
 import tech.justdev.domain.shared.valueobject.MemberId
 import java.time.Instant
 import java.time.LocalDate
+import java.util.UUID
 
 @JvmInline
-value class OwnershipShareChangeId(val value: String) {
-    init {
-        require(value.isNotBlank()) { "ownershipShareChangeId must not be blank" }
+value class OwnershipShareChangeId(val value: UUID) {
+    override fun toString(): String {
+        return value.toString()
     }
 }
 

@@ -1,12 +1,10 @@
 package tech.justdev.domain.shared.valueobject
 
-@JvmInline
-value class GroupId(val value: String) {
-    init {
-        require(value.isNotBlank()) { "groupId must not be blank" }
-    }
+import java.util.UUID
 
+@JvmInline
+value class GroupId(val value: UUID) {
     override fun toString(): String {
-        return this.value
+        return value.toString()
     }
 }

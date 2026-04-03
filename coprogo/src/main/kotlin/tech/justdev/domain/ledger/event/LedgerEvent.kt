@@ -10,28 +10,28 @@ import tech.justdev.domain.shared.money.MoneyAmount
 import java.time.Instant
 
 data class LedgerTransfer(
-    val fromMemberId: MemberId,
-    val toMemberId: MemberId,
+    val fromMember: MemberId,
+    val toMember: MemberId,
     val amount: MoneyAmount,
 ) {
     init {
-        require(fromMemberId != toMemberId) { "transfer participants must be different" }
+        require(fromMember != toMember) { "transfer participants must be different" }
         require(amount > MoneyAmount.ZERO) { "transfer amount must be > 0" }
     }
 }
 
 sealed interface LedgerEvent {
-    val eventId: LedgerEventId
-    val groupId: GroupId
+    val id: LedgerEventId
+    val group: GroupId
     val occurredAt: Instant
     val transfers: Set<LedgerTransfer>
 }
 
 data class AcceptedExpenseLedgerEvent(
-    override val eventId: LedgerEventId,
-    override val groupId: GroupId,
-    val expenseId: ExpenseId,
-    val paidByMemberId: MemberId,
+    override val id: LedgerEventId,
+    override val group: GroupId,
+    val expense: ExpenseId,
+    val paidBy: MemberId,
     override val occurredAt: Instant,
     override val transfers: Set<LedgerTransfer>,
 ) : LedgerEvent {
@@ -44,11 +44,11 @@ data class AcceptedExpenseLedgerEvent(
 
             val transfers = expense.participations
                 .asSequence()
-                .filter { participation -> participation.memberId != expense.createdByMemberId }
+                .filter { participation -> participation.member != expense.createdBy }
                 .map { participation ->
                     LedgerTransfer(
-                        fromMemberId = participation.memberId,
-                        toMemberId = expense.createdByMemberId,
+                        fromMember = participation.member,
+                        toMember = expense.createdBy,
                         amount = participation.amount,
                     )
                 }
@@ -59,10 +59,10 @@ data class AcceptedExpenseLedgerEvent(
             }
 
             return AcceptedExpenseLedgerEvent(
-                eventId = LedgerEventId("expense:${expense.id.value}:accepted"),
-                groupId = expense.groupId,
-                expenseId = expense.id,
-                paidByMemberId = expense.createdByMemberId,
+                id = LedgerEventId.fromName("accepted-expense:${expense.id.value}"),
+                group = expense.group,
+                expense = expense.id,
+                paidBy = expense.createdBy,
                 occurredAt = expense.acceptedAt(),
                 transfers = transfers,
             )

@@ -13,7 +13,7 @@ sealed interface ExpenseParticipationStatus {
 }
 
 data class ExpenseParticipation(
-    val memberId: MemberId,
+    val member: MemberId,
     val amount: MoneyAmount,
     val status: ExpenseParticipationStatus,
 ) {
