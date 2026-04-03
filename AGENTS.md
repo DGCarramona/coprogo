@@ -68,6 +68,14 @@ A group of family members jointly manage an apartment. Members can advance expen
 - If the amount changes in practice, model it as:
     - multiple invoices, or
     - cancellation/replacement, not destructive mutation
+- The canonical source of truth for member balances is an immutable financial ledger.
+- Balance-affecting business facts must be modeled as append-only financial events:
+    - accepted expenses
+    - reimbursements
+    - cash-pool income
+    - cash-pool withdrawals
+    - revenue distributions
+- Current balances and debt views are projections derived from that immutable ledger, not authoritative mutable state.
 - Supporting document replacement or deletion must be traced.
 - Previous supporting documents must remain accessible in history.
 - Only the creator of an event may delete its attachment, and deletion must be audited.
