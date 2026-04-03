@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Min
-import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Positive
 import tech.justdev.application.revenue.PreviewRevenueDistributionCommand
@@ -15,6 +14,7 @@ import tech.justdev.application.revenue.PreviewRevenueDistributionMember
 import tech.justdev.application.revenue.PreviewRevenueDistributionUseCase
 import tech.justdev.interfaces.openapi.AuthenticatedApi
 import java.math.BigDecimal
+import java.util.UUID
 
 @Controller("/api/revenue-distribution")
 @AuthenticatedApi
@@ -22,27 +22,31 @@ import java.math.BigDecimal
 class RevenueDistributionController(
     private val previewRevenueDistributionUseCase: PreviewRevenueDistributionUseCase,
 ) {
-
     @Post("/preview")
     @Operation(summary = "Preview ownership-share-based revenue distribution")
-    fun preview(@Valid @Body request: RevenueDistributionPreviewRequest): RevenueDistributionPreviewResponse {
-        val distribution = previewRevenueDistributionUseCase(
-            PreviewRevenueDistributionCommand(
-                amountInCents = request.amountInCents,
-                members = request.members.map { member ->
-                    PreviewRevenueDistributionMember(
-                        memberId = member.memberId,
-                        percentage = member.percentage,
-                    )
-                }.toSet(),
-            ),
-        )
+    fun preview(
+        @Valid @Body request: RevenueDistributionPreviewRequest,
+    ): RevenueDistributionPreviewResponse {
+        val distribution =
+            previewRevenueDistributionUseCase(
+                PreviewRevenueDistributionCommand(
+                    amountInCents = request.amountInCents,
+                    members =
+                        request.members
+                            .map { member ->
+                                PreviewRevenueDistributionMember(
+                                    member = member.memberId,
+                                    percentage = member.percentage,
+                                )
+                            }.toSet(),
+                ),
+            )
 
         return RevenueDistributionPreviewResponse(
             totalAmountInCents = distribution.totalAmountInCents,
-            allocations = distribution.allocationsInCents
-                .map { (memberId, allocated) -> RevenueDistributionAllocation(memberId, allocated) }
-                .sortedBy { it.memberId },
+            allocations =
+                distribution.allocations
+                    .map { allocation -> RevenueDistributionAllocation(allocation.member, allocation.amountInCents) },
         )
     }
 }
@@ -55,8 +59,7 @@ data class RevenueDistributionPreviewRequest(
 )
 
 data class RevenueDistributionMemberInput(
-    @field:NotBlank
-    val memberId: String,
+    val memberId: UUID,
     @field:Positive
     val percentage: BigDecimal,
 )
@@ -67,6 +70,6 @@ data class RevenueDistributionPreviewResponse(
 )
 
 data class RevenueDistributionAllocation(
-    val memberId: String,
+    val memberId: UUID,
     val amountInCents: Long,
 )

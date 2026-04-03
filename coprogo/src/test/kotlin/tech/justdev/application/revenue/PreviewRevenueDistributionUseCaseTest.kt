@@ -1,27 +1,40 @@
 package tech.justdev.application.revenue
 
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import tech.justdev.domain.revenue.RevenueDistributionService
+import tech.justdev.testsupport.memberUuid
 import java.math.BigDecimal
 
 class PreviewRevenueDistributionUseCaseTest {
-
-    private val useCase = PreviewRevenueDistributionUseCase(RevenueDistributionService())
+    private val useCase = PreviewRevenueDistributionUseCase()
 
     @Test
     fun `invoke should map members into ownership shares before distributing revenue`() {
-        val result = useCase(
-            PreviewRevenueDistributionCommand(
-                amountInCents = 100,
-                members = setOf(
-                    PreviewRevenueDistributionMember(memberId = "alice", percentage = BigDecimal("60.00")),
-                    PreviewRevenueDistributionMember(memberId = "bob", percentage = BigDecimal("40.00")),
-                ),
-            ),
-        )
+        runTest {
+            val result =
+                useCase(
+                    PreviewRevenueDistributionCommand(
+                        amountInCents = 100,
+                        members =
+                            setOf(
+                                PreviewRevenueDistributionMember(member = memberUuid("alice"), percentage = BigDecimal("60.00")),
+                                PreviewRevenueDistributionMember(member = memberUuid("bob"), percentage = BigDecimal("40.00")),
+                            ),
+                    ),
+                )
 
-        assertEquals(100, result.totalAmountInCents)
-        assertEquals(mapOf("alice" to 60L, "bob" to 40L), result.allocationsInCents)
+            assertEquals(
+                PreviewRevenueDistributionResult(
+                    totalAmountInCents = 100,
+                    allocations =
+                        listOf(
+                            PreviewRevenueDistributionAllocation(member = memberUuid("alice"), amountInCents = 60),
+                            PreviewRevenueDistributionAllocation(member = memberUuid("bob"), amountInCents = 40),
+                        ),
+                ),
+                result,
+            )
+        }
     }
 }

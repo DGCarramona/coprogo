@@ -1,6 +1,7 @@
 plugins {
     id("org.jetbrains.kotlin.jvm") version "2.3.20"
     id("org.jetbrains.kotlin.plugin.allopen") version "2.3.20"
+    id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     id("com.google.devtools.ksp") version "2.3.6"
     id("io.micronaut.application") version "4.6.2"
     id("com.gradleup.shadow") version "9.4.1"
@@ -34,6 +35,7 @@ dependencies {
     implementation("io.micronaut.openapi:micronaut-openapi-annotations")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
     implementation("io.micronaut.sql:micronaut-jdbc-hikari")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}")
     compileOnly("io.micronaut:micronaut-http-client")
@@ -44,6 +46,10 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("org.postgresql:r2dbc-postgresql")
     testImplementation("io.micronaut:micronaut-http-client")
+    testImplementation(platform("org.testcontainers:testcontainers-bom:2.0.4"))
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
+    testImplementation("org.testcontainers:testcontainers-postgresql")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     aotPlugins platform("io.micronaut.platform:micronaut-platform:4.10.10")
     aotPlugins("io.micronaut.security:micronaut-security-aot")
@@ -72,6 +78,9 @@ graalvmNative.toolchainDetection = true
 micronaut {
     runtime("netty")
     testRuntime("junit5")
+    testResources {
+        enabled = false
+    }
     processing {
         incremental(true)
         annotations("tech.justdev.*")

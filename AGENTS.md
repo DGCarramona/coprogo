@@ -68,6 +68,14 @@ A group of family members jointly manage an apartment. Members can advance expen
 - If the amount changes in practice, model it as:
     - multiple invoices, or
     - cancellation/replacement, not destructive mutation
+- The canonical source of truth for member balances is an immutable financial ledger.
+- Balance-affecting business facts must be modeled as append-only financial events:
+    - accepted expenses
+    - reimbursements
+    - cash-pool income
+    - cash-pool withdrawals
+    - revenue distributions
+- Current balances and debt views are projections derived from that immutable ledger, not authoritative mutable state.
 - Supporting document replacement or deletion must be traced.
 - Previous supporting documents must remain accessible in history.
 - Only the creator of an event may delete its attachment, and deletion must be audited.
@@ -95,6 +103,20 @@ Generate production-ready code that:
 - preserves GraalVM native-image compatibility for the backend
 - includes meaningful automated tests
 - preserves auditability and historical traceability
+
+## User Interaction and Guideline Evolution (Mandatory)
+
+### Clarification before implementation
+
+- The agent must surface all blocking questions, ambiguities, and conflicting interpretations in the user request before starting implementation or editing files.
+- When an assumption could materially affect scope, behavior, architecture, or acceptance criteria, the agent must ask first instead of silently choosing an interpretation.
+- The agent may proceed without additional questions only when the request is already precise enough that no material uncertainty remains.
+
+### Proposing guideline updates
+
+- If the user provides an instruction that complements, refines, or extends the existing repository guidance in a reusable way, the agent must propose updating this `AGENTS.md` file.
+- The proposal should be made in the same conversation, before the instruction is likely to be lost or applied only implicitly.
+- If the user confirms, the agent should update the guidelines as part of the task when feasible.
 
 ## 2. Monorepo Architecture (Mandatory)
 
@@ -236,6 +258,8 @@ Every behavior change must include or update tests.
 - Test behavior and outcomes, not implementation details.
 - Keep use cases testable without framework coupling.
 - Avoid hidden global state and nondeterminism.
+- Backend tests requiring PostgreSQL must reuse the repository’s shared Testcontainers/Micronaut test infrastructure instead of re-declaring container bootstrap and database property wiring in each suite.
+- In coroutine-based backend tests, prefer `assertThrows { runTest { ... } }` for error assertions over manual `try/catch + fail`.
 - Prioritize tests around:
     - expense validation/refusal
     - reimbursement recording and contestation
@@ -272,6 +296,7 @@ Prefer:
 - fail-fast validation
 - immutable domain logic where practical
 - readable naming
+- non-redundant naming in Domain and Application when the type already carries the meaning, for example `member: MemberId` rather than `memberId: MemberId`
 - explicit money/value abstractions
 - explicit audit/event models
 - declarative transformations over imperative mutation
@@ -325,6 +350,10 @@ Do not force functional or reactive patterns where they make the code harder to 
 - Configuration must enter through explicit adapters/config abstractions.
 - Persistence models must not become domain models by accident.
 - Kotlin application use cases should be invokable classes, exposing their primary entry point as `operator fun invoke(...)`.
+- Create use cases must generate the identifier of the resource they create internally; create commands should not carry the target id.
+- CUD use cases should return no payload on success unless a business need explicitly requires a return value.
+- Backend id value objects must keep their primitive storage private, expose primitive extraction explicitly through `toPrimitive()`, and must not expose direct `value` access or custom `toString()` behavior.
+- Repository ports and backend application use cases that may cross I/O boundaries should be `suspend`; keep the domain synchronous and pure, and only mark HTTP endpoints `suspend` when they actually invoke a suspendable path.
 - Financial calculations must use appropriate money-safe representations and deterministic rounding rules.
 - Prefer immutable value objects and pure domain services where practical.
 - Prefer collection and batch-oriented operations over procedural per-item orchestration when possible.
@@ -414,6 +443,10 @@ All modified backend files must pass the repository’s configured:
 - static analysis
 - tests
 - native build checks when relevant
+
+Backend Kotlin formatting is enforced with `ktlint`.
+- Use `./gradlew ktlintFormat` locally to apply formatting.
+- CI must verify formatting with `./gradlew ktlintCheck` and must not auto-correct formatting.
 
 ### Frontend
 All modified frontend files must pass the repository’s configured:
