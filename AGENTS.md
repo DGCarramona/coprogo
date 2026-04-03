@@ -259,6 +259,7 @@ Every behavior change must include or update tests.
 - Keep use cases testable without framework coupling.
 - Avoid hidden global state and nondeterminism.
 - Backend tests requiring PostgreSQL must reuse the repository’s shared Testcontainers/Micronaut test infrastructure instead of re-declaring container bootstrap and database property wiring in each suite.
+- In coroutine-based backend tests, prefer `assertThrows { runTest { ... } }` for error assertions over manual `try/catch + fail`.
 - Prioritize tests around:
     - expense validation/refusal
     - reimbursement recording and contestation
@@ -352,6 +353,7 @@ Do not force functional or reactive patterns where they make the code harder to 
 - Create use cases must generate the identifier of the resource they create internally; create commands should not carry the target id.
 - CUD use cases should return no payload on success unless a business need explicitly requires a return value.
 - Backend id value objects must keep their primitive storage private, expose primitive extraction explicitly through `toPrimitive()`, and must not expose direct `value` access or custom `toString()` behavior.
+- Repository ports and backend application use cases that may cross I/O boundaries should be `suspend`; keep the domain synchronous and pure, and only mark HTTP endpoints `suspend` when they actually invoke a suspendable path.
 - Financial calculations must use appropriate money-safe representations and deterministic rounding rules.
 - Prefer immutable value objects and pure domain services where practical.
 - Prefer collection and batch-oriented operations over procedural per-item orchestration when possible.
@@ -441,6 +443,10 @@ All modified backend files must pass the repository’s configured:
 - static analysis
 - tests
 - native build checks when relevant
+
+Backend Kotlin formatting is enforced with `ktlint`.
+- Use `./gradlew ktlintFormat` locally to apply formatting.
+- CI must verify formatting with `./gradlew ktlintCheck` and must not auto-correct formatting.
 
 ### Frontend
 All modified frontend files must pass the repository’s configured:
