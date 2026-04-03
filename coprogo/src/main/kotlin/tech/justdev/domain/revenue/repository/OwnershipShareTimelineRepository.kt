@@ -4,7 +4,7 @@ import tech.justdev.domain.revenue.entity.OwnershipShareTimeline
 import tech.justdev.domain.shared.valueobject.GroupId
 
 interface OwnershipShareTimelineRepository {
-    fun findByGroup(group: GroupId): OwnershipShareTimeline?
+    suspend fun findByGroup(group: GroupId): OwnershipShareTimeline?
 
-    fun save(timeline: OwnershipShareTimeline)
+    suspend fun save(timeline: OwnershipShareTimeline)
 }

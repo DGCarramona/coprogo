@@ -27,7 +27,7 @@ class RecordExpenseParticipationDecisionUseCase(
     private val ledgerEventRepository: LedgerEventRepository,
 ) {
 
-    operator fun invoke(command: RecordExpenseParticipationDecisionCommand) {
+    suspend operator fun invoke(command: RecordExpenseParticipationDecisionCommand) {
         val existingExpense = expenseRepository.findProposedById(ExpenseId(command.id))
             ?: throw IllegalArgumentException("expense ${command.id} was not found")
 

@@ -18,7 +18,7 @@ class GetCashPoolBalanceUseCase(
     private val ledgerEventRepository: LedgerEventRepository,
 ) {
 
-    operator fun invoke(query: GetCashPoolBalanceQuery): CashPoolBalanceSnapshot = CashPoolBalanceSnapshot(
+    suspend operator fun invoke(query: GetCashPoolBalanceQuery): CashPoolBalanceSnapshot = CashPoolBalanceSnapshot(
         group = query.group,
         availableAmountInCents = ledgerEventRepository
             .findByGroup(GroupId(query.group))

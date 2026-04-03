@@ -23,7 +23,7 @@ class GetGroupBalancesUseCase(
     private val ledgerEventRepository: LedgerEventRepository,
 ) {
 
-    operator fun invoke(query: GetGroupBalancesQuery): GroupBalancesSnapshot = GroupBalancesSnapshot(
+    suspend operator fun invoke(query: GetGroupBalancesQuery): GroupBalancesSnapshot = GroupBalancesSnapshot(
         group = query.group,
         balances = ledgerEventRepository.findByGroup(GroupId(query.group))
             .projectMemberBalances()

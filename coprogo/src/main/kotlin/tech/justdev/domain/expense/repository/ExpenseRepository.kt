@@ -4,9 +4,9 @@ import tech.justdev.domain.expense.entity.Expense
 import tech.justdev.domain.expense.valueobject.ExpenseId
 
 interface ExpenseRepository {
-    fun findById(expense: ExpenseId): Expense?
+    suspend fun findById(id: ExpenseId): Expense?
 
-    fun findProposedById(expense: ExpenseId): Expense?
+    suspend fun findProposedById(id: ExpenseId): Expense?
 
-    fun save(expense: Expense)
+    suspend fun save(expense: Expense)
 }

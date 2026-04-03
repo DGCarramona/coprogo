@@ -38,7 +38,7 @@ class ProposeExpenseUseCase(
     private val expenseIdGenerator: ExpenseIdGenerator = RandomExpenseIdGenerator,
 ) {
 
-    operator fun invoke(command: ProposeExpenseCommand) {
+    suspend operator fun invoke(command: ProposeExpenseCommand) {
         expenseRepository.save(when (val allocation = command.allocation) {
             is EqualSplitExpenseAllocationCommand -> Expense.proposeEqualSplit(
                 id = expenseIdGenerator.next(),

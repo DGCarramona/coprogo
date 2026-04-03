@@ -15,13 +15,13 @@ class InMemoryExpenseRepository(
 ) : ExpenseRepository {
     private val expensesById = expenses.associateBy { expense -> expense.id }.toMutableMap()
 
-    override fun findById(expenseId: ExpenseId): Expense? = expensesById[expenseId]
+    override suspend fun findById(id: ExpenseId): Expense? = expensesById[id]
 
-    override fun findProposedById(expenseId: ExpenseId): Expense? =
-        expensesById[expenseId]
+    override suspend fun findProposedById(id: ExpenseId): Expense? =
+        expensesById[id]
             ?.takeIf { expense -> expense.status == ExpenseStatus.PROPOSED }
 
-    override fun save(expense: Expense) {
+    override suspend fun save(expense: Expense) {
         expensesById[expense.id] = expense
     }
 }
@@ -31,11 +31,11 @@ class InMemoryLedgerEventRepository(
 ) : LedgerEventRepository {
     private val storedEvents = events.toMutableList()
 
-    override fun append(event: LedgerEvent) {
+    override suspend fun append(event: LedgerEvent) {
         storedEvents += event
     }
 
-    override fun findByGroup(group: GroupId): List<LedgerEvent> =
+    override suspend fun findByGroup(group: GroupId): List<LedgerEvent> =
         storedEvents.filter { event -> event.group == group }
 
     fun allEvents(): List<LedgerEvent> = storedEvents.toList()
@@ -46,9 +46,9 @@ class InMemoryOwnershipShareTimelineRepository(
 ) : OwnershipShareTimelineRepository {
     private val timelinesByGroup = timelines.associateBy { timeline -> timeline.group }.toMutableMap()
 
-    override fun findByGroup(group: GroupId): OwnershipShareTimeline? = timelinesByGroup[group]
+    override suspend fun findByGroup(group: GroupId): OwnershipShareTimeline? = timelinesByGroup[group]
 
-    override fun save(timeline: OwnershipShareTimeline) {
+    override suspend fun save(timeline: OwnershipShareTimeline) {
         timelinesByGroup[timeline.group] = timeline
     }
 }

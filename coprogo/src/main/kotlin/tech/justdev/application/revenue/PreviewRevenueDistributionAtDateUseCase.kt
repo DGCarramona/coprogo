@@ -24,7 +24,7 @@ class PreviewRevenueDistributionAtDateUseCase(
     private val ownershipShareTimelineRepository: OwnershipShareTimelineRepository,
 ) {
 
-    operator fun invoke(query: PreviewRevenueDistributionAtDateQuery): RevenueDistributionAtDatePreview {
+    suspend operator fun invoke(query: PreviewRevenueDistributionAtDateQuery): RevenueDistributionAtDatePreview {
         val group = GroupId(query.group)
         val timeline = ownershipShareTimelineRepository.findByGroup(group)
             ?: throw IllegalArgumentException("ownership share timeline for group ${query.group} was not found")

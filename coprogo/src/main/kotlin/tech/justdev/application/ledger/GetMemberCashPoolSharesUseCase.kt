@@ -23,7 +23,7 @@ class GetMemberCashPoolSharesUseCase(
     private val ledgerEventRepository: LedgerEventRepository,
 ) {
 
-    operator fun invoke(query: GetMemberCashPoolSharesQuery): GroupMemberCashPoolSharesSnapshot =
+    suspend operator fun invoke(query: GetMemberCashPoolSharesQuery): GroupMemberCashPoolSharesSnapshot =
         GroupMemberCashPoolSharesSnapshot(
             group = query.group,
             shares = ledgerEventRepository

@@ -33,7 +33,7 @@ class GetOwnershipShareTimelineUseCase(
     private val ownershipShareTimelineRepository: OwnershipShareTimelineRepository,
 ) {
 
-    operator fun invoke(query: GetOwnershipShareTimelineQuery): OwnershipShareTimelineSnapshot {
+    suspend operator fun invoke(query: GetOwnershipShareTimelineQuery): OwnershipShareTimelineSnapshot {
         val timeline = ownershipShareTimelineRepository.findByGroup(GroupId(query.group))
             ?: throw IllegalArgumentException("ownership share timeline for group ${query.group} was not found")
 

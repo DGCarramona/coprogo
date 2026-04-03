@@ -4,7 +4,7 @@ import tech.justdev.domain.ledger.event.LedgerEvent
 import tech.justdev.domain.shared.valueobject.GroupId
 
 interface LedgerEventRepository {
-    fun append(event: LedgerEvent)
+    suspend fun append(event: LedgerEvent)
 
-    fun findByGroup(group: GroupId): List<LedgerEvent>
+    suspend fun findByGroup(group: GroupId): List<LedgerEvent>
 }

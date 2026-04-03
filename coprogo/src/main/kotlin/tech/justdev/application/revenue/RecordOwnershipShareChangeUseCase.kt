@@ -30,7 +30,7 @@ class RecordOwnershipShareChangeUseCase(
     private val ownershipShareChangeIdGenerator: OwnershipShareChangeIdGenerator = RandomOwnershipShareChangeIdGenerator,
 ) {
 
-    operator fun invoke(command: RecordOwnershipShareChangeCommand) {
+    suspend operator fun invoke(command: RecordOwnershipShareChangeCommand) {
         val group = GroupId(command.group)
         val existingTimeline = ownershipShareTimelineRepository.findByGroup(group)
             ?: OwnershipShareTimeline.empty(group)
