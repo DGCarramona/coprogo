@@ -30,5 +30,7 @@ fun expenseId(seed: String): ExpenseId = ExpenseId(expenseUuid(seed))
 
 fun ownershipShareChangeId(seed: String): OwnershipShareChangeId = OwnershipShareChangeId(ownershipShareChangeUuid(seed))
 
+fun ledgerEventId(seed: String): LedgerEventId = LedgerEventId.fromName("ledger-event:$seed")
+
 fun acceptedExpenseLedgerEventId(expenseSeed: String): LedgerEventId =
     LedgerEventId.fromName("accepted-expense:${expenseUuid(expenseSeed)}")

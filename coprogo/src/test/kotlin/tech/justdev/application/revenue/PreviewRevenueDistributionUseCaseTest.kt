@@ -15,8 +15,8 @@ class PreviewRevenueDistributionUseCaseTest {
             PreviewRevenueDistributionCommand(
                 amountInCents = 100,
                 members = setOf(
-                    PreviewRevenueDistributionMember(memberId = memberUuid("alice"), percentage = BigDecimal("60.00")),
-                    PreviewRevenueDistributionMember(memberId = memberUuid("bob"), percentage = BigDecimal("40.00")),
+                    PreviewRevenueDistributionMember(member = memberUuid("alice"), percentage = BigDecimal("60.00")),
+                    PreviewRevenueDistributionMember(member = memberUuid("bob"), percentage = BigDecimal("40.00")),
                 ),
             ),
         )
@@ -25,8 +25,8 @@ class PreviewRevenueDistributionUseCaseTest {
             PreviewRevenueDistributionResult(
                 totalAmountInCents = 100,
                 allocations = listOf(
-                    PreviewRevenueDistributionAllocation(memberId = memberUuid("alice"), amountInCents = 60),
-                    PreviewRevenueDistributionAllocation(memberId = memberUuid("bob"), amountInCents = 40),
+                    PreviewRevenueDistributionAllocation(member = memberUuid("alice"), amountInCents = 60),
+                    PreviewRevenueDistributionAllocation(member = memberUuid("bob"), amountInCents = 40),
                 ),
             ),
             result,
