@@ -22,26 +22,31 @@ import java.util.UUID
 class RevenueDistributionController(
     private val previewRevenueDistributionUseCase: PreviewRevenueDistributionUseCase,
 ) {
-
     @Post("/preview")
     @Operation(summary = "Preview ownership-share-based revenue distribution")
-    fun preview(@Valid @Body request: RevenueDistributionPreviewRequest): RevenueDistributionPreviewResponse {
-        val distribution = previewRevenueDistributionUseCase(
-            PreviewRevenueDistributionCommand(
-                amountInCents = request.amountInCents,
-                members = request.members.map { member ->
-                    PreviewRevenueDistributionMember(
-                        member = member.memberId,
-                        percentage = member.percentage,
-                    )
-                }.toSet(),
-            ),
-        )
+    fun preview(
+        @Valid @Body request: RevenueDistributionPreviewRequest,
+    ): RevenueDistributionPreviewResponse {
+        val distribution =
+            previewRevenueDistributionUseCase(
+                PreviewRevenueDistributionCommand(
+                    amountInCents = request.amountInCents,
+                    members =
+                        request.members
+                            .map { member ->
+                                PreviewRevenueDistributionMember(
+                                    member = member.memberId,
+                                    percentage = member.percentage,
+                                )
+                            }.toSet(),
+                ),
+            )
 
         return RevenueDistributionPreviewResponse(
             totalAmountInCents = distribution.totalAmountInCents,
-            allocations = distribution.allocations
-                .map { allocation -> RevenueDistributionAllocation(allocation.member, allocation.amountInCents) },
+            allocations =
+                distribution.allocations
+                    .map { allocation -> RevenueDistributionAllocation(allocation.member, allocation.amountInCents) },
         )
     }
 }

@@ -8,7 +8,9 @@ import tech.justdev.domain.shared.money.MoneyAmount
  * This type is reserved for net ledger balances, not for immutable financial event amounts.
  */
 @JvmInline
-value class NetBalanceAmount private constructor(private val amountInCents: Long) {
+value class NetBalanceAmount private constructor(
+    private val amountInCents: Long,
+) {
     operator fun plus(other: NetBalanceAmount): NetBalanceAmount = NetBalanceAmount(amountInCents + other.amountInCents)
 
     operator fun minus(other: NetBalanceAmount): NetBalanceAmount = NetBalanceAmount(amountInCents - other.amountInCents)

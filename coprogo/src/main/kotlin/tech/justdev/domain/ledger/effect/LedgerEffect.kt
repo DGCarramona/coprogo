@@ -40,12 +40,14 @@ data class MemberCashPoolShareDelta(
     }
 
     companion object {
-        fun increase(member: MemberId, amount: MoneyAmount): MemberCashPoolShareDelta {
-            return MemberCashPoolShareDelta(member = member, amount = NetBalanceAmount.credit(amount))
-        }
+        fun increase(
+            member: MemberId,
+            amount: MoneyAmount,
+        ): MemberCashPoolShareDelta = MemberCashPoolShareDelta(member = member, amount = NetBalanceAmount.credit(amount))
 
-        fun decrease(member: MemberId, amount: MoneyAmount): MemberCashPoolShareDelta {
-            return MemberCashPoolShareDelta(member = member, amount = NetBalanceAmount.debt(amount))
-        }
+        fun decrease(
+            member: MemberId,
+            amount: MoneyAmount,
+        ): MemberCashPoolShareDelta = MemberCashPoolShareDelta(member = member, amount = NetBalanceAmount.debt(amount))
     }
 }

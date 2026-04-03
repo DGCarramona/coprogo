@@ -1,7 +1,7 @@
 package tech.justdev.domain.expense.valueobject
 
-import tech.justdev.domain.shared.valueobject.MemberId
 import tech.justdev.domain.shared.money.MoneyAmount
+import tech.justdev.domain.shared.valueobject.MemberId
 
 data class ExpenseShare(
     val member: MemberId,

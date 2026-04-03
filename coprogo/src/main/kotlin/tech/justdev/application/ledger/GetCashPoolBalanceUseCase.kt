@@ -17,12 +17,13 @@ data class CashPoolBalanceSnapshot(
 class GetCashPoolBalanceUseCase(
     private val ledgerEventRepository: LedgerEventRepository,
 ) {
-
-    suspend operator fun invoke(query: GetCashPoolBalanceQuery): CashPoolBalanceSnapshot = CashPoolBalanceSnapshot(
-        group = query.group,
-        availableAmountInCents = ledgerEventRepository
-            .findByGroup(GroupId(query.group))
-            .projectCashPoolBalance()
-            .inCents(),
-    )
+    suspend operator fun invoke(query: GetCashPoolBalanceQuery): CashPoolBalanceSnapshot =
+        CashPoolBalanceSnapshot(
+            group = query.group,
+            availableAmountInCents =
+                ledgerEventRepository
+                    .findByGroup(GroupId(query.group))
+                    .projectCashPoolBalance()
+                    .inCents(),
+        )
 }

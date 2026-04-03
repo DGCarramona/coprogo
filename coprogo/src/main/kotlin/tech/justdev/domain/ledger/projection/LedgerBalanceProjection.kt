@@ -11,27 +11,30 @@ data class MemberLedgerBalance(
 )
 
 fun Iterable<LedgerEvent>.projectMemberBalances(): Set<MemberLedgerBalance> {
-    val balancesByMember = fold(mutableMapOf<MemberId, NetBalanceAmount>()) { balances, event ->
-        event.effects
-            .filterIsInstance<MemberBalanceTransfer>()
-            .fold(balances) { currentBalances, transfer ->
-                currentBalances.also {
-                    it.accumulate(transfer.fromMember, NetBalanceAmount.debt(transfer.amount))
-                    it.accumulate(transfer.toMember, NetBalanceAmount.credit(transfer.amount))
+    val balancesByMember =
+        fold(mutableMapOf<MemberId, NetBalanceAmount>()) { balances, event ->
+            event.effects
+                .filterIsInstance<MemberBalanceTransfer>()
+                .fold(balances) { currentBalances, transfer ->
+                    currentBalances.also {
+                        it.accumulate(transfer.fromMember, NetBalanceAmount.debt(transfer.amount))
+                        it.accumulate(transfer.toMember, NetBalanceAmount.credit(transfer.amount))
+                    }
                 }
-            }
-    }
+        }
 
     return balancesByMember.entries
         .mapNotNull { (member, netAmount) ->
             netAmount
                 .takeUnless(NetBalanceAmount::isZero)
                 ?.let { MemberLedgerBalance(member = member, netAmount = it) }
-        }
-        .toSet()
+        }.toSet()
 }
 
-private fun MutableMap<MemberId, NetBalanceAmount>.accumulate(member: MemberId, delta: NetBalanceAmount) {
+private fun MutableMap<MemberId, NetBalanceAmount>.accumulate(
+    member: MemberId,
+    delta: NetBalanceAmount,
+) {
     val currentAmount = getOrElse(member) { NetBalanceAmount.ZERO }
     put(member, currentAmount + delta)
 }

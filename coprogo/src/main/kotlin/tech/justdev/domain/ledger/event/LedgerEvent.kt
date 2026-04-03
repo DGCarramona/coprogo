@@ -39,17 +39,17 @@ data class AcceptedExpenseLedgerEvent(
                 "expense must be accepted before it can produce a ledger event"
             }
 
-            val transfers = expense.participations
-                .asSequence()
-                .filter { participation -> participation.member != expense.createdBy }
-                .map { participation ->
-                    MemberBalanceTransfer(
-                        fromMember = participation.member,
-                        toMember = expense.createdBy,
-                        amount = participation.amount,
-                    )
-                }
-                .toSet()
+            val transfers =
+                expense.participations
+                    .asSequence()
+                    .filter { participation -> participation.member != expense.createdBy }
+                    .map { participation ->
+                        MemberBalanceTransfer(
+                            fromMember = participation.member,
+                            toMember = expense.createdBy,
+                            amount = participation.amount,
+                        )
+                    }.toSet()
 
             if (transfers.isEmpty()) {
                 return null
@@ -111,22 +111,21 @@ data class RevenueDistributionLedgerEvent(
             group: GroupId,
             occurredAt: Instant,
             distribution: RevenueDistribution,
-        ): RevenueDistributionLedgerEvent {
-            return RevenueDistributionLedgerEvent(
+        ): RevenueDistributionLedgerEvent =
+            RevenueDistributionLedgerEvent(
                 id = id,
                 group = group,
                 totalAmount = distribution.totalAmount,
-                allocations = distribution.allocations
-                    .map { allocation ->
-                        MemberCashPoolShareDelta.increase(
-                            member = allocation.member,
-                            amount = allocation.amount,
-                        )
-                    }
-                    .toSet(),
+                allocations =
+                    distribution.allocations
+                        .map { allocation ->
+                            MemberCashPoolShareDelta.increase(
+                                member = allocation.member,
+                                amount = allocation.amount,
+                            )
+                        }.toSet(),
                 occurredAt = occurredAt,
             )
-        }
     }
 }
 
@@ -155,11 +154,12 @@ data class CashPoolWithdrawalLedgerEvent(
     }
 
     override val effects: Set<LedgerEffect>
-        get() = buildSet {
-            add(CashPoolBalanceDelta.decrease(withdrawnAmount))
-            if (ownRevenueShareConsumed > MoneyAmount.ZERO) {
-                add(MemberCashPoolShareDelta.decrease(member = withdrawnBy, amount = ownRevenueShareConsumed))
+        get() =
+            buildSet {
+                add(CashPoolBalanceDelta.decrease(withdrawnAmount))
+                if (ownRevenueShareConsumed > MoneyAmount.ZERO) {
+                    add(MemberCashPoolShareDelta.decrease(member = withdrawnBy, amount = ownRevenueShareConsumed))
+                }
+                addAll(balanceTransfers)
             }
-            addAll(balanceTransfers)
-        }
 }

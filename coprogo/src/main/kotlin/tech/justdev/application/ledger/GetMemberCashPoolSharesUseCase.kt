@@ -22,19 +22,19 @@ data class GroupMemberCashPoolSharesSnapshot(
 class GetMemberCashPoolSharesUseCase(
     private val ledgerEventRepository: LedgerEventRepository,
 ) {
-
     suspend operator fun invoke(query: GetMemberCashPoolSharesQuery): GroupMemberCashPoolSharesSnapshot =
         GroupMemberCashPoolSharesSnapshot(
             group = query.group,
-            shares = ledgerEventRepository
-                .findByGroup(GroupId(query.group))
-                .projectMemberCashPoolShares()
-                .sortedBy { balance -> balance.member.toPrimitive() }
-                .map { balance ->
-                    MemberCashPoolShareSnapshot(
-                        member = balance.member.toPrimitive(),
-                        amountInCents = balance.amount.inCents(),
-                    )
-                },
+            shares =
+                ledgerEventRepository
+                    .findByGroup(GroupId(query.group))
+                    .projectMemberCashPoolShares()
+                    .sortedBy { balance -> balance.member.toPrimitive() }
+                    .map { balance ->
+                        MemberCashPoolShareSnapshot(
+                            member = balance.member.toPrimitive(),
+                            amountInCents = balance.amount.inCents(),
+                        )
+                    },
         )
 }

@@ -6,7 +6,9 @@ package tech.justdev.domain.shared.money
  * Decimal arithmetic should stay out of this type to avoid rounding drift on financial amounts.
  */
 @JvmInline
-value class MoneyAmount private constructor(private val amountInCents: Long) {
+value class MoneyAmount private constructor(
+    private val amountInCents: Long,
+) {
     init {
         require(amountInCents >= 0) { "amountInCents must be >= 0" }
     }

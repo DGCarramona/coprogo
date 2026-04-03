@@ -9,7 +9,9 @@ import java.time.LocalDate
 import java.util.UUID
 
 @JvmInline
-value class OwnershipShareChangeId(private val value: UUID) {
+value class OwnershipShareChangeId(
+    private val value: UUID,
+) {
     fun toPrimitive(): UUID = value
 }
 
@@ -63,8 +65,7 @@ data class OwnershipShareTimeline(
             ?.shares
             ?: throw IllegalArgumentException("no ownership shares are effective on $date")
 
-    fun history(): List<OwnershipShareChange> =
-        changes.sortedBy { change -> change.effectiveDate }
+    fun history(): List<OwnershipShareChange> = changes.sortedBy { change -> change.effectiveDate }
 
     companion object {
         fun empty(group: GroupId): OwnershipShareTimeline = OwnershipShareTimeline(group = group, changes = emptyList())

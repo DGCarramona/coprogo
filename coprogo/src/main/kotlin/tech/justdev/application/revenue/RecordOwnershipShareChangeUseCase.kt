@@ -29,28 +29,29 @@ class RecordOwnershipShareChangeUseCase(
     private val ownershipShareTimelineRepository: OwnershipShareTimelineRepository,
     private val ownershipShareChangeIdGenerator: OwnershipShareChangeIdGenerator = RandomOwnershipShareChangeIdGenerator,
 ) {
-
     suspend operator fun invoke(command: RecordOwnershipShareChangeCommand) {
         val group = GroupId(command.group)
-        val existingTimeline = ownershipShareTimelineRepository.findByGroup(group)
-            ?: OwnershipShareTimeline.empty(group)
+        val existingTimeline =
+            ownershipShareTimelineRepository.findByGroup(group)
+                ?: OwnershipShareTimeline.empty(group)
 
-        val updatedTimeline = existingTimeline.recordChange(
-            OwnershipShareChange(
-                id = ownershipShareChangeIdGenerator.next(),
-                effectiveDate = command.effectiveDate,
-                recordedBy = MemberId(command.recordedBy),
-                recordedAt = command.recordedAt,
-                shares = command.shares
-                    .map { share ->
-                        OwnershipShare(
-                            member = MemberId(share.member),
-                            percentage = OwnershipPercentage.ofPercentage(share.percentage),
-                        )
-                    }
-                    .toSet(),
-            ),
-        )
+        val updatedTimeline =
+            existingTimeline.recordChange(
+                OwnershipShareChange(
+                    id = ownershipShareChangeIdGenerator.next(),
+                    effectiveDate = command.effectiveDate,
+                    recordedBy = MemberId(command.recordedBy),
+                    recordedAt = command.recordedAt,
+                    shares =
+                        command.shares
+                            .map { share ->
+                                OwnershipShare(
+                                    member = MemberId(share.member),
+                                    percentage = OwnershipPercentage.ofPercentage(share.percentage),
+                                )
+                            }.toSet(),
+                ),
+            )
 
         ownershipShareTimelineRepository.save(updatedTimeline)
     }

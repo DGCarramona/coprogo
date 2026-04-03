@@ -6,10 +6,10 @@ import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationStatus
 import tech.justdev.domain.expense.valueobject.ExpenseShare
 import tech.justdev.domain.expense.valueobject.ExpenseStatus
-import tech.justdev.domain.shared.valueobject.GroupId
-import tech.justdev.domain.shared.valueobject.MemberId
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.domain.shared.money.sum
+import tech.justdev.domain.shared.valueobject.GroupId
+import tech.justdev.domain.shared.valueobject.MemberId
 import java.time.Instant
 
 data class Expense(
@@ -36,11 +36,12 @@ data class Expense(
     }
 
     val status: ExpenseStatus
-        get() = when {
-            participations.any { it.status is ExpenseParticipationStatus.Refused } -> ExpenseStatus.INVALIDATED
-            participations.all { it.status is ExpenseParticipationStatus.Approved } -> ExpenseStatus.ACCEPTED
-            else -> ExpenseStatus.PROPOSED
-        }
+        get() =
+            when {
+                participations.any { it.status is ExpenseParticipationStatus.Refused } -> ExpenseStatus.INVALIDATED
+                participations.all { it.status is ExpenseParticipationStatus.Approved } -> ExpenseStatus.ACCEPTED
+                else -> ExpenseStatus.PROPOSED
+            }
 
     fun recordParticipationDecision(
         member: MemberId,
@@ -50,24 +51,28 @@ data class Expense(
         require(status == ExpenseStatus.PROPOSED) { "expense is not awaiting participant decisions" }
         require(member != createdBy) { "creator participation is approved at creation time" }
 
-        val currentParticipation = participations.find { it.member == member }
-            ?: throw IllegalArgumentException("member is not part of this expense")
+        val currentParticipation =
+            participations.find { it.member == member }
+                ?: throw IllegalArgumentException("member is not part of this expense")
 
         require(currentParticipation.status is ExpenseParticipationStatus.Pending) {
             "member participation decision was already recorded"
         }
 
-        val updatedParticipation = currentParticipation.copy(
-            status = when (decision) {
-                ExpenseParticipationDecision.APPROVE -> ExpenseParticipationStatus.Approved(decidedAt)
-                ExpenseParticipationDecision.REFUSE -> ExpenseParticipationStatus.Refused(decidedAt)
-            },
-        )
+        val updatedParticipation =
+            currentParticipation.copy(
+                status =
+                    when (decision) {
+                        ExpenseParticipationDecision.APPROVE -> ExpenseParticipationStatus.Approved(decidedAt)
+                        ExpenseParticipationDecision.REFUSE -> ExpenseParticipationStatus.Refused(decidedAt)
+                    },
+            )
 
         return copy(
-            participations = participations
-                .minus(currentParticipation)
-                .plus(updatedParticipation),
+            participations =
+                participations
+                    .minus(currentParticipation)
+                    .plus(updatedParticipation),
         )
     }
 
@@ -99,15 +104,15 @@ data class Expense(
                 "equal split requires at least 1 cent per participant"
             }
 
-            val shares = sortedParticipants
-                .withIndex()
-                .map { indexedParticipant ->
-                    ExpenseShare(
-                        member = indexedParticipant.value,
-                        amount = allocatedAmounts[indexedParticipant.index],
-                    )
-                }
-                .toSet()
+            val shares =
+                sortedParticipants
+                    .withIndex()
+                    .map { indexedParticipant ->
+                        ExpenseShare(
+                            member = indexedParticipant.value,
+                            amount = allocatedAmounts[indexedParticipant.index],
+                        )
+                    }.toSet()
 
             return propose(
                 id = id,
@@ -135,17 +140,20 @@ data class Expense(
                 "creator must participate in the expense"
             }
 
-            val participations = shares.map { share ->
-                ExpenseParticipation(
-                    member = share.member,
-                    amount = share.amount,
-                    status = if (share.member == createdBy) {
-                        ExpenseParticipationStatus.Approved(createdAt)
-                    } else {
-                        ExpenseParticipationStatus.Pending
-                    },
-                )
-            }.toSet()
+            val participations =
+                shares
+                    .map { share ->
+                        ExpenseParticipation(
+                            member = share.member,
+                            amount = share.amount,
+                            status =
+                                if (share.member == createdBy) {
+                                    ExpenseParticipationStatus.Approved(createdAt)
+                                } else {
+                                    ExpenseParticipationStatus.Pending
+                                },
+                        )
+                    }.toSet()
 
             return Expense(
                 id = id,

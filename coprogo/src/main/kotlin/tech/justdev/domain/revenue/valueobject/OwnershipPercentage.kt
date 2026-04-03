@@ -4,7 +4,9 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 @JvmInline
-value class OwnershipPercentage private constructor(private val basisPoints: Int) {
+value class OwnershipPercentage private constructor(
+    private val basisPoints: Int,
+) {
     init {
         require(basisPoints in 1..ONE_HUNDRED_BASIS_POINTS) { "basisPoints must be between 1 and 10000" }
     }

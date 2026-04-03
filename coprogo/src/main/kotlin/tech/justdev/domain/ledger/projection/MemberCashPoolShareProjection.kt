@@ -11,22 +11,22 @@ data class MemberCashPoolShareBalance(
 )
 
 fun Iterable<LedgerEvent>.projectMemberCashPoolShares(): Set<MemberCashPoolShareBalance> {
-    val amountsByMember = fold(mutableMapOf<MemberId, NetBalanceAmount>()) { amounts, event ->
-        event.effects
-            .filterIsInstance<MemberCashPoolShareDelta>()
-            .fold(amounts) { currentAmounts, delta ->
-                currentAmounts.also {
-                    val currentAmount = it.getOrElse(delta.member) { NetBalanceAmount.ZERO }
-                    it[delta.member] = currentAmount + delta.amount
+    val amountsByMember =
+        fold(mutableMapOf<MemberId, NetBalanceAmount>()) { amounts, event ->
+            event.effects
+                .filterIsInstance<MemberCashPoolShareDelta>()
+                .fold(amounts) { currentAmounts, delta ->
+                    currentAmounts.also {
+                        val currentAmount = it.getOrElse(delta.member) { NetBalanceAmount.ZERO }
+                        it[delta.member] = currentAmount + delta.amount
+                    }
                 }
-            }
-    }
+        }
 
     return amountsByMember.entries
         .mapNotNull { (member, amount) ->
             amount
                 .takeUnless(NetBalanceAmount::isZero)
                 ?.let { MemberCashPoolShareBalance(member = member, amount = it) }
-        }
-        .toSet()
+        }.toSet()
 }

@@ -32,29 +32,31 @@ data class OwnershipShareSnapshot(
 class GetOwnershipShareTimelineUseCase(
     private val ownershipShareTimelineRepository: OwnershipShareTimelineRepository,
 ) {
-
     suspend operator fun invoke(query: GetOwnershipShareTimelineQuery): OwnershipShareTimelineSnapshot {
-        val timeline = ownershipShareTimelineRepository.findByGroup(GroupId(query.group))
-            ?: throw IllegalArgumentException("ownership share timeline for group ${query.group} was not found")
+        val timeline =
+            ownershipShareTimelineRepository.findByGroup(GroupId(query.group))
+                ?: throw IllegalArgumentException("ownership share timeline for group ${query.group} was not found")
 
         return OwnershipShareTimelineSnapshot(
             group = timeline.group.toPrimitive(),
-            changes = timeline.history().map { change ->
-                OwnershipShareChangeSnapshot(
-                    change = change.id.toPrimitive(),
-                    effectiveDate = change.effectiveDate,
-                    recordedBy = change.recordedBy.toPrimitive(),
-                    recordedAt = change.recordedAt,
-                    shares = change.shares
-                        .sortedBy { share -> share.member.toPrimitive() }
-                        .map { share ->
-                            OwnershipShareSnapshot(
-                                member = share.member.toPrimitive(),
-                                percentage = BigDecimal.valueOf(share.percentage.inBasisPoints().toLong(), 2),
-                            )
-                        },
-                )
-            },
+            changes =
+                timeline.history().map { change ->
+                    OwnershipShareChangeSnapshot(
+                        change = change.id.toPrimitive(),
+                        effectiveDate = change.effectiveDate,
+                        recordedBy = change.recordedBy.toPrimitive(),
+                        recordedAt = change.recordedAt,
+                        shares =
+                            change.shares
+                                .sortedBy { share -> share.member.toPrimitive() }
+                                .map { share ->
+                                    OwnershipShareSnapshot(
+                                        member = share.member.toPrimitive(),
+                                        percentage = BigDecimal.valueOf(share.percentage.inBasisPoints().toLong(), 2),
+                                    )
+                                },
+                    )
+                },
         )
     }
 }
