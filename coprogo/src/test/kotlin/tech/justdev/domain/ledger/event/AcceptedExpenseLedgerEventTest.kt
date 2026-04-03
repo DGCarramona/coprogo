@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import tech.justdev.domain.expense.entity.Expense
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
 import tech.justdev.domain.expense.valueobject.ExpenseShare
+import tech.justdev.domain.ledger.effect.MemberBalanceTransfer
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.testsupport.acceptedExpenseLedgerEventId
 import tech.justdev.testsupport.expenseId
@@ -47,8 +48,8 @@ class AcceptedExpenseLedgerEventTest {
                 paidBy = memberId("alice"),
                 occurredAt = Instant.parse("2026-04-03T12:00:00Z"),
                 transfers = setOf(
-                    LedgerTransfer(memberId("bob"), memberId("alice"), MoneyAmount.ofCents(35)),
-                    LedgerTransfer(memberId("carol"), memberId("alice"), MoneyAmount.ofCents(25)),
+                    MemberBalanceTransfer(memberId("bob"), memberId("alice"), MoneyAmount.ofCents(35)),
+                    MemberBalanceTransfer(memberId("carol"), memberId("alice"), MoneyAmount.ofCents(25)),
                 ),
             ),
             AcceptedExpenseLedgerEvent.from(acceptedExpense),
