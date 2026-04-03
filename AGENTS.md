@@ -96,6 +96,20 @@ Generate production-ready code that:
 - includes meaningful automated tests
 - preserves auditability and historical traceability
 
+## User Interaction and Guideline Evolution (Mandatory)
+
+### Clarification before implementation
+
+- The agent must surface all blocking questions, ambiguities, and conflicting interpretations in the user request before starting implementation or editing files.
+- When an assumption could materially affect scope, behavior, architecture, or acceptance criteria, the agent must ask first instead of silently choosing an interpretation.
+- The agent may proceed without additional questions only when the request is already precise enough that no material uncertainty remains.
+
+### Proposing guideline updates
+
+- If the user provides an instruction that complements, refines, or extends the existing repository guidance in a reusable way, the agent must propose updating this `AGENTS.md` file.
+- The proposal should be made in the same conversation, before the instruction is likely to be lost or applied only implicitly.
+- If the user confirms, the agent should update the guidelines as part of the task when feasible.
+
 ## 2. Monorepo Architecture (Mandatory)
 
 Treat the repository as a polyglot monorepo with explicit boundaries.
