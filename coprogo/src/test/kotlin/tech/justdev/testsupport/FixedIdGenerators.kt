@@ -10,10 +10,9 @@ class FixedExpenseIdGenerator(
 ) : ExpenseIdGenerator {
     private var nextIndex = 0
 
-    override fun next(): ExpenseId {
-        return ids.getOrNull(nextIndex++)
+    override fun next(): ExpenseId =
+        ids.getOrNull(nextIndex++)
             ?: throw IllegalStateException("no fixed expense id configured for index $nextIndex")
-    }
 }
 
 class FixedOwnershipShareChangeIdGenerator(
@@ -21,8 +20,7 @@ class FixedOwnershipShareChangeIdGenerator(
 ) : OwnershipShareChangeIdGenerator {
     private var nextIndex = 0
 
-    override fun next(): OwnershipShareChangeId {
-        return ids.getOrNull(nextIndex++)
+    override fun next(): OwnershipShareChangeId =
+        ids.getOrNull(nextIndex++)
             ?: throw IllegalStateException("no fixed ownership share change id configured for index $nextIndex")
-    }
 }

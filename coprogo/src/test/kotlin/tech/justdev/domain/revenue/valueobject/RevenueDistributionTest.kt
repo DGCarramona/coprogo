@@ -7,17 +7,18 @@ import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.testsupport.memberId
 
 class RevenueDistributionTest {
-
     @Test
     fun `distribute should split cents with deterministic remainder allocation`() {
-        val result = RevenueDistribution.distribute(
-            totalAmount = MoneyAmount.ofCents(100),
-            ownershipShares = setOf(
-                OwnershipShare(member = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(3333)),
-                OwnershipShare(member = memberId("bob"), percentage = OwnershipPercentage.ofBasisPoints(3333)),
-                OwnershipShare(member = memberId("carol"), percentage = OwnershipPercentage.ofBasisPoints(3334)),
-            ),
-        )
+        val result =
+            RevenueDistribution.distribute(
+                totalAmount = MoneyAmount.ofCents(100),
+                ownershipShares =
+                    setOf(
+                        OwnershipShare(member = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(3333)),
+                        OwnershipShare(member = memberId("bob"), percentage = OwnershipPercentage.ofBasisPoints(3333)),
+                        OwnershipShare(member = memberId("carol"), percentage = OwnershipPercentage.ofBasisPoints(3334)),
+                    ),
+            )
 
         assertEquals(MoneyAmount.ofCents(100), result.totalAmount)
         assertEquals(
@@ -32,13 +33,15 @@ class RevenueDistributionTest {
 
     @Test
     fun `distribute should break equal remainders deterministically by member id`() {
-        val result = RevenueDistribution.distribute(
-            totalAmount = MoneyAmount.ofCents(1),
-            ownershipShares = setOf(
-                OwnershipShare(member = memberId("bob"), percentage = OwnershipPercentage.ofBasisPoints(5000)),
-                OwnershipShare(member = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(5000)),
-            ),
-        )
+        val result =
+            RevenueDistribution.distribute(
+                totalAmount = MoneyAmount.ofCents(1),
+                ownershipShares =
+                    setOf(
+                        OwnershipShare(member = memberId("bob"), percentage = OwnershipPercentage.ofBasisPoints(5000)),
+                        OwnershipShare(member = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(5000)),
+                    ),
+            )
 
         assertEquals(
             setOf(
@@ -54,10 +57,11 @@ class RevenueDistributionTest {
         assertThrows(IllegalArgumentException::class.java) {
             RevenueDistribution.distribute(
                 totalAmount = MoneyAmount.ofCents(100),
-                ownershipShares = setOf(
-                    OwnershipShare(member = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(4000)),
-                    OwnershipShare(member = memberId("bob"), percentage = OwnershipPercentage.ofBasisPoints(5000)),
-                ),
+                ownershipShares =
+                    setOf(
+                        OwnershipShare(member = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(4000)),
+                        OwnershipShare(member = memberId("bob"), percentage = OwnershipPercentage.ofBasisPoints(5000)),
+                    ),
             )
         }
     }
@@ -67,10 +71,11 @@ class RevenueDistributionTest {
         assertThrows(IllegalArgumentException::class.java) {
             RevenueDistribution.distribute(
                 totalAmount = MoneyAmount.ofCents(100),
-                ownershipShares = setOf(
-                    OwnershipShare(member = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(6000)),
-                    OwnershipShare(member = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(4000)),
-                ),
+                ownershipShares =
+                    setOf(
+                        OwnershipShare(member = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(6000)),
+                        OwnershipShare(member = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(4000)),
+                    ),
             )
         }
     }

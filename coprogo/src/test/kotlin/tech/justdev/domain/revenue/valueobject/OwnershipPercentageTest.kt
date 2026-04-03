@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
 class OwnershipPercentageTest {
-
     @Test
     fun `ofPercentage should convert a two-decimal percentage into basis points`() {
         assertEquals(3333, OwnershipPercentage.ofPercentage(BigDecimal("33.33")).inBasisPoints())

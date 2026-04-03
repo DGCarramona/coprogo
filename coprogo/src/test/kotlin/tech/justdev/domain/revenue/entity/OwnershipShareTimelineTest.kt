@@ -12,31 +12,33 @@ import java.time.Instant
 import java.time.LocalDate
 
 class OwnershipShareTimelineTest {
-
     @Test
     fun `sharesAt should return the latest shares effective on the requested date`() {
-        val timeline = OwnershipShareTimeline.empty(groupId("group-1"))
-            .recordChange(
-                change(
-                    changeId = "change-1",
-                    effectiveDate = LocalDate.parse("2026-01-01"),
-                    shares = setOf(
-                        share("alice", 6000),
-                        share("bob", 4000),
+        val timeline =
+            OwnershipShareTimeline
+                .empty(groupId("group-1"))
+                .recordChange(
+                    change(
+                        changeId = "change-1",
+                        effectiveDate = LocalDate.parse("2026-01-01"),
+                        shares =
+                            setOf(
+                                share("alice", 6000),
+                                share("bob", 4000),
+                            ),
                     ),
-                ),
-            )
-            .recordChange(
-                change(
-                    changeId = "change-2",
-                    effectiveDate = LocalDate.parse("2026-03-01"),
-                    shares = setOf(
-                        share("alice", 5000),
-                        share("bob", 3000),
-                        share("carol", 2000),
+                ).recordChange(
+                    change(
+                        changeId = "change-2",
+                        effectiveDate = LocalDate.parse("2026-03-01"),
+                        shares =
+                            setOf(
+                                share("alice", 5000),
+                                share("bob", 3000),
+                                share("carol", 2000),
+                            ),
                     ),
-                ),
-            )
+                )
 
         assertEquals(
             setOf(
@@ -57,27 +59,31 @@ class OwnershipShareTimelineTest {
 
     @Test
     fun `recordChange should reject another change with the same effective date`() {
-        val timeline = OwnershipShareTimeline.empty(groupId("group-1"))
-            .recordChange(
-                change(
-                    changeId = "change-1",
-                    effectiveDate = LocalDate.parse("2026-01-01"),
-                    shares = setOf(
-                        share("alice", 6000),
-                        share("bob", 4000),
+        val timeline =
+            OwnershipShareTimeline
+                .empty(groupId("group-1"))
+                .recordChange(
+                    change(
+                        changeId = "change-1",
+                        effectiveDate = LocalDate.parse("2026-01-01"),
+                        shares =
+                            setOf(
+                                share("alice", 6000),
+                                share("bob", 4000),
+                            ),
                     ),
-                ),
-            )
+                )
 
         assertThrows(IllegalArgumentException::class.java) {
             timeline.recordChange(
                 change(
                     changeId = "change-2",
                     effectiveDate = LocalDate.parse("2026-01-01"),
-                    shares = setOf(
-                        share("alice", 5000),
-                        share("bob", 5000),
-                    ),
+                    shares =
+                        setOf(
+                            share("alice", 5000),
+                            share("bob", 5000),
+                        ),
                 ),
             )
         }
@@ -92,11 +98,13 @@ class OwnershipShareTimelineTest {
         }
     }
 
-    private fun share(memberId: String, basisPoints: Int) =
-        OwnershipShare(
-            member = memberId(memberId),
-            percentage = OwnershipPercentage.ofBasisPoints(basisPoints),
-        )
+    private fun share(
+        memberId: String,
+        basisPoints: Int,
+    ) = OwnershipShare(
+        member = memberId(memberId),
+        percentage = OwnershipPercentage.ofBasisPoints(basisPoints),
+    )
 
     private fun change(
         changeId: String,

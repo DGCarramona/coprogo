@@ -14,7 +14,6 @@ import tech.justdev.testsupport.memberId
 import java.time.Instant
 
 class ExpenseTest {
-
     @Test
     fun `proposeEqualSplit should split remainder deterministically by member id`() {
         assertEquals(
@@ -25,11 +24,16 @@ class ExpenseTest {
                 createdBy = memberId("alice"),
                 totalAmount = MoneyAmount.ofCents(100),
                 createdAt = Instant.parse("2026-04-03T10:00:00Z"),
-                participations = setOf(
-                    ExpenseParticipation(memberId("alice"), MoneyAmount.ofCents(34), ExpenseParticipationStatus.Approved(Instant.parse("2026-04-03T10:00:00Z"))),
-                    ExpenseParticipation(memberId("bob"), MoneyAmount.ofCents(33), ExpenseParticipationStatus.Pending),
-                    ExpenseParticipation(memberId("carol"), MoneyAmount.ofCents(33), ExpenseParticipationStatus.Pending),
-                ),
+                participations =
+                    setOf(
+                        ExpenseParticipation(
+                            memberId("alice"),
+                            MoneyAmount.ofCents(34),
+                            ExpenseParticipationStatus.Approved(Instant.parse("2026-04-03T10:00:00Z")),
+                        ),
+                        ExpenseParticipation(memberId("bob"), MoneyAmount.ofCents(33), ExpenseParticipationStatus.Pending),
+                        ExpenseParticipation(memberId("carol"), MoneyAmount.ofCents(33), ExpenseParticipationStatus.Pending),
+                    ),
             ),
             Expense.proposeEqualSplit(
                 id = expenseId("expense-1"),
@@ -69,10 +73,11 @@ class ExpenseTest {
                 createdBy = memberId("alice"),
                 totalAmount = MoneyAmount.ofCents(100),
                 createdAt = Instant.parse("2026-04-03T10:00:00Z"),
-                shares = setOf(
-                    ExpenseShare(memberId("alice"), MoneyAmount.ofCents(40)),
-                    ExpenseShare(memberId("bob"), MoneyAmount.ofCents(60)),
-                ),
+                shares =
+                    setOf(
+                        ExpenseShare(memberId("alice"), MoneyAmount.ofCents(40)),
+                        ExpenseShare(memberId("bob"), MoneyAmount.ofCents(60)),
+                    ),
             ),
         )
     }
@@ -89,10 +94,19 @@ class ExpenseTest {
                 createdBy = memberId("alice"),
                 totalAmount = MoneyAmount.ofCents(100),
                 createdAt = Instant.parse("2026-04-03T10:00:00Z"),
-                participations = setOf(
-                    ExpenseParticipation(memberId("alice"), MoneyAmount.ofCents(40), ExpenseParticipationStatus.Approved(Instant.parse("2026-04-03T10:00:00Z"))),
-                    ExpenseParticipation(memberId("bob"), MoneyAmount.ofCents(60), ExpenseParticipationStatus.Approved(Instant.parse("2026-04-03T12:00:00Z"))),
-                ),
+                participations =
+                    setOf(
+                        ExpenseParticipation(
+                            memberId("alice"),
+                            MoneyAmount.ofCents(40),
+                            ExpenseParticipationStatus.Approved(Instant.parse("2026-04-03T10:00:00Z")),
+                        ),
+                        ExpenseParticipation(
+                            memberId("bob"),
+                            MoneyAmount.ofCents(60),
+                            ExpenseParticipationStatus.Approved(Instant.parse("2026-04-03T12:00:00Z")),
+                        ),
+                    ),
             ),
             proposedExpense.recordParticipationDecision(
                 member = memberId("bob"),
@@ -114,10 +128,19 @@ class ExpenseTest {
                 createdBy = memberId("alice"),
                 totalAmount = MoneyAmount.ofCents(100),
                 createdAt = Instant.parse("2026-04-03T10:00:00Z"),
-                participations = setOf(
-                    ExpenseParticipation(memberId("alice"), MoneyAmount.ofCents(40), ExpenseParticipationStatus.Approved(Instant.parse("2026-04-03T10:00:00Z"))),
-                    ExpenseParticipation(memberId("bob"), MoneyAmount.ofCents(60), ExpenseParticipationStatus.Refused(Instant.parse("2026-04-03T12:00:00Z"))),
-                ),
+                participations =
+                    setOf(
+                        ExpenseParticipation(
+                            memberId("alice"),
+                            MoneyAmount.ofCents(40),
+                            ExpenseParticipationStatus.Approved(Instant.parse("2026-04-03T10:00:00Z")),
+                        ),
+                        ExpenseParticipation(
+                            memberId("bob"),
+                            MoneyAmount.ofCents(60),
+                            ExpenseParticipationStatus.Refused(Instant.parse("2026-04-03T12:00:00Z")),
+                        ),
+                    ),
             ),
             proposedExpense.recordParticipationDecision(
                 member = memberId("bob"),
@@ -137,9 +160,10 @@ class ExpenseTest {
                 createdBy = memberId("alice"),
                 totalAmount = MoneyAmount.ofCents(100),
                 createdAt = Instant.parse("2026-04-03T10:00:00Z"),
-                shares = setOf(
-                    ExpenseShare(memberId("bob"), MoneyAmount.ofCents(100)),
-                ),
+                shares =
+                    setOf(
+                        ExpenseShare(memberId("bob"), MoneyAmount.ofCents(100)),
+                    ),
             )
         }
     }
@@ -152,9 +176,10 @@ class ExpenseTest {
             createdBy = memberId("alice"),
             totalAmount = MoneyAmount.ofCents(100),
             createdAt = Instant.parse("2026-04-03T10:00:00Z"),
-            shares = setOf(
-                ExpenseShare(memberId("alice"), MoneyAmount.ofCents(40)),
-                ExpenseShare(memberId("bob"), MoneyAmount.ofCents(60)),
-            ),
+            shares =
+                setOf(
+                    ExpenseShare(memberId("alice"), MoneyAmount.ofCents(40)),
+                    ExpenseShare(memberId("bob"), MoneyAmount.ofCents(60)),
+                ),
         )
 }

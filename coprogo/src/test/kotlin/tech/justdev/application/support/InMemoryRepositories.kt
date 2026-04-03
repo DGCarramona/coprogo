@@ -1,8 +1,8 @@
 package tech.justdev.application.support
 
 import tech.justdev.domain.expense.entity.Expense
-import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.expense.repository.ExpenseRepository
+import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.expense.valueobject.ExpenseStatus
 import tech.justdev.domain.ledger.event.LedgerEvent
 import tech.justdev.domain.ledger.repository.LedgerEventRepository
@@ -35,8 +35,7 @@ class InMemoryLedgerEventRepository(
         storedEvents += event
     }
 
-    override suspend fun findByGroup(group: GroupId): List<LedgerEvent> =
-        storedEvents.filter { event -> event.group == group }
+    override suspend fun findByGroup(group: GroupId): List<LedgerEvent> = storedEvents.filter { event -> event.group == group }
 
     fun allEvents(): List<LedgerEvent> = storedEvents.toList()
 }

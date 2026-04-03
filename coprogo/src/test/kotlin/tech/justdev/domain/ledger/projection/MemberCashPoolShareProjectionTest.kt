@@ -16,38 +16,41 @@ import tech.justdev.testsupport.memberId
 import java.time.Instant
 
 class MemberCashPoolShareProjectionTest {
-
     @Test
     fun `projectMemberCashPoolShares should track distributed revenue share that remains in the common cash pool`() {
-        val shareBalances = listOf(
-            RevenueDistributionLedgerEvent.from(
-                id = ledgerEventId("revenue-distribution-1"),
-                group = groupId("group-1"),
-                occurredAt = Instant.parse("2026-04-03T10:00:00Z"),
-                distribution = RevenueDistribution.distribute(
-                    totalAmount = MoneyAmount.ofCents(100),
-                    ownershipShares = setOf(
-                        OwnershipShare(memberId("alice"), OwnershipPercentage.ofBasisPoints(6000)),
-                        OwnershipShare(memberId("bob"), OwnershipPercentage.ofBasisPoints(4000)),
-                    ),
+        val shareBalances =
+            listOf(
+                RevenueDistributionLedgerEvent.from(
+                    id = ledgerEventId("revenue-distribution-1"),
+                    group = groupId("group-1"),
+                    occurredAt = Instant.parse("2026-04-03T10:00:00Z"),
+                    distribution =
+                        RevenueDistribution.distribute(
+                            totalAmount = MoneyAmount.ofCents(100),
+                            ownershipShares =
+                                setOf(
+                                    OwnershipShare(memberId("alice"), OwnershipPercentage.ofBasisPoints(6000)),
+                                    OwnershipShare(memberId("bob"), OwnershipPercentage.ofBasisPoints(4000)),
+                                ),
+                        ),
                 ),
-            ),
-            CashPoolWithdrawalLedgerEvent(
-                id = ledgerEventId("cash-pool-withdrawal-1"),
-                group = groupId("group-1"),
-                withdrawnBy = memberId("alice"),
-                withdrawnAmount = MoneyAmount.ofCents(35),
-                ownRevenueShareConsumed = MoneyAmount.ofCents(25),
-                balanceTransfers = setOf(
-                    MemberBalanceTransfer(
-                        fromMember = memberId("alice"),
-                        toMember = memberId("bob"),
-                        amount = MoneyAmount.ofCents(10),
-                    ),
+                CashPoolWithdrawalLedgerEvent(
+                    id = ledgerEventId("cash-pool-withdrawal-1"),
+                    group = groupId("group-1"),
+                    withdrawnBy = memberId("alice"),
+                    withdrawnAmount = MoneyAmount.ofCents(35),
+                    ownRevenueShareConsumed = MoneyAmount.ofCents(25),
+                    balanceTransfers =
+                        setOf(
+                            MemberBalanceTransfer(
+                                fromMember = memberId("alice"),
+                                toMember = memberId("bob"),
+                                amount = MoneyAmount.ofCents(10),
+                            ),
+                        ),
+                    occurredAt = Instant.parse("2026-04-03T12:00:00Z"),
                 ),
-                occurredAt = Instant.parse("2026-04-03T12:00:00Z"),
-            ),
-        ).projectMemberCashPoolShares()
+            ).projectMemberCashPoolShares()
 
         assertEquals(
             setOf(

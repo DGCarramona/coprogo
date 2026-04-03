@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 
 class MoneyAmountTest {
-
     @Test
     fun `splitEvenly should distribute remainder using integer cent arithmetic only`() {
         assertEquals(

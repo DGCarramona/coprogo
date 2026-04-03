@@ -8,7 +8,6 @@ import tech.justdev.testsupport.PostgresMicronautTest
 
 @PostgresMicronautTest
 class CoprogoTest {
-
     @Inject
     lateinit var application: EmbeddedApplication<*>
 
@@ -16,5 +15,4 @@ class CoprogoTest {
     fun testItWorks() {
         Assertions.assertTrue(application.isRunning)
     }
-
 }
