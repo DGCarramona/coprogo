@@ -1,3 +1,27 @@
+## Backend Testing Conventions
+
+### PostgreSQL-backed tests
+
+When a backend test needs a real database, do not wire a PostgreSQL container manually in the test class.
+
+- Use `@PostgresMicronautTest` for the standard case.
+- Use `@MicronautTest(...)` together with `@UsesPostgresTestDatabase` if the test needs custom Micronaut test options.
+
+The shared PostgreSQL test support lives under `src/test/kotlin/tech/justdev/testsupport/` and provides:
+
+- a shared PostgreSQL Testcontainers instance
+- JDBC and R2DBC datasource properties for Micronaut tests
+- automatic property injection through Micronaut test support
+
+Example:
+
+```kotlin
+@PostgresMicronautTest
+class MyRepositoryTest {
+    // ...
+}
+```
+
 ## Micronaut 4.10.10 Documentation
 
 - [User Guide](https://docs.micronaut.io/4.10.10/guide/index.html)
@@ -73,5 +97,4 @@
 
 
 - [Micronaut Serialization Jackson Core documentation](https://micronaut-projects.github.io/micronaut-serialization/latest/guide/)
-
 

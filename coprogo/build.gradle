@@ -44,6 +44,9 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("org.postgresql:r2dbc-postgresql")
     testImplementation("io.micronaut:micronaut-http-client")
+    testImplementation(platform("org.testcontainers:testcontainers-bom:2.0.4"))
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
+    testImplementation("org.testcontainers:testcontainers-postgresql")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     aotPlugins platform("io.micronaut.platform:micronaut-platform:4.10.10")
     aotPlugins("io.micronaut.security:micronaut-security-aot")
@@ -72,6 +75,9 @@ graalvmNative.toolchainDetection = true
 micronaut {
     runtime("netty")
     testRuntime("junit5")
+    testResources {
+        enabled = false
+    }
     processing {
         incremental(true)
         annotations("tech.justdev.*")
