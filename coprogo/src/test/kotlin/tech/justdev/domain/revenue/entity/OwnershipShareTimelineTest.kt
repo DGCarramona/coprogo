@@ -94,7 +94,7 @@ class OwnershipShareTimelineTest {
 
     private fun share(memberId: String, basisPoints: Int) =
         OwnershipShare(
-            memberId = memberId(memberId),
+            member = memberId(memberId),
             percentage = OwnershipPercentage.ofBasisPoints(basisPoints),
         )
 
@@ -105,7 +105,7 @@ class OwnershipShareTimelineTest {
     ) = OwnershipShareChange(
         id = ownershipShareChangeId(changeId),
         effectiveDate = effectiveDate,
-        recordedByMemberId = memberId("owner"),
+        recordedBy = memberId("owner"),
         recordedAt = Instant.parse("2026-04-03T10:00:00Z"),
         shares = shares,
     )

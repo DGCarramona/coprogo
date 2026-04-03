@@ -10,14 +10,14 @@ data class RevenueDistribution(
 ) {
     init {
         require(allocations.isNotEmpty()) { "allocations must not be empty" }
-        require(allocations.map { it.memberId }.toSet().size == allocations.size) { "allocations must contain unique members" }
+        require(allocations.map { it.member }.toSet().size == allocations.size) { "allocations must contain unique members" }
         require(allocations.map { it.amount }.sum() == totalAmount) { "allocation amounts must add up to totalAmount" }
     }
 
     companion object {
         fun distribute(totalAmount: MoneyAmount, ownershipShares: Set<OwnershipShare>): RevenueDistribution {
             require(ownershipShares.isNotEmpty()) { "ownershipShares must not be empty" }
-            require(ownershipShares.map { it.memberId }.toSet().size == ownershipShares.size) {
+            require(ownershipShares.map { it.member }.toSet().size == ownershipShares.size) {
                 "ownershipShares must contain unique members"
             }
 
@@ -26,14 +26,14 @@ data class RevenueDistribution(
                 "ownership shares must add up to 100.00"
             }
 
-            val sortedShares = ownershipShares.sortedBy { share -> share.memberId.value }
+            val sortedShares = ownershipShares.sortedBy { share -> share.member.toPrimitive() }
             val flooredAllocations = sortedShares.map { share ->
                 val rawAmountInBasisPoints = Math.multiplyExact(
                     totalAmount.inCents(),
                     share.percentage.inBasisPoints().toLong(),
                 )
                 FlooredRevenueAllocation(
-                    memberId = share.memberId,
+                    member = share.member,
                     flooredAmount = MoneyAmount.ofCents(rawAmountInBasisPoints / OwnershipPercentage.ONE_HUNDRED_BASIS_POINTS),
                     remainder = rawAmountInBasisPoints % OwnershipPercentage.ONE_HUNDRED_BASIS_POINTS,
                 )
@@ -41,11 +41,11 @@ data class RevenueDistribution(
 
             val allocatedAmount = flooredAllocations.map { allocation -> allocation.flooredAmount }.sum()
             val remainingCentCount = (totalAmount - allocatedAmount).inCents().toInt()
-            val memberIdsReceivingExtraCent = flooredAllocations
+            val membersReceivingExtraCent = flooredAllocations
                 .sortedWith(compareByDescending<FlooredRevenueAllocation> { allocation -> allocation.remainder }
-                    .thenBy { allocation -> allocation.memberId.value })
+                    .thenBy { allocation -> allocation.member.toPrimitive() })
                 .take(remainingCentCount)
-                .map { allocation -> allocation.memberId }
+                .map { allocation -> allocation.member }
                 .toSet()
 
             return RevenueDistribution(
@@ -53,9 +53,9 @@ data class RevenueDistribution(
                 allocations = flooredAllocations
                     .map { allocation ->
                         RevenueAllocation(
-                            memberId = allocation.memberId,
+                            member = allocation.member,
                             amount = allocation.flooredAmount +
-                                if (allocation.memberId in memberIdsReceivingExtraCent) ONE_CENT else MoneyAmount.ZERO,
+                                if (allocation.member in membersReceivingExtraCent) ONE_CENT else MoneyAmount.ZERO,
                         )
                     }
                     .toSet(),
@@ -65,7 +65,7 @@ data class RevenueDistribution(
 }
 
 private data class FlooredRevenueAllocation(
-    val memberId: MemberId,
+    val member: MemberId,
     val flooredAmount: MoneyAmount,
     val remainder: Long,
 )

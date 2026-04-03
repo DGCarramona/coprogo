@@ -9,22 +9,20 @@ import java.time.LocalDate
 import java.util.UUID
 
 @JvmInline
-value class OwnershipShareChangeId(val value: UUID) {
-    override fun toString(): String {
-        return value.toString()
-    }
+value class OwnershipShareChangeId(private val value: UUID) {
+    fun toPrimitive(): UUID = value
 }
 
 data class OwnershipShareChange(
     val id: OwnershipShareChangeId,
     val effectiveDate: LocalDate,
-    val recordedByMemberId: MemberId,
+    val recordedBy: MemberId,
     val recordedAt: Instant,
     val shares: Set<OwnershipShare>,
 ) {
     init {
         require(shares.isNotEmpty()) { "shares must not be empty" }
-        require(shares.map { it.memberId }.toSet().size == shares.size) {
+        require(shares.map { it.member }.toSet().size == shares.size) {
             "shares must contain unique members"
         }
         require(shares.sumOf { share -> share.percentage.inBasisPoints() } == OwnershipPercentage.ONE_HUNDRED_BASIS_POINTS) {
@@ -34,7 +32,7 @@ data class OwnershipShareChange(
 }
 
 data class OwnershipShareTimeline(
-    val groupId: GroupId,
+    val group: GroupId,
     val changes: List<OwnershipShareChange>,
 ) {
     init {
@@ -69,6 +67,6 @@ data class OwnershipShareTimeline(
         changes.sortedBy { change -> change.effectiveDate }
 
     companion object {
-        fun empty(groupId: GroupId): OwnershipShareTimeline = OwnershipShareTimeline(groupId = groupId, changes = emptyList())
+        fun empty(group: GroupId): OwnershipShareTimeline = OwnershipShareTimeline(group = group, changes = emptyList())
     }
 }

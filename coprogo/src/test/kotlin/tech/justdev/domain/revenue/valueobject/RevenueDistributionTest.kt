@@ -13,18 +13,18 @@ class RevenueDistributionTest {
         val result = RevenueDistribution.distribute(
             totalAmount = MoneyAmount.ofCents(100),
             ownershipShares = setOf(
-                OwnershipShare(memberId = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(3333)),
-                OwnershipShare(memberId = memberId("bob"), percentage = OwnershipPercentage.ofBasisPoints(3333)),
-                OwnershipShare(memberId = memberId("carol"), percentage = OwnershipPercentage.ofBasisPoints(3334)),
+                OwnershipShare(member = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(3333)),
+                OwnershipShare(member = memberId("bob"), percentage = OwnershipPercentage.ofBasisPoints(3333)),
+                OwnershipShare(member = memberId("carol"), percentage = OwnershipPercentage.ofBasisPoints(3334)),
             ),
         )
 
         assertEquals(MoneyAmount.ofCents(100), result.totalAmount)
         assertEquals(
             setOf(
-                RevenueAllocation(memberId("alice"), MoneyAmount.ofCents(33)),
-                RevenueAllocation(memberId("bob"), MoneyAmount.ofCents(33)),
-                RevenueAllocation(memberId("carol"), MoneyAmount.ofCents(34)),
+                RevenueAllocation(member = memberId("alice"), amount = MoneyAmount.ofCents(33)),
+                RevenueAllocation(member = memberId("bob"), amount = MoneyAmount.ofCents(33)),
+                RevenueAllocation(member = memberId("carol"), amount = MoneyAmount.ofCents(34)),
             ),
             result.allocations,
         )
@@ -35,15 +35,15 @@ class RevenueDistributionTest {
         val result = RevenueDistribution.distribute(
             totalAmount = MoneyAmount.ofCents(1),
             ownershipShares = setOf(
-                OwnershipShare(memberId = memberId("bob"), percentage = OwnershipPercentage.ofBasisPoints(5000)),
-                OwnershipShare(memberId = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(5000)),
+                OwnershipShare(member = memberId("bob"), percentage = OwnershipPercentage.ofBasisPoints(5000)),
+                OwnershipShare(member = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(5000)),
             ),
         )
 
         assertEquals(
             setOf(
-                RevenueAllocation(memberId("alice"), MoneyAmount.ofCents(1)),
-                RevenueAllocation(memberId("bob"), MoneyAmount.ZERO),
+                RevenueAllocation(member = memberId("alice"), amount = MoneyAmount.ofCents(1)),
+                RevenueAllocation(member = memberId("bob"), amount = MoneyAmount.ZERO),
             ),
             result.allocations,
         )
@@ -55,8 +55,8 @@ class RevenueDistributionTest {
             RevenueDistribution.distribute(
                 totalAmount = MoneyAmount.ofCents(100),
                 ownershipShares = setOf(
-                    OwnershipShare(memberId = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(4000)),
-                    OwnershipShare(memberId = memberId("bob"), percentage = OwnershipPercentage.ofBasisPoints(5000)),
+                    OwnershipShare(member = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(4000)),
+                    OwnershipShare(member = memberId("bob"), percentage = OwnershipPercentage.ofBasisPoints(5000)),
                 ),
             )
         }
@@ -68,8 +68,8 @@ class RevenueDistributionTest {
             RevenueDistribution.distribute(
                 totalAmount = MoneyAmount.ofCents(100),
                 ownershipShares = setOf(
-                    OwnershipShare(memberId = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(6000)),
-                    OwnershipShare(memberId = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(4000)),
+                    OwnershipShare(member = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(6000)),
+                    OwnershipShare(member = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(4000)),
                 ),
             )
         }

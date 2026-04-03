@@ -3,8 +3,6 @@ package tech.justdev.domain.shared.valueobject
 import java.util.UUID
 
 @JvmInline
-value class MemberId(val value: UUID) {
-    override fun toString(): String {
-        return value.toString()
-    }
+value class MemberId(private val value: UUID) {
+    fun toPrimitive(): UUID = value
 }

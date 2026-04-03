@@ -4,10 +4,8 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.util.UUID
 
 @JvmInline
-value class LedgerEventId(val value: UUID) {
-    override fun toString(): String {
-        return value.toString()
-    }
+value class LedgerEventId(private val value: UUID) {
+    fun toPrimitive(): UUID = value
 
     companion object {
         fun fromName(value: String): LedgerEventId {

@@ -92,18 +92,18 @@ data class Expense(
         ): Expense {
             require(participants.isNotEmpty()) { "participantMemberIds must not be empty" }
 
-            val sortedParticipantIds = participants.sortedBy { memberId -> memberId.value }
-            val allocatedAmounts = totalAmount.splitEvenly(sortedParticipantIds.size)
+            val sortedParticipants = participants.sortedBy { member -> member.toPrimitive() }
+            val allocatedAmounts = totalAmount.splitEvenly(sortedParticipants.size)
 
             require(allocatedAmounts.none(MoneyAmount::isZero)) {
                 "equal split requires at least 1 cent per participant"
             }
 
-            val shares = sortedParticipantIds
+            val shares = sortedParticipants
                 .withIndex()
                 .map { indexedParticipant ->
                     ExpenseShare(
-                        memberId = indexedParticipant.value,
+                        member = indexedParticipant.value,
                         amount = allocatedAmounts[indexedParticipant.index],
                     )
                 }
@@ -130,16 +130,16 @@ data class Expense(
             shares: Set<ExpenseShare>,
         ): Expense {
             require(shares.isNotEmpty()) { "shares must not be empty" }
-            require(shares.map { it.memberId }.toSet().size == shares.size) { "shares must contain unique members" }
-            require(shares.any { it.memberId == createdBy && it.amount > MoneyAmount.ZERO }) {
+            require(shares.map { it.member }.toSet().size == shares.size) { "shares must contain unique members" }
+            require(shares.any { it.member == createdBy && it.amount > MoneyAmount.ZERO }) {
                 "creator must participate in the expense"
             }
 
             val participations = shares.map { share ->
                 ExpenseParticipation(
-                    member = share.memberId,
+                    member = share.member,
                     amount = share.amount,
-                    status = if (share.memberId == createdBy) {
+                    status = if (share.member == createdBy) {
                         ExpenseParticipationStatus.Approved(createdAt)
                     } else {
                         ExpenseParticipationStatus.Pending

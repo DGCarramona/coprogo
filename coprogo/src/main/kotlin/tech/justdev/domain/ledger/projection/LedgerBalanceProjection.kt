@@ -6,7 +6,7 @@ import tech.justdev.domain.ledger.valueobject.NetBalanceAmount
 import tech.justdev.domain.shared.valueobject.MemberId
 
 data class MemberLedgerBalance(
-    val memberId: MemberId,
+    val member: MemberId,
     val netAmount: NetBalanceAmount,
 )
 
@@ -23,15 +23,15 @@ fun Iterable<LedgerEvent>.projectMemberBalances(): Set<MemberLedgerBalance> {
     }
 
     return balancesByMember.entries
-        .mapNotNull { (memberId, netAmount) ->
+        .mapNotNull { (member, netAmount) ->
             netAmount
                 .takeUnless(NetBalanceAmount::isZero)
-                ?.let { MemberLedgerBalance(memberId = memberId, netAmount = it) }
+                ?.let { MemberLedgerBalance(member = member, netAmount = it) }
         }
         .toSet()
 }
 
-private fun MutableMap<MemberId, NetBalanceAmount>.accumulate(memberId: MemberId, delta: NetBalanceAmount) {
-    val currentAmount = getOrElse(memberId) { NetBalanceAmount.ZERO }
-    put(memberId, currentAmount + delta)
+private fun MutableMap<MemberId, NetBalanceAmount>.accumulate(member: MemberId, delta: NetBalanceAmount) {
+    val currentAmount = getOrElse(member) { NetBalanceAmount.ZERO }
+    put(member, currentAmount + delta)
 }

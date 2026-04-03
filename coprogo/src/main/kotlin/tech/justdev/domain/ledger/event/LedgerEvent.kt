@@ -56,7 +56,7 @@ data class AcceptedExpenseLedgerEvent(
             }
 
             return AcceptedExpenseLedgerEvent(
-                id = LedgerEventId.fromName("accepted-expense:${expense.id.value}"),
+                id = LedgerEventId.fromName("accepted-expense:${expense.id.toPrimitive()}"),
                 group = expense.group,
                 expense = expense.id,
                 paidBy = expense.createdBy,
@@ -119,7 +119,7 @@ data class RevenueDistributionLedgerEvent(
                 allocations = distribution.allocations
                     .map { allocation ->
                         MemberCashPoolShareDelta.increase(
-                            member = allocation.memberId,
+                            member = allocation.member,
                             amount = allocation.amount,
                         )
                     }

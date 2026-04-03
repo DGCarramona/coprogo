@@ -6,7 +6,7 @@ import tech.justdev.domain.ledger.valueobject.NetBalanceAmount
 import tech.justdev.domain.shared.valueobject.MemberId
 
 data class MemberCashPoolShareBalance(
-    val memberId: MemberId,
+    val member: MemberId,
     val amount: NetBalanceAmount,
 )
 
@@ -23,10 +23,10 @@ fun Iterable<LedgerEvent>.projectMemberCashPoolShares(): Set<MemberCashPoolShare
     }
 
     return amountsByMember.entries
-        .mapNotNull { (memberId, amount) ->
+        .mapNotNull { (member, amount) ->
             amount
                 .takeUnless(NetBalanceAmount::isZero)
-                ?.let { MemberCashPoolShareBalance(memberId = memberId, amount = it) }
+                ?.let { MemberCashPoolShareBalance(member = member, amount = it) }
         }
         .toSet()
 }
