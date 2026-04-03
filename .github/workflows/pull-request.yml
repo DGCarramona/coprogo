@@ -34,6 +34,9 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
+      - name: Run backend format check
+        run: ./gradlew --no-daemon ktlintCheck
+
       - name: Run backend checks
         run: ./gradlew --no-daemon check
 
