@@ -258,6 +258,7 @@ Every behavior change must include or update tests.
 - Test behavior and outcomes, not implementation details.
 - Keep use cases testable without framework coupling.
 - Avoid hidden global state and nondeterminism.
+- Backend tests requiring PostgreSQL must reuse the repository’s shared Testcontainers/Micronaut test infrastructure instead of re-declaring container bootstrap and database property wiring in each suite.
 - Prioritize tests around:
     - expense validation/refusal
     - reimbursement recording and contestation
@@ -294,6 +295,7 @@ Prefer:
 - fail-fast validation
 - immutable domain logic where practical
 - readable naming
+- non-redundant naming in Domain and Application when the type already carries the meaning, for example `member: MemberId` rather than `memberId: MemberId`
 - explicit money/value abstractions
 - explicit audit/event models
 - declarative transformations over imperative mutation
@@ -347,6 +349,9 @@ Do not force functional or reactive patterns where they make the code harder to 
 - Configuration must enter through explicit adapters/config abstractions.
 - Persistence models must not become domain models by accident.
 - Kotlin application use cases should be invokable classes, exposing their primary entry point as `operator fun invoke(...)`.
+- Create use cases must generate the identifier of the resource they create internally; create commands should not carry the target id.
+- CUD use cases should return no payload on success unless a business need explicitly requires a return value.
+- Backend id value objects must keep their primitive storage private, expose primitive extraction explicitly through `toPrimitive()`, and must not expose direct `value` access or custom `toString()` behavior.
 - Financial calculations must use appropriate money-safe representations and deterministic rounding rules.
 - Prefer immutable value objects and pure domain services where practical.
 - Prefer collection and batch-oriented operations over procedural per-item orchestration when possible.
