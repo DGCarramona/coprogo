@@ -31,7 +31,7 @@ class RevenueDistributionController(
                 amountInCents = request.amountInCents,
                 members = request.members.map { member ->
                     PreviewRevenueDistributionMember(
-                        memberId = member.memberId,
+                        member = member.memberId,
                         percentage = member.percentage,
                     )
                 }.toSet(),
@@ -41,7 +41,7 @@ class RevenueDistributionController(
         return RevenueDistributionPreviewResponse(
             totalAmountInCents = distribution.totalAmountInCents,
             allocations = distribution.allocations
-                .map { allocation -> RevenueDistributionAllocation(allocation.memberId, allocation.amountInCents) },
+                .map { allocation -> RevenueDistributionAllocation(allocation.member, allocation.amountInCents) },
         )
     }
 }

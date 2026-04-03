@@ -16,7 +16,7 @@ class PreviewRevenueDistributionUseCase {
         val shares = command.members
             .map { member ->
                 OwnershipShare(
-                    memberId = MemberId(member.memberId),
+                    member = MemberId(member.member),
                     percentage = OwnershipPercentage.ofPercentage(member.percentage),
                 )
             }
@@ -30,10 +30,10 @@ class PreviewRevenueDistributionUseCase {
         return PreviewRevenueDistributionResult(
             totalAmountInCents = distribution.totalAmount.inCents(),
             allocations = distribution.allocations
-                .sortedBy { allocation -> allocation.memberId.value }
+                .sortedBy { allocation -> allocation.member.toPrimitive() }
                 .map { allocation ->
                     PreviewRevenueDistributionAllocation(
-                        memberId = allocation.memberId.value,
+                        member = allocation.member.toPrimitive(),
                         amountInCents = allocation.amount.inCents(),
                     )
                 },
@@ -47,7 +47,7 @@ data class PreviewRevenueDistributionCommand(
 )
 
 data class PreviewRevenueDistributionMember(
-    val memberId: UUID,
+    val member: UUID,
     val percentage: BigDecimal,
 )
 
@@ -57,6 +57,6 @@ data class PreviewRevenueDistributionResult(
 )
 
 data class PreviewRevenueDistributionAllocation(
-    val memberId: UUID,
+    val member: UUID,
     val amountInCents: Long,
 )
