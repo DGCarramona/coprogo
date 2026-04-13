@@ -32,8 +32,8 @@ Backlog derive de l'etat actuel du depot au 2026-04-03.
 
 ## Backend - authentification, groupes et membres
 
-- [ ] BE-AUTH-001 Introduire un adaptateur backend qui extrait l'utilisateur authentifie depuis Micronaut sans fuiter le framework dans le coeur applicatif.
-- [ ] BE-AUTH-002 Remplacer la logique JWT generique par une validation de Google ID token conforme au besoin produit.
+- [x] BE-AUTH-001 Introduire un adaptateur backend qui extrait l'utilisateur authentifie depuis Micronaut sans fuiter le framework dans le coeur applicatif.
+- [x] BE-AUTH-002 Remplacer la logique JWT generique par une validation de Google ID token conforme au besoin produit.
 - [ ] BE-AUTH-003 Ajouter des tests d'integration pour les cas token valide, invalide et utilisateur inconnu du systeme.
 - [ ] BE-GROUP-001 Modeliser les groupes et les membres du groupe dans le domaine.
 - [ ] BE-GROUP-002 Ajouter les migrations Flyway pour groupes, membres et appartenances.
