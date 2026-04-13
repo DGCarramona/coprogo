@@ -12,10 +12,16 @@ frontend/dist/
 frontend/.angular/cache/
 
 # --- Gradle / Kotlin / Micronaut backend ---
+/.gradle/
+/build/
 backend/.gradle/
 backend/build/
 backend/.kotlin/
 backend/out/
+coprogo/.gradle/
+coprogo/build/
+coprogo/.kotlin/
+coprogo/out/
 
 # --- Logs ---
 *.log
@@ -39,6 +45,7 @@ coverage/
 .tmp/
 tmp/
 temp/
+.gradle-tmp
 
 # --- Archives / misc local outputs ---
 *.tmp

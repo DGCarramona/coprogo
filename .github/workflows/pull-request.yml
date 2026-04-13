@@ -14,9 +14,6 @@ jobs:
   backend-quality-and-tests:
     name: Backend quality and tests
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: coprogo
 
     steps:
       - name: Checkout
@@ -38,14 +35,11 @@ jobs:
         run: ./gradlew --no-daemon ktlintCheck
 
       - name: Run backend checks
-        run: ./gradlew --no-daemon check
+        run: ./gradlew --no-daemon backendCheck
 
   frontend-quality-and-tests:
     name: Frontend quality and tests
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
 
     steps:
       - name: Checkout
@@ -60,12 +54,16 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        working-directory: frontend
 
       - name: Run format check
         run: npm run format:check
+        working-directory: frontend
 
       - name: Run lint
         run: npm run lint
+        working-directory: frontend
 
       - name: Run tests
         run: npm run test -- --watch=false
+        working-directory: frontend
