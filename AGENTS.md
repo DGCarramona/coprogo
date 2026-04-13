@@ -188,10 +188,13 @@ Business logic must not live in Micronaut controllers or Angular components.
 - no SSR required by default
 
 ### Monorepo
-- Nx is used as the monorepo orchestration layer.
+- A root Gradle build is used as the monorepo orchestration layer.
 - Gradle remains the source of truth for backend build logic.
 - Angular CLI / Angular build tooling remains the source of truth for frontend build logic.
-- Nx coordinates tasks, caching, affected execution, and CI ergonomics.
+- Root Gradle tasks coordinate install, checks, local developer entrypoints, and CI ergonomics.
+- Prefer the Gradle Node plugin (`com.github.node-gradle.node`) or equivalent when Gradle needs to provision Node.js and run frontend package-manager commands.
+- Long-running frontend/backend developer processes may be wrapped by Gradle convenience tasks, but the native backend and frontend tools remain the authoritative runtime entrypoints.
+- In CI, prefer direct frontend npm/Angular commands for frontend-only jobs unless a specific Gradle aggregation need exists.
 
 ## 4.5. Backend Reactive and Functional Style (Mandatory)
 
@@ -475,8 +478,9 @@ Typical expected commands:
 - `npm run build`
 
 ### Monorepo
-- use Nx orchestration commands when the repository is configured for them
-- prefer affected/project-scoped execution in CI where appropriate
+- use root Gradle orchestration commands when the repository is configured for them
+- prefer project-scoped Gradle tasks or CI matrix execution where appropriate
+- frontend-only CI jobs may use direct `npm` commands instead of Gradle
 
 ## 14. PR / Change Checklist
 
@@ -518,4 +522,4 @@ Examples:
 - `fix(reimbursements): reject contested repayment document`
 - `refactor(backend-ledger): extract balance computation service`
 - `build(frontend): add angular lint and test scripts`
-- `ci(monorepo): run affected frontend and backend checks`
+- `ci(monorepo): run root gradle frontend and backend checks`
