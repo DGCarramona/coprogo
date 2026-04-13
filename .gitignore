@@ -33,12 +33,11 @@ pnpm-debug.log*
 # --- Local env / secrets ---
 .env
 .env.*
-!.env.example
 
-# Optional app-local configs if you use them later
-backend/src/main/resources/application-local.yml
-backend/src/main/resources/application-local.yaml
-backend/src/main/resources/application-local.properties
+# Optional app-local configs
+coprogo/src/main/resources/application-local.yml
+coprogo/src/main/resources/application-local.yaml
+coprogo/src/main/resources/application-local.properties
 
 # --- Temporary / coverage ---
 coverage/
