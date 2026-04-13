@@ -20,15 +20,15 @@ Backlog derive de l'etat actuel du depot au 2026-04-03.
 
 ## Fondations monorepo et DX
 
-- [ ] MONO-001 Ajouter un `settings.gradle.kts` et un `build.gradle.kts` racine pour l'orchestration monorepo.
-- [ ] MONO-002 Configurer le plugin Gradle `com.github.node-gradle.node` pour provisionner Node.js et npm cote frontend.
-- [ ] MONO-003 Ajouter des taches Gradle racine pour installer les dependances frontend et backend en une seule entree (`frontendInstall`, `bootstrap` ou equivalent).
-- [ ] MONO-004 Ajouter des taches Gradle racine pour lancer `lint`, `test` et `build` du frontend depuis Gradle.
-- [ ] MONO-005 Ajouter des taches Gradle racine qui agregent les checks front et back (`checkAll`, `buildAll` ou equivalent).
-- [ ] MONO-006 Ajouter une tache Gradle de dev qui demarre front et back ensemble, avec un mecanisme explicite pour les processus longs (`execfork` ou equivalent).
+- [x] MONO-001 Ajouter un `settings.gradle.kts` et un `build.gradle.kts` racine pour l'orchestration monorepo.
+- [x] MONO-002 Configurer le plugin Gradle `com.github.node-gradle.node` pour provisionner Node.js et npm cote frontend.
+- [x] MONO-003 Ajouter des taches Gradle racine pour installer les dependances frontend et backend en une seule entree (`frontendInstall`, `bootstrap` ou equivalent).
+- [x] MONO-004 Ajouter des taches Gradle racine pour lancer `lint`, `test` et `build` du frontend depuis Gradle.
+- [x] MONO-005 Ajouter des taches Gradle racine qui agregent les checks front et back (`checkAll`, `buildAll` ou equivalent).
+- [x] MONO-006 Ajouter une tache Gradle de dev qui demarre front et back ensemble, avec un mecanisme explicite pour les processus longs (`execfork` ou equivalent).
 - [ ] MONO-007 Completer `docker-compose.yml` avec un service S3-compatible local (ex: MinIO).
 - [ ] MONO-008 Documenter le workflow local monorepo et les nouvelles commandes Gradle racine dans un README racine.
-- [ ] MONO-009 Ajouter une CI qui execute les checks front et back via les entrees Gradle racine.
+- [x] MONO-009 Ajouter une CI qui execute les checks front et back via les entrees Gradle racine.
 
 ## Backend - authentification, groupes et membres
 
