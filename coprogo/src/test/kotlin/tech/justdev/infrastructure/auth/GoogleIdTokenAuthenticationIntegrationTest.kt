@@ -6,34 +6,51 @@ import io.micronaut.http.HttpStatus
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.annotation.Client
 import io.micronaut.http.client.exceptions.HttpClientResponseException
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import jakarta.inject.Inject
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import tech.justdev.testsupport.NoDbMicronautTest
+import tech.justdev.domain.group.entity.Member
+import tech.justdev.domain.group.repository.MemberRepository
+import tech.justdev.domain.group.valueobject.MemberEmail
+import tech.justdev.testsupport.UsesPostgresTestDatabase
 import tech.justdev.testsupport.auth.TestGoogleJwtTokens
 
-@NoDbMicronautTest
+@MicronautTest(transactional = false)
+@UsesPostgresTestDatabase
 class GoogleIdTokenAuthenticationIntegrationTest {
     @Inject
     @field:Client("/")
     lateinit var httpClient: HttpClient
 
+    @Inject
+    lateinit var memberRepository: MemberRepository
+
     @Test
     fun `accepts a valid Google ID token and exposes the authenticated user through the application port`() {
+        val email = "authenticated.member@example.com"
+        runTest {
+            memberRepository.persist(
+                Member(
+                    email = MemberEmail.of(email),
+                    createdAt = java.time.Instant.parse("2026-04-13T09:00:00Z"),
+                ),
+            )
+        }
+
         val request =
             HttpRequest
                 .GET<Any>("/test/authenticated-user")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer ${TestGoogleJwtTokens.googleIdToken()}")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer ${TestGoogleJwtTokens.googleIdToken(email = email)}")
 
         val response = httpClient.toBlocking().exchange(request, TestAuthenticatedUserResponse::class.java)
 
         assertEquals(HttpStatus.OK, response.status)
         assertEquals(
             TestAuthenticatedUserResponse(
-                googleSubject = "google-subject-123",
-                email = "member@example.com",
-                emailVerified = true,
+                email = email,
             ),
             response.body(),
         )
@@ -47,6 +64,42 @@ class GoogleIdTokenAuthenticationIntegrationTest {
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${TestGoogleJwtTokens.googleIdToken(audience = "unexpected-client-id.apps.googleusercontent.com")}",
+                )
+
+        val exception =
+            assertThrows<HttpClientResponseException> {
+                httpClient.toBlocking().exchange(request, String::class.java)
+            }
+
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+    }
+
+    @Test
+    fun `rejects a valid Google ID token when the authenticated email is unknown to the system`() {
+        val request =
+            HttpRequest
+                .GET<Any>("/test/authenticated-user")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${TestGoogleJwtTokens.googleIdToken(email = "unknown.member@example.com")}",
+                )
+
+        val exception =
+            assertThrows<HttpClientResponseException> {
+                httpClient.toBlocking().exchange(request, String::class.java)
+            }
+
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+    }
+
+    @Test
+    fun `rejects a valid Google ID token when the email claim is not verified`() {
+        val request =
+            HttpRequest
+                .GET<Any>("/test/authenticated-user")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${TestGoogleJwtTokens.googleIdToken(emailVerified = false)}",
                 )
 
         val exception =

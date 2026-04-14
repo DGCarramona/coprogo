@@ -1,5 +1,5 @@
 package tech.justdev.application.auth
 
 interface AuthenticatedUserProvider {
-    fun currentAuthenticatedUser(): AuthenticatedUser
+    suspend fun currentAuthenticatedUser(): AuthenticatedUser
 }

@@ -15,7 +15,7 @@ class MicronautAuthenticatedUserProvider(
     private val securityService: SecurityService,
     private val memberRepository: MemberRepository,
 ) : AuthenticatedUserProvider {
-    override fun currentAuthenticatedUser(): AuthenticatedUser =
+    override suspend fun currentAuthenticatedUser(): AuthenticatedUser {
         val authentication =
             securityService.authentication.orElseThrow {
                 IllegalStateException("missing authenticated user in request context")
