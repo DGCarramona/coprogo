@@ -8,5 +8,5 @@ interface ExpenseRepository {
 
     suspend fun findProposedById(id: ExpenseId): Expense?
 
-    suspend fun save(expense: Expense)
+    suspend fun persist(expense: Expense)
 }
