@@ -12,9 +12,9 @@ import jakarta.validation.constraints.Positive
 import tech.justdev.application.revenue.PreviewRevenueDistributionCommand
 import tech.justdev.application.revenue.PreviewRevenueDistributionMember
 import tech.justdev.application.revenue.PreviewRevenueDistributionUseCase
+import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.interfaces.openapi.AuthenticatedApi
 import java.math.BigDecimal
-import java.util.UUID
 
 @Controller("/api/revenue-distribution")
 @AuthenticatedApi
@@ -35,7 +35,7 @@ class RevenueDistributionController(
                         request.members
                             .map { member ->
                                 PreviewRevenueDistributionMember(
-                                    member = member.memberId,
+                                    member = MemberEmail.of(member.member),
                                     percentage = member.percentage,
                                 )
                             }.toSet(),
@@ -59,7 +59,7 @@ data class RevenueDistributionPreviewRequest(
 )
 
 data class RevenueDistributionMemberInput(
-    val memberId: UUID,
+    val member: String,
     @field:Positive
     val percentage: BigDecimal,
 )
@@ -70,6 +70,6 @@ data class RevenueDistributionPreviewResponse(
 )
 
 data class RevenueDistributionAllocation(
-    val memberId: UUID,
+    val memberId: String,
     val amountInCents: Long,
 )

@@ -18,8 +18,7 @@ import tech.justdev.testsupport.acceptedExpenseLedgerEventId
 import tech.justdev.testsupport.expenseId
 import tech.justdev.testsupport.expenseUuid
 import tech.justdev.testsupport.groupId
-import tech.justdev.testsupport.memberId
-import tech.justdev.testsupport.memberUuid
+import tech.justdev.testsupport.memberEmail
 import java.time.Instant
 
 class RecordExpenseParticipationDecisionUseCaseTest {
@@ -40,7 +39,7 @@ class RecordExpenseParticipationDecisionUseCaseTest {
             useCase(
                 RecordExpenseParticipationDecisionCommand(
                     id = expenseUuid("expense-1"),
-                    member = memberUuid("bob"),
+                    member = memberEmail("bob"),
                     decision = ExpenseParticipationDecisionCommand.APPROVE,
                     decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
                 ),
@@ -51,13 +50,13 @@ class RecordExpenseParticipationDecisionUseCaseTest {
                     id = expenseId("expense-1"),
                     group = groupId("group-1"),
                     title = "Boiler repair",
-                    createdBy = memberId("alice"),
+                    createdBy = memberEmail("alice"),
                     totalAmount = MoneyAmount.ofCents(100),
                     createdAt = Instant.parse("2026-04-03T10:00:00Z"),
                     participations =
                         setOf(
                             ExpenseParticipation(
-                                member = memberId("alice"),
+                                member = memberEmail("alice"),
                                 amount = MoneyAmount.ofCents(40),
                                 status =
                                     ExpenseParticipationStatus.Approved(
@@ -65,7 +64,7 @@ class RecordExpenseParticipationDecisionUseCaseTest {
                                     ),
                             ),
                             ExpenseParticipation(
-                                member = memberId("bob"),
+                                member = memberEmail("bob"),
                                 amount = MoneyAmount.ofCents(60),
                                 status =
                                     ExpenseParticipationStatus.Approved(
@@ -82,13 +81,13 @@ class RecordExpenseParticipationDecisionUseCaseTest {
                         id = acceptedExpenseLedgerEventId("expense-1"),
                         group = groupId("group-1"),
                         expense = expenseId("expense-1"),
-                        paidBy = memberId("alice"),
+                        paidBy = memberEmail("alice"),
                         occurredAt = Instant.parse("2026-04-03T12:00:00Z"),
                         transfers =
                             setOf(
                                 MemberBalanceTransfer(
-                                    fromMember = memberId("bob"),
-                                    toMember = memberId("alice"),
+                                    fromMember = memberEmail("bob"),
+                                    toMember = memberEmail("alice"),
                                     amount = MoneyAmount.ofCents(60),
                                 ),
                             ),
@@ -116,7 +115,7 @@ class RecordExpenseParticipationDecisionUseCaseTest {
             useCase(
                 RecordExpenseParticipationDecisionCommand(
                     id = expenseUuid("expense-1"),
-                    member = memberUuid("bob"),
+                    member = memberEmail("bob"),
                     decision = ExpenseParticipationDecisionCommand.REFUSE,
                     decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
                 ),
@@ -127,13 +126,13 @@ class RecordExpenseParticipationDecisionUseCaseTest {
                     id = expenseId("expense-1"),
                     group = groupId("group-1"),
                     title = "Boiler repair",
-                    createdBy = memberId("alice"),
+                    createdBy = memberEmail("alice"),
                     totalAmount = MoneyAmount.ofCents(100),
                     createdAt = Instant.parse("2026-04-03T10:00:00Z"),
                     participations =
                         setOf(
                             ExpenseParticipation(
-                                member = memberId("alice"),
+                                member = memberEmail("alice"),
                                 amount = MoneyAmount.ofCents(40),
                                 status =
                                     ExpenseParticipationStatus.Approved(
@@ -141,7 +140,7 @@ class RecordExpenseParticipationDecisionUseCaseTest {
                                     ),
                             ),
                             ExpenseParticipation(
-                                member = memberId("bob"),
+                                member = memberEmail("bob"),
                                 amount = MoneyAmount.ofCents(60),
                                 status =
                                     ExpenseParticipationStatus.Refused(
@@ -160,7 +159,7 @@ class RecordExpenseParticipationDecisionUseCaseTest {
     fun `invoke should fail when the expense is already accepted because only proposed expenses can receive decisions`() {
         val acceptedExpense =
             proposedExpense().recordParticipationDecision(
-                member = memberId("bob"),
+                member = memberEmail("bob"),
                 decision = ExpenseParticipationDecision.APPROVE,
                 decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
             )
@@ -181,7 +180,7 @@ class RecordExpenseParticipationDecisionUseCaseTest {
                     useCase(
                         RecordExpenseParticipationDecisionCommand(
                             id = expenseUuid("expense-1"),
-                            member = memberUuid("bob"),
+                            member = memberEmail("bob"),
                             decision = ExpenseParticipationDecisionCommand.APPROVE,
                             decidedAt = Instant.parse("2026-04-03T13:00:00Z"),
                         ),
@@ -201,13 +200,13 @@ class RecordExpenseParticipationDecisionUseCaseTest {
             id = expenseId("expense-1"),
             group = groupId("group-1"),
             title = "Boiler repair",
-            createdBy = memberId("alice"),
+            createdBy = memberEmail("alice"),
             totalAmount = MoneyAmount.ofCents(100),
             createdAt = Instant.parse("2026-04-03T10:00:00Z"),
             shares =
                 setOf(
-                    ExpenseShare(memberId("alice"), MoneyAmount.ofCents(40)),
-                    ExpenseShare(memberId("bob"), MoneyAmount.ofCents(60)),
+                    ExpenseShare(memberEmail("alice"), MoneyAmount.ofCents(40)),
+                    ExpenseShare(memberEmail("bob"), MoneyAmount.ofCents(60)),
                 ),
         )
 }

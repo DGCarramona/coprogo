@@ -1,18 +1,18 @@
 package tech.justdev.domain.ledger.projection
 
+import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.ledger.effect.MemberBalanceTransfer
 import tech.justdev.domain.ledger.event.LedgerEvent
 import tech.justdev.domain.ledger.valueobject.NetBalanceAmount
-import tech.justdev.domain.shared.valueobject.MemberId
 
 data class MemberLedgerBalance(
-    val member: MemberId,
+    val member: MemberEmail,
     val netAmount: NetBalanceAmount,
 )
 
 fun Iterable<LedgerEvent>.projectMemberBalances(): Set<MemberLedgerBalance> {
     val balancesByMember =
-        fold(mutableMapOf<MemberId, NetBalanceAmount>()) { balances, event ->
+        fold(mutableMapOf<MemberEmail, NetBalanceAmount>()) { balances, event ->
             event.effects
                 .filterIsInstance<MemberBalanceTransfer>()
                 .fold(balances) { currentBalances, transfer ->
@@ -31,8 +31,8 @@ fun Iterable<LedgerEvent>.projectMemberBalances(): Set<MemberLedgerBalance> {
         }.toSet()
 }
 
-private fun MutableMap<MemberId, NetBalanceAmount>.accumulate(
-    member: MemberId,
+private fun MutableMap<MemberEmail, NetBalanceAmount>.accumulate(
+    member: MemberEmail,
     delta: NetBalanceAmount,
 ) {
     val currentAmount = getOrElse(member) { NetBalanceAmount.ZERO }

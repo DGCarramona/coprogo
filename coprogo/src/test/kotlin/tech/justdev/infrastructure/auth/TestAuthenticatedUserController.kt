@@ -13,20 +13,16 @@ class TestAuthenticatedUserController(
     private val authenticatedUserProvider: AuthenticatedUserProvider,
 ) {
     @Get
-    fun current(): TestAuthenticatedUserResponse {
+    suspend fun current(): TestAuthenticatedUserResponse {
         val authenticatedUser = authenticatedUserProvider.currentAuthenticatedUser()
 
         return TestAuthenticatedUserResponse(
-            googleSubject = authenticatedUser.googleSubject,
-            email = authenticatedUser.email,
-            emailVerified = authenticatedUser.emailVerified,
+            email = authenticatedUser.email.toPrimitive(),
         )
     }
 }
 
 @Serdeable
 data class TestAuthenticatedUserResponse(
-    val googleSubject: String,
-    val email: String?,
-    val emailVerified: Boolean,
+    val email: String,
 )

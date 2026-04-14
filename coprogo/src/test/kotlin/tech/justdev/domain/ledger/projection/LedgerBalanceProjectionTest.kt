@@ -16,7 +16,7 @@ import tech.justdev.testsupport.acceptedExpenseLedgerEventId
 import tech.justdev.testsupport.expenseId
 import tech.justdev.testsupport.groupId
 import tech.justdev.testsupport.ledgerEventId
-import tech.justdev.testsupport.memberId
+import tech.justdev.testsupport.memberEmail
 import java.time.Instant
 
 class LedgerBalanceProjectionTest {
@@ -28,30 +28,30 @@ class LedgerBalanceProjectionTest {
                     id = acceptedExpenseLedgerEventId("expense-1"),
                     group = groupId("group-1"),
                     expense = expenseId("expense-1"),
-                    paidBy = memberId("alice"),
+                    paidBy = memberEmail("alice"),
                     occurredAt = Instant.parse("2026-04-03T10:00:00Z"),
                     transfers =
                         setOf(
-                            MemberBalanceTransfer(memberId("bob"), memberId("alice"), MoneyAmount.ofCents(30)),
+                            MemberBalanceTransfer(memberEmail("bob"), memberEmail("alice"), MoneyAmount.ofCents(30)),
                         ),
                 ),
                 AcceptedExpenseLedgerEvent(
                     id = acceptedExpenseLedgerEventId("expense-2"),
                     group = groupId("group-1"),
                     expense = expenseId("expense-2"),
-                    paidBy = memberId("bob"),
+                    paidBy = memberEmail("bob"),
                     occurredAt = Instant.parse("2026-04-03T11:00:00Z"),
                     transfers =
                         setOf(
-                            MemberBalanceTransfer(memberId("alice"), memberId("bob"), MoneyAmount.ofCents(10)),
+                            MemberBalanceTransfer(memberEmail("alice"), memberEmail("bob"), MoneyAmount.ofCents(10)),
                         ),
                 ),
             ).projectMemberBalances()
 
         assertEquals(
             setOf(
-                MemberLedgerBalance(memberId("alice"), NetBalanceAmount.ofCents(20)),
-                MemberLedgerBalance(memberId("bob"), NetBalanceAmount.ofCents(-20)),
+                MemberLedgerBalance(memberEmail("alice"), NetBalanceAmount.ofCents(20)),
+                MemberLedgerBalance(memberEmail("bob"), NetBalanceAmount.ofCents(-20)),
             ),
             balances,
         )
@@ -76,20 +76,20 @@ class LedgerBalanceProjectionTest {
                             totalAmount = MoneyAmount.ofCents(100),
                             ownershipShares =
                                 setOf(
-                                    OwnershipShare(memberId("alice"), OwnershipPercentage.ofBasisPoints(6000)),
-                                    OwnershipShare(memberId("bob"), OwnershipPercentage.ofBasisPoints(4000)),
+                                    OwnershipShare(memberEmail("alice"), OwnershipPercentage.ofBasisPoints(6000)),
+                                    OwnershipShare(memberEmail("bob"), OwnershipPercentage.ofBasisPoints(4000)),
                                 ),
                         ),
                 ),
                 CashPoolWithdrawalLedgerEvent(
                     id = ledgerEventId("cash-pool-withdrawal-1"),
                     group = groupId("group-1"),
-                    withdrawnBy = memberId("alice"),
+                    withdrawnBy = memberEmail("alice"),
                     withdrawnAmount = MoneyAmount.ofCents(35),
                     ownRevenueShareConsumed = MoneyAmount.ofCents(25),
                     balanceTransfers =
                         setOf(
-                            MemberBalanceTransfer(memberId("alice"), memberId("bob"), MoneyAmount.ofCents(10)),
+                            MemberBalanceTransfer(memberEmail("alice"), memberEmail("bob"), MoneyAmount.ofCents(10)),
                         ),
                     occurredAt = Instant.parse("2026-04-03T12:00:00Z"),
                 ),
@@ -97,8 +97,8 @@ class LedgerBalanceProjectionTest {
 
         assertEquals(
             setOf(
-                MemberLedgerBalance(memberId("alice"), NetBalanceAmount.ofCents(-10)),
-                MemberLedgerBalance(memberId("bob"), NetBalanceAmount.ofCents(10)),
+                MemberLedgerBalance(memberEmail("alice"), NetBalanceAmount.ofCents(-10)),
+                MemberLedgerBalance(memberEmail("bob"), NetBalanceAmount.ofCents(10)),
             ),
             balances,
         )

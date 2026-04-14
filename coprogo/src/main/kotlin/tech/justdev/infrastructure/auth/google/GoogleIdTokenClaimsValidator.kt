@@ -5,6 +5,7 @@ import io.micronaut.core.annotation.Nullable
 import io.micronaut.security.token.Claims
 import io.micronaut.security.token.jwt.validator.GenericJwtClaimsValidator
 import jakarta.inject.Singleton
+import tech.justdev.domain.group.valueobject.MemberEmail
 
 @Singleton
 class GoogleIdTokenClaimsValidator(
@@ -30,6 +31,14 @@ class GoogleIdTokenClaimsValidator(
             return false
         }
 
+        val email = claims.get(GoogleIdTokenClaims.EMAIL)?.toString() ?: return false
+        if (!claims.get(GoogleIdTokenClaims.EMAIL_VERIFIED).toBooleanClaim()) {
+            return false
+        }
+        if (runCatching { MemberEmail.of(email) }.isFailure) {
+            return false
+        }
+
         return audiences.any(allowedAudiences::contains)
     }
 }
@@ -45,3 +54,10 @@ private fun extractAudiences(audienceClaim: Any?): Set<String> =
         .toSet()
 
 private fun normalizeIssuer(issuer: String): String = issuer.removePrefix("https://").removeSuffix("/").trim()
+
+private fun Any?.toBooleanClaim(): Boolean =
+    when (this) {
+        is Boolean -> this
+        is String -> toBooleanStrictOrNull() ?: false
+        else -> false
+    }

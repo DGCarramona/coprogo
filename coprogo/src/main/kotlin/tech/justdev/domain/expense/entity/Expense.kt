@@ -6,17 +6,17 @@ import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationStatus
 import tech.justdev.domain.expense.valueobject.ExpenseShare
 import tech.justdev.domain.expense.valueobject.ExpenseStatus
+import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.domain.shared.money.sum
 import tech.justdev.domain.shared.valueobject.GroupId
-import tech.justdev.domain.shared.valueobject.MemberId
 import java.time.Instant
 
 data class Expense(
     val id: ExpenseId,
     val group: GroupId,
     val title: String,
-    val createdBy: MemberId,
+    val createdBy: MemberEmail,
     val totalAmount: MoneyAmount,
     val createdAt: Instant,
     val participations: Set<ExpenseParticipation>,
@@ -44,7 +44,7 @@ data class Expense(
             }
 
     fun recordParticipationDecision(
-        member: MemberId,
+        member: MemberEmail,
         decision: ExpenseParticipationDecision,
         decidedAt: Instant,
     ): Expense {
@@ -90,10 +90,10 @@ data class Expense(
             id: ExpenseId,
             group: GroupId,
             title: String,
-            createdBy: MemberId,
+            createdBy: MemberEmail,
             totalAmount: MoneyAmount,
             createdAt: Instant,
-            participants: Set<MemberId>,
+            participants: Set<MemberEmail>,
         ): Expense {
             require(participants.isNotEmpty()) { "participantMemberIds must not be empty" }
 
@@ -129,7 +129,7 @@ data class Expense(
             id: ExpenseId,
             group: GroupId,
             title: String,
-            createdBy: MemberId,
+            createdBy: MemberEmail,
             totalAmount: MoneyAmount,
             createdAt: Instant,
             shares: Set<ExpenseShare>,

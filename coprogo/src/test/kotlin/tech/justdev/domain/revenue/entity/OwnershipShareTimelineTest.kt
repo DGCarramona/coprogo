@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 import tech.justdev.domain.revenue.valueobject.OwnershipPercentage
 import tech.justdev.domain.revenue.valueobject.OwnershipShare
 import tech.justdev.testsupport.groupId
-import tech.justdev.testsupport.memberId
+import tech.justdev.testsupport.memberEmail
 import tech.justdev.testsupport.ownershipShareChangeId
 import java.time.Instant
 import java.time.LocalDate
@@ -99,10 +99,10 @@ class OwnershipShareTimelineTest {
     }
 
     private fun share(
-        memberId: String,
+        member: String,
         basisPoints: Int,
     ) = OwnershipShare(
-        member = memberId(memberId),
+        member = memberEmail(member),
         percentage = OwnershipPercentage.ofBasisPoints(basisPoints),
     )
 
@@ -113,7 +113,7 @@ class OwnershipShareTimelineTest {
     ) = OwnershipShareChange(
         id = ownershipShareChangeId(changeId),
         effectiveDate = effectiveDate,
-        recordedBy = memberId("owner"),
+        recordedBy = memberEmail("owner"),
         recordedAt = Instant.parse("2026-04-03T10:00:00Z"),
         shares = shares,
     )

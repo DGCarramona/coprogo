@@ -10,7 +10,7 @@ data class GetMemberCashPoolSharesQuery(
 )
 
 data class MemberCashPoolShareSnapshot(
-    val member: UUID,
+    val member: String,
     val amountInCents: Long,
 )
 

@@ -11,9 +11,7 @@ import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.testsupport.FixedExpenseIdGenerator
 import tech.justdev.testsupport.expenseId
 import tech.justdev.testsupport.groupId
-import tech.justdev.testsupport.groupUuid
-import tech.justdev.testsupport.memberId
-import tech.justdev.testsupport.memberUuid
+import tech.justdev.testsupport.memberEmail
 import java.time.Instant
 
 class ProposeExpenseUseCaseTest {
@@ -29,18 +27,18 @@ class ProposeExpenseUseCaseTest {
 
             useCase(
                 ProposeExpenseCommand(
-                    group = groupUuid("group-1"),
+                    group = groupId("group-1"),
                     title = "Boiler repair",
-                    createdBy = memberUuid("alice"),
+                    createdBy = memberEmail("alice"),
                     totalAmountInCents = 100,
                     createdAt = Instant.parse("2026-04-03T10:00:00Z"),
                     allocation =
                         EqualSplitExpenseAllocationCommand(
                             participants =
                                 setOf(
-                                    memberUuid("alice"),
-                                    memberUuid("bob"),
-                                    memberUuid("carol"),
+                                    memberEmail("alice"),
+                                    memberEmail("bob"),
+                                    memberEmail("carol"),
                                 ),
                         ),
                 ),
@@ -51,7 +49,7 @@ class ProposeExpenseUseCaseTest {
                     id = expenseId("expense-1"),
                     group = groupId("group-1"),
                     title = "Boiler repair",
-                    createdBy = memberId("alice"),
+                    createdBy = memberEmail("alice"),
                     totalAmount = MoneyAmount.ofCents(100),
                     createdAt = Instant.parse("2026-04-03T10:00:00Z"),
                     participations =
@@ -84,16 +82,16 @@ class ProposeExpenseUseCaseTest {
 
             useCase(
                 ProposeExpenseCommand(
-                    group = groupUuid("group-1"),
+                    group = groupId("group-1"),
                     title = "Private purchase",
-                    createdBy = memberUuid("alice"),
+                    createdBy = memberEmail("alice"),
                     totalAmountInCents = 100,
                     createdAt = Instant.parse("2026-04-03T10:00:00Z"),
                     allocation =
                         FixedExpenseAllocationCommand(
                             participations =
                                 setOf(
-                                    FixedExpenseParticipationCommand(memberUuid("alice"), 100),
+                                    FixedExpenseParticipationCommand(memberEmail("alice"), 100),
                                 ),
                         ),
                 ),
@@ -104,7 +102,7 @@ class ProposeExpenseUseCaseTest {
                     id = expenseId("expense-2"),
                     group = groupId("group-1"),
                     title = "Private purchase",
-                    createdBy = memberId("alice"),
+                    createdBy = memberEmail("alice"),
                     totalAmount = MoneyAmount.ofCents(100),
                     createdAt = Instant.parse("2026-04-03T10:00:00Z"),
                     participations =
@@ -128,7 +126,7 @@ class ProposeExpenseUseCaseTest {
         amountInCents: Long,
         status: ExpenseParticipationStatus,
     ) = ExpenseParticipation(
-        member = memberId(memberId),
+        member = memberEmail(memberId),
         amount = MoneyAmount.ofCents(amountInCents),
         status = status,
     )

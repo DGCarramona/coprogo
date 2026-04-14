@@ -10,7 +10,7 @@ data class GetGroupBalancesQuery(
 )
 
 data class GroupMemberBalanceSnapshot(
-    val member: UUID,
+    val member: String,
     val netAmountInCents: Long,
 )
 

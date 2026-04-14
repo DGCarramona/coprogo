@@ -1,7 +1,7 @@
 package tech.justdev.application.auth
 
+import tech.justdev.domain.group.valueobject.MemberEmail
+
 data class AuthenticatedUser(
-    val googleSubject: String,
-    val email: String?,
-    val emailVerified: Boolean,
+    val email: MemberEmail,
 )

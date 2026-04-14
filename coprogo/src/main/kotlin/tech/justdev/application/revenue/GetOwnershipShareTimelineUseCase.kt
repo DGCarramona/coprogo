@@ -19,13 +19,13 @@ data class OwnershipShareTimelineSnapshot(
 data class OwnershipShareChangeSnapshot(
     val change: UUID,
     val effectiveDate: LocalDate,
-    val recordedBy: UUID,
+    val recordedBy: String,
     val recordedAt: Instant,
     val shares: List<OwnershipShareSnapshot>,
 )
 
 data class OwnershipShareSnapshot(
-    val member: UUID,
+    val member: String,
     val percentage: BigDecimal,
 )
 

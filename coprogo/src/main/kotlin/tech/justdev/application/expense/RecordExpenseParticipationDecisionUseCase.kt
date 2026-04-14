@@ -4,9 +4,9 @@ import tech.justdev.domain.expense.repository.ExpenseRepository
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
 import tech.justdev.domain.expense.valueobject.ExpenseStatus
+import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.ledger.event.AcceptedExpenseLedgerEvent
 import tech.justdev.domain.ledger.repository.LedgerEventRepository
-import tech.justdev.domain.shared.valueobject.MemberId
 import java.time.Instant
 import java.util.UUID
 
@@ -17,7 +17,7 @@ enum class ExpenseParticipationDecisionCommand {
 
 data class RecordExpenseParticipationDecisionCommand(
     val id: UUID,
-    val member: UUID,
+    val member: MemberEmail,
     val decision: ExpenseParticipationDecisionCommand,
     val decidedAt: Instant,
 )
@@ -33,7 +33,7 @@ class RecordExpenseParticipationDecisionUseCase(
 
         val updatedExpense =
             existingExpense.recordParticipationDecision(
-                member = MemberId(command.member),
+                member = command.member,
                 decision =
                     when (command.decision) {
                         ExpenseParticipationDecisionCommand.APPROVE -> ExpenseParticipationDecision.APPROVE
@@ -42,7 +42,7 @@ class RecordExpenseParticipationDecisionUseCase(
                 decidedAt = command.decidedAt,
             )
 
-        expenseRepository.save(updatedExpense)
+        expenseRepository.persist(updatedExpense)
         if (updatedExpense.status !== ExpenseStatus.ACCEPTED) return
         AcceptedExpenseLedgerEvent.from(updatedExpense)?.let { ledgerEventRepository.append(it) }
     }

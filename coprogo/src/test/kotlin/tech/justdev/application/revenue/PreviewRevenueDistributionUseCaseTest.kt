@@ -3,7 +3,8 @@ package tech.justdev.application.revenue
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import tech.justdev.testsupport.memberUuid
+import tech.justdev.testsupport.memberEmail
+import tech.justdev.testsupport.memberEmailString
 import java.math.BigDecimal
 
 class PreviewRevenueDistributionUseCaseTest {
@@ -18,8 +19,8 @@ class PreviewRevenueDistributionUseCaseTest {
                         amountInCents = 100,
                         members =
                             setOf(
-                                PreviewRevenueDistributionMember(member = memberUuid("alice"), percentage = BigDecimal("60.00")),
-                                PreviewRevenueDistributionMember(member = memberUuid("bob"), percentage = BigDecimal("40.00")),
+                                PreviewRevenueDistributionMember(member = memberEmail("alice"), percentage = BigDecimal("60.00")),
+                                PreviewRevenueDistributionMember(member = memberEmail("bob"), percentage = BigDecimal("40.00")),
                             ),
                     ),
                 )
@@ -29,8 +30,8 @@ class PreviewRevenueDistributionUseCaseTest {
                     totalAmountInCents = 100,
                     allocations =
                         listOf(
-                            PreviewRevenueDistributionAllocation(member = memberUuid("alice"), amountInCents = 60),
-                            PreviewRevenueDistributionAllocation(member = memberUuid("bob"), amountInCents = 40),
+                            PreviewRevenueDistributionAllocation(member = memberEmailString("alice"), amountInCents = 60),
+                            PreviewRevenueDistributionAllocation(member = memberEmailString("bob"), amountInCents = 40),
                         ),
                 ),
                 result,

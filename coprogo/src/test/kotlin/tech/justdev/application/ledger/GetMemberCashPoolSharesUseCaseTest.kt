@@ -14,8 +14,8 @@ import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.testsupport.groupId
 import tech.justdev.testsupport.groupUuid
 import tech.justdev.testsupport.ledgerEventId
-import tech.justdev.testsupport.memberId
-import tech.justdev.testsupport.memberUuid
+import tech.justdev.testsupport.memberEmail
+import tech.justdev.testsupport.memberEmailString
 import java.time.Instant
 
 class GetMemberCashPoolSharesUseCaseTest {
@@ -37,22 +37,22 @@ class GetMemberCashPoolSharesUseCaseTest {
                                                 totalAmount = MoneyAmount.ofCents(100),
                                                 ownershipShares =
                                                     setOf(
-                                                        OwnershipShare(memberId("alice"), OwnershipPercentage.ofBasisPoints(6000)),
-                                                        OwnershipShare(memberId("bob"), OwnershipPercentage.ofBasisPoints(4000)),
+                                                        OwnershipShare(memberEmail("alice"), OwnershipPercentage.ofBasisPoints(6000)),
+                                                        OwnershipShare(memberEmail("bob"), OwnershipPercentage.ofBasisPoints(4000)),
                                                     ),
                                             ),
                                     ),
                                     CashPoolWithdrawalLedgerEvent(
                                         id = ledgerEventId("cash-pool-withdrawal-1"),
                                         group = groupId("group-1"),
-                                        withdrawnBy = memberId("alice"),
+                                        withdrawnBy = memberEmail("alice"),
                                         withdrawnAmount = MoneyAmount.ofCents(35),
                                         ownRevenueShareConsumed = MoneyAmount.ofCents(25),
                                         balanceTransfers =
                                             setOf(
                                                 MemberBalanceTransfer(
-                                                    fromMember = memberId("alice"),
-                                                    toMember = memberId("bob"),
+                                                    fromMember = memberEmail("alice"),
+                                                    toMember = memberEmail("bob"),
                                                     amount = MoneyAmount.ofCents(10),
                                                 ),
                                             ),
@@ -67,8 +67,8 @@ class GetMemberCashPoolSharesUseCaseTest {
                     group = groupUuid("group-1"),
                     shares =
                         listOf(
-                            MemberCashPoolShareSnapshot(member = memberUuid("alice"), amountInCents = 35),
-                            MemberCashPoolShareSnapshot(member = memberUuid("bob"), amountInCents = 40),
+                            MemberCashPoolShareSnapshot(member = memberEmailString("alice"), amountInCents = 35),
+                            MemberCashPoolShareSnapshot(member = memberEmailString("bob"), amountInCents = 40),
                         ),
                 ),
                 useCase(GetMemberCashPoolSharesQuery(group = groupUuid("group-1"))),
