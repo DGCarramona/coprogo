@@ -10,8 +10,8 @@ import tech.justdev.domain.revenue.valueobject.OwnershipPercentage
 import tech.justdev.domain.revenue.valueobject.OwnershipShare
 import tech.justdev.testsupport.groupId
 import tech.justdev.testsupport.groupUuid
-import tech.justdev.testsupport.memberId
-import tech.justdev.testsupport.memberUuid
+import tech.justdev.testsupport.memberEmail
+import tech.justdev.testsupport.memberEmailString
 import tech.justdev.testsupport.ownershipShareChangeId
 import tech.justdev.testsupport.ownershipShareChangeUuid
 import java.math.BigDecimal
@@ -66,24 +66,24 @@ class GetOwnershipShareTimelineUseCaseTest {
                             OwnershipShareChangeSnapshot(
                                 change = ownershipShareChangeUuid("change-1"),
                                 effectiveDate = LocalDate.parse("2026-01-01"),
-                                recordedBy = memberUuid("owner"),
+                                recordedBy = memberEmailString("owner"),
                                 recordedAt = Instant.parse("2026-04-03T10:00:00Z"),
                                 shares =
                                     listOf(
-                                        OwnershipShareSnapshot(member = memberUuid("alice"), percentage = BigDecimal("60.00")),
-                                        OwnershipShareSnapshot(member = memberUuid("bob"), percentage = BigDecimal("40.00")),
+                                        OwnershipShareSnapshot(member = memberEmailString("alice"), percentage = BigDecimal("60.00")),
+                                        OwnershipShareSnapshot(member = memberEmailString("bob"), percentage = BigDecimal("40.00")),
                                     ),
                             ),
                             OwnershipShareChangeSnapshot(
                                 change = ownershipShareChangeUuid("change-2"),
                                 effectiveDate = LocalDate.parse("2026-03-01"),
-                                recordedBy = memberUuid("owner"),
+                                recordedBy = memberEmailString("owner"),
                                 recordedAt = Instant.parse("2026-04-03T10:00:00Z"),
                                 shares =
                                     listOf(
-                                        OwnershipShareSnapshot(member = memberUuid("alice"), percentage = BigDecimal("50.00")),
-                                        OwnershipShareSnapshot(member = memberUuid("bob"), percentage = BigDecimal("30.00")),
-                                        OwnershipShareSnapshot(member = memberUuid("carol"), percentage = BigDecimal("20.00")),
+                                        OwnershipShareSnapshot(member = memberEmailString("alice"), percentage = BigDecimal("50.00")),
+                                        OwnershipShareSnapshot(member = memberEmailString("bob"), percentage = BigDecimal("30.00")),
+                                        OwnershipShareSnapshot(member = memberEmailString("carol"), percentage = BigDecimal("20.00")),
                                     ),
                             ),
                         ),
@@ -94,10 +94,10 @@ class GetOwnershipShareTimelineUseCaseTest {
     }
 
     private fun share(
-        memberId: String,
+        member: String,
         basisPoints: Int,
     ) = OwnershipShare(
-        member = memberId(memberId),
+        member = memberEmail(member),
         percentage = OwnershipPercentage.ofBasisPoints(basisPoints),
     )
 
@@ -108,7 +108,7 @@ class GetOwnershipShareTimelineUseCaseTest {
     ) = OwnershipShareChange(
         id = ownershipShareChangeId(id),
         effectiveDate = effectiveDate,
-        recordedBy = memberId("owner"),
+        recordedBy = memberEmail("owner"),
         recordedAt = Instant.parse("2026-04-03T10:00:00Z"),
         shares = shares,
     )

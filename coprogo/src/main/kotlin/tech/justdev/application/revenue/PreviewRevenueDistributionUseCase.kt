@@ -1,13 +1,12 @@
 package tech.justdev.application.revenue
 
 import jakarta.inject.Singleton
+import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.revenue.valueobject.OwnershipPercentage
 import tech.justdev.domain.revenue.valueobject.OwnershipShare
 import tech.justdev.domain.revenue.valueobject.RevenueDistribution
 import tech.justdev.domain.shared.money.MoneyAmount
-import tech.justdev.domain.shared.valueobject.MemberId
 import java.math.BigDecimal
-import java.util.UUID
 
 @Singleton
 class PreviewRevenueDistributionUseCase {
@@ -16,7 +15,7 @@ class PreviewRevenueDistributionUseCase {
             command.members
                 .map { member ->
                     OwnershipShare(
-                        member = MemberId(member.member),
+                        member = member.member,
                         percentage = OwnershipPercentage.ofPercentage(member.percentage),
                     )
                 }.toSet()
@@ -48,7 +47,7 @@ data class PreviewRevenueDistributionCommand(
 )
 
 data class PreviewRevenueDistributionMember(
-    val member: UUID,
+    val member: MemberEmail,
     val percentage: BigDecimal,
 )
 
@@ -58,6 +57,6 @@ data class PreviewRevenueDistributionResult(
 )
 
 data class PreviewRevenueDistributionAllocation(
-    val member: UUID,
+    val member: String,
     val amountInCents: Long,
 )

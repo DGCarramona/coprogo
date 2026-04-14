@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import tech.justdev.domain.shared.money.MoneyAmount
-import tech.justdev.testsupport.memberId
+import tech.justdev.testsupport.memberEmail
 
 class RevenueDistributionTest {
     @Test
@@ -14,18 +14,18 @@ class RevenueDistributionTest {
                 totalAmount = MoneyAmount.ofCents(100),
                 ownershipShares =
                     setOf(
-                        OwnershipShare(member = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(3333)),
-                        OwnershipShare(member = memberId("bob"), percentage = OwnershipPercentage.ofBasisPoints(3333)),
-                        OwnershipShare(member = memberId("carol"), percentage = OwnershipPercentage.ofBasisPoints(3334)),
+                        OwnershipShare(member = memberEmail("alice"), percentage = OwnershipPercentage.ofBasisPoints(3333)),
+                        OwnershipShare(member = memberEmail("bob"), percentage = OwnershipPercentage.ofBasisPoints(3333)),
+                        OwnershipShare(member = memberEmail("carol"), percentage = OwnershipPercentage.ofBasisPoints(3334)),
                     ),
             )
 
         assertEquals(MoneyAmount.ofCents(100), result.totalAmount)
         assertEquals(
             setOf(
-                RevenueAllocation(member = memberId("alice"), amount = MoneyAmount.ofCents(33)),
-                RevenueAllocation(member = memberId("bob"), amount = MoneyAmount.ofCents(33)),
-                RevenueAllocation(member = memberId("carol"), amount = MoneyAmount.ofCents(34)),
+                RevenueAllocation(member = memberEmail("alice"), amount = MoneyAmount.ofCents(33)),
+                RevenueAllocation(member = memberEmail("bob"), amount = MoneyAmount.ofCents(33)),
+                RevenueAllocation(member = memberEmail("carol"), amount = MoneyAmount.ofCents(34)),
             ),
             result.allocations,
         )
@@ -38,15 +38,15 @@ class RevenueDistributionTest {
                 totalAmount = MoneyAmount.ofCents(1),
                 ownershipShares =
                     setOf(
-                        OwnershipShare(member = memberId("bob"), percentage = OwnershipPercentage.ofBasisPoints(5000)),
-                        OwnershipShare(member = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(5000)),
+                        OwnershipShare(member = memberEmail("bob"), percentage = OwnershipPercentage.ofBasisPoints(5000)),
+                        OwnershipShare(member = memberEmail("alice"), percentage = OwnershipPercentage.ofBasisPoints(5000)),
                     ),
             )
 
         assertEquals(
             setOf(
-                RevenueAllocation(member = memberId("alice"), amount = MoneyAmount.ofCents(1)),
-                RevenueAllocation(member = memberId("bob"), amount = MoneyAmount.ZERO),
+                RevenueAllocation(member = memberEmail("alice"), amount = MoneyAmount.ofCents(1)),
+                RevenueAllocation(member = memberEmail("bob"), amount = MoneyAmount.ZERO),
             ),
             result.allocations,
         )
@@ -59,8 +59,8 @@ class RevenueDistributionTest {
                 totalAmount = MoneyAmount.ofCents(100),
                 ownershipShares =
                     setOf(
-                        OwnershipShare(member = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(4000)),
-                        OwnershipShare(member = memberId("bob"), percentage = OwnershipPercentage.ofBasisPoints(5000)),
+                        OwnershipShare(member = memberEmail("alice"), percentage = OwnershipPercentage.ofBasisPoints(4000)),
+                        OwnershipShare(member = memberEmail("bob"), percentage = OwnershipPercentage.ofBasisPoints(5000)),
                     ),
             )
         }
@@ -73,8 +73,8 @@ class RevenueDistributionTest {
                 totalAmount = MoneyAmount.ofCents(100),
                 ownershipShares =
                     setOf(
-                        OwnershipShare(member = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(6000)),
-                        OwnershipShare(member = memberId("alice"), percentage = OwnershipPercentage.ofBasisPoints(4000)),
+                        OwnershipShare(member = memberEmail("alice"), percentage = OwnershipPercentage.ofBasisPoints(6000)),
+                        OwnershipShare(member = memberEmail("alice"), percentage = OwnershipPercentage.ofBasisPoints(4000)),
                     ),
             )
         }

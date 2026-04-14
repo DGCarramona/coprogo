@@ -1,9 +1,9 @@
 package tech.justdev.domain.revenue.entity
 
+import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.revenue.valueobject.OwnershipPercentage
 import tech.justdev.domain.revenue.valueobject.OwnershipShare
 import tech.justdev.domain.shared.valueobject.GroupId
-import tech.justdev.domain.shared.valueobject.MemberId
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -18,7 +18,7 @@ value class OwnershipShareChangeId(
 data class OwnershipShareChange(
     val id: OwnershipShareChangeId,
     val effectiveDate: LocalDate,
-    val recordedBy: MemberId,
+    val recordedBy: MemberEmail,
     val recordedAt: Instant,
     val shares: Set<OwnershipShare>,
 ) {

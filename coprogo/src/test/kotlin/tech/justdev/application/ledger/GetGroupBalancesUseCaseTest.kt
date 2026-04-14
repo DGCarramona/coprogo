@@ -11,8 +11,8 @@ import tech.justdev.testsupport.acceptedExpenseLedgerEventId
 import tech.justdev.testsupport.expenseId
 import tech.justdev.testsupport.groupId
 import tech.justdev.testsupport.groupUuid
-import tech.justdev.testsupport.memberId
-import tech.justdev.testsupport.memberUuid
+import tech.justdev.testsupport.memberEmail
+import tech.justdev.testsupport.memberEmailString
 import java.time.Instant
 
 class GetGroupBalancesUseCaseTest {
@@ -29,12 +29,12 @@ class GetGroupBalancesUseCaseTest {
                                         id = acceptedExpenseLedgerEventId("expense-1"),
                                         group = groupId("group-1"),
                                         expense = expenseId("expense-1"),
-                                        paidBy = memberId("alice"),
+                                        paidBy = memberEmail("alice"),
                                         occurredAt = Instant.parse("2026-04-03T10:00:00Z"),
                                         transfers =
                                             setOf(
-                                                MemberBalanceTransfer(memberId("bob"), memberId("alice"), MoneyAmount.ofCents(30)),
-                                                MemberBalanceTransfer(memberId("carol"), memberId("alice"), MoneyAmount.ofCents(20)),
+                                                MemberBalanceTransfer(memberEmail("bob"), memberEmail("alice"), MoneyAmount.ofCents(30)),
+                                                MemberBalanceTransfer(memberEmail("carol"), memberEmail("alice"), MoneyAmount.ofCents(20)),
                                             ),
                                     ),
                                 ),
@@ -48,9 +48,9 @@ class GetGroupBalancesUseCaseTest {
                     group = groupUuid("group-1"),
                     balances =
                         listOf(
-                            GroupMemberBalanceSnapshot(memberUuid("alice"), 50),
-                            GroupMemberBalanceSnapshot(memberUuid("bob"), -30),
-                            GroupMemberBalanceSnapshot(memberUuid("carol"), -20),
+                            GroupMemberBalanceSnapshot(memberEmailString("alice"), 50),
+                            GroupMemberBalanceSnapshot(memberEmailString("bob"), -30),
+                            GroupMemberBalanceSnapshot(memberEmailString("carol"), -20),
                         ),
                 ),
                 snapshot,

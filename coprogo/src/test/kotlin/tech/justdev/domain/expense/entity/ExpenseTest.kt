@@ -10,7 +10,7 @@ import tech.justdev.domain.expense.valueobject.ExpenseShare
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.testsupport.expenseId
 import tech.justdev.testsupport.groupId
-import tech.justdev.testsupport.memberId
+import tech.justdev.testsupport.memberEmail
 import java.time.Instant
 
 class ExpenseTest {
@@ -21,28 +21,28 @@ class ExpenseTest {
                 id = expenseId("expense-1"),
                 group = groupId("group-1"),
                 title = "Boiler repair",
-                createdBy = memberId("alice"),
+                createdBy = memberEmail("alice"),
                 totalAmount = MoneyAmount.ofCents(100),
                 createdAt = Instant.parse("2026-04-03T10:00:00Z"),
                 participations =
                     setOf(
                         ExpenseParticipation(
-                            memberId("alice"),
+                            memberEmail("alice"),
                             MoneyAmount.ofCents(34),
                             ExpenseParticipationStatus.Approved(Instant.parse("2026-04-03T10:00:00Z")),
                         ),
-                        ExpenseParticipation(memberId("bob"), MoneyAmount.ofCents(33), ExpenseParticipationStatus.Pending),
-                        ExpenseParticipation(memberId("carol"), MoneyAmount.ofCents(33), ExpenseParticipationStatus.Pending),
+                        ExpenseParticipation(memberEmail("bob"), MoneyAmount.ofCents(33), ExpenseParticipationStatus.Pending),
+                        ExpenseParticipation(memberEmail("carol"), MoneyAmount.ofCents(33), ExpenseParticipationStatus.Pending),
                     ),
             ),
             Expense.proposeEqualSplit(
                 id = expenseId("expense-1"),
                 group = groupId("group-1"),
                 title = "Boiler repair",
-                createdBy = memberId("alice"),
+                createdBy = memberEmail("alice"),
                 totalAmount = MoneyAmount.ofCents(100),
                 createdAt = Instant.parse("2026-04-03T10:00:00Z"),
-                participants = setOf(memberId("carol"), memberId("alice"), memberId("bob")),
+                participants = setOf(memberEmail("carol"), memberEmail("alice"), memberEmail("bob")),
             ),
         )
     }
@@ -54,10 +54,10 @@ class ExpenseTest {
                 id = expenseId("expense-1"),
                 group = groupId("group-1"),
                 title = "Boiler repair",
-                createdBy = memberId("alice"),
+                createdBy = memberEmail("alice"),
                 totalAmount = MoneyAmount.ofCents(2),
                 createdAt = Instant.parse("2026-04-03T10:00:00Z"),
-                participants = setOf(memberId("alice"), memberId("bob"), memberId("carol")),
+                participants = setOf(memberEmail("alice"), memberEmail("bob"), memberEmail("carol")),
             )
         }
     }
@@ -70,13 +70,13 @@ class ExpenseTest {
                 id = expenseId("expense-1"),
                 group = groupId("group-1"),
                 title = "Plumber invoice",
-                createdBy = memberId("alice"),
+                createdBy = memberEmail("alice"),
                 totalAmount = MoneyAmount.ofCents(100),
                 createdAt = Instant.parse("2026-04-03T10:00:00Z"),
                 shares =
                     setOf(
-                        ExpenseShare(memberId("alice"), MoneyAmount.ofCents(40)),
-                        ExpenseShare(memberId("bob"), MoneyAmount.ofCents(60)),
+                        ExpenseShare(memberEmail("alice"), MoneyAmount.ofCents(40)),
+                        ExpenseShare(memberEmail("bob"), MoneyAmount.ofCents(60)),
                     ),
             ),
         )
@@ -91,25 +91,25 @@ class ExpenseTest {
                 id = expenseId("expense-1"),
                 group = groupId("group-1"),
                 title = "Plumber invoice",
-                createdBy = memberId("alice"),
+                createdBy = memberEmail("alice"),
                 totalAmount = MoneyAmount.ofCents(100),
                 createdAt = Instant.parse("2026-04-03T10:00:00Z"),
                 participations =
                     setOf(
                         ExpenseParticipation(
-                            memberId("alice"),
+                            memberEmail("alice"),
                             MoneyAmount.ofCents(40),
                             ExpenseParticipationStatus.Approved(Instant.parse("2026-04-03T10:00:00Z")),
                         ),
                         ExpenseParticipation(
-                            memberId("bob"),
+                            memberEmail("bob"),
                             MoneyAmount.ofCents(60),
                             ExpenseParticipationStatus.Approved(Instant.parse("2026-04-03T12:00:00Z")),
                         ),
                     ),
             ),
             proposedExpense.recordParticipationDecision(
-                member = memberId("bob"),
+                member = memberEmail("bob"),
                 decision = ExpenseParticipationDecision.APPROVE,
                 decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
             ),
@@ -125,25 +125,25 @@ class ExpenseTest {
                 id = expenseId("expense-1"),
                 group = groupId("group-1"),
                 title = "Plumber invoice",
-                createdBy = memberId("alice"),
+                createdBy = memberEmail("alice"),
                 totalAmount = MoneyAmount.ofCents(100),
                 createdAt = Instant.parse("2026-04-03T10:00:00Z"),
                 participations =
                     setOf(
                         ExpenseParticipation(
-                            memberId("alice"),
+                            memberEmail("alice"),
                             MoneyAmount.ofCents(40),
                             ExpenseParticipationStatus.Approved(Instant.parse("2026-04-03T10:00:00Z")),
                         ),
                         ExpenseParticipation(
-                            memberId("bob"),
+                            memberEmail("bob"),
                             MoneyAmount.ofCents(60),
                             ExpenseParticipationStatus.Refused(Instant.parse("2026-04-03T12:00:00Z")),
                         ),
                     ),
             ),
             proposedExpense.recordParticipationDecision(
-                member = memberId("bob"),
+                member = memberEmail("bob"),
                 decision = ExpenseParticipationDecision.REFUSE,
                 decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
             ),
@@ -157,12 +157,12 @@ class ExpenseTest {
                 id = expenseId("expense-1"),
                 group = groupId("group-1"),
                 title = "Plumber invoice",
-                createdBy = memberId("alice"),
+                createdBy = memberEmail("alice"),
                 totalAmount = MoneyAmount.ofCents(100),
                 createdAt = Instant.parse("2026-04-03T10:00:00Z"),
                 shares =
                     setOf(
-                        ExpenseShare(memberId("bob"), MoneyAmount.ofCents(100)),
+                        ExpenseShare(memberEmail("bob"), MoneyAmount.ofCents(100)),
                     ),
             )
         }
@@ -173,13 +173,13 @@ class ExpenseTest {
             id = expenseId("expense-1"),
             group = groupId("group-1"),
             title = "Plumber invoice",
-            createdBy = memberId("alice"),
+            createdBy = memberEmail("alice"),
             totalAmount = MoneyAmount.ofCents(100),
             createdAt = Instant.parse("2026-04-03T10:00:00Z"),
             shares =
                 setOf(
-                    ExpenseShare(memberId("alice"), MoneyAmount.ofCents(40)),
-                    ExpenseShare(memberId("bob"), MoneyAmount.ofCents(60)),
+                    ExpenseShare(memberEmail("alice"), MoneyAmount.ofCents(40)),
+                    ExpenseShare(memberEmail("bob"), MoneyAmount.ofCents(60)),
                 ),
         )
 }

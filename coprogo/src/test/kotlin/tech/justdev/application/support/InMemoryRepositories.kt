@@ -21,7 +21,7 @@ class InMemoryExpenseRepository(
         expensesById[id]
             ?.takeIf { expense -> expense.status == ExpenseStatus.PROPOSED }
 
-    override suspend fun save(expense: Expense) {
+    override suspend fun persist(expense: Expense) {
         expensesById[expense.id] = expense
     }
 }
@@ -47,7 +47,7 @@ class InMemoryOwnershipShareTimelineRepository(
 
     override suspend fun findByGroup(group: GroupId): OwnershipShareTimeline? = timelinesByGroup[group]
 
-    override suspend fun save(timeline: OwnershipShareTimeline) {
+    override suspend fun persist(timeline: OwnershipShareTimeline) {
         timelinesByGroup[timeline.group] = timeline
     }
 }

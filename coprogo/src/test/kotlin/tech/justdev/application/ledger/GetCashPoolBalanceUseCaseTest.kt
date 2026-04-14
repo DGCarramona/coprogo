@@ -11,7 +11,7 @@ import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.testsupport.groupId
 import tech.justdev.testsupport.groupUuid
 import tech.justdev.testsupport.ledgerEventId
-import tech.justdev.testsupport.memberId
+import tech.justdev.testsupport.memberEmail
 import java.time.Instant
 
 class GetCashPoolBalanceUseCaseTest {
@@ -33,14 +33,14 @@ class GetCashPoolBalanceUseCaseTest {
                                     CashPoolWithdrawalLedgerEvent(
                                         id = ledgerEventId("cash-pool-withdrawal-1"),
                                         group = groupId("group-1"),
-                                        withdrawnBy = memberId("alice"),
+                                        withdrawnBy = memberEmail("alice"),
                                         withdrawnAmount = MoneyAmount.ofCents(35),
                                         ownRevenueShareConsumed = MoneyAmount.ofCents(25),
                                         balanceTransfers =
                                             setOf(
                                                 MemberBalanceTransfer(
-                                                    fromMember = memberId("alice"),
-                                                    toMember = memberId("bob"),
+                                                    fromMember = memberEmail("alice"),
+                                                    toMember = memberEmail("bob"),
                                                     amount = MoneyAmount.ofCents(10),
                                                 ),
                                             ),

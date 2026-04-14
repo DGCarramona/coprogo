@@ -1,7 +1,7 @@
 package tech.justdev.domain.expense.valueobject
 
+import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.money.MoneyAmount
-import tech.justdev.domain.shared.valueobject.MemberId
 import java.time.Instant
 
 sealed interface ExpenseParticipationStatus {
@@ -17,7 +17,7 @@ sealed interface ExpenseParticipationStatus {
 }
 
 data class ExpenseParticipation(
-    val member: MemberId,
+    val member: MemberEmail,
     val amount: MoneyAmount,
     val status: ExpenseParticipationStatus,
 ) {

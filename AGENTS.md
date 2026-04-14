@@ -179,6 +179,7 @@ Business logic must not live in Micronaut controllers or Angular components.
 - REST API
 - Google account authentication only, with login performed client-side
 - Backend validates and recognizes the user from a Google ID token sent by the client
+- The canonical user identity is the normalized, verified Google email address, and that email is also the internal member identifier; Google `sub` may be stored only as non-canonical metadata if needed
 - S3-compatible object storage for supporting documents
 
 ### Frontend
@@ -262,6 +263,8 @@ Every behavior change must include or update tests.
 - Keep use cases testable without framework coupling.
 - Avoid hidden global state and nondeterminism.
 - Backend tests requiring PostgreSQL must reuse the repository’s shared Testcontainers/Micronaut test infrastructure instead of re-declaring container bootstrap and database property wiring in each suite.
+- Backend integration tests that need the Micronaut application context but do not exercise persistence must reuse the repository’s shared no-database Micronaut test environment via `@NoDbMicronautTest` instead of duplicating datasource/Flyway overrides in each test class.
+- Backend local runtime configuration must use Micronaut environment files rather than custom `.env` loading: keep shared local defaults in `application-runtime.properties`, reserve `application-local.properties` for machine-specific overrides, and commit only `application-local.example.properties`.
 - In coroutine-based backend tests, prefer `assertThrows { runTest { ... } }` for error assertions over manual `try/catch + fail`.
 - Prioritize tests around:
     - expense validation/refusal
@@ -349,6 +352,7 @@ Do not force functional or reactive patterns where they make the code harder to 
 
 - Keep Micronaut annotations out of inner layers where possible.
 - Repository interfaces belong to inner layers; implementations belong to outer layers.
+- Project-owned repository ports should prefer `persist(...)` over `save(...)` for write methods.
 - External integrations must go through project-owned ports.
 - Configuration must enter through explicit adapters/config abstractions.
 - Persistence models must not become domain models by accident.

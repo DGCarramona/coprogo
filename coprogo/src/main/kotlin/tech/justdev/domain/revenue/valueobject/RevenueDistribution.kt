@@ -1,8 +1,8 @@
 package tech.justdev.domain.revenue.valueobject
 
+import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.domain.shared.money.sum
-import tech.justdev.domain.shared.valueobject.MemberId
 
 data class RevenueDistribution(
     val totalAmount: MoneyAmount,
@@ -73,7 +73,7 @@ data class RevenueDistribution(
 }
 
 private data class FlooredRevenueAllocation(
-    val member: MemberId,
+    val member: MemberEmail,
     val flooredAmount: MoneyAmount,
     val remainder: Long,
 )

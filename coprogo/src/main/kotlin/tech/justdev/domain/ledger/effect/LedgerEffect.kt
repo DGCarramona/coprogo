@@ -1,14 +1,14 @@
 package tech.justdev.domain.ledger.effect
 
+import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.ledger.valueobject.NetBalanceAmount
 import tech.justdev.domain.shared.money.MoneyAmount
-import tech.justdev.domain.shared.valueobject.MemberId
 
 sealed interface LedgerEffect
 
 data class MemberBalanceTransfer(
-    val fromMember: MemberId,
-    val toMember: MemberId,
+    val fromMember: MemberEmail,
+    val toMember: MemberEmail,
     val amount: MoneyAmount,
 ) : LedgerEffect {
     init {
@@ -32,7 +32,7 @@ data class CashPoolBalanceDelta(
 }
 
 data class MemberCashPoolShareDelta(
-    val member: MemberId,
+    val member: MemberEmail,
     val amount: NetBalanceAmount,
 ) : LedgerEffect {
     init {
@@ -41,12 +41,12 @@ data class MemberCashPoolShareDelta(
 
     companion object {
         fun increase(
-            member: MemberId,
+            member: MemberEmail,
             amount: MoneyAmount,
         ): MemberCashPoolShareDelta = MemberCashPoolShareDelta(member = member, amount = NetBalanceAmount.credit(amount))
 
         fun decrease(
-            member: MemberId,
+            member: MemberEmail,
             amount: MoneyAmount,
         ): MemberCashPoolShareDelta = MemberCashPoolShareDelta(member = member, amount = NetBalanceAmount.debt(amount))
     }

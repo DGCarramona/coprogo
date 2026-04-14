@@ -1,8 +1,8 @@
 package tech.justdev.domain.revenue.valueobject
 
-import tech.justdev.domain.shared.valueobject.MemberId
+import tech.justdev.domain.group.valueobject.MemberEmail
 
 data class OwnershipShare(
-    val member: MemberId,
+    val member: MemberEmail,
     val percentage: OwnershipPercentage,
 )

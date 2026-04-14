@@ -3,6 +3,7 @@ package tech.justdev.domain.ledger.event
 import tech.justdev.domain.expense.entity.Expense
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.expense.valueobject.ExpenseStatus
+import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.ledger.effect.CashPoolBalanceDelta
 import tech.justdev.domain.ledger.effect.LedgerEffect
 import tech.justdev.domain.ledger.effect.MemberBalanceTransfer
@@ -12,7 +13,6 @@ import tech.justdev.domain.revenue.valueobject.RevenueDistribution
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.domain.shared.money.sum
 import tech.justdev.domain.shared.valueobject.GroupId
-import tech.justdev.domain.shared.valueobject.MemberId
 import java.time.Instant
 
 sealed interface LedgerEvent {
@@ -26,7 +26,7 @@ data class AcceptedExpenseLedgerEvent(
     override val id: LedgerEventId,
     override val group: GroupId,
     val expense: ExpenseId,
-    val paidBy: MemberId,
+    val paidBy: MemberEmail,
     override val occurredAt: Instant,
     val transfers: Set<MemberBalanceTransfer>,
 ) : LedgerEvent {
@@ -132,7 +132,7 @@ data class RevenueDistributionLedgerEvent(
 data class CashPoolWithdrawalLedgerEvent(
     override val id: LedgerEventId,
     override val group: GroupId,
-    val withdrawnBy: MemberId,
+    val withdrawnBy: MemberEmail,
     val withdrawnAmount: MoneyAmount,
     val ownRevenueShareConsumed: MoneyAmount,
     val balanceTransfers: Set<MemberBalanceTransfer>,

@@ -12,7 +12,7 @@ import tech.justdev.domain.revenue.valueobject.RevenueDistribution
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.testsupport.groupId
 import tech.justdev.testsupport.ledgerEventId
-import tech.justdev.testsupport.memberId
+import tech.justdev.testsupport.memberEmail
 import java.time.Instant
 
 class MemberCashPoolShareProjectionTest {
@@ -29,22 +29,22 @@ class MemberCashPoolShareProjectionTest {
                             totalAmount = MoneyAmount.ofCents(100),
                             ownershipShares =
                                 setOf(
-                                    OwnershipShare(memberId("alice"), OwnershipPercentage.ofBasisPoints(6000)),
-                                    OwnershipShare(memberId("bob"), OwnershipPercentage.ofBasisPoints(4000)),
+                                    OwnershipShare(memberEmail("alice"), OwnershipPercentage.ofBasisPoints(6000)),
+                                    OwnershipShare(memberEmail("bob"), OwnershipPercentage.ofBasisPoints(4000)),
                                 ),
                         ),
                 ),
                 CashPoolWithdrawalLedgerEvent(
                     id = ledgerEventId("cash-pool-withdrawal-1"),
                     group = groupId("group-1"),
-                    withdrawnBy = memberId("alice"),
+                    withdrawnBy = memberEmail("alice"),
                     withdrawnAmount = MoneyAmount.ofCents(35),
                     ownRevenueShareConsumed = MoneyAmount.ofCents(25),
                     balanceTransfers =
                         setOf(
                             MemberBalanceTransfer(
-                                fromMember = memberId("alice"),
-                                toMember = memberId("bob"),
+                                fromMember = memberEmail("alice"),
+                                toMember = memberEmail("bob"),
                                 amount = MoneyAmount.ofCents(10),
                             ),
                         ),
@@ -54,8 +54,8 @@ class MemberCashPoolShareProjectionTest {
 
         assertEquals(
             setOf(
-                MemberCashPoolShareBalance(member = memberId("alice"), amount = NetBalanceAmount.ofCents(35)),
-                MemberCashPoolShareBalance(member = memberId("bob"), amount = NetBalanceAmount.ofCents(40)),
+                MemberCashPoolShareBalance(member = memberEmail("alice"), amount = NetBalanceAmount.ofCents(35)),
+                MemberCashPoolShareBalance(member = memberEmail("bob"), amount = NetBalanceAmount.ofCents(40)),
             ),
             shareBalances,
         )

@@ -6,5 +6,5 @@ import tech.justdev.domain.shared.valueobject.GroupId
 interface OwnershipShareTimelineRepository {
     suspend fun findByGroup(group: GroupId): OwnershipShareTimeline?
 
-    suspend fun save(timeline: OwnershipShareTimeline)
+    suspend fun persist(timeline: OwnershipShareTimeline)
 }

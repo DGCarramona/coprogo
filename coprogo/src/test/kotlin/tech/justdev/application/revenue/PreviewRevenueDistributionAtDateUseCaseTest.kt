@@ -10,8 +10,8 @@ import tech.justdev.domain.revenue.valueobject.OwnershipPercentage
 import tech.justdev.domain.revenue.valueobject.OwnershipShare
 import tech.justdev.testsupport.groupId
 import tech.justdev.testsupport.groupUuid
-import tech.justdev.testsupport.memberId
-import tech.justdev.testsupport.memberUuid
+import tech.justdev.testsupport.memberEmail
+import tech.justdev.testsupport.memberEmailString
 import tech.justdev.testsupport.ownershipShareChangeId
 import java.time.Instant
 import java.time.LocalDate
@@ -70,9 +70,9 @@ class PreviewRevenueDistributionAtDateUseCaseTest {
                     totalAmountInCents = 101,
                     allocations =
                         listOf(
-                            PreviewRevenueDistributionAllocation(memberUuid("alice"), 51),
-                            PreviewRevenueDistributionAllocation(memberUuid("bob"), 30),
-                            PreviewRevenueDistributionAllocation(memberUuid("carol"), 20),
+                            PreviewRevenueDistributionAllocation(memberEmailString("alice"), 51),
+                            PreviewRevenueDistributionAllocation(memberEmailString("bob"), 30),
+                            PreviewRevenueDistributionAllocation(memberEmailString("carol"), 20),
                         ),
                 ),
                 preview,
@@ -81,10 +81,10 @@ class PreviewRevenueDistributionAtDateUseCaseTest {
     }
 
     private fun share(
-        memberId: String,
+        member: String,
         basisPoints: Int,
     ) = OwnershipShare(
-        member = memberId(memberId),
+        member = memberEmail(member),
         percentage = OwnershipPercentage.ofBasisPoints(basisPoints),
     )
 
@@ -95,7 +95,7 @@ class PreviewRevenueDistributionAtDateUseCaseTest {
     ) = OwnershipShareChange(
         id = ownershipShareChangeId(id),
         effectiveDate = effectiveDate,
-        recordedBy = memberId("owner"),
+        recordedBy = memberEmail("owner"),
         recordedAt = Instant.parse("2026-04-03T10:00:00Z"),
         shares = shares,
     )
