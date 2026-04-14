@@ -1,15 +1,15 @@
 # Backlog
 
-Backlog derive de l'etat actuel du depot au 2026-04-03.
+Backlog derive de l'etat actuel du depot au 2026-04-14.
 
 ## Etat actuel constate
 
 - Backend: coeur metier deja entame pour `expense`, `revenue` et `ledger`, avec des tests de domaine et d'application.
 - Backend HTTP: seul le preview de distribution de revenus est expose aujourd'hui, plus l'OpenAPI.
-- Backend infra: pas encore de migrations Flyway, pas d'adaptateurs R2DBC visibles, pas de stockage S3, pas de validation Google ID token orientee produit.
+- Backend infra: migrations Flyway presentes pour groupes, membres et appartenances, adaptateurs R2DBC presents pour groupes et membres, validation Google ID token orientee produit en place, pas encore de stockage S3.
 - Frontend: application Angular encore au stade bootstrap, sans routes fonctionnelles ni ecrans metier.
 - Frontend API: client OpenAPI genere uniquement pour le preview de distribution de revenus, avec un faux token dans l'intercepteur.
-- Monorepo: pas encore d'orchestration Gradle racine pour piloter ensemble le front et le back.
+- Monorepo: orchestration Gradle racine en place pour piloter ensemble le front et le back.
 
 ## Regles de decoupage
 
@@ -34,10 +34,10 @@ Backlog derive de l'etat actuel du depot au 2026-04-03.
 
 - [x] BE-AUTH-001 Introduire un adaptateur backend qui extrait l'utilisateur authentifie depuis Micronaut sans fuiter le framework dans le coeur applicatif.
 - [x] BE-AUTH-002 Remplacer la logique JWT generique par une validation de Google ID token conforme au besoin produit.
-- [ ] BE-AUTH-003 Ajouter des tests d'integration pour les cas token valide, invalide et utilisateur inconnu du systeme.
-- [ ] BE-GROUP-001 Modeliser les groupes et les membres du groupe dans le domaine.
-- [ ] BE-GROUP-002 Ajouter les migrations Flyway pour groupes, membres et appartenances.
-- [ ] BE-GROUP-003 Creer les repositories et adaptateurs R2DBC pour groupes et membres.
+- [x] BE-AUTH-003 Ajouter des tests d'integration pour les cas token valide, invalide et utilisateur inconnu du systeme.
+- [x] BE-GROUP-001 Modeliser les groupes et les membres du groupe dans le domaine.
+- [x] BE-GROUP-002 Ajouter les migrations Flyway pour groupes, membres et appartenances.
+- [x] BE-GROUP-003 Creer les repositories et adaptateurs R2DBC pour groupes et membres.
 - [ ] BE-GROUP-004 Implementer le cas d'usage de creation de groupe.
 - [ ] BE-GROUP-005 Implementer le cas d'usage d'invitation d'un membre par n'importe quel membre du groupe.
 - [ ] BE-GROUP-006 Implementer le cas d'usage d'acceptation d'une invitation.
