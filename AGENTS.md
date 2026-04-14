@@ -179,6 +179,7 @@ Business logic must not live in Micronaut controllers or Angular components.
 - REST API
 - Google account authentication only, with login performed client-side
 - Backend validates and recognizes the user from a Google ID token sent by the client
+- The canonical user identity is the normalized, verified Google email address, and that email is also the internal member identifier; Google `sub` may be stored only as non-canonical metadata if needed
 - S3-compatible object storage for supporting documents
 
 ### Frontend
@@ -351,6 +352,7 @@ Do not force functional or reactive patterns where they make the code harder to 
 
 - Keep Micronaut annotations out of inner layers where possible.
 - Repository interfaces belong to inner layers; implementations belong to outer layers.
+- Project-owned repository ports should prefer `persist(...)` over `save(...)` for write methods.
 - External integrations must go through project-owned ports.
 - Configuration must enter through explicit adapters/config abstractions.
 - Persistence models must not become domain models by accident.
