@@ -1,8 +1,8 @@
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "2.3.20"
-    id("org.jetbrains.kotlin.plugin.allopen") version "2.3.20"
+    id("org.jetbrains.kotlin.jvm") version "2.3.21"
+    id("org.jetbrains.kotlin.plugin.allopen") version "2.3.21"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
-    id("com.google.devtools.ksp") version "2.3.6"
+    id("com.google.devtools.ksp") version "2.3.7"
     id("io.micronaut.application") version "4.6.2"
     id("com.gradleup.shadow") version "9.4.1"
     id("io.micronaut.test-resources") version "4.6.2"
@@ -47,7 +47,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("org.postgresql:r2dbc-postgresql")
     testImplementation("io.micronaut:micronaut-http-client")
-    testImplementation(platform("org.testcontainers:testcontainers-bom:2.0.4"))
+    testImplementation(platform("org.testcontainers:testcontainers-bom:2.0.5"))
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.testcontainers:testcontainers-postgresql")
