@@ -35,7 +35,7 @@
     "jsdom": "^29.1.0",
     "ng-openapi": "^0.2.18",
     "prettier": "^3.8.3",
-    "typescript": "~5.9.2",
+    "typescript": "~6.0.3",
     "typescript-eslint": "8.59.1",
     "vitest": "^4.1.5"
   }
