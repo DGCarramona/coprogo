@@ -27,7 +27,7 @@ Backlog derive de l'etat actuel du depot au 2026-04-14.
 - [x] MONO-005 Ajouter des taches Gradle racine qui agregent les checks front et back (`checkAll`, `buildAll` ou equivalent).
 - [x] MONO-006 Ajouter une tache Gradle de dev qui demarre front et back ensemble, avec un mecanisme explicite pour les processus longs (`execfork` ou equivalent).
 - [ ] MONO-007 Completer `docker-compose.yml` avec un service S3-compatible local (ex: MinIO).
-- [ ] MONO-008 Documenter le workflow local monorepo et les nouvelles commandes Gradle racine dans un README racine.
+- [x] MONO-008 Documenter le workflow local monorepo et les nouvelles commandes Gradle racine dans un README racine.
 - [x] MONO-009 Ajouter une CI qui execute les checks front et back via les entrees Gradle racine.
 
 ## Backend - authentification, groupes et membres
