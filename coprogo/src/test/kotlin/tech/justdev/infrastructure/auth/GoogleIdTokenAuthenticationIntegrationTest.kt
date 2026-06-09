@@ -75,21 +75,23 @@ class GoogleIdTokenAuthenticationIntegrationTest {
     }
 
     @Test
-    fun `rejects a valid Google ID token when the authenticated email is unknown to the system`() {
+    fun `accepts a valid Google ID token when the authenticated email is unknown to the system and auto-creates the member`() {
+        val email = "unknown.member@example.com"
         val request =
             HttpRequest
                 .GET<Any>("/test/authenticated-user")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${TestGoogleJwtTokens.googleIdToken(email = "unknown.member@example.com")}",
+                    "Bearer ${TestGoogleJwtTokens.googleIdToken(email = email)}",
                 )
 
-        val exception =
-            assertThrows<HttpClientResponseException> {
-                httpClient.toBlocking().exchange(request, String::class.java)
-            }
+        val response = httpClient.toBlocking().exchange(request, TestAuthenticatedUserResponse::class.java)
 
-        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+        assertEquals(HttpStatus.OK, response.status)
+        assertEquals(TestAuthenticatedUserResponse(email = email), response.body())
+        runTest {
+            assertEquals(MemberEmail.of(email), memberRepository.findByEmail(MemberEmail.of(email))?.email)
+        }
     }
 
     @Test
