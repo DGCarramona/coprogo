@@ -1,14 +1,14 @@
 # Backlog
 
-Backlog derive de l'etat actuel du depot au 2026-04-14.
+Backlog derive de l'etat actuel du depot au 2026-04-15.
 
 ## Etat actuel constate
 
 - Backend: coeur metier deja entame pour `expense`, `revenue` et `ledger`, avec des tests de domaine et d'application.
 - Backend HTTP: seul le preview de distribution de revenus est expose aujourd'hui, plus l'OpenAPI.
 - Backend infra: migrations Flyway presentes pour groupes, membres et appartenances, adaptateurs R2DBC presents pour groupes et membres, validation Google ID token orientee produit en place, pas encore de stockage S3.
-- Frontend: application Angular encore au stade bootstrap, sans routes fonctionnelles ni ecrans metier.
-- Frontend API: client OpenAPI genere uniquement pour le preview de distribution de revenus, avec un faux token dans l'intercepteur.
+- Frontend: shell Angular Material 3 en place, avec routes de connexion Google et liste des invitations en attente, mais sans ecrans metier au-dela de cet onboarding.
+- Frontend API: client OpenAPI genere uniquement pour le preview de distribution de revenus, avec source reelle de Google ID token et clients HTTP dedies pour l'onboarding groupes.
 - Monorepo: orchestration Gradle racine en place pour piloter ensemble le front et le back.
 
 ## Regles de decoupage
@@ -34,15 +34,16 @@ Backlog derive de l'etat actuel du depot au 2026-04-14.
 
 - [x] BE-AUTH-001 Introduire un adaptateur backend qui extrait l'utilisateur authentifie depuis Micronaut sans fuiter le framework dans le coeur applicatif.
 - [x] BE-AUTH-002 Remplacer la logique JWT generique par une validation de Google ID token conforme au besoin produit.
-- [x] BE-AUTH-003 Ajouter des tests d'integration pour les cas token valide, invalide et utilisateur inconnu du systeme.
+- [x] BE-AUTH-003 Ajouter des tests d'integration pour les cas token valide, invalide et auto-creation d'un nouvel utilisateur a la premiere connexion.
 - [x] BE-GROUP-001 Modeliser les groupes et les membres du groupe dans le domaine.
 - [x] BE-GROUP-002 Ajouter les migrations Flyway pour groupes, membres et appartenances.
 - [x] BE-GROUP-003 Creer les repositories et adaptateurs R2DBC pour groupes et membres.
-- [ ] BE-GROUP-004 Implementer le cas d'usage de creation de groupe.
-- [ ] BE-GROUP-005 Implementer le cas d'usage d'invitation d'un membre par n'importe quel membre du groupe.
-- [ ] BE-GROUP-006 Implementer le cas d'usage d'acceptation d'une invitation.
-- [ ] BE-GROUP-007 Exposer les endpoints REST de creation de groupe, consultation du groupe et invitation.
-- [ ] BE-GROUP-008 Enforcer explicitement la regle "seul le createur du groupe peut modifier les quotes-parts".
+- [x] BE-GROUP-004 Implementer le cas d'usage de creation de groupe.
+- [x] BE-GROUP-005 Implementer le cas d'usage d'invitation d'un membre par n'importe quel membre du groupe.
+- [x] BE-GROUP-006 Implementer le cas d'usage d'acceptation d'une invitation.
+- [x] BE-GROUP-007 Exposer les endpoints REST de creation de groupe, consultation du groupe, invitation et acceptation d'invitation.
+- [x] BE-GROUP-008 Enforcer explicitement la regle "seul le createur du groupe peut modifier les quotes-parts".
+- [x] BE-GROUP-009 Exposer l'endpoint REST de liste des invitations en attente pour l'utilisateur authentifie.
 
 ## Backend - quotes-parts et revenus
 
@@ -115,15 +116,16 @@ Backlog derive de l'etat actuel du depot au 2026-04-14.
 
 ## Frontend - socle applicatif et authentification
 
-- [ ] FE-CORE-001 Remplacer la page Angular par defaut par un shell d'application minimal.
-- [ ] FE-CORE-002 Declarer les routes principales de l'application.
-- [ ] FE-CORE-003 Introduire une couche `domain` frontend distincte des DTOs OpenAPI.
-- [ ] FE-CORE-004 Introduire une couche `application` frontend avec cas d'usage et services par feature.
-- [ ] FE-CORE-005 Mettre en place un service d'authentification base sur Signals.
-- [ ] FE-CORE-006 Remplacer le faux token par une vraie source de Google ID token.
-- [ ] FE-CORE-007 Ajouter une guard de route pour les ecrans authentifies.
-- [ ] FE-CORE-008 Mettre en place la gestion uniforme loading / empty / error.
+- [x] FE-CORE-001 Remplacer la page Angular par defaut par un shell d'application minimal.
+- [x] FE-CORE-002 Declarer les routes principales de l'application.
+- [x] FE-CORE-003 Introduire une couche `domain` frontend distincte des DTOs OpenAPI.
+- [x] FE-CORE-004 Introduire une couche `application` frontend avec cas d'usage et services par feature.
+- [x] FE-CORE-005 Mettre en place un service d'authentification base sur Signals.
+- [x] FE-CORE-006 Remplacer le faux token par une vraie source de Google ID token.
+- [x] FE-CORE-007 Ajouter une guard de route pour les ecrans authentifies.
+- [x] FE-CORE-008 Mettre en place la gestion uniforme loading / empty / error.
 - [ ] FE-CORE-009 Ajouter des utilitaires de mapping argent / dates / pourcentages.
+- [x] FE-CORE-010 Introduire un socle Angular Material 3 global pour les ecrans frontend.
 
 ## Frontend - groupes, dashboard et lecture des soldes
 
@@ -182,7 +184,7 @@ Backlog derive de l'etat actuel du depot au 2026-04-14.
 Si on veut avancer avec des PRs simples et visibles rapidement, l'ordre recommande est:
 
 1. `MONO-001` a `MONO-009`
-2. `BE-GROUP-001` a `BE-GROUP-008`
+2. `BE-GROUP-001` a `BE-GROUP-009`
 3. `BE-EXP-001` a `BE-EXP-006`
 4. `BE-LED-001` a `BE-LED-005`
 5. `FE-CORE-001` a `FE-CORE-009`
