@@ -6,7 +6,6 @@ import io.micronaut.http.HttpStatus
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.annotation.Client
 import io.micronaut.http.client.exceptions.HttpClientResponseException
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import jakarta.inject.Inject
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -15,11 +14,10 @@ import org.junit.jupiter.api.assertThrows
 import tech.justdev.domain.group.entity.Member
 import tech.justdev.domain.group.repository.MemberRepository
 import tech.justdev.domain.group.valueobject.MemberEmail
-import tech.justdev.testsupport.UsesPostgresTestDatabase
+import tech.justdev.testsupport.PostgresMicronautTest
 import tech.justdev.testsupport.auth.TestGoogleJwtTokens
 
-@MicronautTest(transactional = false)
-@UsesPostgresTestDatabase
+@PostgresMicronautTest
 class GoogleIdTokenAuthenticationIntegrationTest {
     @Inject
     @field:Client("/")

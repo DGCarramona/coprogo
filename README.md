@@ -304,7 +304,7 @@ Avant de pusher, la même commande localement vous garantit que la CI passera.
 
 ## Liens externes
 
-- [Micronaut 4.10.10 Documentation](https://docs.micronaut.io/4.10.10/guide/index.html)
+- [Micronaut 5.0.2 Documentation](https://docs.micronaut.io/5.0.2/guide/index.html)
 - [Angular CLI](https://angular.dev/tools/cli)
 - [Gradle Build Tool](https://gradle.org/)
 - [Docker Compose](https://docs.docker.com/compose/)

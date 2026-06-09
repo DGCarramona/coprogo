@@ -1,6 +1,5 @@
 package tech.justdev.infrastructure.persistence.group
 
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import jakarta.inject.Inject
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -8,11 +7,10 @@ import org.junit.jupiter.api.Test
 import tech.justdev.domain.group.entity.Member
 import tech.justdev.domain.group.repository.MemberRepository
 import tech.justdev.domain.group.valueobject.MemberEmail
-import tech.justdev.testsupport.UsesPostgresTestDatabase
+import tech.justdev.testsupport.PostgresMicronautTest
 import java.time.Instant
 
-@MicronautTest(transactional = false)
-@UsesPostgresTestDatabase
+@PostgresMicronautTest
 class R2dbcMemberRepositoryIntegrationTest {
     @Inject
     lateinit var memberRepository: MemberRepository

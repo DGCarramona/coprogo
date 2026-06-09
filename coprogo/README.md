@@ -30,13 +30,13 @@ the deployed-environment variables `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME
 When a backend test needs a real database, do not wire a PostgreSQL container manually in the test class.
 
 - Use `@PostgresMicronautTest` for the standard case.
-- Use `@MicronautTest(...)` together with `@UsesPostgresTestDatabase` if the test needs custom Micronaut test options.
 
-The shared PostgreSQL test support lives under `src/test/kotlin/tech/justdev/testsupport/` and provides:
+PostgreSQL is provided by Micronaut Test Resources. The shared test support lives under
+`src/test/kotlin/tech/justdev/testsupport/` and provides:
 
-- a shared PostgreSQL Testcontainers instance
-- JDBC and R2DBC datasource properties for Micronaut tests
-- automatic property injection through Micronaut test support
+- the standard `@PostgresMicronautTest` annotation
+- Micronaut Test Resources-backed JDBC and R2DBC datasource configuration
+- automatic PostgreSQL container lifecycle management through Micronaut
 
 Example:
 
@@ -65,11 +65,11 @@ class MyAuthenticationTest {
 }
 ```
 
-## Micronaut 4.10.10 Documentation
+## Micronaut 5.0.2 Documentation
 
-- [User Guide](https://docs.micronaut.io/4.10.10/guide/index.html)
-- [API Reference](https://docs.micronaut.io/4.10.10/api/index.html)
-- [Configuration Reference](https://docs.micronaut.io/4.10.10/guide/configurationreference.html)
+- [User Guide](https://docs.micronaut.io/5.0.2/guide/index.html)
+- [API Reference](https://docs.micronaut.io/5.0.2/api/index.html)
+- [Configuration Reference](https://docs.micronaut.io/5.0.2/guide/configurationreference.html)
 - [Micronaut Guides](https://guides.micronaut.io/index.html)
 ---
 

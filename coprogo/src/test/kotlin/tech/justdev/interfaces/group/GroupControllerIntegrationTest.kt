@@ -7,7 +7,6 @@ import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.annotation.Client
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import jakarta.inject.Inject
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -20,13 +19,12 @@ import tech.justdev.domain.group.repository.GroupRepository
 import tech.justdev.domain.group.repository.MemberRepository
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.valueobject.GroupId
-import tech.justdev.testsupport.UsesPostgresTestDatabase
+import tech.justdev.testsupport.PostgresMicronautTest
 import tech.justdev.testsupport.auth.TestGoogleJwtTokens
 import tech.justdev.testsupport.memberEmail
 import java.time.Instant
 
-@MicronautTest(transactional = false)
-@UsesPostgresTestDatabase
+@PostgresMicronautTest
 class GroupControllerIntegrationTest {
     @Inject
     @field:Client("/")
