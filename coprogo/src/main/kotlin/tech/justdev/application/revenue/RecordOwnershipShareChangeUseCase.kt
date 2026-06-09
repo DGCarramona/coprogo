@@ -1,5 +1,9 @@
 package tech.justdev.application.revenue
 
+import jakarta.inject.Singleton
+import tech.justdev.application.group.GroupNotFoundException
+import tech.justdev.application.group.OwnershipShareChangeForbiddenException
+import tech.justdev.domain.group.repository.GroupRepository
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.revenue.entity.OwnershipShareChange
 import tech.justdev.domain.revenue.entity.OwnershipShareTimeline
@@ -25,12 +29,19 @@ data class RecordOwnershipShareCommand(
     val percentage: BigDecimal,
 )
 
+@Singleton
 class RecordOwnershipShareChangeUseCase(
+    private val groupRepository: GroupRepository,
     private val ownershipShareTimelineRepository: OwnershipShareTimelineRepository,
     private val ownershipShareChangeIdGenerator: OwnershipShareChangeIdGenerator = RandomOwnershipShareChangeIdGenerator,
 ) {
     suspend operator fun invoke(command: RecordOwnershipShareChangeCommand) {
         val group = GroupId(command.group)
+        val existingGroup = groupRepository.findById(group) ?: throw GroupNotFoundException(group)
+        if (existingGroup.createdBy != command.recordedBy) {
+            throw OwnershipShareChangeForbiddenException(group, command.recordedBy)
+        }
+
         val existingTimeline =
             ownershipShareTimelineRepository.findByGroup(group)
                 ?: OwnershipShareTimeline.empty(group)
