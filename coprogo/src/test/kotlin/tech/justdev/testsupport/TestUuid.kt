@@ -1,6 +1,7 @@
 package tech.justdev.testsupport
 
 import tech.justdev.domain.expense.valueobject.ExpenseId
+import tech.justdev.domain.group.entity.GroupInvitationId
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.ledger.valueobject.LedgerEventId
 import tech.justdev.domain.revenue.entity.OwnershipShareChangeId
@@ -18,6 +19,8 @@ fun groupUuid(seed: String): UUID = testUuid("g:$seed")
 
 fun expenseUuid(seed: String): UUID = testUuid("e:$seed")
 
+fun groupInvitationUuid(seed: String): UUID = testUuid("gi:$seed")
+
 fun ownershipShareChangeUuid(seed: String): UUID = testUuid("osc:$seed")
 
 fun groupId(seed: String): GroupId = GroupId(groupUuid(seed))
@@ -27,6 +30,8 @@ fun memberEmail(seed: String): MemberEmail = MemberEmail.of("$seed@example.com")
 fun memberEmailString(seed: String): String = memberEmail(seed).toPrimitive()
 
 fun expenseId(seed: String): ExpenseId = ExpenseId(expenseUuid(seed))
+
+fun groupInvitationId(seed: String): GroupInvitationId = GroupInvitationId(groupInvitationUuid(seed))
 
 fun ownershipShareChangeId(seed: String): OwnershipShareChangeId = OwnershipShareChangeId(ownershipShareChangeUuid(seed))
 

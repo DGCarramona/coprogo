@@ -35,3 +35,21 @@ data class GroupMembershipEntity(
     @field:MappedProperty("joined_at")
     val joinedAt: Instant,
 )
+
+@MappedEntity("group_invitations")
+data class GroupInvitationEntity(
+    @field:Id
+    val id: UUID,
+    @field:MappedProperty("group")
+    val group: UUID,
+    @field:MappedProperty("invited_email")
+    val invitedEmail: String,
+    @field:MappedProperty("invited_by")
+    val invitedBy: String,
+    @field:MappedProperty("invited_at")
+    val invitedAt: Instant,
+    @field:MappedProperty("accepted_by")
+    val acceptedBy: String?,
+    @field:MappedProperty("accepted_at")
+    val acceptedAt: Instant?,
+)

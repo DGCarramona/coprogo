@@ -55,3 +55,70 @@ interface GroupMembershipDataRepository : CoroutineCrudRepository<GroupMembershi
 
     suspend fun deleteByGroup(group: UUID)
 }
+
+@R2dbcRepository(dialect = Dialect.POSTGRES)
+interface GroupInvitationDataRepository : CoroutineCrudRepository<GroupInvitationEntity, UUID> {
+    @Query(
+        value =
+            """
+            SELECT *
+            FROM group_invitations
+            WHERE "group" = :group
+              AND accepted_at IS NULL
+            ORDER BY invited_email
+            """,
+        nativeQuery = true,
+    )
+    suspend fun findPendingByGroup(group: UUID): List<GroupInvitationEntity>
+
+    @Query(
+        value =
+            """
+            SELECT *
+            FROM group_invitations
+            WHERE invited_email = :invitedEmail
+              AND accepted_at IS NULL
+            ORDER BY invited_at
+            """,
+        nativeQuery = true,
+    )
+    suspend fun findPendingByInvitedEmail(invitedEmail: String): List<GroupInvitationEntity>
+
+    @Query(
+        value =
+            """
+            INSERT INTO group_invitations (
+                id,
+                "group",
+                invited_email,
+                invited_by,
+                invited_at,
+                accepted_by,
+                accepted_at
+            )
+            VALUES (
+                :id,
+                :group,
+                :invitedEmail,
+                :invitedBy,
+                :invitedAt,
+                :acceptedBy,
+                :acceptedAt
+            )
+            ON CONFLICT (id) DO UPDATE
+            SET accepted_by = EXCLUDED.accepted_by,
+                accepted_at = EXCLUDED.accepted_at
+            """,
+        nativeQuery = true,
+        readOnly = false,
+    )
+    suspend fun upsert(
+        id: UUID,
+        group: UUID,
+        invitedEmail: String,
+        invitedBy: String,
+        invitedAt: Instant,
+        acceptedBy: String?,
+        acceptedAt: Instant?,
+    )
+}
