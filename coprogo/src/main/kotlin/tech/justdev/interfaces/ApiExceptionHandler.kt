@@ -8,6 +8,7 @@ import io.micronaut.serde.annotation.Serdeable
 import jakarta.inject.Singleton
 import tech.justdev.application.group.GroupAccessDeniedException
 import tech.justdev.application.group.GroupApplicationException
+import tech.justdev.application.group.GroupCreatorRequiredException
 import tech.justdev.application.group.GroupInvitationAccessDeniedException
 import tech.justdev.application.group.GroupInvitationAlreadyAcceptedException
 import tech.justdev.application.group.GroupInvitationAlreadyExistsException
@@ -45,6 +46,7 @@ data class ApiErrorResponse(
 private fun GroupApplicationException.toStatus(): HttpStatus =
     when (this) {
         is GroupAccessDeniedException -> HttpStatus.FORBIDDEN
+        is GroupCreatorRequiredException -> HttpStatus.FORBIDDEN
         is GroupInvitationAccessDeniedException -> HttpStatus.FORBIDDEN
         is OwnershipShareChangeForbiddenException -> HttpStatus.FORBIDDEN
         is GroupNotFoundException -> HttpStatus.NOT_FOUND
