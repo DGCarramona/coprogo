@@ -1,0 +1,13 @@
+:host {
+  display: block;
+}
+
+.invitation-card {
+  background: color-mix(in srgb, var(--mat-sys-surface) 92%, white);
+}
+
+.invitation-card__copy {
+  margin: 1rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.6;
+}

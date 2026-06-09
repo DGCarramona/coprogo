@@ -1,1 +1,107 @@
-/* You can add global styles to this file, and also import other style files */
+@use '@angular/material' as mat;
+
+html {
+  @include mat.theme(
+    (
+      color: (
+        theme-type: light,
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: (
+        plain-family: ('Avenir Next', 'Trebuchet MS', 'Segoe UI', sans-serif),
+        brand-family: ('Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif),
+        bold-weight: 700,
+        medium-weight: 500,
+        regular-weight: 400,
+      ),
+      density: 0,
+    )
+  );
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top, rgb(111 175 255 / 0.16), transparent 28%),
+    linear-gradient(
+      180deg,
+      var(--mat-sys-surface-container-lowest),
+      var(--mat-sys-surface-container-low)
+    );
+  color: var(--mat-sys-on-surface);
+  font-family: var(--mat-sys-body-large-font);
+  font-size: var(--mat-sys-body-large-size);
+  line-height: var(--mat-sys-body-large-line-height);
+  font-weight: var(--mat-sys-body-large-weight);
+  letter-spacing: var(--mat-sys-body-large-tracking);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.material-page {
+  min-height: 100dvh;
+  padding: 1.5rem;
+}
+
+.material-page__content {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+.material-page__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(20rem, 28rem);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.material-card {
+  border-radius: 28px;
+}
+
+.material-section-title {
+  margin: 0;
+  font-family: var(--mat-sys-headline-large-font);
+  font-size: var(--mat-sys-headline-large-size);
+  line-height: var(--mat-sys-headline-large-line-height);
+  font-weight: var(--mat-sys-headline-large-weight);
+  letter-spacing: var(--mat-sys-headline-large-tracking);
+  letter-spacing: -0.02em;
+}
+
+.material-section-subtitle {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font-family: var(--mat-sys-body-large-font);
+  font-size: var(--mat-sys-body-large-size);
+  line-height: var(--mat-sys-body-large-line-height);
+  font-weight: var(--mat-sys-body-large-weight);
+  letter-spacing: var(--mat-sys-body-large-tracking);
+}
+
+code {
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+  font-family: 'JetBrains Mono', 'SFMono-Regular', monospace;
+}
+
+@media (max-width: 960px) {
+  .material-page {
+    padding: 1rem;
+  }
+
+  .material-page__grid {
+    grid-template-columns: 1fr;
+  }
+}

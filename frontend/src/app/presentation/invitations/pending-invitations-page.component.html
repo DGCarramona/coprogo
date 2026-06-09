@@ -1,0 +1,93 @@
+<section class="pending-invitations-page material-page">
+  <div class="material-page__content">
+    <mat-toolbar class="material-card pending-invitations-page__toolbar">
+      <div class="pending-invitations-page__toolbar-copy">
+        <p class="pending-invitations-page__eyebrow">Connexion active</p>
+        <h1>Invitations en attente</h1>
+        <p>
+          Votre compte est cree automatiquement a la premiere connexion. Cette page devient le point
+          d entree pour rejoindre un groupe ou en creer un.
+        </p>
+      </div>
+
+      <span class="pending-invitations-page__toolbar-spacer"></span>
+
+      <button mat-stroked-button type="button" (click)="viewModel.signOut()">Se deconnecter</button>
+    </mat-toolbar>
+
+    @if (viewModel.isLoading()) {
+      <mat-card class="material-card pending-invitations-page__state" appearance="outlined">
+        <mat-card-header>
+          <mat-card-title>Chargement de vos invitations...</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+          <p>Le backend initialise votre session applicative et recharge vos invitations en attente.</p>
+        </mat-card-content>
+      </mat-card>
+    } @else if (viewModel.hasLoadError()) {
+      <mat-card class="material-card pending-invitations-page__state" appearance="outlined">
+        <mat-card-header>
+          <mat-card-title>Impossible de charger vos invitations</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p>{{ viewModel.errorMessage() }}</p>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-flat-button type="button" (click)="viewModel.retry()">Reessayer</button>
+          <button mat-button type="button" (click)="viewModel.signOut()">Revenir a la connexion</button>
+        </mat-card-actions>
+      </mat-card>
+    } @else if (viewModel.isEmpty()) {
+      <mat-card class="material-card pending-invitations-page__state" appearance="outlined">
+        <mat-card-header>
+          <mat-card-title>Aucune invitation en attente</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p>
+            Vous pouvez maintenant creer votre groupe. Cette action reutilise directement l endpoint
+            backend de creation de groupe deja en place.
+          </p>
+
+          @if (viewModel.createdGroupId(); as createdGroupId) {
+            <div class="pending-invitations-page__message pending-invitations-page__message--success">
+              Groupe cree avec succes. Identifiant technique : <code>{{ createdGroupId }}</code>
+            </div>
+          }
+
+          @if (viewModel.errorMessage(); as errorMessage) {
+            <div class="pending-invitations-page__message pending-invitations-page__message--error">
+              {{ errorMessage }}
+            </div>
+          }
+        </mat-card-content>
+        <mat-card-actions>
+          <button
+            mat-flat-button
+            type="button"
+            [disabled]="viewModel.isCreatingGroup()"
+            (click)="viewModel.createGroup()"
+          >
+            {{ viewModel.isCreatingGroup() ? 'Creation...' : 'Creer mon premier groupe' }}
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    } @else {
+      <div class="pending-invitations-page__list">
+        @for (invitation of viewModel.invitations(); track invitation.invitationId) {
+          <app-invitation-card
+            [invitation]="invitation"
+            [accepting]="viewModel.busyInvitationId() === invitation.invitationId"
+            (accepted)="viewModel.acceptInvitation($event)"
+          />
+        }
+      </div>
+
+      @if (viewModel.errorMessage(); as errorMessage) {
+        <div class="pending-invitations-page__message pending-invitations-page__message--error">
+          {{ errorMessage }}
+        </div>
+      }
+    }
+  </div>
+</section>

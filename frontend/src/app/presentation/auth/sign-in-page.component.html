@@ -1,0 +1,94 @@
+<section class="sign-in-page material-page">
+  <div class="material-page__content material-page__grid">
+    <mat-card class="material-card sign-in-page__hero" appearance="outlined">
+      <mat-card-content>
+        <p class="sign-in-page__eyebrow">Coprogo</p>
+        <h1 class="material-section-title">Connexion et inscription en une seule etape.</h1>
+        <p class="sign-in-page__lead material-section-subtitle">
+          La premiere connexion Google cree automatiquement votre compte. Ensuite vous retrouvez vos
+          invitations en attente, ou vous pouvez creer votre premier groupe.
+        </p>
+
+        <mat-chip-set aria-label="Principes du flow de connexion" class="sign-in-page__chip-set">
+          <mat-chip>Compte cree a la premiere connexion</mat-chip>
+          <mat-chip>Identite canonique basee sur l email Google verifie</mat-chip>
+          <mat-chip>Invitations en attente chargees ensuite</mat-chip>
+        </mat-chip-set>
+
+        <div class="sign-in-page__steps">
+          <mat-card class="material-card sign-in-page__step" appearance="outlined">
+            <mat-card-content>
+              <p class="sign-in-page__step-index">01</p>
+              <h2>Connectez-vous</h2>
+              <p>Le backend reconnait votre email Google verifie comme identite canonique.</p>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="material-card sign-in-page__step" appearance="outlined">
+            <mat-card-content>
+              <p class="sign-in-page__step-index">02</p>
+              <h2>Consultez vos invitations</h2>
+              <p>Les invitations recues s affichent des la premiere connexion.</p>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="material-card sign-in-page__step" appearance="outlined">
+            <mat-card-content>
+              <p class="sign-in-page__step-index">03</p>
+              <h2>Creez votre groupe si besoin</h2>
+              <p>Sans invitation, vous pouvez enchainer directement sur la creation de groupe.</p>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="material-card sign-in-page__panel" appearance="raised">
+      <mat-card-header>
+        <mat-card-subtitle>Compte personnel</mat-card-subtitle>
+        <mat-card-title>Continuer avec Google</mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <p class="material-section-subtitle">
+          Aucun formulaire suplementaire pour l instant. Votre email suffit a l initialisation du
+          compte.
+        </p>
+
+        <div #googleButtonHost class="sign-in-page__button-host"></div>
+
+        @if (isBusy()) {
+          <div class="sign-in-page__feedback">
+            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+            <p>Connexion en cours...</p>
+          </div>
+        }
+
+        @if (!hasGoogleConfiguration()) {
+          <div class="sign-in-page__message sign-in-page__message--warn">
+            L environnement frontend doit definir <code>APP_GOOGLE_CLIENT_ID</code>.
+          </div>
+        }
+
+        @if (renderErrorMessage(); as renderErrorMessage) {
+          <div class="sign-in-page__message sign-in-page__message--error">
+            {{ renderErrorMessage }}
+          </div>
+        }
+
+        @if (sessionErrorMessage(); as sessionErrorMessage) {
+          <div class="sign-in-page__message sign-in-page__message--error">
+            {{ sessionErrorMessage }}
+          </div>
+        }
+      </mat-card-content>
+
+      <mat-divider></mat-divider>
+
+      <mat-card-footer class="sign-in-page__footer">
+        L inscription n est pas un formulaire distinct. La connexion initialise directement votre
+        compte applicatif.
+      </mat-card-footer>
+    </mat-card>
+  </div>
+</section>

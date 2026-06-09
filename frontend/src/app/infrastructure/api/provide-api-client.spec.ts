@@ -3,7 +3,7 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 
-import { FAKE_GOOGLE_ID_TOKEN } from './api-auth.interceptor';
+import { BrowserGoogleIdTokenStore } from '../auth/google/browser-google-id-token.store';
 import { RevenueDistributionService } from './generated';
 import { provideApiClient, resolveApiBasePath } from './provide-api-client';
 
@@ -34,6 +34,7 @@ describe('provideApiClient', () => {
         }),
       ],
     });
+    TestBed.inject(BrowserGoogleIdTokenStore).store('google-id-token');
 
     const responsePromise = firstValueFrom(
       TestBed.inject(RevenueDistributionService).preview({
@@ -52,7 +53,7 @@ describe('provideApiClient', () => {
     );
 
     expect(request.request.method).toBe('POST');
-    expect(request.request.headers.get('Authorization')).toBe(`Bearer ${FAKE_GOOGLE_ID_TOKEN}`);
+    expect(request.request.headers.get('Authorization')).toBe('Bearer google-id-token');
 
     request.flush({
       allocations: [

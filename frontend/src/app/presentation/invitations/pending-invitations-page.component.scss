@@ -1,0 +1,102 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+}
+
+.pending-invitations-page {
+  display: block;
+}
+
+.pending-invitations-page__toolbar {
+  height: auto;
+  align-items: start;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--mat-sys-surface) 88%, white);
+}
+
+.pending-invitations-page__toolbar-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.pending-invitations-page__toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+.pending-invitations-page__eyebrow {
+  margin: 0;
+  color: var(--mat-sys-primary);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-family: var(--mat-sys-label-small-font);
+  font-size: var(--mat-sys-label-small-size);
+  line-height: var(--mat-sys-label-small-line-height);
+  font-weight: var(--mat-sys-label-small-weight);
+}
+
+.pending-invitations-page h1 {
+  margin: 0;
+  font-family: var(--mat-sys-headline-large-font);
+  font-size: var(--mat-sys-headline-large-size);
+  line-height: var(--mat-sys-headline-large-line-height);
+  font-weight: var(--mat-sys-headline-large-weight);
+  letter-spacing: var(--mat-sys-headline-large-tracking);
+}
+
+.pending-invitations-page__toolbar-copy p:not(.pending-invitations-page__eyebrow) {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font-family: var(--mat-sys-body-large-font);
+  font-size: var(--mat-sys-body-large-size);
+  line-height: var(--mat-sys-body-large-line-height);
+  font-weight: var(--mat-sys-body-large-weight);
+  letter-spacing: var(--mat-sys-body-large-tracking);
+}
+
+.pending-invitations-page__state {
+  margin-top: 1.5rem;
+}
+
+.pending-invitations-page__state p,
+.pending-invitations-page__message {
+  line-height: 1.6;
+}
+
+.pending-invitations-page__state mat-progress-bar {
+  margin: 0.75rem 0 1rem;
+}
+
+.pending-invitations-page__list {
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+  gap: 1rem;
+}
+
+.pending-invitations-page__message {
+  max-width: 42rem;
+  margin-top: 1rem;
+  padding: 0.95rem 1rem;
+  border-radius: 16px;
+}
+
+.pending-invitations-page__message--error {
+  background: color-mix(in srgb, var(--mat-sys-error-container) 72%, white);
+  color: var(--mat-sys-on-error-container);
+}
+
+.pending-invitations-page__message--success {
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 72%, white);
+  color: var(--mat-sys-on-primary-container);
+}
+
+@media (max-width: 720px) {
+  .pending-invitations-page__toolbar {
+    flex-direction: column;
+    padding: 1rem;
+  }
+}

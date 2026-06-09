@@ -1,0 +1,23 @@
+<mat-card class="material-card invitation-card" appearance="outlined">
+  <mat-card-header>
+    <mat-card-title>Invitation envoyee par {{ invitation().invitedBy }}</mat-card-title>
+    <mat-card-subtitle>{{ invitation().invitedAt | date: 'd MMM y, HH:mm' }}</mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    <mat-chip-set aria-label="Metadonnees de l invitation">
+      <mat-chip>Groupe {{ shortGroupId() }}</mat-chip>
+      <mat-chip>{{ invitation().invitedMember }}</mat-chip>
+    </mat-chip-set>
+
+    <p class="invitation-card__copy">
+      Cette invitation vous rattache au groupe <code>{{ invitation().groupId }}</code>.
+    </p>
+  </mat-card-content>
+
+  <mat-card-actions align="end">
+    <button mat-flat-button type="button" [disabled]="accepting()" (click)="accept()">
+      {{ accepting() ? 'Acceptation...' : 'Accepter l invitation' }}
+    </button>
+  </mat-card-actions>
+</mat-card>
