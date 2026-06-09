@@ -105,8 +105,9 @@ interface GroupInvitationDataRepository : CoroutineCrudRepository<GroupInvitatio
                 :acceptedBy,
                 :acceptedAt
             )
-            ON CONFLICT (id) DO UPDATE
-            SET accepted_by = EXCLUDED.accepted_by,
+            ON CONFLICT ("group", invited_email) DO UPDATE
+            SET id = EXCLUDED.id,
+                accepted_by = EXCLUDED.accepted_by,
                 accepted_at = EXCLUDED.accepted_at
             """,
         nativeQuery = true,
