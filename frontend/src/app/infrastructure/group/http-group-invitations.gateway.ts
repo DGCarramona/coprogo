@@ -23,7 +23,9 @@ export class HttpGroupInvitationsGateway extends PendingGroupInvitationsPort {
   override async listPending(): Promise<PendingGroupInvitation[]> {
     try {
       const invitations = await firstValueFrom(
-        this.httpClient.get<PendingGroupInvitationDto[]>(`${this.basePath}/api/group-invitations/pending`),
+        this.httpClient.get<PendingGroupInvitationDto[]>(
+          `${this.basePath}/api/group-invitations/pending`,
+        ),
       );
 
       return invitations.map(mapPendingGroupInvitationDtoToDomain);
@@ -35,7 +37,10 @@ export class HttpGroupInvitationsGateway extends PendingGroupInvitationsPort {
   override async accept(invitationId: string): Promise<void> {
     try {
       await firstValueFrom(
-        this.httpClient.post<void>(`${this.basePath}/api/group-invitations/${invitationId}/accept`, {}),
+        this.httpClient.post<void>(
+          `${this.basePath}/api/group-invitations/${invitationId}/accept`,
+          {},
+        ),
       );
     } catch (error) {
       throw toApiClientError(error, "L'invitation n'a pas pu etre acceptee.");

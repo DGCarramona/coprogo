@@ -38,7 +38,10 @@ export class PendingInvitationsPageViewModel {
   }
 
   isEmpty() {
-    return this.authSessionFacade.status() === 'ready' && this.authSessionFacade.invitations().length === 0;
+    return (
+      this.authSessionFacade.status() === 'ready' &&
+      this.authSessionFacade.invitations().length === 0
+    );
   }
 
   async initialize(): Promise<void> {

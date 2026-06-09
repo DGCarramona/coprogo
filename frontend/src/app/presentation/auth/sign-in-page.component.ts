@@ -16,7 +16,8 @@ import { SignInPageViewModel } from './sign-in-page.view-model';
 export class SignInPageComponent implements OnInit {
   private readonly viewModel = inject(SignInPageViewModel);
 
-  protected readonly googleButtonHost = viewChild.required<ElementRef<HTMLDivElement>>('googleButtonHost');
+  protected readonly googleButtonHost =
+    viewChild.required<ElementRef<HTMLDivElement>>('googleButtonHost');
 
   constructor() {
     afterNextRender(() => {

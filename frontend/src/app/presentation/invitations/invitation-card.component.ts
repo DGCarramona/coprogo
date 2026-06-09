@@ -16,7 +16,9 @@ export class InvitationCardComponent {
   readonly invitation = input.required<PendingGroupInvitation>();
   readonly accepting = input(false);
   readonly accepted = output<string>();
-  protected readonly shortGroupId = computed(() => this.invitation().groupId.slice(0, 8).toUpperCase());
+  protected readonly shortGroupId = computed(() =>
+    this.invitation().groupId.slice(0, 8).toUpperCase(),
+  );
 
   protected accept(): void {
     this.accepted.emit(this.invitation().invitationId);

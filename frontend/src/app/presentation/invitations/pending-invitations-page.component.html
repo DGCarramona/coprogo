@@ -22,7 +22,9 @@
         </mat-card-header>
         <mat-card-content>
           <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-          <p>Le backend initialise votre session applicative et recharge vos invitations en attente.</p>
+          <p>
+            Le backend initialise votre session applicative et recharge vos invitations en attente.
+          </p>
         </mat-card-content>
       </mat-card>
     } @else if (viewModel.hasLoadError()) {
@@ -35,7 +37,9 @@
         </mat-card-content>
         <mat-card-actions>
           <button mat-flat-button type="button" (click)="viewModel.retry()">Reessayer</button>
-          <button mat-button type="button" (click)="viewModel.signOut()">Revenir a la connexion</button>
+          <button mat-button type="button" (click)="viewModel.signOut()">
+            Revenir a la connexion
+          </button>
         </mat-card-actions>
       </mat-card>
     } @else if (viewModel.isEmpty()) {
@@ -50,7 +54,9 @@
           </p>
 
           @if (viewModel.createdGroupId(); as createdGroupId) {
-            <div class="pending-invitations-page__message pending-invitations-page__message--success">
+            <div
+              class="pending-invitations-page__message pending-invitations-page__message--success"
+            >
               Groupe cree avec succes. Identifiant technique : <code>{{ createdGroupId }}</code>
             </div>
           }

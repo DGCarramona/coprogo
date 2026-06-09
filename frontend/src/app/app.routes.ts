@@ -11,7 +11,9 @@ export const routes: Routes = [
   {
     path: 'connexion',
     loadComponent: () =>
-      import('./presentation/auth/sign-in-page.component').then((module) => module.SignInPageComponent),
+      import('./presentation/auth/sign-in-page.component').then(
+        (module) => module.SignInPageComponent,
+      ),
   },
   {
     path: 'invitations',

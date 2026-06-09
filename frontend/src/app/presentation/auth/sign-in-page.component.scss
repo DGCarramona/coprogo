@@ -9,7 +9,11 @@
 
 .sign-in-page__hero {
   background:
-    linear-gradient(160deg, color-mix(in srgb, var(--mat-sys-primary-container) 72%, white), transparent 80%),
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--mat-sys-primary-container) 72%, white),
+      transparent 80%
+    ),
     var(--mat-sys-surface);
 }
 

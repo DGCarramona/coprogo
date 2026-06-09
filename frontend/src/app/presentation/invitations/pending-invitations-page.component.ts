@@ -9,7 +9,13 @@ import { PendingInvitationsPageViewModel } from './pending-invitations-page.view
 
 @Component({
   selector: 'app-pending-invitations-page',
-  imports: [InvitationCardComponent, MatButtonModule, MatCardModule, MatProgressBarModule, MatToolbarModule],
+  imports: [
+    InvitationCardComponent,
+    MatButtonModule,
+    MatCardModule,
+    MatProgressBarModule,
+    MatToolbarModule,
+  ],
   templateUrl: './pending-invitations-page.component.html',
   styleUrl: './pending-invitations-page.component.scss',
   providers: [PendingInvitationsPageViewModel],
