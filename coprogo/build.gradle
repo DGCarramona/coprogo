@@ -63,8 +63,8 @@ application {
 }
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(21)
-    sourceCompatibility = JavaVersion.toVersion("21")
+    toolchain.languageVersion = JavaLanguageVersion.of(25)
+    sourceCompatibility = JavaVersion.toVersion("25")
 }
 
 
@@ -104,5 +104,5 @@ micronaut {
 
 
 tasks.named("dockerfileNative") {
-    jdkVersion = "21"
+    jdkVersion = "25"
 }
