@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 concurrency:
   group: dependency-submission-${{ github.ref }}
@@ -34,3 +35,19 @@ jobs:
           build-root-directory: coprogo
           gradle-version: '9.4.1'
           dependency-graph: generate-and-submit
+
+  npm-dependency-submission:
+    name: npm dependency submission
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Generate and submit npm dependency graph
+        uses: advanced-security/component-detection-dependency-submission-action@v0.1.1
+        with:
+          filePath: frontend
+          detectorsCategories: Npm
+          detectorArgs: NpmLockfile3=EnableIfDefaultOff
+          correlator: frontend-npm
