@@ -52,7 +52,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.testcontainers:testcontainers-postgresql")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    aotPlugins platform("io.micronaut.platform:micronaut-platform:4.10.12")
+    aotPlugins platform("io.micronaut.platform:micronaut-platform:5.0.1")
     aotPlugins("io.micronaut.security:micronaut-security-aot")
 }
 
