@@ -33,7 +33,7 @@ class InviteMemberToGroupUseCaseTest {
             val invitationRepository = InMemoryGroupInvitationRepository()
             val useCase =
                 InviteMemberToGroupUseCase(
-                    groupRepository = groupRepository,
+                    groupAccessPolicy = GroupAccessPolicy(groupRepository),
                     groupInvitationRepository = invitationRepository,
                     groupInvitationIdGenerator = FixedGroupInvitationIdGenerator(listOf(groupInvitationId("invitation-1"))),
                 )
@@ -64,16 +64,18 @@ class InviteMemberToGroupUseCaseTest {
     fun `invoke should fail when the requester is not part of the group`() {
         val useCase =
             InviteMemberToGroupUseCase(
-                groupRepository =
-                    InMemoryGroupRepository(
-                        groups =
-                            listOf(
-                                Group.create(
-                                    id = groupId("group-1"),
-                                    createdBy = memberEmail("alice"),
-                                    createdAt = Instant.parse("2026-04-14T08:00:00Z"),
+                groupAccessPolicy =
+                    GroupAccessPolicy(
+                        InMemoryGroupRepository(
+                            groups =
+                                listOf(
+                                    Group.create(
+                                        id = groupId("group-1"),
+                                        createdBy = memberEmail("alice"),
+                                        createdAt = Instant.parse("2026-04-14T08:00:00Z"),
+                                    ),
                                 ),
-                            ),
+                        ),
                     ),
                 groupInvitationRepository = InMemoryGroupInvitationRepository(),
                 groupInvitationIdGenerator = FixedGroupInvitationIdGenerator(listOf(groupInvitationId("invitation-1"))),
@@ -103,16 +105,18 @@ class InviteMemberToGroupUseCaseTest {
     fun `invoke should fail when a pending invitation already exists for the email`() {
         val useCase =
             InviteMemberToGroupUseCase(
-                groupRepository =
-                    InMemoryGroupRepository(
-                        groups =
-                            listOf(
-                                Group.create(
-                                    id = groupId("group-1"),
-                                    createdBy = memberEmail("alice"),
-                                    createdAt = Instant.parse("2026-04-14T08:00:00Z"),
+                groupAccessPolicy =
+                    GroupAccessPolicy(
+                        InMemoryGroupRepository(
+                            groups =
+                                listOf(
+                                    Group.create(
+                                        id = groupId("group-1"),
+                                        createdBy = memberEmail("alice"),
+                                        createdAt = Instant.parse("2026-04-14T08:00:00Z"),
+                                    ),
                                 ),
-                            ),
+                        ),
                     ),
                 groupInvitationRepository =
                     InMemoryGroupInvitationRepository(

@@ -3,7 +3,6 @@ package tech.justdev.application.group
 import jakarta.inject.Singleton
 import tech.justdev.domain.group.entity.GroupInvitation
 import tech.justdev.domain.group.repository.GroupInvitationRepository
-import tech.justdev.domain.group.repository.GroupRepository
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.valueobject.GroupId
 import java.time.Instant
@@ -18,17 +17,13 @@ data class InviteMemberToGroupCommand(
 
 @Singleton
 class InviteMemberToGroupUseCase(
-    private val groupRepository: GroupRepository,
+    private val groupAccessPolicy: GroupAccessPolicy,
     private val groupInvitationRepository: GroupInvitationRepository,
     private val groupInvitationIdGenerator: GroupInvitationIdGenerator = RandomGroupInvitationIdGenerator,
 ) {
     suspend operator fun invoke(command: InviteMemberToGroupCommand) {
         val groupId = GroupId(command.group)
-        val group = groupRepository.findById(groupId) ?: throw GroupNotFoundException(groupId)
-
-        if (!group.contains(command.invitedBy)) {
-            throw GroupAccessDeniedException(groupId, command.invitedBy)
-        }
+        val group = groupAccessPolicy.requireMember(groupId, command.invitedBy)
         require(!group.contains(command.invitedMember)) {
             "member ${command.invitedMember.toPrimitive()} is already part of group ${group.id.toPrimitive()}"
         }

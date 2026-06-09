@@ -17,6 +17,11 @@ class GroupAccessDeniedException(
     member: MemberEmail,
 ) : GroupApplicationException("member ${member.toPrimitive()} is not part of group ${group.toPrimitive()}")
 
+class GroupCreatorRequiredException(
+    group: GroupId,
+    member: MemberEmail,
+) : GroupApplicationException("member ${member.toPrimitive()} is not the creator of group ${group.toPrimitive()}")
+
 class GroupInvitationNotFoundException(
     invitation: GroupInvitationId,
 ) : GroupApplicationException("group invitation ${invitation.toPrimitive()} was not found")

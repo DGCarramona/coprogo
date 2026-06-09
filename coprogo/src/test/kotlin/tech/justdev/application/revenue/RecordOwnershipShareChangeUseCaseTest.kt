@@ -4,6 +4,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import tech.justdev.application.group.GroupAccessPolicy
 import tech.justdev.application.group.OwnershipShareChangeForbiddenException
 import tech.justdev.application.support.InMemoryGroupRepository
 import tech.justdev.application.support.InMemoryOwnershipShareTimelineRepository
@@ -28,16 +29,18 @@ class RecordOwnershipShareChangeUseCaseTest {
             val repository = InMemoryOwnershipShareTimelineRepository()
             val useCase =
                 RecordOwnershipShareChangeUseCase(
-                    groupRepository =
-                        InMemoryGroupRepository(
-                            groups =
-                                listOf(
-                                    Group.create(
-                                        id = groupId("group-1"),
-                                        createdBy = memberEmail("owner"),
-                                        createdAt = Instant.parse("2026-01-01T08:00:00Z"),
+                    groupAccessPolicy =
+                        GroupAccessPolicy(
+                            InMemoryGroupRepository(
+                                groups =
+                                    listOf(
+                                        Group.create(
+                                            id = groupId("group-1"),
+                                            createdBy = memberEmail("owner"),
+                                            createdAt = Instant.parse("2026-01-01T08:00:00Z"),
+                                        ),
                                     ),
-                                ),
+                            ),
                         ),
                     ownershipShareTimelineRepository = repository,
                     ownershipShareChangeIdGenerator = FixedOwnershipShareChangeIdGenerator(listOf(ownershipShareChangeId("change-1"))),
@@ -84,16 +87,18 @@ class RecordOwnershipShareChangeUseCaseTest {
     fun `invoke should fail when a non creator attempts to change ownership shares`() {
         val useCase =
             RecordOwnershipShareChangeUseCase(
-                groupRepository =
-                    InMemoryGroupRepository(
-                        groups =
-                            listOf(
-                                Group.create(
-                                    id = groupId("group-1"),
-                                    createdBy = memberEmail("owner"),
-                                    createdAt = Instant.parse("2026-01-01T08:00:00Z"),
+                groupAccessPolicy =
+                    GroupAccessPolicy(
+                        InMemoryGroupRepository(
+                            groups =
+                                listOf(
+                                    Group.create(
+                                        id = groupId("group-1"),
+                                        createdBy = memberEmail("owner"),
+                                        createdAt = Instant.parse("2026-01-01T08:00:00Z"),
+                                    ),
                                 ),
-                            ),
+                        ),
                     ),
                 ownershipShareTimelineRepository = InMemoryOwnershipShareTimelineRepository(),
                 ownershipShareChangeIdGenerator = FixedOwnershipShareChangeIdGenerator(listOf(ownershipShareChangeId("change-1"))),

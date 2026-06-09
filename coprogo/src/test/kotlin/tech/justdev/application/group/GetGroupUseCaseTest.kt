@@ -31,7 +31,7 @@ class GetGroupUseCaseTest {
                     )
             val useCase =
                 GetGroupUseCase(
-                    groupRepository = InMemoryGroupRepository(listOf(group)),
+                    groupAccessPolicy = GroupAccessPolicy(InMemoryGroupRepository(listOf(group))),
                     groupInvitationRepository =
                         InMemoryGroupInvitationRepository(
                             invitations =
@@ -81,16 +81,18 @@ class GetGroupUseCaseTest {
     fun `invoke should fail when the requester is not part of the group`() {
         val useCase =
             GetGroupUseCase(
-                groupRepository =
-                    InMemoryGroupRepository(
-                        groups =
-                            listOf(
-                                Group.create(
-                                    id = groupId("group-1"),
-                                    createdBy = memberEmail("alice"),
-                                    createdAt = Instant.parse("2026-04-14T08:30:00Z"),
+                groupAccessPolicy =
+                    GroupAccessPolicy(
+                        InMemoryGroupRepository(
+                            groups =
+                                listOf(
+                                    Group.create(
+                                        id = groupId("group-1"),
+                                        createdBy = memberEmail("alice"),
+                                        createdAt = Instant.parse("2026-04-14T08:30:00Z"),
+                                    ),
                                 ),
-                            ),
+                        ),
                     ),
                 groupInvitationRepository = InMemoryGroupInvitationRepository(),
             )

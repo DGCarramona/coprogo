@@ -2,7 +2,6 @@ package tech.justdev.application.group
 
 import jakarta.inject.Singleton
 import tech.justdev.domain.group.repository.GroupInvitationRepository
-import tech.justdev.domain.group.repository.GroupRepository
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.valueobject.GroupId
 import java.time.Instant
@@ -35,16 +34,12 @@ data class GroupInvitationSnapshot(
 
 @Singleton
 class GetGroupUseCase(
-    private val groupRepository: GroupRepository,
+    private val groupAccessPolicy: GroupAccessPolicy,
     private val groupInvitationRepository: GroupInvitationRepository,
 ) {
     suspend operator fun invoke(query: GetGroupQuery): GroupSnapshot {
         val groupId = GroupId(query.group)
-        val group = groupRepository.findById(groupId) ?: throw GroupNotFoundException(groupId)
-
-        if (!group.contains(query.requestedBy)) {
-            throw GroupAccessDeniedException(groupId, query.requestedBy)
-        }
+        val group = groupAccessPolicy.requireMember(groupId, query.requestedBy)
 
         return GroupSnapshot(
             group = group.id.toPrimitive(),
