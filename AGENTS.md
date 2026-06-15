@@ -54,6 +54,8 @@ A group of family members jointly manage an apartment. Members can advance expen
 
 #### Common cash pool
 - Rental income goes into a virtual common cash pool.
+- Any group member may record incoming rental income.
+- Incoming rental income recording must support a future contestation/review mechanism.
 - Revenue distribution follows ownership shares.
 - Ownership shares do not apply by default to ordinary expenses.
 - A member cannot withdraw money from the common cash pool if sufficient money is not available.
