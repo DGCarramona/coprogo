@@ -267,6 +267,7 @@ Every behavior change must include or update tests.
 - minimal end-to-end tests for critical flows
 
 ### General rules
+- Prefer a TDD workflow for any testable change: write or update failing behavior-focused tests first, then implement the smallest production change that makes them pass.
 - Test behavior and outcomes, not implementation details.
 - Keep use cases testable without framework coupling.
 - Avoid hidden global state and nondeterminism.
