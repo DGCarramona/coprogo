@@ -243,6 +243,12 @@ Backend code should be as non-blocking, reactive, functional, and set-oriented a
 - Consider indexes, uniqueness constraints, ordering, and filtering at the database level for expected access patterns.
 - Do not introduce convenience repository methods that are correct only for small datasets when a scalable query shape is available.
 
+### PostgreSQL schema types
+- Because PostgreSQL is the only supported database, prefer explicit PostgreSQL types for stable database concepts.
+- Use PostgreSQL `ENUM` types for closed vocabularies that are part of persisted business state.
+- Use PostgreSQL `DOMAIN` types for recurring constrained scalar values such as normalized member emails, money amounts in cents, positive amounts, signed ledger deltas, and ownership basis points.
+- Keep database constraints as part of the auditability boundary; application/domain validation complements them but does not replace them.
+
 ### Boundary discipline
 - Do not leak framework-specific reactive types deep into the domain without a clear reason.
 - Keep Domain and most of Application focused on business semantics first.
