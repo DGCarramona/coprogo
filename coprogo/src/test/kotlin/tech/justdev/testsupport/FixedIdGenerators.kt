@@ -3,9 +3,11 @@ package tech.justdev.testsupport
 import tech.justdev.application.expense.ExpenseIdGenerator
 import tech.justdev.application.group.GroupIdGenerator
 import tech.justdev.application.group.GroupInvitationIdGenerator
+import tech.justdev.application.ledger.LedgerEventIdGenerator
 import tech.justdev.application.revenue.OwnershipShareChangeIdGenerator
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.group.entity.GroupInvitationId
+import tech.justdev.domain.ledger.valueobject.LedgerEventId
 import tech.justdev.domain.revenue.entity.OwnershipShareChangeId
 import tech.justdev.domain.shared.valueobject.GroupId
 
@@ -47,4 +49,14 @@ class FixedOwnershipShareChangeIdGenerator(
     override fun next(): OwnershipShareChangeId =
         ids.getOrNull(nextIndex++)
             ?: throw IllegalStateException("no fixed ownership share change id configured for index $nextIndex")
+}
+
+class FixedLedgerEventIdGenerator(
+    private val ids: List<LedgerEventId>,
+) : LedgerEventIdGenerator {
+    private var nextIndex = 0
+
+    override fun next(): LedgerEventId =
+        ids.getOrNull(nextIndex++)
+            ?: throw IllegalStateException("no fixed ledger event id configured for index $nextIndex")
 }
