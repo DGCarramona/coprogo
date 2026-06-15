@@ -6,7 +6,6 @@ import tech.justdev.domain.ledger.effect.MemberBalanceTransfer
 import tech.justdev.domain.ledger.event.AcceptedExpenseLedgerEvent
 import tech.justdev.domain.ledger.event.CashPoolIncomeLedgerEvent
 import tech.justdev.domain.ledger.event.CashPoolWithdrawalLedgerEvent
-import tech.justdev.domain.ledger.event.RevenueDistributionLedgerEvent
 import tech.justdev.domain.ledger.valueobject.NetBalanceAmount
 import tech.justdev.domain.revenue.valueobject.OwnershipPercentage
 import tech.justdev.domain.revenue.valueobject.OwnershipShare
@@ -61,16 +60,10 @@ class LedgerBalanceProjectionTest {
     fun `projectMemberBalances should ignore cash-pool effects unless they explicitly reduce inter-member debt`() {
         val balances =
             listOf(
-                CashPoolIncomeLedgerEvent(
+                CashPoolIncomeLedgerEvent.from(
                     id = ledgerEventId("cash-pool-income-1"),
                     group = groupId("group-1"),
-                    amount = MoneyAmount.ofCents(100),
                     occurredAt = Instant.parse("2026-04-03T10:00:00Z"),
-                ),
-                RevenueDistributionLedgerEvent.from(
-                    id = ledgerEventId("revenue-distribution-1"),
-                    group = groupId("group-1"),
-                    occurredAt = Instant.parse("2026-04-03T10:01:00Z"),
                     distribution =
                         RevenueDistribution.distribute(
                             totalAmount = MoneyAmount.ofCents(100),

@@ -38,15 +38,6 @@ data class LedgerCashPoolIncomeEventEntity(
     val amountInCents: Long,
 )
 
-@MappedEntity("ledger_revenue_distribution_events")
-data class LedgerRevenueDistributionEventEntity(
-    @field:Id
-    @field:MappedProperty("event")
-    val eventId: UUID,
-    @field:MappedProperty("total_amount_in_cents")
-    val totalAmountInCents: Long,
-)
-
 @MappedEntity("ledger_cash_pool_withdrawal_events")
 data class LedgerCashPoolWithdrawalEventEntity(
     @field:Id
@@ -74,8 +65,6 @@ data class LedgerEventRow(
     val paidBy: String?,
     @field:MappedProperty("income_amount_in_cents")
     val incomeAmountInCents: Long?,
-    @field:MappedProperty("distribution_total_amount_in_cents")
-    val distributionTotalAmountInCents: Long?,
     @field:MappedProperty("withdrawn_by")
     val withdrawnBy: String?,
     @field:MappedProperty("withdrawn_amount_in_cents")

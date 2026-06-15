@@ -71,39 +71,25 @@ data class CashPoolIncomeLedgerEvent(
     override val id: LedgerEventId,
     override val group: GroupId,
     val amount: MoneyAmount,
-    override val occurredAt: Instant,
-) : LedgerEvent {
-    init {
-        require(amount > MoneyAmount.ZERO) { "cash pool income amount must be > 0" }
-    }
-
-    override val effects: Set<LedgerEffect>
-        get() = setOf(CashPoolBalanceDelta.increase(amount))
-}
-
-data class RevenueDistributionLedgerEvent(
-    override val id: LedgerEventId,
-    override val group: GroupId,
-    val totalAmount: MoneyAmount,
     val allocations: Set<MemberCashPoolShareDelta>,
     override val occurredAt: Instant,
 ) : LedgerEvent {
     init {
-        require(totalAmount > MoneyAmount.ZERO) { "revenue distribution totalAmount must be > 0" }
-        require(allocations.isNotEmpty()) { "revenue distribution allocations must not be empty" }
+        require(amount > MoneyAmount.ZERO) { "cash pool income amount must be > 0" }
+        require(allocations.isNotEmpty()) { "cash pool income allocations must not be empty" }
         require(allocations.map { allocation -> allocation.member }.toSet().size == allocations.size) {
-            "revenue distribution allocations must contain unique members"
+            "cash pool income allocations must contain unique members"
         }
         require(allocations.all { allocation -> allocation.amount.inCents() > 0 }) {
-            "revenue distribution allocations must all be positive"
+            "cash pool income allocations must all be positive"
         }
-        require(allocations.sumOf { allocation -> allocation.amount.inCents() } == totalAmount.inCents()) {
-            "revenue distribution allocations must add up to totalAmount"
+        require(allocations.sumOf { allocation -> allocation.amount.inCents() } == amount.inCents()) {
+            "cash pool income allocations must add up to amount"
         }
     }
 
     override val effects: Set<LedgerEffect>
-        get() = allocations
+        get() = setOf(CashPoolBalanceDelta.increase(amount)) + allocations
 
     companion object {
         fun from(
@@ -111,11 +97,11 @@ data class RevenueDistributionLedgerEvent(
             group: GroupId,
             occurredAt: Instant,
             distribution: RevenueDistribution,
-        ): RevenueDistributionLedgerEvent =
-            RevenueDistributionLedgerEvent(
+        ): CashPoolIncomeLedgerEvent =
+            CashPoolIncomeLedgerEvent(
                 id = id,
                 group = group,
-                totalAmount = distribution.totalAmount,
+                amount = distribution.totalAmount,
                 allocations =
                     distribution.allocations
                         .map { allocation ->

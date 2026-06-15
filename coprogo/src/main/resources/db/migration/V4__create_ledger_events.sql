@@ -1,7 +1,6 @@
 CREATE TYPE ledger_event_type AS ENUM (
     'ACCEPTED_EXPENSE',
     'CASH_POOL_INCOME',
-    'REVENUE_DISTRIBUTION',
     'CASH_POOL_WITHDRAWAL'
 );
 
@@ -30,11 +29,6 @@ CREATE TABLE ledger_accepted_expense_events (
 CREATE TABLE ledger_cash_pool_income_events (
     event UUID PRIMARY KEY REFERENCES ledger_events (id),
     amount_in_cents positive_money_amount_cents NOT NULL
-);
-
-CREATE TABLE ledger_revenue_distribution_events (
-    event UUID PRIMARY KEY REFERENCES ledger_events (id),
-    total_amount_in_cents positive_money_amount_cents NOT NULL
 );
 
 CREATE TABLE ledger_cash_pool_withdrawal_events (

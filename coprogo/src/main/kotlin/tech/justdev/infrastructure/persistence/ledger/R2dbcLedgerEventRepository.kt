@@ -11,7 +11,6 @@ import tech.justdev.domain.ledger.event.AcceptedExpenseLedgerEvent
 import tech.justdev.domain.ledger.event.CashPoolIncomeLedgerEvent
 import tech.justdev.domain.ledger.event.CashPoolWithdrawalLedgerEvent
 import tech.justdev.domain.ledger.event.LedgerEvent
-import tech.justdev.domain.ledger.event.RevenueDistributionLedgerEvent
 import tech.justdev.domain.ledger.repository.LedgerEventRepository
 import tech.justdev.domain.ledger.valueobject.LedgerEventId
 import tech.justdev.domain.ledger.valueobject.NetBalanceAmount
@@ -24,7 +23,6 @@ open class R2dbcLedgerEventRepository(
     private val eventDataRepository: LedgerEventDataRepository,
     private val acceptedExpenseEventDataRepository: LedgerAcceptedExpenseEventDataRepository,
     private val cashPoolIncomeEventDataRepository: LedgerCashPoolIncomeEventDataRepository,
-    private val revenueDistributionEventDataRepository: LedgerRevenueDistributionEventDataRepository,
     private val cashPoolWithdrawalEventDataRepository: LedgerCashPoolWithdrawalEventDataRepository,
     private val transferDataRepository: LedgerMemberBalanceTransferDataRepository,
     private val cashPoolShareDeltaDataRepository: LedgerMemberCashPoolShareDeltaDataRepository,
@@ -54,7 +52,6 @@ open class R2dbcLedgerEventRepository(
         when (this) {
             is AcceptedExpenseLedgerEvent -> acceptedExpenseEventDataRepository.save(toDetailEntity())
             is CashPoolIncomeLedgerEvent -> cashPoolIncomeEventDataRepository.save(toDetailEntity())
-            is RevenueDistributionLedgerEvent -> revenueDistributionEventDataRepository.save(toDetailEntity())
             is CashPoolWithdrawalLedgerEvent -> cashPoolWithdrawalEventDataRepository.save(toDetailEntity())
         }
     }
@@ -72,7 +69,6 @@ private suspend fun LedgerEventDataRepository.persist(entity: LedgerEventEntity)
 private enum class LedgerEventType {
     ACCEPTED_EXPENSE,
     CASH_POOL_INCOME,
-    REVENUE_DISTRIBUTION,
     CASH_POOL_WITHDRAWAL,
 }
 
@@ -80,7 +76,6 @@ private fun LedgerEvent.toHeaderEntity(): LedgerEventEntity =
     when (this) {
         is AcceptedExpenseLedgerEvent -> baseEntity(type = LedgerEventType.ACCEPTED_EXPENSE)
         is CashPoolIncomeLedgerEvent -> baseEntity(type = LedgerEventType.CASH_POOL_INCOME)
-        is RevenueDistributionLedgerEvent -> baseEntity(type = LedgerEventType.REVENUE_DISTRIBUTION)
         is CashPoolWithdrawalLedgerEvent -> baseEntity(type = LedgerEventType.CASH_POOL_WITHDRAWAL)
     }
 
@@ -95,12 +90,6 @@ private fun CashPoolIncomeLedgerEvent.toDetailEntity(): LedgerCashPoolIncomeEven
     LedgerCashPoolIncomeEventEntity(
         eventId = id.toPrimitive(),
         amountInCents = amount.inCents(),
-    )
-
-private fun RevenueDistributionLedgerEvent.toDetailEntity(): LedgerRevenueDistributionEventEntity =
-    LedgerRevenueDistributionEventEntity(
-        eventId = id.toPrimitive(),
-        totalAmountInCents = totalAmount.inCents(),
     )
 
 private fun CashPoolWithdrawalLedgerEvent.toDetailEntity(): LedgerCashPoolWithdrawalEventEntity =
@@ -124,14 +113,12 @@ private fun LedgerEvent.memberBalanceTransfers(): Set<MemberBalanceTransfer> =
         is AcceptedExpenseLedgerEvent -> transfers
         is CashPoolWithdrawalLedgerEvent -> balanceTransfers
         is CashPoolIncomeLedgerEvent -> emptySet()
-        is RevenueDistributionLedgerEvent -> emptySet()
     }
 
 private fun LedgerEvent.memberCashPoolShareDeltas(): Set<MemberCashPoolShareDelta> =
     when (this) {
-        is RevenueDistributionLedgerEvent -> allocations
         is AcceptedExpenseLedgerEvent -> emptySet()
-        is CashPoolIncomeLedgerEvent -> emptySet()
+        is CashPoolIncomeLedgerEvent -> allocations
         is CashPoolWithdrawalLedgerEvent ->
             if (ownRevenueShareConsumed.isZero()) {
                 emptySet()
@@ -177,17 +164,6 @@ private fun LedgerEventRow.toDomain(
                 id = LedgerEventId(id),
                 group = GroupId(group),
                 amount = MoneyAmount.ofCents(requireNotNull(incomeAmountInCents) { "cash pool income ledger event requires amount" }),
-                occurredAt = occurredAt,
-            )
-
-        LedgerEventType.REVENUE_DISTRIBUTION ->
-            RevenueDistributionLedgerEvent(
-                id = LedgerEventId(id),
-                group = GroupId(group),
-                totalAmount =
-                    MoneyAmount.ofCents(
-                        requireNotNull(distributionTotalAmountInCents) { "revenue distribution ledger event requires amount" },
-                    ),
                 allocations = cashPoolShareDeltas.map(LedgerMemberCashPoolShareDeltaEntity::toDomain).toSet(),
                 occurredAt = occurredAt,
             )

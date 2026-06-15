@@ -56,14 +56,12 @@ interface LedgerEventDataRepository : CoroutineCrudRepository<LedgerEventEntity,
                 accepted.expense,
                 accepted.paid_by,
                 income.amount_in_cents AS income_amount_in_cents,
-                distribution.total_amount_in_cents AS distribution_total_amount_in_cents,
                 withdrawal.withdrawn_by,
                 withdrawal.withdrawn_amount_in_cents,
                 withdrawal.own_revenue_share_consumed_in_cents
             FROM ledger_events event
             LEFT JOIN ledger_accepted_expense_events accepted ON accepted.event = event.id
             LEFT JOIN ledger_cash_pool_income_events income ON income.event = event.id
-            LEFT JOIN ledger_revenue_distribution_events distribution ON distribution.event = event.id
             LEFT JOIN ledger_cash_pool_withdrawal_events withdrawal ON withdrawal.event = event.id
             WHERE event."group" = :group
             ORDER BY event.occurred_at, event.id
@@ -78,9 +76,6 @@ interface LedgerAcceptedExpenseEventDataRepository : CoroutineCrudRepository<Led
 
 @R2dbcRepository(dialect = Dialect.POSTGRES)
 interface LedgerCashPoolIncomeEventDataRepository : CoroutineCrudRepository<LedgerCashPoolIncomeEventEntity, UUID>
-
-@R2dbcRepository(dialect = Dialect.POSTGRES)
-interface LedgerRevenueDistributionEventDataRepository : CoroutineCrudRepository<LedgerRevenueDistributionEventEntity, UUID>
 
 @R2dbcRepository(dialect = Dialect.POSTGRES)
 interface LedgerCashPoolWithdrawalEventDataRepository : CoroutineCrudRepository<LedgerCashPoolWithdrawalEventEntity, UUID>

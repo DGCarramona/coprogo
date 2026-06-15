@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import tech.justdev.application.support.InMemoryLedgerEventRepository
 import tech.justdev.domain.ledger.effect.MemberBalanceTransfer
+import tech.justdev.domain.ledger.effect.MemberCashPoolShareDelta
 import tech.justdev.domain.ledger.event.CashPoolIncomeLedgerEvent
 import tech.justdev.domain.ledger.event.CashPoolWithdrawalLedgerEvent
 import tech.justdev.domain.shared.money.MoneyAmount
@@ -28,6 +29,13 @@ class GetCashPoolBalanceUseCaseTest {
                                         id = ledgerEventId("cash-pool-income-1"),
                                         group = groupId("group-1"),
                                         amount = MoneyAmount.ofCents(100),
+                                        allocations =
+                                            setOf(
+                                                MemberCashPoolShareDelta.increase(
+                                                    member = memberEmail("alice"),
+                                                    amount = MoneyAmount.ofCents(100),
+                                                ),
+                                            ),
                                         occurredAt = Instant.parse("2026-04-03T10:00:00Z"),
                                     ),
                                     CashPoolWithdrawalLedgerEvent(

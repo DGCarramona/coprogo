@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import tech.justdev.application.support.InMemoryLedgerEventRepository
 import tech.justdev.domain.ledger.effect.MemberBalanceTransfer
+import tech.justdev.domain.ledger.event.CashPoolIncomeLedgerEvent
 import tech.justdev.domain.ledger.event.CashPoolWithdrawalLedgerEvent
-import tech.justdev.domain.ledger.event.RevenueDistributionLedgerEvent
 import tech.justdev.domain.revenue.valueobject.OwnershipPercentage
 import tech.justdev.domain.revenue.valueobject.OwnershipShare
 import tech.justdev.domain.revenue.valueobject.RevenueDistribution
@@ -28,8 +28,8 @@ class GetMemberCashPoolSharesUseCaseTest {
                         InMemoryLedgerEventRepository(
                             events =
                                 listOf(
-                                    RevenueDistributionLedgerEvent.from(
-                                        id = ledgerEventId("revenue-distribution-1"),
+                                    CashPoolIncomeLedgerEvent.from(
+                                        id = ledgerEventId("cash-pool-income-1"),
                                         group = groupId("group-1"),
                                         occurredAt = Instant.parse("2026-04-03T10:00:00Z"),
                                         distribution =
