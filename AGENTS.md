@@ -249,6 +249,10 @@ Backend code should be as non-blocking, reactive, functional, and set-oriented a
 - Use PostgreSQL `DOMAIN` types for recurring constrained scalar values such as normalized member emails, money amounts in cents, positive amounts, signed ledger deltas, and ownership basis points.
 - Keep database constraints as part of the auditability boundary; application/domain validation complements them but does not replace them.
 
+### Database naming
+- Prefer business-oriented column names over technical suffixes when the table context makes the meaning clear, for example `event`, `expense`, and `type` rather than `event_id`, `expense_id`, and `event_type`.
+- Keep exceptions when the suffix is part of the stable business meaning or avoids ambiguity, for example `member_email`.
+
 ### Boundary discipline
 - Do not leak framework-specific reactive types deep into the domain without a clear reason.
 - Keep Domain and most of Application focused on business semantics first.
