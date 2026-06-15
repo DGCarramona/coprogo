@@ -11,9 +11,9 @@ import java.time.LocalDate
 import java.util.UUID
 
 data class PreviewRevenueDistributionAtDateQuery(
-    val group: UUID,
+    val group: GroupId,
     val requestedBy: MemberEmail,
-    val amountInCents: Long,
+    val amount: MoneyAmount,
     val effectiveDate: LocalDate,
 )
 
@@ -30,21 +30,20 @@ class PreviewRevenueDistributionAtDateUseCase(
     private val ownershipShareTimelineRepository: OwnershipShareTimelineRepository,
 ) {
     suspend operator fun invoke(query: PreviewRevenueDistributionAtDateQuery): RevenueDistributionAtDatePreview {
-        val group = GroupId(query.group)
-        groupAccessPolicy.requireMember(group, query.requestedBy)
+        groupAccessPolicy.requireMember(query.group, query.requestedBy)
 
         val timeline =
-            ownershipShareTimelineRepository.findByGroup(group)
-                ?: throw IllegalArgumentException("ownership share timeline for group ${query.group} was not found")
+            ownershipShareTimelineRepository.findByGroup(query.group)
+                ?: throw IllegalArgumentException("ownership share timeline for group ${query.group.toPrimitive()} was not found")
 
         val distribution =
             RevenueDistribution.distribute(
-                totalAmount = MoneyAmount.ofCents(query.amountInCents),
+                totalAmount = query.amount,
                 ownershipShares = timeline.sharesAt(query.effectiveDate),
             )
 
         return RevenueDistributionAtDatePreview(
-            group = group.toPrimitive(),
+            group = query.group.toPrimitive(),
             effectiveDate = query.effectiveDate,
             totalAmountInCents = distribution.totalAmount.inCents(),
             allocations =

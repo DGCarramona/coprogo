@@ -48,7 +48,7 @@ class RecordOwnershipShareChangeUseCaseTest {
 
             useCase(
                 RecordOwnershipShareChangeCommand(
-                    group = groupUuid("group-1"),
+                    group = groupId("group-1"),
                     effectiveDate = LocalDate.parse("2026-01-01"),
                     recordedBy = memberEmail("owner"),
                     recordedAt = Instant.parse("2026-04-03T10:00:00Z"),
@@ -109,7 +109,7 @@ class RecordOwnershipShareChangeUseCaseTest {
                 runTest {
                     useCase(
                         RecordOwnershipShareChangeCommand(
-                            group = groupUuid("group-1"),
+                            group = groupId("group-1"),
                             effectiveDate = LocalDate.parse("2026-01-01"),
                             recordedBy = memberEmail("alice"),
                             recordedAt = Instant.parse("2026-04-03T10:00:00Z"),

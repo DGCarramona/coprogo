@@ -64,7 +64,7 @@ class GetOwnershipShareTimelineUseCaseTest {
             val snapshot =
                 useCase(
                     GetOwnershipShareTimelineQuery(
-                        group = groupUuid("group-1"),
+                        group = groupId("group-1"),
                         requestedBy = memberEmail("owner"),
                     ),
                 )

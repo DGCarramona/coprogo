@@ -166,6 +166,11 @@ Dependencies must point inward only.
 
 Business logic must not live in Micronaut controllers or Angular components.
 
+### Boundary conversion
+- Convert transport primitives into Domain/Application types, including value objects, as early as practical at boundaries such as HTTP controllers.
+- Do not pass raw strings, UUIDs, numeric amounts, or dates deeper than necessary when a domain/application type already exists and can validate the input at the boundary.
+- Keep boundary conversion explicit and fail fast so invalid transport input does not leak into inner layers.
+
 ## 4. Technical Constraints (Mandatory)
 
 ### Backend

@@ -11,6 +11,7 @@ import tech.justdev.domain.revenue.entity.OwnershipShareChange
 import tech.justdev.domain.revenue.entity.OwnershipShareTimeline
 import tech.justdev.domain.revenue.valueobject.OwnershipPercentage
 import tech.justdev.domain.revenue.valueobject.OwnershipShare
+import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.testsupport.groupId
 import tech.justdev.testsupport.groupUuid
 import tech.justdev.testsupport.memberEmail
@@ -62,9 +63,9 @@ class PreviewRevenueDistributionAtDateUseCaseTest {
             val preview =
                 useCase(
                     PreviewRevenueDistributionAtDateQuery(
-                        group = groupUuid("group-1"),
+                        group = groupId("group-1"),
                         requestedBy = memberEmail("owner"),
-                        amountInCents = 101,
+                        amount = MoneyAmount.ofCents(101),
                         effectiveDate = LocalDate.parse("2026-03-15"),
                     ),
                 )

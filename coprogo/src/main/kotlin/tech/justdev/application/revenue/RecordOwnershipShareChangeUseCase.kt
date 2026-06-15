@@ -14,10 +14,9 @@ import tech.justdev.domain.shared.valueobject.GroupId
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
-import java.util.UUID
 
 data class RecordOwnershipShareChangeCommand(
-    val group: UUID,
+    val group: GroupId,
     val effectiveDate: LocalDate,
     val recordedBy: MemberEmail,
     val recordedAt: Instant,
@@ -36,16 +35,15 @@ class RecordOwnershipShareChangeUseCase(
     private val ownershipShareChangeIdGenerator: OwnershipShareChangeIdGenerator = RandomOwnershipShareChangeIdGenerator,
 ) {
     suspend operator fun invoke(command: RecordOwnershipShareChangeCommand) {
-        val group = GroupId(command.group)
         try {
-            groupAccessPolicy.requireCreator(group, command.recordedBy)
+            groupAccessPolicy.requireCreator(command.group, command.recordedBy)
         } catch (_: GroupCreatorRequiredException) {
-            throw OwnershipShareChangeForbiddenException(group, command.recordedBy)
+            throw OwnershipShareChangeForbiddenException(command.group, command.recordedBy)
         }
 
         val existingTimeline =
-            ownershipShareTimelineRepository.findByGroup(group)
-                ?: OwnershipShareTimeline.empty(group)
+            ownershipShareTimelineRepository.findByGroup(command.group)
+                ?: OwnershipShareTimeline.empty(command.group)
 
         val updatedTimeline =
             existingTimeline.recordChange(

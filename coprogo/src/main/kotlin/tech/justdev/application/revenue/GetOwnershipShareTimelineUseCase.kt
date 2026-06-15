@@ -11,7 +11,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 data class GetOwnershipShareTimelineQuery(
-    val group: UUID,
+    val group: GroupId,
     val requestedBy: MemberEmail,
 )
 
@@ -39,12 +39,11 @@ class GetOwnershipShareTimelineUseCase(
     private val ownershipShareTimelineRepository: OwnershipShareTimelineRepository,
 ) {
     suspend operator fun invoke(query: GetOwnershipShareTimelineQuery): OwnershipShareTimelineSnapshot {
-        val group = GroupId(query.group)
-        groupAccessPolicy.requireMember(group, query.requestedBy)
+        groupAccessPolicy.requireMember(query.group, query.requestedBy)
 
         val timeline =
-            ownershipShareTimelineRepository.findByGroup(group)
-                ?: throw IllegalArgumentException("ownership share timeline for group ${query.group} was not found")
+            ownershipShareTimelineRepository.findByGroup(query.group)
+                ?: throw IllegalArgumentException("ownership share timeline for group ${query.group.toPrimitive()} was not found")
 
         return OwnershipShareTimelineSnapshot(
             group = timeline.group.toPrimitive(),

@@ -29,6 +29,8 @@ import tech.justdev.application.revenue.RecordOwnershipShareChangeCommand
 import tech.justdev.application.revenue.RecordOwnershipShareChangeUseCase
 import tech.justdev.application.revenue.RecordOwnershipShareCommand
 import tech.justdev.domain.group.valueobject.MemberEmail
+import tech.justdev.domain.shared.money.MoneyAmount
+import tech.justdev.domain.shared.valueobject.GroupId
 import tech.justdev.interfaces.openapi.AuthenticatedApi
 import java.math.BigDecimal
 import java.time.Instant
@@ -83,7 +85,7 @@ class RevenueDistributionController(
         val authenticatedUser = authenticatedUserProvider.currentAuthenticatedUser()
         recordOwnershipShareChangeUseCase(
             RecordOwnershipShareChangeCommand(
-                group = groupId,
+                group = GroupId(groupId),
                 effectiveDate = request.effectiveDate,
                 recordedBy = authenticatedUser.email,
                 recordedAt = Instant.now(),
@@ -108,7 +110,7 @@ class RevenueDistributionController(
 
         return getOwnershipShareTimelineUseCase(
             GetOwnershipShareTimelineQuery(
-                group = groupId,
+                group = GroupId(groupId),
                 requestedBy = authenticatedUser.email,
             ),
         ).toResponse()
@@ -125,9 +127,9 @@ class RevenueDistributionController(
         val preview =
             previewRevenueDistributionAtDateUseCase(
                 PreviewRevenueDistributionAtDateQuery(
-                    group = groupId,
+                    group = GroupId(groupId),
                     requestedBy = authenticatedUser.email,
-                    amountInCents = request.amountInCents,
+                    amount = MoneyAmount.ofCents(request.amountInCents),
                     effectiveDate = request.effectiveDate,
                 ),
             )
