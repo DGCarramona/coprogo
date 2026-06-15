@@ -278,7 +278,7 @@ Every behavior change must include or update tests.
 - Avoid hidden global state and nondeterminism.
 - Backend tests requiring PostgreSQL must reuse the repository’s Micronaut Test Resources PostgreSQL infrastructure via `@PostgresMicronautTest` instead of declaring containers or database property wiring in each suite.
 - Backend integration tests that need the Micronaut application context but do not exercise persistence must reuse the repository’s shared no-database Micronaut test environment via `@NoDbMicronautTest` instead of duplicating datasource/Flyway overrides in each test class.
-- Backend repository integration tests should preferably group cases by public repository method using JUnit 5 `@Nested` classes when it improves readability.
+- Tests for a subject that exposes multiple public entrypoints must group cases by entrypoint using JUnit 5 `@Nested` classes, for example by public method or public HTTP endpoint.
 - Backend local runtime configuration must use Micronaut environment files rather than custom `.env` loading: keep shared local defaults in `application-runtime.properties`, reserve `application-local.properties` for machine-specific overrides, and commit only `application-local.example.properties`.
 - In coroutine-based backend tests, prefer `assertThrows { runTest { ... } }` for error assertions over manual `try/catch + fail`.
 - Prioritize tests around:
