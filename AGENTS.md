@@ -474,7 +474,9 @@ All modified backend files must pass the repository’s configured:
 - formatting
 - static analysis
 - tests
-- native build checks when relevant
+- native build checks when relevant, especially in CI
+
+Do not repeatedly run `./gradlew nativeCompile` locally after every backend edit. Run it when native-image compatibility is materially at risk or before final delivery of significant backend changes when practical; CI should keep native compilation as present as possible.
 
 Backend Kotlin formatting is enforced with `ktlint`.
 - Use `./gradlew ktlintFormat` locally to apply formatting.
