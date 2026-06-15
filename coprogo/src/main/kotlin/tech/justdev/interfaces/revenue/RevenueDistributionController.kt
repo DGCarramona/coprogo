@@ -25,6 +25,8 @@ import tech.justdev.application.revenue.PreviewRevenueDistributionAtDateUseCase
 import tech.justdev.application.revenue.PreviewRevenueDistributionCommand
 import tech.justdev.application.revenue.PreviewRevenueDistributionMember
 import tech.justdev.application.revenue.PreviewRevenueDistributionUseCase
+import tech.justdev.application.revenue.RecordCashPoolIncomeCommand
+import tech.justdev.application.revenue.RecordCashPoolIncomeUseCase
 import tech.justdev.application.revenue.RecordOwnershipShareChangeCommand
 import tech.justdev.application.revenue.RecordOwnershipShareChangeUseCase
 import tech.justdev.application.revenue.RecordOwnershipShareCommand
@@ -46,6 +48,7 @@ class RevenueDistributionController(
     private val recordOwnershipShareChangeUseCase: RecordOwnershipShareChangeUseCase,
     private val getOwnershipShareTimelineUseCase: GetOwnershipShareTimelineUseCase,
     private val previewRevenueDistributionAtDateUseCase: PreviewRevenueDistributionAtDateUseCase,
+    private val recordCashPoolIncomeUseCase: RecordCashPoolIncomeUseCase,
 ) {
     @Post("/revenue-distribution/preview")
     @Operation(summary = "Preview ownership-share-based revenue distribution")
@@ -147,6 +150,25 @@ class RevenueDistributionController(
                 },
         )
     }
+
+    @Post("/groups/{groupId}/cash-pool-incomes")
+    @Status(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Record incoming cash-pool income and distribute it according to effective ownership shares")
+    suspend fun recordCashPoolIncome(
+        @PathVariable groupId: UUID,
+        @Valid @Body request: RecordCashPoolIncomeRequest,
+    ) {
+        val authenticatedUser = authenticatedUserProvider.currentAuthenticatedUser()
+        recordCashPoolIncomeUseCase(
+            RecordCashPoolIncomeCommand(
+                group = GroupId(groupId),
+                recordedBy = authenticatedUser.email,
+                amount = MoneyAmount.ofCents(request.amountInCents),
+                receivedAt = request.receivedAt,
+                effectiveDate = request.effectiveDate,
+            ),
+        )
+    }
 }
 
 @Serdeable
@@ -224,6 +246,14 @@ data class RevenueDistributionAtDatePreviewResponse(
     val effectiveDate: LocalDate,
     val totalAmountInCents: Long,
     val allocations: List<RevenueDistributionAllocation>,
+)
+
+@Serdeable
+data class RecordCashPoolIncomeRequest(
+    @field:Positive
+    val amountInCents: Long,
+    val receivedAt: Instant,
+    val effectiveDate: LocalDate,
 )
 
 private fun OwnershipShareTimelineSnapshot.toResponse(): OwnershipShareTimelineResponse =
