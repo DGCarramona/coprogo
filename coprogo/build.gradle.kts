@@ -1,17 +1,18 @@
 plugins {
-    kotlin("jvm") version "2.4.0"
-    kotlin("plugin.allopen") version "2.4.0"
-    id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
-    id("com.google.devtools.ksp") version "2.3.9"
-    id("io.micronaut.application") version "5.0.0"
-    id("com.gradleup.shadow") version "9.4.2"
-    id("io.micronaut.test-resources") version "5.0.0"
-    id("io.micronaut.aot") version "5.0.0"
+    kotlin("jvm")
+    kotlin("plugin.allopen")
+    id("org.jlleitschuh.gradle.ktlint")
+    id("com.google.devtools.ksp")
+    id("io.micronaut.application")
+    id("com.gradleup.shadow")
+    id("io.micronaut.test-resources")
+    id("io.micronaut.aot")
     id("coprogo.jooq-codegen")
 }
 
 val jooqVersion: String by project
 val kotlinVersion: String by project
+val micronautVersion: String by project
 
 ksp {
     arg("micronaut.openapi.filename", "openapi")
@@ -54,11 +55,11 @@ dependencies {
     testImplementation("io.projectreactor:reactor-core")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testResourcesService("io.micronaut:micronaut-jackson-databind:5.0.2")
-    testResourcesService("io.micronaut.testresources:micronaut-test-resources-jdbc-postgresql:4.0.0")
-    testResourcesService("io.micronaut.testresources:micronaut-test-resources-r2dbc-postgresql:4.0.0")
+    testResourcesService("io.micronaut:micronaut-jackson-databind:$micronautVersion")
+    testResourcesService("io.micronaut.testresources:micronaut-test-resources-jdbc-postgresql")
+    testResourcesService("io.micronaut.testresources:micronaut-test-resources-r2dbc-postgresql")
 
-    aotPlugins(platform("io.micronaut.platform:micronaut-platform:5.0.2"))
+    aotPlugins(platform("io.micronaut.platform:micronaut-platform:$micronautVersion"))
     aotPlugins("io.micronaut.security:micronaut-security-aot")
 }
 
