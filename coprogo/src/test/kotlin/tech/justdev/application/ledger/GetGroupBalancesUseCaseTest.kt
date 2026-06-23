@@ -3,7 +3,10 @@ package tech.justdev.application.ledger
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import tech.justdev.application.group.GroupAccessPolicy
+import tech.justdev.application.support.InMemoryGroupRepository
 import tech.justdev.application.support.InMemoryLedgerEventRepository
+import tech.justdev.domain.group.entity.Group
 import tech.justdev.domain.ledger.effect.MemberBalanceTransfer
 import tech.justdev.domain.ledger.event.AcceptedExpenseLedgerEvent
 import tech.justdev.domain.shared.money.MoneyAmount
@@ -21,6 +24,7 @@ class GetGroupBalancesUseCaseTest {
         runTest {
             val useCase =
                 GetGroupBalancesUseCase(
+                    groupAccessPolicy = GroupAccessPolicy(InMemoryGroupRepository(listOf(testGroup()))),
                     ledgerEventRepository =
                         InMemoryLedgerEventRepository(
                             events =
@@ -41,11 +45,11 @@ class GetGroupBalancesUseCaseTest {
                         ),
                 )
 
-            val snapshot = useCase(GetGroupBalancesQuery(group = groupUuid("group-1")))
+            val snapshot = useCase(GetGroupBalancesQuery(group = groupId("group-1"), requestedBy = memberEmail("alice")))
 
             assertEquals(
                 GroupBalancesSnapshot(
-                    group = groupUuid("group-1"),
+                    group = groupId("group-1"),
                     balances =
                         listOf(
                             GroupMemberBalanceSnapshot(memberEmailString("alice"), 50),
@@ -57,4 +61,18 @@ class GetGroupBalancesUseCaseTest {
             )
         }
     }
+
+    private fun testGroup(): Group =
+        Group
+            .create(
+                id = groupId("group-1"),
+                createdBy = memberEmail("alice"),
+                createdAt = Instant.parse("2026-04-03T09:00:00Z"),
+            ).addMember(
+                member = memberEmail("bob"),
+                joinedAt = Instant.parse("2026-04-03T09:01:00Z"),
+            ).addMember(
+                member = memberEmail("carol"),
+                joinedAt = Instant.parse("2026-04-03T09:02:00Z"),
+            )
 }

@@ -3,7 +3,10 @@ package tech.justdev.application.ledger
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import tech.justdev.application.group.GroupAccessPolicy
+import tech.justdev.application.support.InMemoryGroupRepository
 import tech.justdev.application.support.InMemoryLedgerEventRepository
+import tech.justdev.domain.group.entity.Group
 import tech.justdev.domain.ledger.effect.MemberBalanceTransfer
 import tech.justdev.domain.ledger.effect.MemberCashPoolShareDelta
 import tech.justdev.domain.ledger.event.CashPoolIncomeLedgerEvent
@@ -21,6 +24,7 @@ class GetCashPoolBalanceUseCaseTest {
         runTest {
             val useCase =
                 GetCashPoolBalanceUseCase(
+                    groupAccessPolicy = GroupAccessPolicy(InMemoryGroupRepository(listOf(testGroup()))),
                     ledgerEventRepository =
                         InMemoryLedgerEventRepository(
                             events =
@@ -60,11 +64,18 @@ class GetCashPoolBalanceUseCaseTest {
 
             assertEquals(
                 CashPoolBalanceSnapshot(
-                    group = groupUuid("group-1"),
+                    group = groupId("group-1"),
                     availableAmountInCents = 65,
                 ),
-                useCase(GetCashPoolBalanceQuery(group = groupUuid("group-1"))),
+                useCase(GetCashPoolBalanceQuery(group = groupId("group-1"), requestedBy = memberEmail("alice"))),
             )
         }
     }
+
+    private fun testGroup(): Group =
+        Group.create(
+            id = groupId("group-1"),
+            createdBy = memberEmail("alice"),
+            createdAt = Instant.parse("2026-04-03T09:00:00Z"),
+        )
 }
