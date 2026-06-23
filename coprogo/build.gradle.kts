@@ -1,13 +1,17 @@
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "2.4.0"
-    id("org.jetbrains.kotlin.plugin.allopen") version "2.4.0"
+    kotlin("jvm") version "2.4.0"
+    kotlin("plugin.allopen") version "2.4.0"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     id("com.google.devtools.ksp") version "2.3.9"
     id("io.micronaut.application") version "5.0.0"
     id("com.gradleup.shadow") version "9.4.2"
     id("io.micronaut.test-resources") version "5.0.0"
     id("io.micronaut.aot") version "5.0.0"
+    id("coprogo.jooq-codegen")
 }
+
+val jooqVersion: String by project
+val kotlinVersion: String by project
 
 ksp {
     arg("micronaut.openapi.filename", "openapi")
@@ -16,44 +20,47 @@ ksp {
 version = "0.1"
 group = "tech.justdev"
 
-
-
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-    ksp("io.micronaut.data:micronaut-data-processor")
     ksp("io.micronaut:micronaut-http-validation")
     ksp("io.micronaut.security:micronaut-security-annotations")
     ksp("io.micronaut.serde:micronaut-serde-processor")
     ksp("io.micronaut.openapi:micronaut-openapi")
-    implementation("io.micronaut.data:micronaut-data-r2dbc")
+
     implementation("io.micronaut.flyway:micronaut-flyway")
     implementation("io.micronaut:micronaut-http-client")
+    implementation("io.micronaut:micronaut-jackson-databind")
     implementation("io.micronaut.kotlin:micronaut-kotlin-runtime")
     implementation("io.micronaut.security:micronaut-security-jwt")
     implementation("io.micronaut.openapi:micronaut-openapi-annotations")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
-    implementation("io.micronaut.sql:micronaut-jdbc-hikari")
+    implementation("io.r2dbc:r2dbc-spi")
+    implementation("org.jooq:jooq:$jooqVersion")
+    implementation("org.jooq:jooq-kotlin:$jooqVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.11.0")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+
     compileOnly("io.swagger.core.v3:swagger-annotations")
+
     runtimeOnly("ch.qos.logback:logback-classic")
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
+    runtimeOnly("io.micronaut.sql:micronaut-jdbc-hikari")
     runtimeOnly("org.flywaydb:flyway-database-postgresql")
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("org.postgresql:r2dbc-postgresql")
+
     testImplementation("io.micronaut:micronaut-http-client")
+    testImplementation("io.projectreactor:reactor-core")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    aotPlugins platform("io.micronaut.platform:micronaut-platform:5.0.2")
+    testResourcesService("io.micronaut:micronaut-jackson-databind:5.0.2")
+    testResourcesService("io.micronaut.testresources:micronaut-test-resources-jdbc-postgresql:4.0.0")
+    testResourcesService("io.micronaut.testresources:micronaut-test-resources-r2dbc-postgresql:4.0.0")
+
+    aotPlugins(platform("io.micronaut.platform:micronaut-platform:5.0.2"))
     aotPlugins("io.micronaut.security:micronaut-security-aot")
 }
-
-
 
 application {
     mainClass = "tech.justdev.ApplicationKt"
@@ -64,14 +71,9 @@ java {
     sourceCompatibility = JavaVersion.toVersion("25")
 }
 
-
-
-
-graalvmNative.toolchainDetection = true
-
-
-
-
+graalvmNative {
+    toolchainDetection = true
+}
 
 micronaut {
     runtime("netty")
@@ -84,8 +86,6 @@ micronaut {
         annotations("tech.justdev.*")
     }
     aot {
-        // Please review carefully the optimizations enabled below
-        // Check https://micronaut-projects.github.io/micronaut-aot/latest/guide/ for more details
         optimizeServiceLoading = false
         convertYamlToJava = false
         precomputeOperations = true
@@ -94,12 +94,10 @@ micronaut {
         deduceEnvironment = true
         optimizeNetty = true
         replaceLogbackXml = true
-        configurationProperties.put("micronaut.security.jwks.enabled","false")
+        configurationProperties.put("micronaut.security.jwks.enabled", "false")
     }
-
 }
 
-
 tasks.named("dockerfileNative") {
-    jdkVersion = "25"
+    setProperty("jdkVersion", "25")
 }
