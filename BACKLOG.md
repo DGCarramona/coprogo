@@ -47,16 +47,16 @@ Backlog derive de l'etat actuel du depot au 2026-04-15.
 
 ## Backend - quotes-parts et revenus
 
-- [ ] BE-REV-001 Ajouter un adaptateur de persistance pour `OwnershipShareTimeline`.
-- [ ] BE-REV-002 Exposer l'endpoint REST pour enregistrer un changement de quotes-parts.
-- [ ] BE-REV-003 Exposer l'endpoint REST pour consulter l'historique des quotes-parts.
-- [ ] BE-REV-004 Ajouter un controle d'autorisation sur le changement de quotes-parts.
-- [ ] BE-REV-005 Implementer le cas d'usage d'enregistrement d'un revenu entrant dans la caisse commune.
-- [ ] BE-REV-006 Persister les evenements de ledger lies aux revenus et distributions.
-- [ ] BE-REV-007 Implementer le cas d'usage qui distribue un revenu selon les quotes-parts effectives a une date donnee.
-- [ ] BE-REV-008 Exposer un endpoint REST pour previsualiser une distribution a partir de la timeline enregistree.
-- [ ] BE-REV-009 Exposer un endpoint REST pour enregistrer une distribution effective de revenu.
-- [ ] BE-REV-010 Ajouter des tests d'integration sur l'historisation des quotes-parts et le calcul a date d'effet.
+- [x] BE-REV-001 Ajouter un adaptateur de persistance pour `OwnershipShareTimeline`.
+- [x] BE-REV-002 Exposer l'endpoint REST pour enregistrer un changement de quotes-parts.
+- [x] BE-REV-003 Exposer l'endpoint REST pour consulter l'historique des quotes-parts.
+- [x] BE-REV-004 Ajouter un controle d'autorisation sur le changement de quotes-parts.
+- [x] BE-REV-005 Implementer le cas d'usage d'enregistrement d'un revenu entrant dans la caisse commune.
+- [x] BE-REV-006 Persister les evenements de ledger lies aux revenus et distributions.
+- [x] BE-REV-007 Implementer le cas d'usage qui distribue un revenu selon les quotes-parts effectives a une date donnee.
+- [x] BE-REV-008 Exposer un endpoint REST pour previsualiser une distribution a partir de la timeline enregistree.
+- [x] BE-REV-009 Exposer un endpoint REST pour enregistrer une distribution effective de revenu.
+- [x] BE-REV-010 Ajouter des tests d'integration sur l'historisation des quotes-parts et le calcul a date d'effet.
 
 ## Backend - depenses
 
@@ -89,8 +89,8 @@ Backlog derive de l'etat actuel du depot au 2026-04-15.
 
 ## Backend - caisse commune, balances et historique explicatif
 
-- [ ] BE-LED-001 Ajouter la persistance des `LedgerEvent` en base.
-- [ ] BE-LED-002 Creer l'adaptateur R2DBC de `LedgerEventRepository`.
+- [x] BE-LED-001 Ajouter la persistance des `LedgerEvent` en base.
+- [x] BE-LED-002 Creer l'adaptateur R2DBC de `LedgerEventRepository`.
 - [ ] BE-LED-003 Exposer l'endpoint REST de consultation des balances d'un groupe.
 - [ ] BE-LED-004 Exposer l'endpoint REST de consultation du solde de la caisse commune.
 - [ ] BE-LED-005 Exposer l'endpoint REST de consultation des parts de caisse commune par membre.
