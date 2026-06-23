@@ -21,6 +21,26 @@ updates:
       default-days: 7
 
   - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:05"
+      timezone: "Europe/Lisbon"
+    labels:
+      - "dependencies"
+      - "build"
+    commit-message:
+      prefix: "build"
+      include: "scope"
+    groups:
+      root-gradle-tooling:
+        patterns:
+          - "*"
+    cooldown:
+      default-days: 7
+
+  - package-ecosystem: "gradle"
     directory: "/coprogo"
     schedule:
       interval: "weekly"
@@ -39,9 +59,12 @@ updates:
         patterns:
           - "org.jetbrains.kotlin*"
           - "com.google.devtools.ksp*"
+          - "org.jlleitschuh.gradle.ktlint*"
+          - "com.gradleup.shadow*"
       micronaut-stack:
         patterns:
           - "io.micronaut*"
+          - "io.micronaut.gradle*"
       backend-non-major:
         update-types:
           - "minor"

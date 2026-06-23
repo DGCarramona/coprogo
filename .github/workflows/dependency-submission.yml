@@ -33,7 +33,7 @@ jobs:
         uses: gradle/actions/dependency-submission@v6
         with:
           build-root-directory: coprogo
-          gradle-version: '9.4.1'
+          gradle-version: '9.5.0'
           dependency-graph: generate-and-submit
 
   npm-dependency-submission:
