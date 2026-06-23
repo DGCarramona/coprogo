@@ -251,6 +251,15 @@ Backend code should be as non-blocking, reactive, functional, and set-oriented a
 - Use PostgreSQL `DOMAIN` types for recurring constrained scalar values such as normalized member emails, money amounts in cents, positive amounts, signed ledger deltas, and ownership basis points.
 - Keep database constraints as part of the auditability boundary; application/domain validation complements them but does not replace them.
 
+### jOOQ and schema generation
+- SQL Flyway migrations are the source of truth for the database schema.
+- Backend jOOQ sources are generated from a dedicated PostgreSQL code-generation database named `coprogo_codegen`, not from the ordinary `coprogo` development database.
+- Generated jOOQ sources are committed under `coprogo/src/generated/jooq` and compiled as regular backend sources.
+- The normal backend build must not require PostgreSQL or trigger jOOQ generation implicitly.
+- Regenerate jOOQ explicitly after schema migration changes with `./gradlew -p coprogo regenerateJooqFromScratch`.
+- Verification should use `./gradlew -p coprogo verifyJooqIsUpToDate`, which regenerates from a clean `coprogo_codegen` schema and fails when committed generated sources differ.
+- Runtime persistence should prefer R2DBC for application queries; JDBC is reserved for Flyway runtime migration and jOOQ code generation unless an explicit architectural decision changes this.
+
 ### Database naming
 - Prefer business-oriented column names over technical suffixes when the table context makes the meaning clear, for example `event`, `expense`, and `type` rather than `event_id`, `expense_id`, and `event_type`.
 - Keep exceptions when the suffix is part of the stable business meaning or avoids ambiguity, for example `member_email`.
