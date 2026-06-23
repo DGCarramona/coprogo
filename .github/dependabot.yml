@@ -17,6 +17,8 @@ updates:
       github-actions:
         patterns:
           - "*"
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: "gradle"
     directory: "/coprogo"
@@ -44,6 +46,8 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: "npm"
     directory: "/frontend"
@@ -76,3 +80,5 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    cooldown:
+      default-days: 7
