@@ -54,11 +54,11 @@ dependencies {
     testImplementation("io.projectreactor:reactor-core")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testResourcesService("io.micronaut:micronaut-jackson-databind:5.0.2")
+    testResourcesService("io.micronaut:micronaut-jackson-databind:5.0.3")
     testResourcesService("io.micronaut.testresources:micronaut-test-resources-jdbc-postgresql:4.0.0")
     testResourcesService("io.micronaut.testresources:micronaut-test-resources-r2dbc-postgresql:4.0.0")
 
-    aotPlugins(platform("io.micronaut.platform:micronaut-platform:5.0.2"))
+    aotPlugins(platform("io.micronaut.platform:micronaut-platform:5.0.3"))
     aotPlugins("io.micronaut.security:micronaut-security-aot")
 }
 
