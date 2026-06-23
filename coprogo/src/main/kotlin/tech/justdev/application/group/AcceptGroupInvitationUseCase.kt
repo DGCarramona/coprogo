@@ -1,7 +1,7 @@
 package tech.justdev.application.group
 
 import jakarta.inject.Singleton
-import jakarta.transaction.Transactional
+import tech.justdev.application.shared.TransactionRunner
 import tech.justdev.domain.group.entity.GroupInvitationId
 import tech.justdev.domain.group.entity.Member
 import tech.justdev.domain.group.repository.GroupInvitationRepository
@@ -22,9 +22,14 @@ open class AcceptGroupInvitationUseCase(
     private val memberRepository: MemberRepository,
     private val groupRepository: GroupRepository,
     private val groupInvitationRepository: GroupInvitationRepository,
+    private val transactionRunner: TransactionRunner,
 ) {
-    @Transactional
-    open suspend operator fun invoke(command: AcceptGroupInvitationCommand) {
+    suspend operator fun invoke(command: AcceptGroupInvitationCommand) =
+        transactionRunner.transaction {
+            accept(command)
+        }
+
+    private suspend fun accept(command: AcceptGroupInvitationCommand) {
         val invitationId = GroupInvitationId(command.invitation)
         val invitation = groupInvitationRepository.findById(invitationId) ?: throw GroupInvitationNotFoundException(invitationId)
 

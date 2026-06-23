@@ -4,6 +4,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import tech.justdev.application.shared.DirectTransactionRunner
 import tech.justdev.application.support.InMemoryGroupInvitationRepository
 import tech.justdev.application.support.InMemoryGroupRepository
 import tech.justdev.application.support.InMemoryMemberRepository
@@ -61,6 +62,7 @@ class AcceptGroupInvitationUseCaseTest {
                     memberRepository = memberRepository,
                     groupRepository = groupRepository,
                     groupInvitationRepository = invitationRepository,
+                    transactionRunner = DirectTransactionRunner,
                 )
 
             useCase(
@@ -129,6 +131,7 @@ class AcceptGroupInvitationUseCaseTest {
                                 ),
                             ),
                     ),
+                transactionRunner = DirectTransactionRunner,
             )
 
         val error =

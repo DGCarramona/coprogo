@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import tech.justdev.application.group.GroupAccessDeniedException
 import tech.justdev.application.group.GroupAccessPolicy
+import tech.justdev.application.shared.DirectTransactionRunner
 import tech.justdev.application.support.InMemoryGroupRepository
 import tech.justdev.application.support.InMemoryLedgerEventRepository
 import tech.justdev.application.support.InMemoryOwnershipShareTimelineRepository
@@ -89,6 +90,7 @@ class RecordCashPoolIncomeUseCaseTest {
             groupAccessPolicy = GroupAccessPolicy(InMemoryGroupRepository(listOf(group()))),
             ownershipShareTimelineRepository = InMemoryOwnershipShareTimelineRepository(listOf(timeline())),
             ledgerEventRepository = ledgerEventRepository,
+            transactionRunner = DirectTransactionRunner,
             ledgerEventIdGenerator =
                 FixedLedgerEventIdGenerator(
                     listOf(ledgerEventId("income-event")),

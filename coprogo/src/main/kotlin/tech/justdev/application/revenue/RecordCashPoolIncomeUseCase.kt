@@ -1,10 +1,10 @@
 package tech.justdev.application.revenue
 
 import jakarta.inject.Singleton
-import jakarta.transaction.Transactional
 import tech.justdev.application.group.GroupAccessPolicy
 import tech.justdev.application.ledger.LedgerEventIdGenerator
 import tech.justdev.application.ledger.RandomLedgerEventIdGenerator
+import tech.justdev.application.shared.TransactionRunner
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.ledger.event.CashPoolIncomeLedgerEvent
 import tech.justdev.domain.ledger.repository.LedgerEventRepository
@@ -28,10 +28,15 @@ open class RecordCashPoolIncomeUseCase(
     private val groupAccessPolicy: GroupAccessPolicy,
     private val ownershipShareTimelineRepository: OwnershipShareTimelineRepository,
     private val ledgerEventRepository: LedgerEventRepository,
+    private val transactionRunner: TransactionRunner,
     private val ledgerEventIdGenerator: LedgerEventIdGenerator = RandomLedgerEventIdGenerator,
 ) {
-    @Transactional
-    open suspend operator fun invoke(command: RecordCashPoolIncomeCommand) {
+    suspend operator fun invoke(command: RecordCashPoolIncomeCommand) =
+        transactionRunner.transaction {
+            record(command)
+        }
+
+    private suspend fun record(command: RecordCashPoolIncomeCommand) {
         groupAccessPolicy.requireMember(command.group, command.recordedBy)
 
         val timeline =

@@ -1,64 +1,95 @@
 package tech.justdev.infrastructure.persistence.group
 
+import io.r2dbc.spi.ConnectionFactory
+import jakarta.inject.Named
 import jakarta.inject.Singleton
-import jakarta.transaction.Transactional
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.jooq.Record
+import org.jooq.ResultQuery
 import tech.justdev.domain.group.entity.Group
 import tech.justdev.domain.group.entity.GroupMember
 import tech.justdev.domain.group.repository.GroupRepository
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.valueobject.GroupId
+import tech.justdev.infrastructure.persistence.jooq.Tables.GROUPS
+import tech.justdev.infrastructure.persistence.jooq.Tables.GROUP_MEMBERSHIPS
+import tech.justdev.infrastructure.persistence.jooq.dsl
+import tech.justdev.infrastructure.persistence.jooq.transaction
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import java.util.UUID
 
 @Singleton
 open class R2dbcGroupRepository(
-    private val groupDataRepository: GroupDataRepository,
-    private val groupMembershipDataRepository: GroupMembershipDataRepository,
+    @Named("default")
+    private val connectionFactory: ConnectionFactory,
 ) : GroupRepository {
     override suspend fun findById(id: GroupId): Group? {
-        val group = groupDataRepository.findById(id.toPrimitive()) ?: return null
+        val dsl = connectionFactory.dsl()
+        val group =
+            dsl
+                .select(GROUPS.ID, GROUPS.CREATED_BY, GROUPS.CREATED_AT)
+                .from(GROUPS)
+                .where(GROUPS.ID.eq(id.toPrimitive()))
+                .awaitFirstOrNull()
+                ?: return null
+
         val members =
-            groupMembershipDataRepository
-                .findByGroup(id.toPrimitive())
+            dsl
+                .select(GROUP_MEMBERSHIPS.MEMBER_EMAIL, GROUP_MEMBERSHIPS.JOINED_AT)
+                .from(GROUP_MEMBERSHIPS)
+                .where(GROUP_MEMBERSHIPS.GROUP.eq(id.toPrimitive()))
+                .awaitList()
                 .map { membership -> membership.toDomain() }
                 .toSet()
 
         return group.toDomain(members = members)
     }
 
-    @Transactional
     override suspend fun persist(group: Group) {
-        groupDataRepository.upsert(
-            id = group.id.toPrimitive(),
-            createdBy = group.createdBy.toPrimitive(),
-            createdAt = group.createdAt,
-        )
+        connectionFactory.transaction {
+            persistInTransaction(group)
+        }
+    }
 
-        groupMembershipDataRepository.deleteByGroup(group.id.toPrimitive())
-        groupMembershipDataRepository
-            .saveAll(group.members.map { member -> member.toEntity(group.id) })
-            .collect()
+    private suspend fun persistInTransaction(group: Group) {
+        val dsl = connectionFactory.dsl()
+
+        dsl
+            .insertInto(GROUPS)
+            .columns(GROUPS.ID, GROUPS.CREATED_BY, GROUPS.CREATED_AT)
+            .values(group.id.toPrimitive(), group.createdBy.toPrimitive(), group.createdAt.atOffset(ZoneOffset.UTC))
+            .onConflict(GROUPS.ID)
+            .doUpdate()
+            .set(GROUPS.CREATED_BY, GROUPS.CREATED_BY)
+            .set(GROUPS.CREATED_AT, GROUPS.CREATED_AT)
+            .awaitFirstOrNull()
+
+        dsl.deleteFrom(GROUP_MEMBERSHIPS).where(GROUP_MEMBERSHIPS.GROUP.eq(group.id.toPrimitive())).awaitFirstOrNull()
+        group.members.forEach { member ->
+            dsl
+                .insertInto(GROUP_MEMBERSHIPS)
+                .columns(GROUP_MEMBERSHIPS.ID, GROUP_MEMBERSHIPS.GROUP, GROUP_MEMBERSHIPS.MEMBER_EMAIL, GROUP_MEMBERSHIPS.JOINED_AT)
+                .values(UUID.randomUUID(), group.id.toPrimitive(), member.member.toPrimitive(), member.joinedAt.atOffset(ZoneOffset.UTC))
+                .awaitFirstOrNull()
+        }
     }
 }
 
-private fun GroupEntity.toDomain(members: Set<GroupMember>): Group =
+private fun org.jooq.Record3<UUID, String, OffsetDateTime>.toDomain(members: Set<GroupMember>): Group =
     Group(
-        id = GroupId(id),
-        createdBy = MemberEmail.of(createdBy),
-        createdAt = createdAt,
+        id = GroupId(value1()),
+        createdBy = MemberEmail.of(value2()),
+        createdAt = value3().toInstant(),
         members = members,
     )
 
-private fun GroupMembershipEntity.toDomain(): GroupMember =
+private fun org.jooq.Record2<String, OffsetDateTime>.toDomain(): GroupMember =
     GroupMember(
-        member = MemberEmail.of(memberEmail),
-        joinedAt = joinedAt,
+        member = MemberEmail.of(value1()),
+        joinedAt = value2().toInstant(),
     )
 
-private fun GroupMember.toEntity(group: GroupId): GroupMembershipEntity =
-    GroupMembershipEntity(
-        id = UUID.randomUUID(),
-        group = group.toPrimitive(),
-        memberEmail = member.toPrimitive(),
-        joinedAt = joinedAt,
-    )
+private suspend fun <R : Record> ResultQuery<R>.awaitList(): List<R> = asFlow().toList()
