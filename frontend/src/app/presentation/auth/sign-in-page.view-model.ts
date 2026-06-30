@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AuthSessionFacade } from '../../application/auth/auth-session.facade';
@@ -6,10 +6,13 @@ import { GoogleIdentityPort } from '../../application/auth/google-identity.port'
 
 @Injectable()
 export class SignInPageViewModel {
-  private readonly authSessionFacade = inject(AuthSessionFacade);
-  private readonly googleIdentityPort = inject(GoogleIdentityPort);
-  private readonly router = inject(Router);
   private readonly renderErrorMessageState = signal<string | null>(null);
+
+  constructor(
+    private readonly authSessionFacade: AuthSessionFacade,
+    private readonly googleIdentityPort: GoogleIdentityPort,
+    private readonly router: Router,
+  ) {}
 
   readonly renderErrorMessage = this.renderErrorMessageState.asReadonly();
 

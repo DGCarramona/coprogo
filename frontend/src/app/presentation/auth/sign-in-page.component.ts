@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, afterNextRender, inject, viewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, afterNextRender, viewChild } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
@@ -14,12 +14,10 @@ import { SignInPageViewModel } from './sign-in-page.view-model';
   providers: [SignInPageViewModel],
 })
 export class SignInPageComponent implements OnInit {
-  private readonly viewModel = inject(SignInPageViewModel);
-
   protected readonly googleButtonHost =
     viewChild.required<ElementRef<HTMLDivElement>>('googleButtonHost');
 
-  constructor() {
+  constructor(private readonly viewModel: SignInPageViewModel) {
     afterNextRender(() => {
       this.viewModel.mountGoogleButton(this.googleButtonHost().nativeElement);
     });

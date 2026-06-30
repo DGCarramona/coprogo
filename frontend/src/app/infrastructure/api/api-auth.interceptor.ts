@@ -1,11 +1,11 @@
 import { HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 
 import { BrowserGoogleIdTokenStore } from '../auth/google/browser-google-id-token.store';
 
 @Injectable()
 export class ApiAuthInterceptor implements HttpInterceptor {
-  private readonly googleIdTokenStore = inject(BrowserGoogleIdTokenStore);
+  constructor(private readonly googleIdTokenStore: BrowserGoogleIdTokenStore) {}
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler) {
     if (request.headers.has('Authorization')) {

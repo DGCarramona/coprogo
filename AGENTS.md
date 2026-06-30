@@ -440,6 +440,7 @@ Preferred structure:
 - Expose screen state through explicit ViewModels.
 - ViewModels should primarily use Angular Signals and computed state.
 - Prefer one clear view-model per screen or feature rather than scattered mutable state.
+- Prefer constructor injection over Angular `inject()` in project-owned frontend classes when practical, especially ViewModels, application services, components, and infrastructure adapters. Keep `inject()` for functional Angular APIs such as guards, generated code, or cases where constructor injection is not practical.
 
 ### Testability rules
 - Domain logic must be testable without Angular.

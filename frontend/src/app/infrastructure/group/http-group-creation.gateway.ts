@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
 import { GroupCreationPort } from '../../application/group/group-creation.port';
@@ -12,8 +12,12 @@ interface CreateGroupResponseDto {
 
 @Injectable({ providedIn: 'root' })
 export class HttpGroupCreationGateway extends GroupCreationPort {
-  private readonly httpClient = inject(HttpClient);
-  private readonly basePath = inject(API_BASE_PATH);
+  constructor(
+    private readonly httpClient: HttpClient,
+    @Inject(API_BASE_PATH) private readonly basePath: string,
+  ) {
+    super();
+  }
 
   override async create(): Promise<string> {
     try {

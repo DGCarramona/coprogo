@@ -18,6 +18,7 @@ module.exports = defineConfig([
     ],
     processor: angular.processInlineTemplates,
     rules: {
+      '@angular-eslint/prefer-inject': 'off',
       '@angular-eslint/directive-selector': [
         'error',
         {

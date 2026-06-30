@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
 import { PendingGroupInvitationsPort } from '../../application/group/pending-group-invitations.port';
@@ -17,8 +17,12 @@ interface PendingGroupInvitationDto {
 
 @Injectable({ providedIn: 'root' })
 export class HttpGroupInvitationsGateway extends PendingGroupInvitationsPort {
-  private readonly httpClient = inject(HttpClient);
-  private readonly basePath = inject(API_BASE_PATH);
+  constructor(
+    private readonly httpClient: HttpClient,
+    @Inject(API_BASE_PATH) private readonly basePath: string,
+  ) {
+    super();
+  }
 
   override async listPending(): Promise<PendingGroupInvitation[]> {
     try {
