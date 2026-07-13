@@ -11,7 +11,7 @@ dependencies {
     implementation("org.flywaydb:flyway-core:11.16.0")
     implementation("org.flywaydb:flyway-database-postgresql:11.16.0")
     implementation("org.jooq:jooq-codegen:3.21.6")
-    implementation("org.postgresql:postgresql:42.7.11")
+    implementation("org.postgresql:postgresql:42.7.12")
 }
 
 gradlePlugin {
