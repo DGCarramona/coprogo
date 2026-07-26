@@ -13,8 +13,7 @@
           "serviceSuffix": "Service",
           "modelSuffix": "Dto",
           "apiModulePrefix": "",
-          "providedInRoot": true,
-          "dateType": "Date"
+          "providedInRoot": true
         }
       }
     }
