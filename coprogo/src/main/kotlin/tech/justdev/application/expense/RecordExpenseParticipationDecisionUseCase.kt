@@ -1,5 +1,6 @@
 package tech.justdev.application.expense
 
+import jakarta.inject.Singleton
 import tech.justdev.domain.expense.repository.ExpenseRepository
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
@@ -22,11 +23,16 @@ data class RecordExpenseParticipationDecisionCommand(
     val decidedAt: Instant,
 )
 
-class RecordExpenseParticipationDecisionUseCase(
+interface RecordExpenseParticipationDecisionUseCase {
+    suspend operator fun invoke(command: RecordExpenseParticipationDecisionCommand)
+}
+
+@Singleton
+class RecordExpenseParticipationDecisionUseCaseImpl(
     private val expenseRepository: ExpenseRepository,
     private val ledgerEventRepository: LedgerEventRepository,
-) {
-    suspend operator fun invoke(command: RecordExpenseParticipationDecisionCommand) {
+) : RecordExpenseParticipationDecisionUseCase {
+    override suspend operator fun invoke(command: RecordExpenseParticipationDecisionCommand) {
         val existingExpense =
             expenseRepository.findProposedById(ExpenseId(command.id))
                 ?: throw IllegalArgumentException("expense ${command.id} was not found")

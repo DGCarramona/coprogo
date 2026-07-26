@@ -20,7 +20,7 @@ class ProposeExpenseUseCaseTest {
         runTest {
             val expenseRepository = InMemoryExpenseRepository()
             val useCase =
-                ProposeExpenseUseCase(
+                ProposeExpenseUseCaseImpl(
                     expenseRepository = expenseRepository,
                     expenseIdGenerator = FixedExpenseIdGenerator(listOf(expenseId("expense-1"))),
                 )
@@ -75,7 +75,7 @@ class ProposeExpenseUseCaseTest {
         runTest {
             val expenseRepository = InMemoryExpenseRepository()
             val useCase =
-                ProposeExpenseUseCase(
+                ProposeExpenseUseCaseImpl(
                     expenseRepository = expenseRepository,
                     expenseIdGenerator = FixedExpenseIdGenerator(listOf(expenseId("expense-2"))),
                 )

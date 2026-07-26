@@ -31,7 +31,7 @@ class RecordExpenseParticipationDecisionUseCaseTest {
                 )
             val ledgerEventRepository = InMemoryLedgerEventRepository()
             val useCase =
-                RecordExpenseParticipationDecisionUseCase(
+                RecordExpenseParticipationDecisionUseCaseImpl(
                     expenseRepository = expenseRepository,
                     ledgerEventRepository = ledgerEventRepository,
                 )
@@ -107,7 +107,7 @@ class RecordExpenseParticipationDecisionUseCaseTest {
                 )
             val ledgerEventRepository = InMemoryLedgerEventRepository()
             val useCase =
-                RecordExpenseParticipationDecisionUseCase(
+                RecordExpenseParticipationDecisionUseCaseImpl(
                     expenseRepository = expenseRepository,
                     ledgerEventRepository = ledgerEventRepository,
                 )
@@ -169,7 +169,7 @@ class RecordExpenseParticipationDecisionUseCaseTest {
             )
         val ledgerEventRepository = InMemoryLedgerEventRepository()
         val useCase =
-            RecordExpenseParticipationDecisionUseCase(
+            RecordExpenseParticipationDecisionUseCaseImpl(
                 expenseRepository = expenseRepository,
                 ledgerEventRepository = ledgerEventRepository,
             )

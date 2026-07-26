@@ -1,5 +1,6 @@
 package tech.justdev.application.expense
 
+import jakarta.inject.Singleton
 import tech.justdev.domain.expense.entity.Expense
 import tech.justdev.domain.expense.repository.ExpenseRepository
 import tech.justdev.domain.expense.valueobject.ExpenseShare
@@ -32,11 +33,16 @@ data class ProposeExpenseCommand(
     val allocation: ExpenseAllocationCommand,
 )
 
-class ProposeExpenseUseCase(
+interface ProposeExpenseUseCase {
+    suspend operator fun invoke(command: ProposeExpenseCommand)
+}
+
+@Singleton
+class ProposeExpenseUseCaseImpl(
     private val expenseRepository: ExpenseRepository,
     private val expenseIdGenerator: ExpenseIdGenerator = RandomExpenseIdGenerator,
-) {
-    suspend operator fun invoke(command: ProposeExpenseCommand) {
+) : ProposeExpenseUseCase {
+    override suspend operator fun invoke(command: ProposeExpenseCommand) {
         expenseRepository.persist(
             when (val allocation = command.allocation) {
                 is EqualSplitExpenseAllocationCommand -> {
