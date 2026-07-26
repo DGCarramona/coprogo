@@ -1,0 +1,28 @@
+<mat-card class="material-card" appearance="outlined">
+  <mat-card-header>
+    <mat-card-title>Depenses</mat-card-title>
+    <mat-card-subtitle>Dernieres depenses enregistrees</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    @if (viewModel.isLoading()) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    } @else if (viewModel.hasLoadError()) {
+      <p>Impossible de charger les depenses.</p>
+      <button mat-flat-button type="button" (click)="viewModel.retry()">Reessayer</button>
+    } @else if (viewModel.expenses().length === 0) {
+      <p class="expense-list-widget__empty">Aucune depense enregistree.</p>
+    } @else {
+      <div class="expense-list-widget__list">
+        @for (expense of viewModel.expenses(); track expense.title) {
+          <div class="expense-list-widget__row">
+            <div class="expense-list-widget__info">
+              <span class="expense-list-widget__title">{{ expense.title }}</span>
+              <span class="expense-list-widget__creator">{{ expense.createdBy }}</span>
+            </div>
+            <strong>{{ expense.amount }}</strong>
+          </div>
+        }
+      </div>
+    }
+  </mat-card-content>
+</mat-card>
