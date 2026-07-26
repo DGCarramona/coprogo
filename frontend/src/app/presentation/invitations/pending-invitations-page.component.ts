@@ -1,16 +1,19 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
-import { InvitationCardComponent } from './invitation-card.component';
-import { PendingInvitationsPageViewModel } from './pending-invitations-page.view-model';
+import { CreateFirstGroupCardComponent } from './create-first-group-card.component';
+import { CreateFirstGroupViewModel } from './create-first-group.view-model';
+import { PendingInvitationsListComponent } from './pending-invitations-list.component';
+import { PendingInvitationsViewModel } from './pending-invitations.view-model';
 
 @Component({
   selector: 'app-pending-invitations-page',
   imports: [
-    InvitationCardComponent,
+    CreateFirstGroupCardComponent,
+    PendingInvitationsListComponent,
     MatButtonModule,
     MatCardModule,
     MatProgressBarModule,
@@ -18,12 +21,15 @@ import { PendingInvitationsPageViewModel } from './pending-invitations-page.view
   ],
   templateUrl: './pending-invitations-page.component.html',
   styleUrl: './pending-invitations-page.component.scss',
-  providers: [PendingInvitationsPageViewModel],
+  providers: [PendingInvitationsViewModel, CreateFirstGroupViewModel],
 })
 export class PendingInvitationsPageComponent implements OnInit {
-  protected readonly viewModel = inject(PendingInvitationsPageViewModel);
+  constructor(
+    protected readonly invitationsViewModel: PendingInvitationsViewModel,
+    protected readonly createGroupViewModel: CreateFirstGroupViewModel,
+  ) {}
 
   ngOnInit(): void {
-    void this.viewModel.initialize();
+    void this.invitationsViewModel.initialize();
   }
 }

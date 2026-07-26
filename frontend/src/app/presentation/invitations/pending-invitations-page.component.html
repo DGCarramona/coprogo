@@ -12,10 +12,12 @@
 
       <span class="pending-invitations-page__toolbar-spacer"></span>
 
-      <button mat-stroked-button type="button" (click)="viewModel.signOut()">Se deconnecter</button>
+      <button mat-stroked-button type="button" (click)="invitationsViewModel.signOut()">
+        Se deconnecter
+      </button>
     </mat-toolbar>
 
-    @if (viewModel.isLoading()) {
+    @if (invitationsViewModel.isLoading()) {
       <mat-card class="material-card pending-invitations-page__state" appearance="outlined">
         <mat-card-header>
           <mat-card-title>Chargement de vos invitations...</mat-card-title>
@@ -27,73 +29,37 @@
           </p>
         </mat-card-content>
       </mat-card>
-    } @else if (viewModel.hasLoadError()) {
+    } @else if (invitationsViewModel.hasLoadError()) {
       <mat-card class="material-card pending-invitations-page__state" appearance="outlined">
         <mat-card-header>
           <mat-card-title>Impossible de charger vos invitations</mat-card-title>
         </mat-card-header>
         <mat-card-content>
-          <p>{{ viewModel.errorMessage() }}</p>
+          <p>{{ invitationsViewModel.errorMessage() }}</p>
         </mat-card-content>
         <mat-card-actions>
-          <button mat-flat-button type="button" (click)="viewModel.retry()">Reessayer</button>
-          <button mat-button type="button" (click)="viewModel.signOut()">
+          <button mat-flat-button type="button" (click)="invitationsViewModel.retry()">
+            Reessayer
+          </button>
+          <button mat-button type="button" (click)="invitationsViewModel.signOut()">
             Revenir a la connexion
           </button>
         </mat-card-actions>
       </mat-card>
-    } @else if (viewModel.isEmpty()) {
-      <mat-card class="material-card pending-invitations-page__state" appearance="outlined">
-        <mat-card-header>
-          <mat-card-title>Aucune invitation en attente</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <p>
-            Vous pouvez maintenant creer votre groupe. Cette action reutilise directement l endpoint
-            backend de creation de groupe deja en place.
-          </p>
-
-          @if (viewModel.createdGroupId(); as createdGroupId) {
-            <div
-              class="pending-invitations-page__message pending-invitations-page__message--success"
-            >
-              Groupe cree avec succes. Identifiant technique : <code>{{ createdGroupId }}</code>
-            </div>
-          }
-
-          @if (viewModel.errorMessage(); as errorMessage) {
-            <div class="pending-invitations-page__message pending-invitations-page__message--error">
-              {{ errorMessage }}
-            </div>
-          }
-        </mat-card-content>
-        <mat-card-actions>
-          <button
-            mat-flat-button
-            type="button"
-            [disabled]="viewModel.isCreatingGroup()"
-            (click)="viewModel.createGroup()"
-          >
-            {{ viewModel.isCreatingGroup() ? 'Creation...' : 'Creer mon premier groupe' }}
-          </button>
-        </mat-card-actions>
-      </mat-card>
+    } @else if (invitationsViewModel.isEmpty()) {
+      <app-create-first-group-card
+        [createdGroupId]="createGroupViewModel.createdGroupId()"
+        [errorMessage]="createGroupViewModel.errorMessage()"
+        [creating]="createGroupViewModel.isCreatingGroup()"
+        (createRequested)="createGroupViewModel.createGroup()"
+      />
     } @else {
-      <div class="pending-invitations-page__list">
-        @for (invitation of viewModel.invitations(); track invitation.invitationId) {
-          <app-invitation-card
-            [invitation]="invitation"
-            [accepting]="viewModel.busyInvitationId() === invitation.invitationId"
-            (accepted)="viewModel.acceptInvitation($event)"
-          />
-        }
-      </div>
-
-      @if (viewModel.errorMessage(); as errorMessage) {
-        <div class="pending-invitations-page__message pending-invitations-page__message--error">
-          {{ errorMessage }}
-        </div>
-      }
+      <app-pending-invitations-list
+        [invitations]="invitationsViewModel.invitations()"
+        [busyInvitationId]="invitationsViewModel.busyInvitationId()"
+        [errorMessage]="invitationsViewModel.errorMessage()"
+        (invitationAccepted)="invitationsViewModel.acceptInvitation($event)"
+      />
     }
   </div>
 </section>

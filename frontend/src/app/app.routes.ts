@@ -24,6 +24,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'groups/:groupId/dashboard',
+    canActivate: [authenticatedRouteGuard],
+    loadComponent: () =>
+      import('./presentation/dashboard/group-dashboard-page.component').then(
+        (module) => module.GroupDashboardPageComponent,
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'invitations',
   },

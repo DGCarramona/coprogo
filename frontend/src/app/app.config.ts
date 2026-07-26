@@ -8,12 +8,14 @@ import { GoogleIdTokenPort } from './application/auth/google-id-token.port';
 import { GoogleIdentityPort } from './application/auth/google-identity.port';
 import { GroupCreationPort } from './application/group/group-creation.port';
 import { PendingGroupInvitationsPort } from './application/group/pending-group-invitations.port';
+import { GroupFinancialDashboardPort } from './application/ledger/group-financial-dashboard.port';
 import { provideApiClient } from './infrastructure/api/provide-api-client';
 import { RouterNavigationAdapter } from './infrastructure/router/router-navigation.adapter';
 import { BrowserGoogleIdTokenStore } from './infrastructure/auth/google/browser-google-id-token.store';
 import { BrowserGoogleIdentityAdapter } from './infrastructure/auth/google/browser-google-identity.adapter';
 import { HttpGroupCreationGateway } from './infrastructure/group/http-group-creation.gateway';
 import { HttpGroupInvitationsGateway } from './infrastructure/group/http-group-invitations.gateway';
+import { HttpGroupFinancialDashboardGateway } from './infrastructure/ledger/http-group-financial-dashboard.gateway';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
@@ -42,6 +44,10 @@ export const appConfig: ApplicationConfig = {
     {
       provide: GroupCreationPort,
       useExisting: HttpGroupCreationGateway,
+    },
+    {
+      provide: GroupFinancialDashboardPort,
+      useExisting: HttpGroupFinancialDashboardGateway,
     },
   ],
 };
