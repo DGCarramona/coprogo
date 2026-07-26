@@ -312,6 +312,7 @@ Every behavior change must include or update tests, and the agent MUST follow Te
 - Avoid hidden global state and nondeterminism.
 - Backend tests requiring PostgreSQL must reuse the repository's Micronaut Test Resources PostgreSQL infrastructure via `@PostgresMicronautTest` instead of declaring containers or database property wiring in each suite.
 - Backend integration tests that need the Micronaut application context but do not exercise persistence must reuse the repository's shared no-database Micronaut test environment via `@NoDbMicronautTest` instead of duplicating datasource/Flyway overrides in each test class.
+- Controller tests must be pure unit tests (no `@MicronautTest`, no database) using hand-written fakes for project-owned interfaces. Reserve `@PostgresMicronautTest` and `@NoDbMicronautTest` for adapter-level integration tests only.
 - Tests for a subject that exposes multiple public entrypoints must group cases by entrypoint using JUnit 5 `@Nested` classes, for example by public method or public HTTP endpoint.
 - Backend local runtime configuration must use Micronaut environment files rather than custom `.env` loading: keep shared local defaults in `application-runtime.properties`, reserve `application-local.properties` for machine-specific overrides, and commit only `application-local.example.properties`.
 - In coroutine-based backend tests, prefer `assertThrows { runTest { ... } }` for error assertions over manual `try/catch + fail`.
@@ -406,11 +407,13 @@ Do not force functional or reactive patterns where they make the code harder to 
 - External integrations must go through project-owned ports.
 - Configuration must enter through explicit adapters/config abstractions.
 - Persistence models must not become domain models by accident.
-- Kotlin application use cases should be invokable classes, exposing their primary entry point as `operator fun invoke(...)`.
+- Kotlin application use cases must be defined as an interface with a corresponding `*Impl` implementation class. The interface is injected by consumers; the `Impl` class carries `@Singleton`. This allows clean hand-written fakes in unit tests without Micronaut test infrastructure. All use cases expose their primary entry point as `operator fun invoke(...)`.
 - Create use cases must generate the identifier of the resource they create internally; create commands should not carry the target id.
+- CUD use cases should return no payload on success unless a business need explicitly requires a return value.
 - CUD use cases should return no payload on success unless a business need explicitly requires a return value.
 - Backend id value objects must keep their primitive storage private, expose primitive extraction explicitly through `toPrimitive()`, and must not expose direct `value` access or custom `toString()` behavior.
 - Repository ports and backend application use cases that may cross I/O boundaries should be `suspend`; keep the domain synchronous and pure, and only mark HTTP endpoints `suspend` when they actually invoke a suspendable path.
+- All use cases that receive a `GroupId` must verify membership via `GroupAccessPolicy.requireMember` as their first operation.
 - Financial calculations must use appropriate money-safe representations and deterministic rounding rules.
 - Prefer immutable value objects and pure domain services where practical.
 - Prefer collection and batch-oriented operations over procedural per-item orchestration when possible.
