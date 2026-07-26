@@ -1,0 +1,32 @@
+<mat-card appearance="outlined" class="material-card pending-invitations-page__state">
+  <mat-card-header>
+    <mat-card-title>Aucune invitation en attente</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <p>
+      Vous pouvez maintenant creer votre premier groupe.
+    </p>
+
+    @if (createdGroupId(); as createdGroupIdValue) {
+      <div class="pending-invitations-page__message pending-invitations-page__message--success">
+        Groupe cree avec succes. Identifiant du groupe : <code>{{ createdGroupIdValue }}</code>
+      </div>
+    }
+
+    @if (errorMessage(); as errorMessageValue) {
+      <div class="pending-invitations-page__message pending-invitations-page__message--error">
+        {{ errorMessageValue }}
+      </div>
+    }
+  </mat-card-content>
+  <mat-card-actions>
+    <button (click)="createRequested.emit()" [disabled]="creating()" mat-flat-button type="button">
+      {{ creating() ? 'Creation...' : 'Creer mon premier groupe' }}
+    </button>
+    @if (createdGroupId(); as createdGroupIdValue) {
+      <a [routerLink]="['/groups', createdGroupIdValue, 'dashboard']" mat-button>
+        Ouvrir le dashboard
+      </a>
+    }
+  </mat-card-actions>
+</mat-card>
