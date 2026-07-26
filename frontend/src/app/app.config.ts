@@ -3,6 +3,7 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/
 import { provideRouter } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
+import { ExpenseListPort } from './application/expense/expense-list.port';
 import { NavigationPort } from './application/shared/navigation.port';
 import { GoogleIdTokenPort } from './application/auth/google-id-token.port';
 import { GoogleIdentityPort } from './application/auth/google-identity.port';
@@ -13,6 +14,7 @@ import { provideApiClient } from './infrastructure/api/provide-api-client';
 import { RouterNavigationAdapter } from './infrastructure/router/router-navigation.adapter';
 import { BrowserGoogleIdTokenStore } from './infrastructure/auth/google/browser-google-id-token.store';
 import { BrowserGoogleIdentityAdapter } from './infrastructure/auth/google/browser-google-identity.adapter';
+import { HttpExpenseListGateway } from './infrastructure/expense/http-expense-list.gateway';
 import { HttpGroupCreationGateway } from './infrastructure/group/http-group-creation.gateway';
 import { HttpGroupInvitationsGateway } from './infrastructure/group/http-group-invitations.gateway';
 import { HttpGroupFinancialDashboardGateway } from './infrastructure/ledger/http-group-financial-dashboard.gateway';
@@ -48,6 +50,10 @@ export const appConfig: ApplicationConfig = {
     {
       provide: GroupFinancialDashboardPort,
       useExisting: HttpGroupFinancialDashboardGateway,
+    },
+    {
+      provide: ExpenseListPort,
+      useExisting: HttpExpenseListGateway,
     },
   ],
 };
