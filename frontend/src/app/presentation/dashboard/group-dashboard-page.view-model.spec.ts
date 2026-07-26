@@ -1,7 +1,12 @@
-import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
 
 import { AuthSessionFacade } from '../../application/auth/auth-session.facade';
 import { GroupFinancialDashboardPort } from '../../application/ledger/group-financial-dashboard.port';
+import {
+  authSessionFacadeWithToken,
+  defaultAuthSessionFacade,
+} from '../../../../__test__/app/application/auth/stub-google-id-token.port';
+import { StubNavigationPort } from '../../../../__test__/app/application/shared/stub-navigation.port';
 import { GroupDashboardPageViewModel } from './group-dashboard-page.view-model';
 
 describe('GroupDashboardPageViewModel', () => {
@@ -13,34 +18,27 @@ describe('GroupDashboardPageViewModel', () => {
 
     expect(viewModel.status()).toBe('ready');
     expect(viewModel.groupId()).toBe('group-1');
-    expect(viewModel.cashPoolBalance()).toBe('75,00 €');
+    expect(viewModel.cashPoolBalance()).toBe('75,00\u00a0€');
     expect(viewModel.memberBalances()).toEqual([
-      {
-        member: 'alice@example.com',
-        label: 'A recevoir',
-        amount: '+40,00 €',
-        tone: 'credit',
-      },
-      {
-        member: 'bob@example.com',
-        label: 'A payer',
-        amount: '-40,00 €',
-        tone: 'debt',
-      },
+      { member: 'alice@example.com', label: 'A recevoir', amount: '+40,00\u00a0€', tone: 'credit' },
+      { member: 'bob@example.com', label: 'A payer', amount: '-40,00\u00a0€', tone: 'debt' },
     ]);
     expect(viewModel.cashPoolShares()).toEqual([
-      { member: 'alice@example.com', amount: '35,00 €' },
-      { member: 'bob@example.com', amount: '40,00 €' },
+      { member: 'alice@example.com', amount: '35,00\u00a0€' },
+      { member: 'bob@example.com', amount: '40,00\u00a0€' },
     ]);
   });
 
   it('redirects to sign-in when no token is stored', async () => {
-    const router = new StubRouter();
-    const viewModel = createViewModel({ authSessionFacade: new StubAuthSessionFacade(false), router });
+    const navigation = new StubNavigationPort();
+    const viewModel = createViewModel({
+      authSessionFacade: authSessionFacadeWithToken(false),
+      navigation,
+    });
 
     await viewModel.initialize();
 
-    expect(router.navigatedTo).toBe('/connexion');
+    expect(navigation.navigatedTo).toBe('/connexion');
   });
 
   it('exposes a load error', async () => {
@@ -55,40 +53,24 @@ describe('GroupDashboardPageViewModel', () => {
   });
 });
 
+const defaultNavigation = new StubNavigationPort();
+
 const createViewModel = ({
-  authSessionFacade = new StubAuthSessionFacade(true),
+  authSessionFacade = defaultAuthSessionFacade,
   dashboardPort = new StubGroupFinancialDashboardPort(),
-  router = new StubRouter(),
+  navigation = defaultNavigation,
 }: {
-  authSessionFacade?: StubAuthSessionFacade;
+  authSessionFacade?: AuthSessionFacade;
   dashboardPort?: StubGroupFinancialDashboardPort;
-  router?: StubRouter;
+  navigation?: StubNavigationPort;
 } = {}): GroupDashboardPageViewModel => {
   return new GroupDashboardPageViewModel(
-    {
-      snapshot: {
-        paramMap: convertToParamMap({ groupId: 'group-1' }),
-      },
-    } as ActivatedRoute,
-    router as unknown as Router,
-    authSessionFacade as unknown as AuthSessionFacade,
+    { snapshot: { paramMap: convertToParamMap({ groupId: 'group-1' }) } } as ActivatedRoute,
+    navigation,
+    authSessionFacade,
     dashboardPort,
   );
 };
-
-class StubAuthSessionFacade {
-  signedOut = false;
-
-  constructor(private readonly storedToken: boolean) {}
-
-  hasStoredToken(): boolean {
-    return this.storedToken;
-  }
-
-  signOut(): void {
-    this.signedOut = true;
-  }
-}
 
 class StubGroupFinancialDashboardPort extends GroupFinancialDashboardPort {
   failure: Error | null = null;
@@ -110,14 +92,5 @@ class StubGroupFinancialDashboardPort extends GroupFinancialDashboardPort {
         { member: 'bob@example.com', amountInCents: 4000 },
       ],
     };
-  }
-}
-
-class StubRouter {
-  navigatedTo: string | null = null;
-
-  async navigateByUrl(url: string): Promise<boolean> {
-    this.navigatedTo = url;
-    return true;
   }
 }

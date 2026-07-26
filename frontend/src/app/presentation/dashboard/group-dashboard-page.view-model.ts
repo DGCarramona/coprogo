@@ -1,8 +1,9 @@
 import { Injectable, computed, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 
 import { AuthSessionFacade } from '../../application/auth/auth-session.facade';
 import { GroupFinancialDashboardPort } from '../../application/ledger/group-financial-dashboard.port';
+import { NavigationPort } from '../../application/shared/navigation.port';
 import { describeError } from '../../application/shared/describe-error';
 import { GroupFinancialDashboard } from '../../domain/ledger/group-financial-dashboard';
 import { formatMoneyFromCents, formatSignedMoneyFromCents } from '../../shared/format/financial-format';
@@ -29,7 +30,7 @@ export class GroupDashboardPageViewModel {
 
   constructor(
     private readonly route: ActivatedRoute,
-    private readonly router: Router,
+    private readonly navigation: NavigationPort,
     private readonly authSessionFacade: AuthSessionFacade,
     private readonly dashboardPort: GroupFinancialDashboardPort,
   ) {}
@@ -61,7 +62,7 @@ export class GroupDashboardPageViewModel {
 
   async initialize(): Promise<void> {
     if (!this.authSessionFacade.hasStoredToken()) {
-      await this.router.navigateByUrl('/connexion');
+      await this.navigation.navigateByUrl('/connexion');
       return;
     }
 
@@ -74,7 +75,7 @@ export class GroupDashboardPageViewModel {
 
   async signOut(): Promise<void> {
     this.authSessionFacade.signOut();
-    await this.router.navigateByUrl('/connexion');
+    await this.navigation.navigateByUrl('/connexion');
   }
 
   private async load(): Promise<void> {

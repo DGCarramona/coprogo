@@ -1,8 +1,8 @@
 import { Injectable, signal } from '@angular/core';
-import { Router } from '@angular/router';
 
 import { AuthSessionFacade } from '../../application/auth/auth-session.facade';
 import { GoogleIdentityPort } from '../../application/auth/google-identity.port';
+import { NavigationPort } from '../../application/shared/navigation.port';
 import { describeError } from '../../application/shared/describe-error';
 
 @Injectable()
@@ -12,7 +12,7 @@ export class SignInPageViewModel {
   constructor(
     private readonly authSessionFacade: AuthSessionFacade,
     private readonly googleIdentityPort: GoogleIdentityPort,
-    private readonly router: Router,
+    private readonly navigation: NavigationPort,
   ) {}
 
   readonly renderErrorMessage = this.renderErrorMessageState.asReadonly();
@@ -37,7 +37,7 @@ export class SignInPageViewModel {
 
     const restored = await this.authSessionFacade.restoreStoredSession();
     if (restored) {
-      await this.router.navigateByUrl('/invitations');
+      await this.navigation.navigateByUrl('/invitations');
     }
   }
 
@@ -50,7 +50,7 @@ export class SignInPageViewModel {
         onCredential: async (idToken) => {
           const authenticated = await this.authSessionFacade.authenticateWithGoogleIdToken(idToken);
           if (authenticated) {
-            await this.router.navigateByUrl('/invitations');
+            await this.navigation.navigateByUrl('/invitations');
           }
         },
       });

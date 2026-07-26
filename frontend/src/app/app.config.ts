@@ -3,11 +3,13 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/
 import { provideRouter } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
+import { NavigationPort } from './application/shared/navigation.port';
 import { GoogleIdTokenPort } from './application/auth/google-id-token.port';
 import { GoogleIdentityPort } from './application/auth/google-identity.port';
 import { GroupCreationPort } from './application/group/group-creation.port';
 import { PendingGroupInvitationsPort } from './application/group/pending-group-invitations.port';
 import { provideApiClient } from './infrastructure/api/provide-api-client';
+import { RouterNavigationAdapter } from './infrastructure/router/router-navigation.adapter';
 import { BrowserGoogleIdTokenStore } from './infrastructure/auth/google/browser-google-id-token.store';
 import { BrowserGoogleIdentityAdapter } from './infrastructure/auth/google/browser-google-identity.adapter';
 import { HttpGroupCreationGateway } from './infrastructure/group/http-group-creation.gateway';
@@ -21,6 +23,10 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     provideRouter(routes),
     provideApiClient(),
+    {
+      provide: NavigationPort,
+      useClass: RouterNavigationAdapter,
+    },
     {
       provide: GoogleIdTokenPort,
       useExisting: BrowserGoogleIdTokenStore,
