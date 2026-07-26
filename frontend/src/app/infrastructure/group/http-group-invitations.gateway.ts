@@ -23,7 +23,7 @@ export class HttpGroupInvitationsGateway extends PendingGroupInvitationsPort {
 
   override async accept(invitationId: string): Promise<void> {
     try {
-      await firstValueFrom(this.groupsService.accept({ invitationId }));
+      await firstValueFrom(this.groupsService.accept(invitationId));
     } catch (error) {
       throw toApiClientError(error, "L'invitation n'a pas pu etre acceptee.");
     }

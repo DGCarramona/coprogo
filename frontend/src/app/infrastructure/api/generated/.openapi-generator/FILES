@@ -3,6 +3,7 @@ README.md
 api.base.service.ts
 api.module.ts
 api/api.ts
+api/expenses.service.ts
 api/groups.service.ts
 api/ledger.service.ts
 api/revenue-distribution.service.ts
@@ -12,6 +13,7 @@ git_push.sh
 index.ts
 model/cash-pool-balance-response.ts
 model/create-group-response.ts
+model/expense-response.ts
 model/group-balances-response.ts
 model/group-invitation-response.ts
 model/group-member-balance-response.ts

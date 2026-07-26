@@ -15,9 +15,9 @@ export class HttpGroupFinancialDashboardGateway extends GroupFinancialDashboardP
   override async get(groupId: string): Promise<GroupFinancialDashboard> {
     try {
       const [balances, cashPoolBalance, cashPoolShares] = await Promise.all([
-        firstValueFrom(this.ledgerService.getGroupBalances({ groupId })),
-        firstValueFrom(this.ledgerService.getCashPoolBalance({ groupId })),
-        firstValueFrom(this.ledgerService.getMemberCashPoolShares({ groupId })),
+        firstValueFrom(this.ledgerService.getGroupBalances(groupId)),
+        firstValueFrom(this.ledgerService.getCashPoolBalance(groupId)),
+        firstValueFrom(this.ledgerService.getMemberCashPoolShares(groupId)),
       ]);
 
       return {

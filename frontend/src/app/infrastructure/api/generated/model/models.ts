@@ -1,5 +1,6 @@
 export * from './cash-pool-balance-response';
 export * from './create-group-response';
+export * from './expense-response';
 export * from './group-balances-response';
 export * from './group-invitation-response';
 export * from './group-member-balance-response';
