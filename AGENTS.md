@@ -351,6 +351,7 @@ Avoid:
 - framework leakage into inner layers
 - transport or persistence concerns in domain code
 - destructive mutation of historical business events
+- forced casts (`as unknown as`, `as any as`, or similar escape hatches) even in tests
 
 ## 8.5. Programming Style Preferences (Strong Preference)
 
