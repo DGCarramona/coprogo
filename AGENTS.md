@@ -432,6 +432,8 @@ Preferred structure:
 - Infrastructure: HTTP clients, auth adapters, storage adapters, DTO mapping
 - Presentation: Angular pages, view models, presentational components
 
+Application use cases should carry real application behavior: orchestration, validation, workflow decisions, aggregation, or reusable policy. Do not introduce pass-through use cases whose only behavior is forwarding a single call to a port; in that case, inject the focused port directly into the ViewModel or application service that actually owns the workflow.
+
 ### Presentation rules
 - Treat Angular components as thin UI adapters.
 - Keep business logic out of components.
