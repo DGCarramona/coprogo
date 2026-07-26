@@ -90,7 +90,7 @@ A group of family members jointly manage an apartment. Members can advance expen
     - which events reduced that debt
 - The system’s source of truth is financial events and balances.
 - The UI may provide an explanatory allocation of remaining debt to expenses, but this is a presentation concern, not a separate source of truth.
-- User-facing labels, messages, and help text must avoid complex financial terminology (e.g. "ledger", "immutable ledger", "projection") in favor of plain language (e.g. "historique des opérations", "ce qui reste à payer"). Technical accounting terms are acceptable in developer-facing documentation only.
+- User-facing labels, messages, and help text must avoid technical and financial jargon (e.g. "ledger", "immutable ledger", "projection", "endpoint", "backend", "identifiant technique") in favor of plain language (e.g. "historique des opérations", "ce qui reste à payer", "identifiant du groupe"). Technical terms are acceptable in developer-facing documentation only.
 
 ### Non-goals
 - The application does not implement a voting system for decisions.
