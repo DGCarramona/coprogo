@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 
 import { AuthSessionFacade } from '../../application/auth/auth-session.facade';
 import { GoogleIdentityPort } from '../../application/auth/google-identity.port';
+import { describeError } from '../../application/shared/describe-error';
 
 @Injectable()
 export class SignInPageViewModel {
@@ -54,12 +55,9 @@ export class SignInPageViewModel {
         },
       });
     } catch (error) {
-      this.renderErrorMessageState.set(describeError(error));
+      this.renderErrorMessageState.set(
+        describeError(error, 'La connexion Google n est pas disponible pour le moment.'),
+      );
     }
   }
 }
-
-const describeError = (error: unknown): string =>
-  error instanceof Error && error.message.trim().length > 0
-    ? error.message
-    : 'La connexion Google n est pas disponible pour le moment.';
