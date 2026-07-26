@@ -460,6 +460,7 @@ Application use cases should carry real application behavior: orchestration, val
 - ViewModels should primarily use Angular Signals and computed state.
 - Prefer one clear view-model per screen or feature rather than scattered mutable state.
 - Prefer constructor injection over Angular `inject()` in project-owned frontend classes when practical, especially ViewModels, application services, components, and infrastructure adapters. Keep `inject()` for functional Angular APIs such as guards, generated code, or cases where constructor injection is not practical.
+- Extract widget components with their own ViewModel for independently-loading page sub-sections. When a section of a page loads its own data (separate API call, separate error/loading states), create a dedicated widget component and ViewModel instead of putting everything in the page ViewModel. The parent passes context (e.g. `groupId`) as `@Input()`.
 
 ### Testability rules
 - Domain logic must be testable without Angular.
