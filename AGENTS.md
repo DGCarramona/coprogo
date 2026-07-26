@@ -279,9 +279,22 @@ Backend changes must preserve GraalVM native-image compatibility.
 - If reflection metadata or special native configuration is required, add it explicitly.
 - A backend change is not complete if JVM tests pass but native compilation breaks.
 
-## 6. Testing (Mandatory)
+## 6. Testing and TDD (Mandatory)
 
-Every behavior change must include or update tests.
+Every behavior change must include or update tests, and the agent MUST follow Test-Driven Development (TDD) with strict red-green-refactor discipline.
+
+### TDD rules (MUST — not optional, not "prefer")
+
+1. **Red phase first**: Before writing or modifying any production code, write the failing test that defines the desired behavior. Run the test to confirm it fails (red).
+2. **Green phase**: Implement the smallest possible production change to make the test pass. No extra code, no premature optimisation.
+3. **Refactor phase**: Once the test passes, clean up the code — remove duplication, improve naming, simplify — while keeping the test green.
+4. **No production code without a test**: The agent MUST NOT write or edit production source files unless a corresponding test file already exists (written during an earlier red phase in the same session or inherited from the existing codebase).
+5. **Commit only when green**: The agent MUST NOT commit code if any relevant test is failing. Run the test suite before every commit.
+6. **Test must specify the file**: The test must import from or reference the exact file path it tests. A generic "tests exist somewhere" is not sufficient.
+7. **Test location conventions**:
+   - Frontend: colocated `.spec.ts` next to the source file (e.g. `src/app/foo/bar.service.ts` → `src/app/foo/bar.service.spec.ts`), or shared stubs in `__test__/app/...`
+   - Backend: `src/test/kotlin/...` mirroring the source package under `src/main/kotlin/...`
+8. **Violation**: If the agent writes or edits a production file without a corresponding failing (or passing) test, the change is invalid and must be reverted. The correct workflow is: write/find the test first, run it to confirm red, write the production code, confirm green, then commit.
 
 ### Backend preferred mix
 - many unit tests for Domain and Application
@@ -294,12 +307,11 @@ Every behavior change must include or update tests.
 - minimal end-to-end tests for critical flows
 
 ### General rules
-- Prefer a TDD workflow for any testable change: write or update failing behavior-focused tests first, then implement the smallest production change that makes them pass.
 - Test behavior and outcomes, not implementation details.
 - Keep use cases testable without framework coupling.
 - Avoid hidden global state and nondeterminism.
-- Backend tests requiring PostgreSQL must reuse the repository’s Micronaut Test Resources PostgreSQL infrastructure via `@PostgresMicronautTest` instead of declaring containers or database property wiring in each suite.
-- Backend integration tests that need the Micronaut application context but do not exercise persistence must reuse the repository’s shared no-database Micronaut test environment via `@NoDbMicronautTest` instead of duplicating datasource/Flyway overrides in each test class.
+- Backend tests requiring PostgreSQL must reuse the repository's Micronaut Test Resources PostgreSQL infrastructure via `@PostgresMicronautTest` instead of declaring containers or database property wiring in each suite.
+- Backend integration tests that need the Micronaut application context but do not exercise persistence must reuse the repository's shared no-database Micronaut test environment via `@NoDbMicronautTest` instead of duplicating datasource/Flyway overrides in each test class.
 - Tests for a subject that exposes multiple public entrypoints must group cases by entrypoint using JUnit 5 `@Nested` classes, for example by public method or public HTTP endpoint.
 - Backend local runtime configuration must use Micronaut environment files rather than custom `.env` loading: keep shared local defaults in `application-runtime.properties`, reserve `application-local.properties` for machine-specific overrides, and commit only `application-local.example.properties`.
 - In coroutine-based backend tests, prefer `assertThrows { runTest { ... } }` for error assertions over manual `try/catch + fail`.

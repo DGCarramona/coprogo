@@ -1,0 +1,19 @@
+#!/bin/sh
+set -e
+
+echo "--- pre-commit: running check suite ---"
+
+# Detect changed files in frontend/
+if git diff --cached --name-only --diff-filter=ACMRT | grep -q '^frontend/'; then
+  echo "[frontend] Running tests..."
+  cd frontend && npx ng test --watch=false --no-progress 2>&1
+  cd ..
+fi
+
+# Detect changed files in backend/
+if git diff --cached --name-only --diff-filter=ACMRT | grep -q '^backend/'; then
+  echo "[backend] Running tests..."
+  ./gradlew test 2>&1
+fi
+
+echo "--- pre-commit: all checks passed ---"
