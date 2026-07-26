@@ -1,37 +1,20 @@
-import { HttpClient } from '@angular/common/http';
-import { Inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
 import { PendingGroupInvitationsPort } from '../../application/group/pending-group-invitations.port';
 import { PendingGroupInvitation } from '../../domain/group/pending-group-invitation';
-import { API_BASE_PATH } from '../api/provide-api-client';
+import { GroupsService, PendingGroupInvitationResponseDto } from '../api/generated';
 import { toApiClientError } from '../api/api-client.error';
-
-interface PendingGroupInvitationDto {
-  invitation: string;
-  group: string;
-  invitedMember: string;
-  invitedBy: string;
-  invitedAt: string;
-}
 
 @Injectable({ providedIn: 'root' })
 export class HttpGroupInvitationsGateway extends PendingGroupInvitationsPort {
-  constructor(
-    private readonly httpClient: HttpClient,
-    @Inject(API_BASE_PATH) private readonly basePath: string,
-  ) {
+  constructor(private readonly groupsService: GroupsService) {
     super();
   }
 
   override async listPending(): Promise<PendingGroupInvitation[]> {
     try {
-      const invitations = await firstValueFrom(
-        this.httpClient.get<PendingGroupInvitationDto[]>(
-          `${this.basePath}/api/group-invitations/pending`,
-        ),
-      );
-
+      const invitations = await firstValueFrom(this.groupsService.listPending());
       return invitations.map(mapPendingGroupInvitationDtoToDomain);
     } catch (error) {
       throw toApiClientError(error, 'Les invitations en attente n ont pas pu etre chargees.');
@@ -40,12 +23,7 @@ export class HttpGroupInvitationsGateway extends PendingGroupInvitationsPort {
 
   override async accept(invitationId: string): Promise<void> {
     try {
-      await firstValueFrom(
-        this.httpClient.post<void>(
-          `${this.basePath}/api/group-invitations/${invitationId}/accept`,
-          {},
-        ),
-      );
+      await firstValueFrom(this.groupsService.accept({ invitationId }));
     } catch (error) {
       throw toApiClientError(error, "L'invitation n'a pas pu etre acceptee.");
     }
@@ -53,7 +31,7 @@ export class HttpGroupInvitationsGateway extends PendingGroupInvitationsPort {
 }
 
 const mapPendingGroupInvitationDtoToDomain = (
-  invitation: PendingGroupInvitationDto,
+  invitation: PendingGroupInvitationResponseDto,
 ): PendingGroupInvitation => ({
   invitationId: invitation.invitation,
   groupId: invitation.group,

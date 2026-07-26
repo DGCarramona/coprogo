@@ -3,8 +3,9 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 
-import { BrowserGoogleIdTokenStore } from '../auth/google/browser-google-id-token.store';
-import { RevenueDistributionService } from './generated';
+import { StubGoogleIdTokenPort } from '../../../../__test__/app/application/auth/stub-google-id-token.port';
+import { GoogleIdTokenPort } from '../../application/auth/google-id-token.port';
+import { GroupsService } from './generated';
 import { provideApiClient, resolveApiBasePath } from './provide-api-client';
 
 describe('provideApiClient', () => {
@@ -24,50 +25,36 @@ describe('provideApiClient', () => {
     expect(resolveApiBasePath({}, {})).toBe('http://localhost:8080');
   });
 
-  it('wraps provideNgOpenapi with the resolved base path and auth interceptor', async () => {
+  it('provides the base path to generated services and adds auth interceptor', async () => {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
+        {
+          provide: GoogleIdTokenPort,
+          useClass: StubGoogleIdTokenPort,
+        },
         provideApiClient({
           basePath: 'http://localhost:8080',
         }),
       ],
     });
-    TestBed.inject(BrowserGoogleIdTokenStore).store('google-id-token');
+    TestBed.inject(GoogleIdTokenPort).store('google-id-token');
 
     const responsePromise = firstValueFrom(
-      TestBed.inject(RevenueDistributionService).preview({
-        amountInCents: 100,
-        members: [
-          {
-            memberId: 'alice',
-            percentage: 100,
-          },
-        ],
-      }),
+      TestBed.inject(GroupsService).listPending(),
     );
 
     const request = TestBed.inject(HttpTestingController).expectOne(
-      'http://localhost:8080/api/revenue-distribution/preview',
+      'http://localhost:8080/api/group-invitations/pending',
     );
 
-    expect(request.request.method).toBe('POST');
+    expect(request.request.method).toBe('GET');
     expect(request.request.headers.get('Authorization')).toBe('Bearer google-id-token');
 
-    request.flush({
-      allocations: [
-        {
-          amountInCents: 100,
-          memberId: 'alice',
-        },
-      ],
-      totalAmountInCents: 100,
-    });
+    request.flush([]);
 
-    const response = await responsePromise;
-
-    expect(response.totalAmountInCents).toBe(100);
+    await responsePromise;
     TestBed.inject(HttpTestingController).verify();
   });
 });

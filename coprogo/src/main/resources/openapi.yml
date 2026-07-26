@@ -1,0 +1,616 @@
+openapi: 3.0.1
+info:
+  title: coprogo
+  version: 1.0.0
+paths:
+  /api/group-invitations/pending:
+    get:
+      tags:
+      - Groups
+      summary: List the pending invitations for the authenticated member
+      operationId: listPending
+      responses:
+        "200":
+          description: listPending 200 response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PendingGroupInvitationResponse"
+      security:
+      - bearerAuth: []
+  /api/group-invitations/{invitationId}/accept:
+    post:
+      tags:
+      - Groups
+      summary: Accept a pending group invitation
+      operationId: accept
+      parameters:
+      - name: invitationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: accept 204 response
+      security:
+      - bearerAuth: []
+  /api/groups:
+    post:
+      tags:
+      - Groups
+      summary: Create a new group for the authenticated member
+      operationId: create
+      responses:
+        "200":
+          description: create 200 response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateGroupResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}:
+    get:
+      tags:
+      - Groups
+      summary: Get the group details for the authenticated member
+      operationId: get
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: get 200 response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/balances:
+    get:
+      tags:
+      - Ledger
+      summary: Get member ledger balances for a group
+      operationId: getGroupBalances
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: getGroupBalances 200 response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupBalancesResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/cash-pool-incomes:
+    post:
+      tags:
+      - RevenueDistribution
+      summary: Record incoming cash-pool income and distribute it according to effective
+        ownership shares
+      operationId: recordCashPoolIncome
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecordCashPoolIncomeRequest"
+        required: true
+      responses:
+        "204":
+          description: recordCashPoolIncome 204 response
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/cash-pool/balance:
+    get:
+      tags:
+      - Ledger
+      summary: Get the available common cash-pool balance for a group
+      operationId: getCashPoolBalance
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: getCashPoolBalance 200 response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CashPoolBalanceResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/cash-pool/shares:
+    get:
+      tags:
+      - Ledger
+      summary: Get remaining common cash-pool shares by member for a group
+      operationId: getMemberCashPoolShares
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: getMemberCashPoolShares 200 response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupMemberCashPoolSharesResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/invitations:
+    post:
+      tags:
+      - Groups
+      summary: Invite a member to a group
+      operationId: invite
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InviteMemberRequest"
+        required: true
+      responses:
+        "204":
+          description: invite 204 response
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/ownership-shares:
+    get:
+      tags:
+      - RevenueDistribution
+      summary: Get ownership-share history for a group
+      operationId: getOwnershipShareTimeline
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: getOwnershipShareTimeline 200 response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OwnershipShareTimelineResponse"
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - RevenueDistribution
+      summary: Record an ownership-share change for a group
+      operationId: recordOwnershipShareChange
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecordOwnershipShareChangeRequest"
+        required: true
+      responses:
+        "204":
+          description: recordOwnershipShareChange 204 response
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/revenue-distribution/preview:
+    post:
+      tags:
+      - RevenueDistribution
+      summary: Preview revenue distribution from the recorded ownership-share timeline
+      operationId: previewAtDate
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RevenueDistributionAtDatePreviewRequest"
+        required: true
+      responses:
+        "200":
+          description: previewAtDate 200 response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RevenueDistributionAtDatePreviewResponse"
+      security:
+      - bearerAuth: []
+  /api/revenue-distribution/preview:
+    post:
+      tags:
+      - RevenueDistribution
+      summary: Preview ownership-share-based revenue distribution
+      operationId: preview
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RevenueDistributionPreviewRequest"
+        required: true
+      responses:
+        "200":
+          description: preview 200 response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RevenueDistributionPreviewResponse"
+      security:
+      - bearerAuth: []
+components:
+  schemas:
+    CashPoolBalanceResponse:
+      required:
+      - availableAmountInCents
+      - group
+      type: object
+      properties:
+        group:
+          type: string
+          format: uuid
+        availableAmountInCents:
+          type: integer
+          format: int64
+    CreateGroupResponse:
+      required:
+      - group
+      type: object
+      properties:
+        group:
+          type: string
+          format: uuid
+    GroupBalancesResponse:
+      required:
+      - balances
+      - group
+      type: object
+      properties:
+        group:
+          type: string
+          format: uuid
+        balances:
+          type: array
+          items:
+            $ref: "#/components/schemas/GroupMemberBalanceResponse"
+    GroupInvitationResponse:
+      required:
+      - invitation
+      - invitedAt
+      - invitedBy
+      - invitedMember
+      type: object
+      properties:
+        invitation:
+          type: string
+          format: uuid
+        invitedMember:
+          type: string
+        invitedBy:
+          type: string
+        invitedAt:
+          type: string
+          format: date-time
+    GroupMemberBalanceResponse:
+      required:
+      - member
+      - netAmountInCents
+      type: object
+      properties:
+        member:
+          type: string
+        netAmountInCents:
+          type: integer
+          format: int64
+    GroupMemberCashPoolSharesResponse:
+      required:
+      - group
+      - shares
+      type: object
+      properties:
+        group:
+          type: string
+          format: uuid
+        shares:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemberCashPoolShareResponse"
+    GroupMemberResponse:
+      required:
+      - joinedAt
+      - member
+      type: object
+      properties:
+        member:
+          type: string
+        joinedAt:
+          type: string
+          format: date-time
+    GroupResponse:
+      required:
+      - createdAt
+      - createdBy
+      - group
+      - members
+      - pendingInvitations
+      type: object
+      properties:
+        group:
+          type: string
+          format: uuid
+        createdBy:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/GroupMemberResponse"
+        pendingInvitations:
+          type: array
+          items:
+            $ref: "#/components/schemas/GroupInvitationResponse"
+    InviteMemberRequest:
+      required:
+      - invitedMember
+      type: object
+      properties:
+        invitedMember:
+          minLength: 1
+          type: string
+    MemberCashPoolShareResponse:
+      required:
+      - amountInCents
+      - member
+      type: object
+      properties:
+        member:
+          type: string
+        amountInCents:
+          type: integer
+          format: int64
+    OwnershipShareChangeResponse:
+      required:
+      - change
+      - effectiveDate
+      - recordedAt
+      - recordedBy
+      - shares
+      type: object
+      properties:
+        change:
+          type: string
+          format: uuid
+        effectiveDate:
+          type: string
+          format: date
+        recordedBy:
+          type: string
+        recordedAt:
+          type: string
+          format: date-time
+        shares:
+          type: array
+          items:
+            $ref: "#/components/schemas/OwnershipShareResponse"
+    OwnershipShareInput:
+      required:
+      - member
+      - percentage
+      type: object
+      properties:
+        member:
+          type: string
+        percentage:
+          minimum: 0
+          exclusiveMinimum: true
+          type: number
+    OwnershipShareResponse:
+      required:
+      - member
+      - percentage
+      type: object
+      properties:
+        member:
+          type: string
+        percentage:
+          type: number
+    OwnershipShareTimelineResponse:
+      required:
+      - changes
+      - group
+      type: object
+      properties:
+        group:
+          type: string
+          format: uuid
+        changes:
+          type: array
+          items:
+            $ref: "#/components/schemas/OwnershipShareChangeResponse"
+    PendingGroupInvitationResponse:
+      required:
+      - group
+      - invitation
+      - invitedAt
+      - invitedBy
+      - invitedMember
+      type: object
+      properties:
+        invitation:
+          type: string
+          format: uuid
+        group:
+          type: string
+          format: uuid
+        invitedMember:
+          type: string
+        invitedBy:
+          type: string
+        invitedAt:
+          type: string
+          format: date-time
+    RecordCashPoolIncomeRequest:
+      required:
+      - amountInCents
+      - effectiveDate
+      - receivedAt
+      type: object
+      properties:
+        amountInCents:
+          minimum: 0
+          exclusiveMinimum: true
+          type: integer
+          format: int64
+        receivedAt:
+          type: string
+          format: date-time
+        effectiveDate:
+          type: string
+          format: date
+    RecordOwnershipShareChangeRequest:
+      required:
+      - effectiveDate
+      - shares
+      type: object
+      properties:
+        effectiveDate:
+          type: string
+          format: date
+        shares:
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/OwnershipShareInput"
+    RevenueDistributionAllocation:
+      required:
+      - amountInCents
+      - memberId
+      type: object
+      properties:
+        memberId:
+          type: string
+        amountInCents:
+          type: integer
+          format: int64
+    RevenueDistributionAtDatePreviewRequest:
+      required:
+      - amountInCents
+      - effectiveDate
+      type: object
+      properties:
+        amountInCents:
+          minimum: 0
+          type: integer
+          format: int64
+        effectiveDate:
+          type: string
+          format: date
+    RevenueDistributionAtDatePreviewResponse:
+      required:
+      - allocations
+      - effectiveDate
+      - group
+      - totalAmountInCents
+      type: object
+      properties:
+        group:
+          type: string
+          format: uuid
+        effectiveDate:
+          type: string
+          format: date
+        totalAmountInCents:
+          type: integer
+          format: int64
+        allocations:
+          type: array
+          items:
+            $ref: "#/components/schemas/RevenueDistributionAllocation"
+    RevenueDistributionMemberInput:
+      required:
+      - member
+      - percentage
+      type: object
+      properties:
+        member:
+          type: string
+        percentage:
+          minimum: 0
+          exclusiveMinimum: true
+          type: number
+    RevenueDistributionPreviewRequest:
+      required:
+      - amountInCents
+      - members
+      type: object
+      properties:
+        amountInCents:
+          minimum: 0
+          type: integer
+          format: int64
+        members:
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/RevenueDistributionMemberInput"
+    RevenueDistributionPreviewResponse:
+      required:
+      - allocations
+      - totalAmountInCents
+      type: object
+      properties:
+        totalAmountInCents:
+          type: integer
+          format: int64
+        allocations:
+          type: array
+          items:
+            $ref: "#/components/schemas/RevenueDistributionAllocation"

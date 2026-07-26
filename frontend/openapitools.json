@@ -1,0 +1,22 @@
+{
+  "$schema": "./node_modules/@openapitools/openapi-generator-cli/config.schema.json",
+  "spaces": 2,
+  "generator-cli": {
+    "version": "7.24.0",
+    "generators": {
+      "main": {
+        "generatorName": "typescript-angular",
+        "inputSpec": "../coprogo/src/main/resources/openapi.yml",
+        "output": "src/app/infrastructure/api/generated",
+        "additionalProperties": {
+          "fileNaming": "kebab-case",
+          "serviceSuffix": "Service",
+          "modelSuffix": "Dto",
+          "apiModulePrefix": "",
+          "providedInRoot": true,
+          "dateType": "Date"
+        }
+      }
+    }
+  }
+}

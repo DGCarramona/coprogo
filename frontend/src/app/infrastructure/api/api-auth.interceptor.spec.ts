@@ -3,14 +3,14 @@ import { firstValueFrom, of } from 'rxjs';
 import { vi } from 'vitest';
 
 import { ApiAuthInterceptor } from './api-auth.interceptor';
-import { BrowserGoogleIdTokenStore } from '../auth/google/browser-google-id-token.store';
+import { StubGoogleIdTokenPort } from '../../../../__test__/app/application/auth/stub-google-id-token.port';
 
 describe('ApiAuthInterceptor', () => {
-  const tokenStore = new BrowserGoogleIdTokenStore();
+  const tokenStore = new StubGoogleIdTokenPort();
   const interceptor = new ApiAuthInterceptor(tokenStore);
 
   beforeEach(() => {
-    sessionStorage.clear();
+    tokenStore.clear();
   });
 
   it('adds the stored Google bearer token when no authorization header is present', async () => {
