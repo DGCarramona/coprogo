@@ -91,9 +91,9 @@ Backlog derive de l'etat actuel du depot au 2026-04-15.
 
 - [x] BE-LED-001 Ajouter la persistance des `LedgerEvent` en base.
 - [x] BE-LED-002 Creer l'adaptateur R2DBC de `LedgerEventRepository`.
-- [ ] BE-LED-003 Exposer l'endpoint REST de consultation des balances d'un groupe.
-- [ ] BE-LED-004 Exposer l'endpoint REST de consultation du solde de la caisse commune.
-- [ ] BE-LED-005 Exposer l'endpoint REST de consultation des parts de caisse commune par membre.
+- [x] BE-LED-003 Exposer l'endpoint REST de consultation des balances d'un groupe.
+- [x] BE-LED-004 Exposer l'endpoint REST de consultation du solde de la caisse commune.
+- [x] BE-LED-005 Exposer l'endpoint REST de consultation des parts de caisse commune par membre.
 - [ ] BE-LED-006 Implementer le cas d'usage de retrait de la caisse commune avec verification de disponibilite.
 - [ ] BE-LED-007 Implementer la compensation automatique quand un retrait depasse la part propre de revenu du membre.
 - [ ] BE-LED-008 Exposer l'endpoint REST de retrait de caisse commune.
@@ -124,16 +124,16 @@ Backlog derive de l'etat actuel du depot au 2026-04-15.
 - [x] FE-CORE-006 Remplacer le faux token par une vraie source de Google ID token.
 - [x] FE-CORE-007 Ajouter une guard de route pour les ecrans authentifies.
 - [x] FE-CORE-008 Mettre en place la gestion uniforme loading / empty / error.
-- [ ] FE-CORE-009 Ajouter des utilitaires de mapping argent / dates / pourcentages.
+- [x] FE-CORE-009 Ajouter des utilitaires de mapping argent / dates / pourcentages.
 - [x] FE-CORE-010 Introduire un socle Angular Material 3 global pour les ecrans frontend.
 
 ## Frontend - groupes, dashboard et lecture des soldes
 
-- [ ] FE-DASH-001 Creer la page dashboard de groupe.
-- [ ] FE-DASH-002 Creer le ViewModel de dashboard avec Signals et etat derive.
-- [ ] FE-DASH-003 Afficher le resume "je dois / on me doit" par membre.
-- [ ] FE-DASH-004 Afficher le solde disponible de la caisse commune.
-- [ ] FE-DASH-005 Afficher les parts de caisse commune par membre.
+- [x] FE-DASH-001 Creer la page dashboard de groupe.
+- [x] FE-DASH-002 Creer le ViewModel de dashboard avec Signals et etat derive.
+- [x] FE-DASH-003 Afficher le resume "je dois / on me doit" par membre.
+- [x] FE-DASH-004 Afficher le solde disponible de la caisse commune.
+- [x] FE-DASH-005 Afficher les parts de caisse commune par membre.
 - [ ] FE-DASH-006 Ajouter une vue explicative qui rattache les soldes aux evenements financiers.
 - [ ] FE-DASH-007 Ajouter les tests de ViewModel et de rendu du dashboard.
 
