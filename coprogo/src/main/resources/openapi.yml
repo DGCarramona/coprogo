@@ -75,6 +75,30 @@ paths:
                 $ref: "#/components/schemas/GroupResponse"
       security:
       - bearerAuth: []
+  /api/groups/{groupId}/expenses:
+    get:
+      tags:
+      - Expenses
+      summary: List expenses for a group
+      operationId: listGroupExpenses
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: listGroupExpenses 200 response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExpenseResponse"
+      security:
+      - bearerAuth: []
   /api/groups/{groupId}/balances:
     get:
       tags:
@@ -306,6 +330,31 @@ components:
         group:
           type: string
           format: uuid
+    ExpenseResponse:
+      required:
+      - createdAt
+      - createdBy
+      - id
+      - status
+      - title
+      - totalAmountCents
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        createdBy:
+          type: string
+        totalAmountCents:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+        status:
+          type: string
     GroupBalancesResponse:
       required:
       - balances
