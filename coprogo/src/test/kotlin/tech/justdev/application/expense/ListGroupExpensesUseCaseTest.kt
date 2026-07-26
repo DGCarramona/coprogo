@@ -30,7 +30,7 @@ class ListGroupExpensesUseCaseTest {
     private val groupRepository = InMemoryGroupRepository(listOf(testGroup()))
     private val expenseRepository = InMemoryExpenseRepository()
     private val groupAccessPolicy = GroupAccessPolicy(groupRepository)
-    private val useCase = ListGroupExpensesUseCase(expenseRepository, groupAccessPolicy)
+    private val useCase = ListGroupExpensesUseCaseImpl(expenseRepository, groupAccessPolicy)
 
     @Test
     fun `should return empty list when group has no expenses`() =

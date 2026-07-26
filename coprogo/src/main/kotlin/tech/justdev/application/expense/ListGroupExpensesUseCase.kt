@@ -22,12 +22,16 @@ data class ExpenseSnapshot(
     val status: String,
 )
 
+interface ListGroupExpensesUseCase {
+    suspend operator fun invoke(query: ListGroupExpensesQuery): List<ExpenseSnapshot>
+}
+
 @Singleton
-class ListGroupExpensesUseCase(
+class ListGroupExpensesUseCaseImpl(
     private val expenseRepository: ExpenseRepository,
     private val groupAccessPolicy: GroupAccessPolicy,
-) {
-    suspend operator fun invoke(query: ListGroupExpensesQuery): List<ExpenseSnapshot> {
+) : ListGroupExpensesUseCase {
+    override suspend operator fun invoke(query: ListGroupExpensesQuery): List<ExpenseSnapshot> {
         groupAccessPolicy.requireMember(query.group, query.requestedBy)
 
         return expenseRepository
