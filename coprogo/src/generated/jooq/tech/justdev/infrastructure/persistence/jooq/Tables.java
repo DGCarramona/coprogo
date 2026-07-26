@@ -4,6 +4,8 @@
 package tech.justdev.infrastructure.persistence.jooq;
 
 
+import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseParticipations;
+import tech.justdev.infrastructure.persistence.jooq.tables.Expenses;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupInvitations;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupMemberships;
 import tech.justdev.infrastructure.persistence.jooq.tables.Groups;
@@ -23,6 +25,16 @@ import tech.justdev.infrastructure.persistence.jooq.tables.OwnershipShareChanges
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Tables {
+
+    /**
+     * The table <code>public.expense_participations</code>.
+     */
+    public static final ExpenseParticipations EXPENSE_PARTICIPATIONS = ExpenseParticipations.EXPENSE_PARTICIPATIONS;
+
+    /**
+     * The table <code>public.expenses</code>.
+     */
+    public static final Expenses EXPENSES = Expenses.EXPENSES;
 
     /**
      * The table <code>public.group_invitations</code>.

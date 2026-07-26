@@ -12,6 +12,8 @@ import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 import org.jooq.impl.QOM.ForeignKeyRule;
 
+import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseParticipations;
+import tech.justdev.infrastructure.persistence.jooq.tables.Expenses;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupInvitations;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupMemberships;
 import tech.justdev.infrastructure.persistence.jooq.tables.Groups;
@@ -37,6 +39,9 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final UniqueKey<Record> EXPENSE_PARTICIPATIONS_EXPENSE_MEMBER_UNIQUE = Internal.createUniqueKey(ExpenseParticipations.EXPENSE_PARTICIPATIONS, DSL.name("expense_participations_expense_member_unique"), new TableField[] { ExpenseParticipations.EXPENSE_PARTICIPATIONS.EXPENSE, ExpenseParticipations.EXPENSE_PARTICIPATIONS.MEMBER }, true);
+    public static final UniqueKey<Record> EXPENSE_PARTICIPATIONS_PKEY = Internal.createUniqueKey(ExpenseParticipations.EXPENSE_PARTICIPATIONS, DSL.name("expense_participations_pkey"), new TableField[] { ExpenseParticipations.EXPENSE_PARTICIPATIONS.ID }, true);
+    public static final UniqueKey<Record> EXPENSES_PKEY = Internal.createUniqueKey(Expenses.EXPENSES, DSL.name("expenses_pkey"), new TableField[] { Expenses.EXPENSES.ID }, true);
     public static final UniqueKey<Record> GROUP_INVITATIONS_PKEY = Internal.createUniqueKey(GroupInvitations.GROUP_INVITATIONS, DSL.name("group_invitations_pkey"), new TableField[] { GroupInvitations.GROUP_INVITATIONS.ID }, true);
     public static final UniqueKey<Record> GROUP_INVITATIONS_UNIQUE_GROUP_INVITED_EMAIL = Internal.createUniqueKey(GroupInvitations.GROUP_INVITATIONS, DSL.name("group_invitations_unique_group_invited_email"), new TableField[] { GroupInvitations.GROUP_INVITATIONS.GROUP, GroupInvitations.GROUP_INVITATIONS.INVITED_EMAIL }, true);
     public static final UniqueKey<Record> GROUP_MEMBERSHIPS_GROUP_MEMBER_UNIQUE = Internal.createUniqueKey(GroupMemberships.GROUP_MEMBERSHIPS, DSL.name("group_memberships_group_member_unique"), new TableField[] { GroupMemberships.GROUP_MEMBERSHIPS.GROUP, GroupMemberships.GROUP_MEMBERSHIPS.MEMBER_EMAIL }, true);
@@ -58,6 +63,10 @@ public class Keys {
     // FOREIGN KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final ForeignKey<Record, Record> EXPENSE_PARTICIPATIONS__EXPENSE_PARTICIPATIONS_EXPENSE_FKEY = Internal.createForeignKey(ExpenseParticipations.EXPENSE_PARTICIPATIONS, DSL.name("expense_participations_expense_fkey"), new TableField[] { ExpenseParticipations.EXPENSE_PARTICIPATIONS.EXPENSE }, Keys.EXPENSES_PKEY, new TableField[] { Expenses.EXPENSES.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.NO_ACTION);
+    public static final ForeignKey<Record, Record> EXPENSE_PARTICIPATIONS__EXPENSE_PARTICIPATIONS_MEMBER_FKEY = Internal.createForeignKey(ExpenseParticipations.EXPENSE_PARTICIPATIONS, DSL.name("expense_participations_member_fkey"), new TableField[] { ExpenseParticipations.EXPENSE_PARTICIPATIONS.MEMBER }, Keys.MEMBERS_PKEY, new TableField[] { Members.MEMBERS.EMAIL }, true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION);
+    public static final ForeignKey<Record, Record> EXPENSES__EXPENSES_CREATED_BY_FKEY = Internal.createForeignKey(Expenses.EXPENSES, DSL.name("expenses_created_by_fkey"), new TableField[] { Expenses.EXPENSES.CREATED_BY }, Keys.MEMBERS_PKEY, new TableField[] { Members.MEMBERS.EMAIL }, true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION);
+    public static final ForeignKey<Record, Record> EXPENSES__EXPENSES_GROUP_FKEY = Internal.createForeignKey(Expenses.EXPENSES, DSL.name("expenses_group_fkey"), new TableField[] { Expenses.EXPENSES.GROUP }, Keys.GROUPS_PKEY, new TableField[] { Groups.GROUPS.ID }, true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION);
     public static final ForeignKey<Record, Record> GROUP_INVITATIONS__GROUP_INVITATIONS_ACCEPTED_BY_FKEY = Internal.createForeignKey(GroupInvitations.GROUP_INVITATIONS, DSL.name("group_invitations_accepted_by_fkey"), new TableField[] { GroupInvitations.GROUP_INVITATIONS.ACCEPTED_BY }, Keys.MEMBERS_PKEY, new TableField[] { Members.MEMBERS.EMAIL }, true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION);
     public static final ForeignKey<Record, Record> GROUP_INVITATIONS__GROUP_INVITATIONS_GROUP_FKEY = Internal.createForeignKey(GroupInvitations.GROUP_INVITATIONS, DSL.name("group_invitations_group_fkey"), new TableField[] { GroupInvitations.GROUP_INVITATIONS.GROUP }, Keys.GROUPS_PKEY, new TableField[] { Groups.GROUPS.ID }, true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION);
     public static final ForeignKey<Record, Record> GROUP_INVITATIONS__GROUP_INVITATIONS_INVITED_BY_FKEY = Internal.createForeignKey(GroupInvitations.GROUP_INVITATIONS, DSL.name("group_invitations_invited_by_fkey"), new TableField[] { GroupInvitations.GROUP_INVITATIONS.INVITED_BY }, Keys.MEMBERS_PKEY, new TableField[] { Members.MEMBERS.EMAIL }, true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION);

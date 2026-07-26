@@ -26,8 +26,8 @@ public class Domains {
         , DSL.name("member_email_address")
         , DSL.comment("")
         , SQLDataType.CLOB
-        , Internal.createCheck(null, null, "CHECK ((VALUE = lower(btrim(VALUE))))")
         , Internal.createCheck(null, null, "CHECK ((VALUE <> ''::text))")
+        , Internal.createCheck(null, null, "CHECK ((VALUE = lower(btrim(VALUE))))")
     );
 
     /**

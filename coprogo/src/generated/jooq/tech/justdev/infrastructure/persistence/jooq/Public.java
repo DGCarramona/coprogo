@@ -13,6 +13,8 @@ import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SchemaImpl;
 
+import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseParticipations;
+import tech.justdev.infrastructure.persistence.jooq.tables.Expenses;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupInvitations;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupMemberships;
 import tech.justdev.infrastructure.persistence.jooq.tables.Groups;
@@ -39,6 +41,16 @@ public class Public extends SchemaImpl {
      * The reference instance of <code>public</code>
      */
     public static final Public PUBLIC = new Public();
+
+    /**
+     * The table <code>public.expense_participations</code>.
+     */
+    public final ExpenseParticipations EXPENSE_PARTICIPATIONS = ExpenseParticipations.EXPENSE_PARTICIPATIONS;
+
+    /**
+     * The table <code>public.expenses</code>.
+     */
+    public final Expenses EXPENSES = Expenses.EXPENSES;
 
     /**
      * The table <code>public.group_invitations</code>.
@@ -127,6 +139,8 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
+            ExpenseParticipations.EXPENSE_PARTICIPATIONS,
+            Expenses.EXPENSES,
             GroupInvitations.GROUP_INVITATIONS,
             GroupMemberships.GROUP_MEMBERSHIPS,
             Groups.GROUPS,
