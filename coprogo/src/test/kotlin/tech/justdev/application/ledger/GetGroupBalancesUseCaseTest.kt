@@ -13,7 +13,6 @@ import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.testsupport.acceptedExpenseLedgerEventId
 import tech.justdev.testsupport.expenseId
 import tech.justdev.testsupport.groupId
-import tech.justdev.testsupport.groupUuid
 import tech.justdev.testsupport.memberEmail
 import tech.justdev.testsupport.memberEmailString
 import java.time.Instant

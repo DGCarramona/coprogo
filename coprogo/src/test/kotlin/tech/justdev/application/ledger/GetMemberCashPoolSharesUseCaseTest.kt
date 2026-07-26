@@ -15,7 +15,6 @@ import tech.justdev.domain.revenue.valueobject.OwnershipShare
 import tech.justdev.domain.revenue.valueobject.RevenueDistribution
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.testsupport.groupId
-import tech.justdev.testsupport.groupUuid
 import tech.justdev.testsupport.ledgerEventId
 import tech.justdev.testsupport.memberEmail
 import tech.justdev.testsupport.memberEmailString

@@ -6,7 +6,6 @@ import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.ledger.projection.projectCashPoolBalance
 import tech.justdev.domain.ledger.repository.LedgerEventRepository
 import tech.justdev.domain.shared.valueobject.GroupId
-import java.util.UUID
 
 data class GetCashPoolBalanceQuery(
     val group: GroupId,

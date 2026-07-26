@@ -13,7 +13,6 @@ import tech.justdev.domain.ledger.event.CashPoolIncomeLedgerEvent
 import tech.justdev.domain.ledger.event.CashPoolWithdrawalLedgerEvent
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.testsupport.groupId
-import tech.justdev.testsupport.groupUuid
 import tech.justdev.testsupport.ledgerEventId
 import tech.justdev.testsupport.memberEmail
 import java.time.Instant
