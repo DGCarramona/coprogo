@@ -1,100 +1,85 @@
-<section class="group-dashboard-page material-page">
-  <div class="material-page__content">
-    <mat-toolbar class="material-card group-dashboard-page__toolbar">
-      <div class="group-dashboard-page__toolbar-copy">
-        <p class="group-dashboard-page__eyebrow">Dashboard financier</p>
-        <h1>Vue du groupe</h1>
-        <p>
-          Les montants affiches sont calcules a partir de l'historique des operations du groupe.
-        </p>
-        @if (viewModel.groupId(); as groupId) {
-          <code>{{ groupId }}</code>
-        }
-      </div>
-
-      <span class="group-dashboard-page__toolbar-spacer"></span>
-
-      <button mat-stroked-button type="button" (click)="viewModel.signOut()">Se deconnecter</button>
-    </mat-toolbar>
-
-    @if (viewModel.isLoading()) {
-      <mat-card class="material-card group-dashboard-page__state" appearance="outlined">
+<app-authenticated-shell
+  eyebrow="Dashboard financier"
+  title="Vue du groupe"
+  description="Les montants affiches sont calcules a partir de l'historique des operations du groupe."
+>
+  @if (viewModel.isLoading()) {
+    <mat-card class="material-card group-dashboard-page__state" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title>Chargement du dashboard...</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        <p>Lecture des balances, du solde de caisse commune et des parts par membre.</p>
+      </mat-card-content>
+    </mat-card>
+  } @else if (viewModel.hasLoadError()) {
+    <mat-card class="material-card group-dashboard-page__state" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title>Impossible de charger le dashboard</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>{{ viewModel.errorMessage() }}</p>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-flat-button type="button" (click)="viewModel.retry()">Reessayer</button>
+      </mat-card-actions>
+    </mat-card>
+  } @else if (viewModel.isReady()) {
+    <div class="group-dashboard-page__grid">
+      <mat-card class="material-card group-dashboard-page__cash-card" appearance="outlined">
         <mat-card-header>
-          <mat-card-title>Chargement du dashboard...</mat-card-title>
+          <mat-card-title>Caisse commune</mat-card-title>
+          <mat-card-subtitle>Solde disponible</mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
-          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-          <p>Lecture des balances, du solde de caisse commune et des parts par membre.</p>
+          <p class="group-dashboard-page__cash-amount">{{ viewModel.cashPoolBalance() }}</p>
         </mat-card-content>
       </mat-card>
-    } @else if (viewModel.hasLoadError()) {
-      <mat-card class="material-card group-dashboard-page__state" appearance="outlined">
+
+      <mat-card class="material-card" appearance="outlined">
         <mat-card-header>
-          <mat-card-title>Impossible de charger le dashboard</mat-card-title>
+          <mat-card-title>Balances membres</mat-card-title>
+          <mat-card-subtitle>Ce qui reste a payer ou recevoir</mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
-          <p>{{ viewModel.errorMessage() }}</p>
+          @if (viewModel.memberBalances().length === 0) {
+            <p class="group-dashboard-page__empty">Aucune dette ou creance ouverte.</p>
+          } @else {
+            <div class="group-dashboard-page__list">
+              @for (balance of viewModel.memberBalances(); track balance.member) {
+                <div class="group-dashboard-page__row">
+                  <span>{{ balance.member }}</span>
+                  <mat-chip [class]="'group-dashboard-page__chip group-dashboard-page__chip--' + balance.tone">
+                    {{ balance.label }} {{ balance.amount }}
+                  </mat-chip>
+                </div>
+              }
+            </div>
+          }
         </mat-card-content>
-        <mat-card-actions>
-          <button mat-flat-button type="button" (click)="viewModel.retry()">Reessayer</button>
-        </mat-card-actions>
       </mat-card>
-    } @else if (viewModel.isReady()) {
-      <div class="group-dashboard-page__grid">
-        <mat-card class="material-card group-dashboard-page__cash-card" appearance="outlined">
-          <mat-card-header>
-            <mat-card-title>Caisse commune</mat-card-title>
-            <mat-card-subtitle>Solde disponible</mat-card-subtitle>
-          </mat-card-header>
-          <mat-card-content>
-            <p class="group-dashboard-page__cash-amount">{{ viewModel.cashPoolBalance() }}</p>
-          </mat-card-content>
-        </mat-card>
 
-        <mat-card class="material-card" appearance="outlined">
-          <mat-card-header>
-            <mat-card-title>Balances membres</mat-card-title>
-            <mat-card-subtitle>Ce qui reste a payer ou recevoir</mat-card-subtitle>
-          </mat-card-header>
-          <mat-card-content>
-            @if (viewModel.memberBalances().length === 0) {
-              <p class="group-dashboard-page__empty">Aucune dette ou creance ouverte.</p>
-            } @else {
-              <div class="group-dashboard-page__list">
-                @for (balance of viewModel.memberBalances(); track balance.member) {
-                  <div class="group-dashboard-page__row">
-                    <span>{{ balance.member }}</span>
-                    <mat-chip [class]="'group-dashboard-page__chip group-dashboard-page__chip--' + balance.tone">
-                      {{ balance.label }} {{ balance.amount }}
-                    </mat-chip>
-                  </div>
-                }
-              </div>
-            }
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="material-card" appearance="outlined">
-          <mat-card-header>
-            <mat-card-title>Parts de caisse</mat-card-title>
-            <mat-card-subtitle>Revenus restant attribues a chaque membre</mat-card-subtitle>
-          </mat-card-header>
-          <mat-card-content>
-            @if (viewModel.cashPoolShares().length === 0) {
-              <p class="group-dashboard-page__empty">Aucune part de caisse commune en cours.</p>
-            } @else {
-              <div class="group-dashboard-page__list">
-                @for (share of viewModel.cashPoolShares(); track share.member) {
-                  <div class="group-dashboard-page__row">
-                    <span>{{ share.member }}</span>
-                    <strong>{{ share.amount }}</strong>
-                  </div>
-                }
-              </div>
-            }
-          </mat-card-content>
-        </mat-card>
-      </div>
-    }
-  </div>
-</section>
+      <mat-card class="material-card" appearance="outlined">
+        <mat-card-header>
+          <mat-card-title>Parts de caisse</mat-card-title>
+          <mat-card-subtitle>Revenus restant attribues a chaque membre</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          @if (viewModel.cashPoolShares().length === 0) {
+            <p class="group-dashboard-page__empty">Aucune part de caisse commune en cours.</p>
+          } @else {
+            <div class="group-dashboard-page__list">
+              @for (share of viewModel.cashPoolShares(); track share.member) {
+                <div class="group-dashboard-page__row">
+                  <span>{{ share.member }}</span>
+                  <strong>{{ share.amount }}</strong>
+                </div>
+              }
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+</app-authenticated-shell>

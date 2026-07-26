@@ -73,11 +73,6 @@ export class GroupDashboardPageViewModel {
     await this.load();
   }
 
-  async signOut(): Promise<void> {
-    this.authSessionFacade.signOut();
-    await this.navigation.navigateByUrl('/connexion');
-  }
-
   private async load(): Promise<void> {
     const groupId = this.route.snapshot.paramMap.get('groupId');
     if (!groupId) {
