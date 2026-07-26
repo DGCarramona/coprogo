@@ -72,6 +72,10 @@
   --mdc-chip-elevated-container-color: var(--mat-sys-surface-container-high);
 }
 
+.group-dashboard-page__expenses-card {
+  grid-column: 1 / -1;
+}
+
 @media (max-width: 860px) {
   .group-dashboard-page__grid {
     grid-template-columns: 1fr;

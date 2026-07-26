@@ -80,6 +80,11 @@
           }
         </mat-card-content>
       </mat-card>
+
+      <app-expense-list-widget
+        class="group-dashboard-page__expenses-card"
+        [groupId]="viewModel.groupId()!"
+      />
     </div>
   }
 </app-authenticated-shell>
