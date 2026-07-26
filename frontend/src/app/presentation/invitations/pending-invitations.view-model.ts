@@ -88,11 +88,6 @@ export class PendingInvitationsViewModel {
     }
   }
 
-  async signOut(): Promise<void> {
-    this.authSessionFacade.signOut();
-    await this.navigation.navigateByUrl('/connexion');
-  }
-
   private async loadPendingInvitations(): Promise<void> {
     this.statusState.set('loading');
     this.errorMessageState.set(null);
