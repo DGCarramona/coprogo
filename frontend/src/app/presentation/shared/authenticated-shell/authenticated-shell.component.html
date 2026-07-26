@@ -1,0 +1,16 @@
+<section class="authenticated-shell material-page">
+  <div class="material-page__content">
+    <mat-toolbar class="authenticated-shell__toolbar material-card">
+      <div class="authenticated-shell__toolbar-copy">
+        <p class="authenticated-shell__eyebrow">{{ eyebrow }}</p>
+        <h1>{{ title }}</h1>
+        @if (description) {
+          <p>{{ description }}</p>
+        }
+      </div>
+      <span class="authenticated-shell__toolbar-spacer"></span>
+      <button mat-stroked-button type="button" (click)="signOut()">Se deconnecter</button>
+    </mat-toolbar>
+    <ng-content />
+  </div>
+</section>
