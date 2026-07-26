@@ -4,6 +4,7 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import tech.justdev.domain.expense.entity.Expense
@@ -119,12 +120,12 @@ class R2dbcExpenseRepositoryIntegrationTest {
                 expenseRepository.persist(stored)
 
                 val participant = memberEmail("proposed-expense-accepted-participant")
-                    val updated =
-                        stored.recordParticipationDecision(
-                            member = participant,
-                            decision = ExpenseParticipationDecision.APPROVE,
-                            decidedAt = Instant.parse("2026-06-01T12:00:00Z"),
-                        )
+                val updated =
+                    stored.recordParticipationDecision(
+                        member = participant,
+                        decision = ExpenseParticipationDecision.APPROVE,
+                        decidedAt = Instant.parse("2026-06-01T12:00:00Z"),
+                    )
 
                 expenseRepository.persist(updated)
 
@@ -138,12 +139,12 @@ class R2dbcExpenseRepositoryIntegrationTest {
                 expenseRepository.persist(stored)
 
                 val participant = memberEmail("proposed-expense-refused-participant")
-                    val updated =
-                        stored.recordParticipationDecision(
-                            member = participant,
-                            decision = ExpenseParticipationDecision.REFUSE,
-                            decidedAt = Instant.parse("2026-06-01T12:00:00Z"),
-                        )
+                val updated =
+                    stored.recordParticipationDecision(
+                        member = participant,
+                        decision = ExpenseParticipationDecision.REFUSE,
+                        decidedAt = Instant.parse("2026-06-01T12:00:00Z"),
+                    )
 
                 expenseRepository.persist(updated)
 
@@ -160,10 +161,69 @@ class R2dbcExpenseRepositoryIntegrationTest {
             }
     }
 
-    private suspend fun expenseWithEqualSplit(seed: String): Expense {
-        val owner = memberEmail("$seed-owner")
+    @Nested
+    inner class FindByGroup {
+        @Test
+        fun `should return expenses for a specific group`() =
+            runTest {
+                val groupA = groupId("ga")
+                val groupB = groupId("gb")
+                val owner = memberEmail("findbygroup-owner")
+                persistMember(owner)
+                persistGroup(groupA, owner)
+                persistGroup(groupB, owner)
+
+                val expense1 =
+                    expenseWithEqualSplit(
+                        seed = "fbge1",
+                        groupOverride = groupA,
+                        ownerOverride = owner,
+                    )
+                val expense2 =
+                    expenseWithEqualSplit(
+                        seed = "fbge2",
+                        groupOverride = groupA,
+                        ownerOverride = owner,
+                    )
+                expenseRepository.persist(expense1)
+                expenseRepository.persist(expense2)
+
+                val expense3 =
+                    expenseWithEqualSplit(
+                        seed = "fbge3",
+                        groupOverride = groupB,
+                        ownerOverride = owner,
+                    )
+                expenseRepository.persist(expense3)
+
+                val groupAExpenses = expenseRepository.findByGroup(groupA)
+                assertEquals(setOf(expense1, expense2), groupAExpenses.toSet())
+
+                val groupBExpenses = expenseRepository.findByGroup(groupB)
+                assertEquals(setOf(expense3), groupBExpenses.toSet())
+            }
+
+        @Test
+        fun `should return empty list when group has no expenses`() =
+            runTest {
+                val emptyGroup = groupId("fbge")
+                val owner = memberEmail("fbge-owner")
+                persistMember(owner)
+                persistGroup(emptyGroup, owner)
+
+                val result = expenseRepository.findByGroup(emptyGroup)
+                assertTrue(result.isEmpty())
+            }
+    }
+
+    private suspend fun expenseWithEqualSplit(
+        seed: String,
+        groupOverride: GroupId? = null,
+        ownerOverride: tech.justdev.domain.group.valueobject.MemberEmail? = null,
+    ): Expense {
+        val owner = ownerOverride ?: memberEmail("$seed-owner")
         val participant = memberEmail("$seed-participant")
-        val group = groupId(seed)
+        val group = groupOverride ?: groupId(seed)
         persistMember(owner)
         persistMember(participant)
         persistGroup(group, owner)

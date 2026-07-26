@@ -58,6 +58,39 @@ open class R2dbcExpenseRepository(
         return expense.toDomain(participations)
     }
 
+    override suspend fun findByGroup(group: GroupId): List<Expense> {
+        val dsl = connectionFactory.dsl()
+        val expenses =
+            dsl
+                .select(EXPENSES.ID, EXPENSES.GROUP, EXPENSES.TITLE, EXPENSES.CREATED_BY, EXPENSES.TOTAL_AMOUNT, EXPENSES.CREATED_AT)
+                .from(EXPENSES)
+                .where(EXPENSES.GROUP.eq(group.toPrimitive()))
+                .orderBy(EXPENSES.CREATED_AT.desc(), EXPENSES.ID.desc())
+                .awaitList()
+
+        if (expenses.isEmpty()) return emptyList()
+
+        val participationsByExpense =
+            dsl
+                .select(
+                    EXPENSE_PARTICIPATIONS.EXPENSE,
+                    EXPENSE_PARTICIPATIONS.MEMBER,
+                    EXPENSE_PARTICIPATIONS.AMOUNT,
+                    EXPENSE_PARTICIPATIONS.STATUS,
+                    EXPENSE_PARTICIPATIONS.DECIDED_AT,
+                ).from(EXPENSE_PARTICIPATIONS)
+                .where(EXPENSE_PARTICIPATIONS.EXPENSE.`in`(expenses.map { it.value1() }))
+                .awaitList()
+                .groupBy(
+                    keySelector = { it.value1() },
+                    valueTransform = { it.toParticipationDomain() },
+                )
+
+        return expenses.map { expense ->
+            expense.toDomain(participationsByExpense[expense.value1()].orEmpty().toSet())
+        }
+    }
+
     override suspend fun findProposedById(id: ExpenseId): Expense? {
         val dsl = connectionFactory.dsl()
         val expense =
@@ -185,6 +218,14 @@ private fun org.jooq.Record6<UUID, UUID, String, String, Long, OffsetDateTime>.t
         totalAmount = MoneyAmount.ofCents(value5()),
         createdAt = value6().toInstant(),
         participations = participations,
+    )
+
+@Suppress("ktlint:standard:max-line-length")
+private fun org.jooq.Record5<UUID, String, Long, JooqExpenseParticipationStatus, OffsetDateTime?>.toParticipationDomain(): ExpenseParticipation =
+    ExpenseParticipation(
+        member = MemberEmail.of(value2()),
+        amount = MoneyAmount.ofCents(value3()),
+        status = value4().toDomain(value5()?.toInstant()),
     )
 
 private fun org.jooq.Record4<String, Long, JooqExpenseParticipationStatus, OffsetDateTime?>.toDomain(): ExpenseParticipation =
