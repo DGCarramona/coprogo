@@ -6,6 +6,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { AuthenticatedShellComponent } from '../shared/authenticated-shell/authenticated-shell.component';
 import { ExpenseListWidgetComponent } from './expense-list-widget/expense-list-widget.component';
+import { ExpenseProposalWidgetComponent } from './expense-proposal-widget/expense-proposal-widget.component';
 import { GroupDashboardPageViewModel } from './group-dashboard-page.view-model';
 
 @Component({
@@ -13,6 +14,7 @@ import { GroupDashboardPageViewModel } from './group-dashboard-page.view-model';
   imports: [
     AuthenticatedShellComponent,
     ExpenseListWidgetComponent,
+    ExpenseProposalWidgetComponent,
     MatButtonModule,
     MatCardModule,
     MatChipsModule,

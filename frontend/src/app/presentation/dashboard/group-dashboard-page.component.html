@@ -50,7 +50,11 @@
               @for (balance of viewModel.memberBalances(); track balance.member) {
                 <div class="group-dashboard-page__row">
                   <span>{{ balance.member }}</span>
-                  <mat-chip [class]="'group-dashboard-page__chip group-dashboard-page__chip--' + balance.tone">
+                  <mat-chip
+                    [class]="
+                      'group-dashboard-page__chip group-dashboard-page__chip--' + balance.tone
+                    "
+                  >
                     {{ balance.label }} {{ balance.amount }}
                   </mat-chip>
                 </div>
@@ -80,6 +84,11 @@
           }
         </mat-card-content>
       </mat-card>
+
+      <app-expense-proposal-widget
+        class="group-dashboard-page__proposal-card"
+        [groupId]="viewModel.groupId()!"
+      />
 
       <app-expense-list-widget
         class="group-dashboard-page__expenses-card"

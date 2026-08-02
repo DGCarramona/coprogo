@@ -61,17 +61,26 @@
 }
 
 .group-dashboard-page__chip--credit {
-  --mdc-chip-elevated-container-color: color-mix(in srgb, var(--mat-sys-primary-container) 78%, white);
+  --mdc-chip-elevated-container-color: color-mix(
+    in srgb,
+    var(--mat-sys-primary-container) 78%,
+    white
+  );
 }
 
 .group-dashboard-page__chip--debt {
-  --mdc-chip-elevated-container-color: color-mix(in srgb, var(--mat-sys-error-container) 78%, white);
+  --mdc-chip-elevated-container-color: color-mix(
+    in srgb,
+    var(--mat-sys-error-container) 78%,
+    white
+  );
 }
 
 .group-dashboard-page__chip--neutral {
   --mdc-chip-elevated-container-color: var(--mat-sys-surface-container-high);
 }
 
+.group-dashboard-page__proposal-card,
 .group-dashboard-page__expenses-card {
   grid-column: 1 / -1;
 }
