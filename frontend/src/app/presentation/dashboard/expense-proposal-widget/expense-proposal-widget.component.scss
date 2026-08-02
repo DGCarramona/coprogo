@@ -1,0 +1,26 @@
+:host {
+  display: block;
+}
+
+form,
+fieldset {
+  display: grid;
+  gap: 1rem;
+}
+
+p {
+  margin: 0;
+}
+
+label,
+input {
+  display: block;
+}
+
+input[type='checkbox'] {
+  display: inline-block;
+}
+
+input[type='checkbox'] + label {
+  display: inline;
+}

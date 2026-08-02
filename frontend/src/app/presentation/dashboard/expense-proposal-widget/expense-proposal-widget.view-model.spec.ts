@@ -1,5 +1,6 @@
 import { Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { submit } from '@angular/forms/signals';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 import { Observable, of, throwError } from 'rxjs';
 
@@ -44,7 +45,7 @@ describe('ExpenseProposalWidgetViewModel', () => {
 
     await waitFor(() => viewModel.members().length === 2);
 
-    expect(viewModel.members()).toEqual(port.members);
+    expect(viewModel.members()).toEqual(['alice@example.com', 'bob@example.com']);
     expect(queryClient.getQueryData(['groups', 'group-1', 'members'])).toEqual(port.members);
   });
 
@@ -107,21 +108,21 @@ describe('ExpenseProposalWidgetViewModel', () => {
     ]);
   });
 
-  it('is proposing while the proposal is pending', async () => {
+  it('exposes Signal Form submission while the proposal is pending', async () => {
     proposalPort.useDeferredResult();
     const viewModel = createViewModel();
     viewModel.initialize('group-1');
+    viewModel.proposalForm.title().value.set('Reparation toiture');
+    viewModel.proposalForm.amountInEuros().value.set('125');
+    viewModel.toggleParticipant('alice@example.com');
 
-    viewModel.proposeEqualSplit({
-      title: 'Reparation toiture',
-      totalAmountInCents: 12500,
-      participants: new Set(),
-    });
+    const submission = submit(viewModel.proposalForm);
 
     await waitFor(() => proposalPort.commands.length === 1);
     await waitFor(() => viewModel.isProposing());
 
     proposalPort.resolveDeferred();
+    await expect(submission).resolves.toBe(true);
     await waitFor(() => viewModel.isProposed());
   });
 
@@ -163,6 +164,20 @@ describe('ExpenseProposalWidgetViewModel', () => {
     expect(queryClient.getQueryState(['groups', 'group-1', 'expenses'])?.isInvalidated).toBe(false);
   });
 
+  it('reports a failed Signal Form submission while exposing the proposal error', async () => {
+    proposalPort.failure = new Error('Proposition indisponible');
+    const viewModel = createViewModel();
+    viewModel.initialize('group-1');
+    viewModel.proposalForm.title().value.set('Reparation toiture');
+    viewModel.proposalForm.amountInEuros().value.set('125');
+    viewModel.toggleParticipant('alice@example.com');
+
+    await expect(submit(viewModel.proposalForm)).resolves.toBe(false);
+    await waitFor(() => viewModel.hasProposalError());
+
+    expect(viewModel.proposalErrorMessage()).toBe('Proposition indisponible');
+  });
+
   it('fails fast without calling the proposal port before initialization', () => {
     const viewModel = createViewModel();
 
@@ -174,6 +189,59 @@ describe('ExpenseProposalWidgetViewModel', () => {
       }),
     ).toThrow('Un groupe doit etre initialise avant de proposer une depense.');
     expect(proposalPort.commands).toEqual([]);
+  });
+
+  it('starts with an empty participant selection in the Signal Form model', async () => {
+    const viewModel = createViewModel();
+    viewModel.initialize('group-1');
+    await waitFor(() => viewModel.members().length === 2);
+
+    expect(viewModel.proposalForm().value()).toEqual({
+      title: '',
+      amountInEuros: '',
+      participants: [],
+    });
+    expect(viewModel.proposalForm().invalid()).toBe(true);
+  });
+
+  it('validates non-blank title, amount and selected participants before submitting', async () => {
+    const viewModel = createViewModel();
+    viewModel.initialize('group-1');
+    await waitFor(() => viewModel.members().length === 2);
+
+    viewModel.proposalForm.title().value.set('   ');
+    viewModel.proposalForm.amountInEuros().value.set('12,345');
+    expect(viewModel.proposalForm().invalid()).toBe(true);
+
+    await expect(submit(viewModel.proposalForm)).resolves.toBe(false);
+    expect(proposalPort.commands).toEqual([]);
+
+    viewModel.proposalForm.title().value.set('  Toiture  ');
+    viewModel.proposalForm.amountInEuros().value.set('12,50');
+    viewModel.toggleParticipant('alice@example.com');
+    expect(viewModel.proposalForm().valid()).toBe(true);
+
+    await expect(submit(viewModel.proposalForm)).resolves.toBe(true);
+    await waitFor(() => proposalPort.commands.length === 1);
+
+    expect(proposalPort.commands).toEqual([
+      {
+        groupId: 'group-1',
+        title: 'Toiture',
+        totalAmountInCents: 1250,
+        participants: new Set(['alice@example.com']),
+      },
+    ]);
+  });
+
+  it.each(['12', '12,5', '12,50', '12.50'])('accepts the amount format %s', (amount) => {
+    const viewModel = createViewModel();
+    viewModel.initialize('group-1');
+    viewModel.proposalForm.title().value.set('Toiture');
+    viewModel.proposalForm.amountInEuros().value.set(amount);
+    viewModel.toggleParticipant('alice@example.com');
+
+    expect(viewModel.proposalForm().valid()).toBe(true);
   });
 
   const createViewModel = () => {

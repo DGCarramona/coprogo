@@ -1,0 +1,62 @@
+<mat-card>
+  <h2>Proposer une dépense</h2>
+
+  @if (viewModel.isLoading()) {
+    <p role="status">Chargement des membres…</p>
+  } @else if (viewModel.hasLoadError()) {
+    <p role="alert">{{ viewModel.errorMessage() }}</p>
+    <button matButton="outlined" type="button" aria-label="Réessayer" (click)="viewModel.retry()">
+      Réessayer
+    </button>
+  } @else {
+    @if (viewModel.isProposed()) {
+      <p role="status">La dépense a été proposée.</p>
+    }
+    @if (viewModel.hasProposalError()) {
+      <p role="alert">{{ viewModel.proposalErrorMessage() }}</p>
+    }
+
+    <form [formRoot]="viewModel.proposalForm">
+      <p>
+        <label for="expense-title">Titre</label>
+        <input
+          id="expense-title"
+          type="text"
+          aria-label="Titre"
+          [formField]="viewModel.proposalForm.title"
+        />
+      </p>
+      <p>
+        <label for="expense-amount">Montant en euros</label>
+        <input
+          id="expense-amount"
+          type="text"
+          inputmode="decimal"
+          aria-label="Montant en euros"
+          [formField]="viewModel.proposalForm.amountInEuros"
+        />
+      </p>
+      <fieldset>
+        <legend>Participants</legend>
+        @for (member of viewModel.members(); track member) {
+          <p>
+            <input
+              [id]="'participant-' + member"
+              type="checkbox"
+              [checked]="viewModel.proposalForm().value().participants.includes(member)"
+              (change)="viewModel.toggleParticipant(member)"
+            />
+            <label [for]="'participant-' + member">{{ member }}</label>
+          </p>
+        }
+      </fieldset>
+      <button
+        matButton="filled"
+        type="submit"
+        [disabled]="!viewModel.proposalForm().valid() || viewModel.isProposing()"
+      >
+        Proposer la dépense
+      </button>
+    </form>
+  }
+</mat-card>
