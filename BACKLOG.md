@@ -66,11 +66,11 @@ Backlog derive de l'etat actuel du depot au 2026-08-02.
 - [x] BE-EXP-004 Exposer l'endpoint REST d'enregistrement d'une decision de participation.
 - [x] BE-EXP-005 Exposer l'endpoint REST de detail d'une depense.
 - [x] BE-EXP-006 Exposer l'endpoint REST de liste des depenses d'un groupe.
-- [ ] BE-EXP-007 Ajouter au domaine la variante "participation partielle" explicitement nommee dans l'API.
-- [ ] BE-EXP-008 Ajouter au domaine la variante "participation capee".
-- [ ] BE-EXP-009 Ajouter au domaine la variante "contribution maximale".
-- [ ] BE-EXP-010 Ajouter au domaine la variante "montant de reference avec excedent restant au createur".
-- [ ] BE-EXP-011 Adapter les commandes, DTOs et mappers REST a ces nouvelles variantes d'allocation.
+- [x] BE-EXP-007 Conserver `Equal` et ajouter au domaine `EqualWithCaps`, avec redistribution iterative du reliquat.
+- [ ] BE-EXP-008 Ajouter au domaine le partage par tranches cumulatives `CumulativeTiers`.
+- [ ] BE-EXP-009 Renommer et formaliser le partage completement personnalise actuel de `Fixed` vers `Custom`.
+- [ ] BE-EXP-010 Raccorder `Equal`, `EqualWithCaps`, `CumulativeTiers` et `Custom` a l'application, au REST et a l'OpenAPI.
+- [ ] BE-EXP-011 Ajouter la couverture d'integration des quatre modes d'allocation.
 - [ ] BE-EXP-012 Conserver une raison exploitable de refus/invalidation dans les vues de detail et d'historique.
 - [ ] BE-EXP-013 Ajouter des tests d'integration couvrant acceptation, refus et emission d'evenement ledger.
 

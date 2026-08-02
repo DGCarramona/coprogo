@@ -125,6 +125,70 @@ data class Expense(
             )
         }
 
+        fun proposeEqualSplitWithCaps(
+            id: ExpenseId,
+            group: GroupId,
+            title: String,
+            createdBy: MemberEmail,
+            totalAmount: MoneyAmount,
+            createdAt: Instant,
+            participants: Set<MemberEmail>,
+            capsByMember: Map<MemberEmail, MoneyAmount>,
+        ): Expense {
+            require(participants.isNotEmpty()) { "participants must not be empty" }
+            require(capsByMember.keys.all(participants::contains)) { "caps must only target participants" }
+            require(capsByMember.values.all { cap -> cap > MoneyAmount.ZERO }) { "caps must be strictly positive" }
+            require(participants.any { participant -> participant !in capsByMember }) {
+                "at least one participant must be uncapped"
+            }
+
+            val shares =
+                allocateEqualSplitWithCaps(
+                    remainingAmount = totalAmount,
+                    availableParticipants = participants.sortedBy { member -> member.toPrimitive() },
+                    capsByMember = capsByMember,
+                ).map { (member, amount) -> ExpenseShare(member = member, amount = amount) }
+                    .toSet()
+
+            return propose(
+                id = id,
+                group = group,
+                title = title,
+                createdBy = createdBy,
+                totalAmount = totalAmount,
+                createdAt = createdAt,
+                shares = shares,
+            )
+        }
+
+        private fun allocateEqualSplitWithCaps(
+            remainingAmount: MoneyAmount,
+            availableParticipants: List<MemberEmail>,
+            capsByMember: Map<MemberEmail, MoneyAmount>,
+            allocatedShares: Map<MemberEmail, MoneyAmount> = emptyMap(),
+        ): Map<MemberEmail, MoneyAmount> {
+            val equalShares = remainingAmount.splitEvenly(availableParticipants.size)
+            val newlyCappedShares =
+                availableParticipants
+                    .zip(equalShares)
+                    .mapNotNull { (member, equalShare) ->
+                        capsByMember[member]
+                            ?.takeIf { cap -> equalShare > cap }
+                            ?.let { cap -> member to cap }
+                    }.toMap()
+
+            if (newlyCappedShares.isEmpty()) {
+                return allocatedShares + availableParticipants.zip(equalShares)
+            }
+
+            return allocateEqualSplitWithCaps(
+                remainingAmount = remainingAmount - newlyCappedShares.values.sum(),
+                availableParticipants = availableParticipants.filterNot(newlyCappedShares::containsKey),
+                capsByMember = capsByMember,
+                allocatedShares = allocatedShares + newlyCappedShares,
+            )
+        }
+
         fun propose(
             id: ExpenseId,
             group: GroupId,

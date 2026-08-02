@@ -2,6 +2,7 @@ package tech.justdev.domain.expense.entity
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import tech.justdev.domain.expense.valueobject.ExpenseParticipation
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
@@ -59,6 +60,119 @@ class ExpenseTest {
                 createdAt = Instant.parse("2026-04-03T10:00:00Z"),
                 participants = setOf(memberEmail("alice"), memberEmail("bob"), memberEmail("carol")),
             )
+        }
+    }
+
+    @Nested
+    inner class ProposeEqualSplitWithCaps {
+        @Test
+        fun `should redistribute a capped share equally`() {
+            val expense =
+                proposeEqualSplitWithCaps(
+                    totalAmountInCents = 100,
+                    participants = setOf("alice", "bob", "carol"),
+                    caps = mapOf("bob" to 20),
+                )
+
+            assertEquals(
+                mapOf(
+                    memberEmail("alice") to MoneyAmount.ofCents(40),
+                    memberEmail("bob") to MoneyAmount.ofCents(20),
+                    memberEmail("carol") to MoneyAmount.ofCents(40),
+                ),
+                expense.amountsByMember(),
+            )
+        }
+
+        @Test
+        fun `should redistribute iteratively when another cap becomes active`() {
+            val expense =
+                proposeEqualSplitWithCaps(
+                    totalAmountInCents = 100,
+                    participants = setOf("dave", "carol", "bob", "alice"),
+                    caps = mapOf("bob" to 10, "carol" to 28),
+                )
+
+            assertEquals(
+                mapOf(
+                    memberEmail("alice") to MoneyAmount.ofCents(31),
+                    memberEmail("bob") to MoneyAmount.ofCents(10),
+                    memberEmail("carol") to MoneyAmount.ofCents(28),
+                    memberEmail("dave") to MoneyAmount.ofCents(31),
+                ),
+                expense.amountsByMember(),
+            )
+        }
+
+        @Test
+        fun `should assign the remaining cent deterministically by member email`() {
+            val expense =
+                proposeEqualSplitWithCaps(
+                    totalAmountInCents = 101,
+                    participants = setOf("carol", "bob", "alice"),
+                    caps = mapOf("bob" to 20),
+                )
+
+            assertEquals(
+                mapOf(
+                    memberEmail("alice") to MoneyAmount.ofCents(41),
+                    memberEmail("bob") to MoneyAmount.ofCents(20),
+                    memberEmail("carol") to MoneyAmount.ofCents(40),
+                ),
+                expense.amountsByMember(),
+            )
+        }
+
+        @Test
+        fun `should leave equal shares unchanged when a cap is above them`() {
+            val expense =
+                proposeEqualSplitWithCaps(
+                    totalAmountInCents = 100,
+                    participants = setOf("carol", "bob", "alice"),
+                    caps = mapOf("bob" to 40),
+                )
+
+            assertEquals(
+                mapOf(
+                    memberEmail("alice") to MoneyAmount.ofCents(34),
+                    memberEmail("bob") to MoneyAmount.ofCents(33),
+                    memberEmail("carol") to MoneyAmount.ofCents(33),
+                ),
+                expense.amountsByMember(),
+            )
+        }
+
+        @Test
+        fun `should reject when every participant has a cap`() {
+            assertThrows(IllegalArgumentException::class.java) {
+                proposeEqualSplitWithCaps(
+                    totalAmountInCents = 100,
+                    participants = setOf("alice", "bob"),
+                    caps = mapOf("alice" to 40, "bob" to 60),
+                )
+            }
+        }
+
+        @Test
+        fun `should reject a cap for a non participant`() {
+            assertThrows(IllegalArgumentException::class.java) {
+                proposeEqualSplitWithCaps(
+                    totalAmountInCents = 100,
+                    participants = setOf("alice", "bob"),
+                    caps = mapOf("carol" to 20),
+                )
+            }
+        }
+
+        @Test
+        fun `should reject a zero cap`() {
+            assertThrows(IllegalArgumentException::class.java) {
+                proposeEqualSplitWithCaps(
+                    totalAmountInCents = 100,
+                    participants = setOf("alice", "bob"),
+                    caps = mapOf("bob" to 0),
+                )
+            }
         }
     }
 
@@ -182,4 +296,22 @@ class ExpenseTest {
                     ExpenseShare(memberEmail("bob"), MoneyAmount.ofCents(60)),
                 ),
         )
+
+    private fun proposeEqualSplitWithCaps(
+        totalAmountInCents: Long,
+        participants: Set<String>,
+        caps: Map<String, Long>,
+    ): Expense =
+        Expense.proposeEqualSplitWithCaps(
+            id = expenseId("expense-with-caps"),
+            group = groupId("group-1"),
+            title = "Boiler repair",
+            createdBy = memberEmail("alice"),
+            totalAmount = MoneyAmount.ofCents(totalAmountInCents),
+            createdAt = Instant.parse("2026-04-03T10:00:00Z"),
+            participants = participants.map(::memberEmail).toSet(),
+            capsByMember = caps.mapKeys { (member) -> memberEmail(member) }.mapValues { (_, amount) -> MoneyAmount.ofCents(amount) },
+        )
+
+    private fun Expense.amountsByMember() = participations.associate { participation -> participation.member to participation.amount }
 }
