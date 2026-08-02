@@ -3,8 +3,8 @@ import { injectQuery } from '@tanstack/angular-query-experimental';
 
 import { ExpenseListPort } from '../../../application/expense/expense-list.port';
 import { describeError } from '../../../application/shared/describe-error';
+import type { ExpenseSummary } from '../../../domain/expense/expense-summary';
 import { formatMoneyFromCents } from '../../../shared/format/financial-format';
-import { ExpenseResponseDto } from '../../../infrastructure/api/generated';
 
 export interface ExpenseViewItem {
   readonly title: string;
@@ -37,7 +37,7 @@ export class ExpenseListWidgetViewModel {
 
         return {
           queryKey: ['groups', groupId, 'expenses'] as const,
-          queryFn: (): Promise<ExpenseResponseDto[]> => {
+          queryFn: (): Promise<readonly ExpenseSummary[]> => {
             if (groupId === null) {
               throw new Error('Un groupe doit etre initialise avant de charger ses depenses.');
             }
@@ -49,7 +49,7 @@ export class ExpenseListWidgetViewModel {
           select: (expenses) =>
             expenses.map((expense) => ({
               title: expense.title,
-              amount: formatMoneyFromCents(expense.totalAmountCents),
+              amount: formatMoneyFromCents(expense.totalAmountInCents),
               createdBy: expense.createdBy,
             })),
         };

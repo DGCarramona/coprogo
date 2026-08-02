@@ -4,7 +4,7 @@ import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-exper
 
 import { ExpenseListWidgetViewModel } from './expense-list-widget.view-model';
 import { ExpenseListPort } from '../../../application/expense/expense-list.port';
-import { ExpenseResponseDto } from '../../../infrastructure/api/generated';
+import type { ExpenseSummary } from '../../../domain/expense/expense-summary';
 
 describe('ExpenseListWidgetViewModel', () => {
   let queryClient: QueryClient;
@@ -28,7 +28,7 @@ describe('ExpenseListWidgetViewModel', () => {
     const vm = createViewModel();
     vm.initialize('group-1');
     await waitFor(() => vm.isReady());
-    port.result = [expense({ id: 'e2', title: 'Toiture', totalAmountCents: 1250 })];
+    port.result = [expense({ id: 'e2', title: 'Toiture', totalAmountInCents: 1250 })];
 
     await queryClient.invalidateQueries({ queryKey: ['groups', 'group-1', 'expenses'] });
     await waitFor(
@@ -74,7 +74,7 @@ describe('ExpenseListWidgetViewModel', () => {
   });
 
   it('is loading while fetching', async () => {
-    let resolvePromise!: (value: ExpenseResponseDto[]) => void;
+    let resolvePromise!: (value: readonly ExpenseSummary[]) => void;
     port.resultPromise = new Promise((resolve) => {
       resolvePromise = resolve;
     });
@@ -117,12 +117,12 @@ describe('ExpenseListWidgetViewModel', () => {
 });
 
 class StubExpenseListPort extends ExpenseListPort {
-  result: ExpenseResponseDto[] = [expense()];
+  result: readonly ExpenseSummary[] = [expense()];
   failure: Error | null = null;
-  resultPromise: Promise<ExpenseResponseDto[]> | null = null;
+  resultPromise: Promise<readonly ExpenseSummary[]> | null = null;
   requestedGroupIds: string[] = [];
 
-  override async listByGroup(groupId: string): Promise<ExpenseResponseDto[]> {
+  override async listByGroup(groupId: string): Promise<readonly ExpenseSummary[]> {
     this.requestedGroupIds.push(groupId);
     if (this.failure) throw this.failure;
     if (this.resultPromise) return this.resultPromise;
@@ -130,12 +130,12 @@ class StubExpenseListPort extends ExpenseListPort {
   }
 }
 
-const expense = (overrides: Partial<ExpenseResponseDto> = {}): ExpenseResponseDto => ({
+const expense = (overrides: Partial<ExpenseSummary> = {}): ExpenseSummary => ({
   id: 'e1',
   title: 'Courses',
   createdBy: 'alice@example.com',
-  totalAmountCents: 1500,
-  createdAt: '2026-06-01T10:00:00Z',
+  totalAmountInCents: 1500,
+  createdAt: new Date('2026-06-01T10:00:00Z'),
   status: 'ACCEPTED',
   ...overrides,
 });
