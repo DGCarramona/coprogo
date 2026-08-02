@@ -57,7 +57,7 @@ interface ProposeExpenseUseCase {
 class ProposeExpenseUseCaseImpl(
     private val expenseRepository: ExpenseRepository,
     private val groupAccessPolicy: GroupAccessPolicy,
-    private val expenseIdGenerator: ExpenseIdGenerator = RandomExpenseIdGenerator,
+    private val expenseIdGenerator: ExpenseIdGenerator,
 ) : ProposeExpenseUseCase {
     override suspend operator fun invoke(command: ProposeExpenseCommand) {
         val group = groupAccessPolicy.requireMember(command.group, command.createdBy)

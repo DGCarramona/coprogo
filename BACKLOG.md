@@ -74,7 +74,7 @@ Backlog derive de l'etat actuel du depot au 2026-08-02.
 - [ ] BE-EXP-012 Conserver une raison exploitable de refus/invalidation dans les vues de detail et d'historique.
 - [ ] BE-EXP-013 Ajouter des tests d'integration couvrant acceptation, refus et emission d'evenement ledger.
 - [ ] BE-EXP-014 Ajouter la couverture d'integration des quatre modes d'allocation.
-- [ ] BE-EXP-015 Corriger et tester le motif latent `@Singleton object RandomExpenseIdGenerator` avant le raccordement REST.
+- [x] BE-EXP-015 Corriger et tester le motif latent `@Singleton object RandomExpenseIdGenerator` avant le raccordement REST.
 
 ## Backend - remboursements
 

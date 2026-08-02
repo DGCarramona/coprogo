@@ -9,6 +9,6 @@ fun interface ExpenseIdGenerator {
 }
 
 @Singleton
-object RandomExpenseIdGenerator : ExpenseIdGenerator {
+class RandomExpenseIdGenerator : ExpenseIdGenerator {
     override fun next(): ExpenseId = ExpenseId(UUID.randomUUID())
 }
