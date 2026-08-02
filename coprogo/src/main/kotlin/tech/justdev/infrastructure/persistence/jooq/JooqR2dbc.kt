@@ -17,7 +17,7 @@ import kotlin.coroutines.coroutineContext
 
 @Singleton
 class R2dbcTransactionRunner(
-    @Named("default")
+    @param:Named("default")
     private val connectionFactory: ConnectionFactory,
 ) : TransactionRunner {
     override suspend fun <T> transaction(block: suspend () -> T): T = connectionFactory.transaction(block)
