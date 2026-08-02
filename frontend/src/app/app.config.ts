@@ -9,6 +9,7 @@ import { NavigationPort } from './application/shared/navigation.port';
 import { GoogleIdTokenPort } from './application/auth/google-id-token.port';
 import { GoogleIdentityPort } from './application/auth/google-identity.port';
 import { GroupCreationPort } from './application/group/group-creation.port';
+import { GroupMembersPort } from './application/group/group-members.port';
 import { PendingGroupInvitationsPort } from './application/group/pending-group-invitations.port';
 import { GroupFinancialDashboardPort } from './application/ledger/group-financial-dashboard.port';
 import { provideApiClient } from './infrastructure/api/provide-api-client';
@@ -19,6 +20,7 @@ import { HttpExpenseListGateway } from './infrastructure/expense/http-expense-li
 import { HttpExpenseProposalGateway } from './infrastructure/expense/http-expense-proposal.gateway';
 import { HttpGroupCreationGateway } from './infrastructure/group/http-group-creation.gateway';
 import { HttpGroupInvitationsGateway } from './infrastructure/group/http-group-invitations.gateway';
+import { HttpGroupMembersGateway } from './infrastructure/group/http-group-members.gateway';
 import { HttpGroupFinancialDashboardGateway } from './infrastructure/ledger/http-group-financial-dashboard.gateway';
 import { routes } from './app.routes';
 
@@ -48,6 +50,10 @@ export const appConfig: ApplicationConfig = {
     {
       provide: GroupCreationPort,
       useExisting: HttpGroupCreationGateway,
+    },
+    {
+      provide: GroupMembersPort,
+      useExisting: HttpGroupMembersGateway,
     },
     {
       provide: GroupFinancialDashboardPort,
