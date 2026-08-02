@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import tech.justdev.application.group.GroupAccessDeniedException
 import tech.justdev.application.group.GroupAccessPolicy
+import tech.justdev.application.shared.DirectTransactionRunner
+import tech.justdev.application.shared.TransactionRunner
 import tech.justdev.application.support.InMemoryExpenseRepository
 import tech.justdev.application.support.InMemoryGroupRepository
 import tech.justdev.application.support.InMemoryLedgerEventRepository
@@ -42,6 +44,7 @@ class RecordExpenseParticipationDecisionUseCaseTest {
                     expenseRepository = expenseRepository,
                     ledgerEventRepository = ledgerEventRepository,
                     groupAccessPolicy = groupAccessPolicy(),
+                    transactionRunner = DirectTransactionRunner,
                 )
 
             useCase(
@@ -120,6 +123,7 @@ class RecordExpenseParticipationDecisionUseCaseTest {
                     expenseRepository = expenseRepository,
                     ledgerEventRepository = ledgerEventRepository,
                     groupAccessPolicy = groupAccessPolicy(),
+                    transactionRunner = DirectTransactionRunner,
                 )
 
             useCase(
@@ -184,6 +188,7 @@ class RecordExpenseParticipationDecisionUseCaseTest {
                 expenseRepository = expenseRepository,
                 ledgerEventRepository = ledgerEventRepository,
                 groupAccessPolicy = groupAccessPolicy(),
+                transactionRunner = DirectTransactionRunner,
             )
 
         val error =
@@ -217,6 +222,7 @@ class RecordExpenseParticipationDecisionUseCaseTest {
                 expenseRepository = expenseRepository,
                 ledgerEventRepository = ledgerEventRepository,
                 groupAccessPolicy = groupAccessPolicy(),
+                transactionRunner = FailIfStartedTransactionRunner,
             )
 
         assertThrows<GroupAccessDeniedException> {
@@ -247,6 +253,7 @@ class RecordExpenseParticipationDecisionUseCaseTest {
                     groupAccessPolicy(
                         setOf(groupId("group-1"), groupId("group-2")),
                     ),
+                transactionRunner = DirectTransactionRunner,
             )
 
         val error =
@@ -305,6 +312,10 @@ class RecordExpenseParticipationDecisionUseCaseTest {
 
             override suspend fun persist(expense: Expense) = throw AssertionError("expense repository should not be accessed")
         }
+
+    private object FailIfStartedTransactionRunner : TransactionRunner {
+        override suspend fun <T> transaction(block: suspend () -> T): T = throw AssertionError("transaction should not be started")
+    }
 
     private fun proposedExpense(): Expense =
         Expense.propose(
