@@ -70,7 +70,8 @@ Backlog derive de l'etat actuel du depot au 2026-08-02.
 - [x] BE-EXP-008 Ajouter au domaine le partage par tranches cumulatives `CumulativeTiers`.
 - [x] BE-EXP-009 Renommer et formaliser le partage completement personnalise actuel de `Fixed` vers `Custom`.
 - [x] BE-EXP-010 Raccorder `Equal`, `EqualWithCaps`, `CumulativeTiers` et `Custom` a l'application.
-- [ ] BE-EXP-011 Raccorder `Equal`, `EqualWithCaps`, `CumulativeTiers` et `Custom` au REST et a l'OpenAPI.
+- [x] BE-EXP-011A Ajouter le contrat transport polymorphe des quatre modes et son mapper vers l'application.
+- [ ] BE-EXP-011B Brancher le contrat sur l'endpoint de proposition et regenerer l'OpenAPI.
 - [ ] BE-EXP-012 Conserver une raison exploitable de refus/invalidation dans les vues de detail et d'historique.
 - [ ] BE-EXP-013 Ajouter des tests d'integration couvrant acceptation, refus et emission d'evenement ledger.
 - [ ] BE-EXP-014 Ajouter la couverture d'integration des quatre modes d'allocation.
