@@ -2,6 +2,7 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 
 import { ExpenseListPort } from './application/expense/expense-list.port';
 import { ExpenseProposalPort } from './application/expense/expense-proposal.port';
@@ -30,6 +31,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptorsFromDi()),
     provideAnimationsAsync(),
     provideRouter(routes),
+    provideTanStackQuery(new QueryClient()),
     provideApiClient(),
     {
       provide: NavigationPort,

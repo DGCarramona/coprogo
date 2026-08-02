@@ -476,6 +476,12 @@ Application use cases should carry real application behavior: orchestration, val
 - Prefer explicit command methods over ad hoc mutable state manipulation.
 - Do not introduce NgRx unless there is a demonstrated need that simpler signal-based architecture cannot satisfy.
 
+### Frontend server-state convention
+- TanStack Query is the standard frontend cache and server-state mechanism. Use the experimental package locked at exactly `@tanstack/angular-query-experimental@5.101.4`; upgrades are deliberate changes.
+- Use stable, scoped query keys. Model reads as queries and writes as mutations with explicit invalidation.
+- Expose query and mutation state through Signals. Do not add `shareReplay` or a concurrent custom cache.
+- Promise/Observable conversion is allowed only at the TanStack boundary when required.
+
 ### Dependency rules
 - Presentation depends on Application, never on Infrastructure details directly.
 - Infrastructure must not leak transport DTOs into Domain.

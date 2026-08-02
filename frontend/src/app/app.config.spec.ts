@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { QueryClient } from '@tanstack/angular-query-experimental';
 
 import { ExpenseProposalPort } from './application/expense/expense-proposal.port';
 import { GroupMembersPort } from './application/group/group-members.port';
@@ -9,6 +10,12 @@ import { RouterNavigationAdapter } from './infrastructure/router/router-navigati
 import { appConfig } from './app.config';
 
 describe('appConfig', () => {
+  it('provides a TanStack Query client', () => {
+    TestBed.configureTestingModule({ providers: appConfig.providers });
+
+    expect(TestBed.inject(QueryClient)).toBeInstanceOf(QueryClient);
+  });
+
   it('binds the expense proposal port to the existing HTTP gateway instance', () => {
     TestBed.configureTestingModule({ providers: appConfig.providers });
 
