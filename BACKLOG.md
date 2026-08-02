@@ -64,7 +64,7 @@ Backlog derive de l'etat actuel du depot au 2026-08-02.
 - [x] BE-EXP-002 Creer l'adaptateur R2DBC de `ExpenseRepository`.
 - [x] BE-EXP-003 Exposer l'endpoint REST de proposition de depense avec partage egal.
 - [x] BE-EXP-004 Exposer l'endpoint REST d'enregistrement d'une decision de participation.
-- [ ] BE-EXP-005 Exposer l'endpoint REST de detail d'une depense.
+- [x] BE-EXP-005 Exposer l'endpoint REST de detail d'une depense.
 - [x] BE-EXP-006 Exposer l'endpoint REST de liste des depenses d'un groupe.
 - [ ] BE-EXP-007 Ajouter au domaine la variante "participation partielle" explicitement nommee dans l'API.
 - [ ] BE-EXP-008 Ajouter au domaine la variante "participation capee".
