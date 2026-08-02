@@ -213,6 +213,34 @@ paths:
           description: proposeEqualSplitExpense 204 response
       security:
       - bearerAuth: []
+  /api/groups/{groupId}/expenses/{expenseId}:
+    get:
+      tags:
+      - Expenses
+      summary: Get expense details
+      operationId: getExpenseDetail
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: expenseId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: getExpenseDetail 200 response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseDetailResponse"
+      security:
+      - bearerAuth: []
   /api/groups/{groupId}/expenses/{expenseId}/participation-decisions:
     post:
       tags:
@@ -383,6 +411,50 @@ components:
         group:
           type: string
           format: uuid
+    ExpenseDetailParticipationResponse:
+      required:
+      - amountCents
+      - member
+      - status
+      type: object
+      properties:
+        member:
+          type: string
+        amountCents:
+          type: integer
+          format: int64
+        status:
+          type: string
+    ExpenseDetailResponse:
+      required:
+      - createdAt
+      - createdBy
+      - id
+      - participations
+      - status
+      - title
+      - totalAmountCents
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        createdBy:
+          type: string
+        totalAmountCents:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+        participations:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExpenseDetailParticipationResponse"
     ExpenseParticipationDecisionInput:
       type: string
       enum:

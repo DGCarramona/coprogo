@@ -16,14 +16,20 @@ import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Positive
 import tech.justdev.application.auth.AuthenticatedUserProvider
 import tech.justdev.application.expense.EqualSplitExpenseAllocationCommand
+import tech.justdev.application.expense.ExpenseDetailParticipationSnapshot
+import tech.justdev.application.expense.ExpenseDetailSnapshot
 import tech.justdev.application.expense.ExpenseParticipationDecisionCommand
 import tech.justdev.application.expense.ExpenseSnapshot
+import tech.justdev.application.expense.GetExpenseDetailQuery
+import tech.justdev.application.expense.GetExpenseDetailUseCase
 import tech.justdev.application.expense.ListGroupExpensesQuery
 import tech.justdev.application.expense.ListGroupExpensesUseCase
 import tech.justdev.application.expense.ProposeExpenseCommand
 import tech.justdev.application.expense.ProposeExpenseUseCase
 import tech.justdev.application.expense.RecordExpenseParticipationDecisionCommand
 import tech.justdev.application.expense.RecordExpenseParticipationDecisionUseCase
+import tech.justdev.domain.expense.valueobject.ExpenseId
+import tech.justdev.domain.expense.valueobject.ExpenseParticipationStatus
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.valueobject.GroupId
 import tech.justdev.interfaces.openapi.AuthenticatedApi
@@ -36,6 +42,7 @@ import java.util.UUID
 class ExpenseController(
     private val authenticatedUserProvider: AuthenticatedUserProvider,
     private val listGroupExpensesUseCase: ListGroupExpensesUseCase,
+    private val getExpenseDetailUseCase: GetExpenseDetailUseCase,
     private val proposeExpenseUseCase: ProposeExpenseUseCase,
     private val recordExpenseParticipationDecisionUseCase: RecordExpenseParticipationDecisionUseCase,
 ) {
@@ -50,6 +57,20 @@ class ExpenseController(
                 requestedBy = authenticatedUserProvider.currentAuthenticatedUser().email,
             ),
         ).map(ExpenseSnapshot::toResponse)
+
+    @Get("/groups/{groupId}/expenses/{expenseId}")
+    @Operation(summary = "Get expense details")
+    suspend fun getExpenseDetail(
+        @PathVariable groupId: UUID,
+        @PathVariable expenseId: UUID,
+    ): ExpenseDetailResponse =
+        getExpenseDetailUseCase(
+            GetExpenseDetailQuery(
+                group = GroupId(groupId),
+                id = ExpenseId(expenseId),
+                requestedBy = authenticatedUserProvider.currentAuthenticatedUser().email,
+            ),
+        ).toResponse()
 
     @Post("/groups/{groupId}/expenses")
     @Status(HttpStatus.NO_CONTENT)
@@ -129,6 +150,24 @@ data class ExpenseResponse(
     val status: String,
 )
 
+@Serdeable
+data class ExpenseDetailParticipationResponse(
+    val member: String,
+    val amountCents: Long,
+    val status: String,
+)
+
+@Serdeable
+data class ExpenseDetailResponse(
+    val id: UUID,
+    val title: String,
+    val createdBy: String,
+    val totalAmountCents: Long,
+    val createdAt: Instant,
+    val status: String,
+    val participations: List<ExpenseDetailParticipationResponse>,
+)
+
 private fun ExpenseSnapshot.toResponse(): ExpenseResponse =
     ExpenseResponse(
         id = id,
@@ -138,3 +177,28 @@ private fun ExpenseSnapshot.toResponse(): ExpenseResponse =
         createdAt = createdAt,
         status = status,
     )
+
+private fun ExpenseDetailSnapshot.toResponse(): ExpenseDetailResponse =
+    ExpenseDetailResponse(
+        id = id.toPrimitive(),
+        title = title,
+        createdBy = createdBy.toPrimitive(),
+        totalAmountCents = totalAmount.inCents(),
+        createdAt = createdAt,
+        status = status.name,
+        participations = participations.map(ExpenseDetailParticipationSnapshot::toResponse),
+    )
+
+private fun ExpenseDetailParticipationSnapshot.toResponse(): ExpenseDetailParticipationResponse =
+    ExpenseDetailParticipationResponse(
+        member = member.toPrimitive(),
+        amountCents = amount.inCents(),
+        status = status.toResponseStatus(),
+    )
+
+private fun ExpenseParticipationStatus.toResponseStatus(): String =
+    when (this) {
+        ExpenseParticipationStatus.Pending -> "PENDING"
+        is ExpenseParticipationStatus.Approved -> "APPROVED"
+        is ExpenseParticipationStatus.Refused -> "REFUSED"
+    }
