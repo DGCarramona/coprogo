@@ -16,11 +16,14 @@ import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Positive
 import tech.justdev.application.auth.AuthenticatedUserProvider
 import tech.justdev.application.expense.EqualSplitExpenseAllocationCommand
+import tech.justdev.application.expense.ExpenseParticipationDecisionCommand
 import tech.justdev.application.expense.ExpenseSnapshot
 import tech.justdev.application.expense.ListGroupExpensesQuery
 import tech.justdev.application.expense.ListGroupExpensesUseCase
 import tech.justdev.application.expense.ProposeExpenseCommand
 import tech.justdev.application.expense.ProposeExpenseUseCase
+import tech.justdev.application.expense.RecordExpenseParticipationDecisionCommand
+import tech.justdev.application.expense.RecordExpenseParticipationDecisionUseCase
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.valueobject.GroupId
 import tech.justdev.interfaces.openapi.AuthenticatedApi
@@ -34,6 +37,7 @@ class ExpenseController(
     private val authenticatedUserProvider: AuthenticatedUserProvider,
     private val listGroupExpensesUseCase: ListGroupExpensesUseCase,
     private val proposeExpenseUseCase: ProposeExpenseUseCase,
+    private val recordExpenseParticipationDecisionUseCase: RecordExpenseParticipationDecisionUseCase,
 ) {
     @Get("/groups/{groupId}/expenses")
     @Operation(summary = "List expenses for a group")
@@ -68,6 +72,30 @@ class ExpenseController(
             ),
         )
     }
+
+    @Post("/groups/{groupId}/expenses/{expenseId}/participation-decisions")
+    @Status(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Record a participation decision for an expense")
+    suspend fun recordParticipationDecision(
+        @PathVariable groupId: UUID,
+        @PathVariable expenseId: UUID,
+        @Body request: ExpenseParticipationDecisionRequest,
+    ) {
+        val authenticatedUser = authenticatedUserProvider.currentAuthenticatedUser()
+        recordExpenseParticipationDecisionUseCase(
+            RecordExpenseParticipationDecisionCommand(
+                group = GroupId(groupId),
+                id = expenseId,
+                member = authenticatedUser.email,
+                decision =
+                    when (request.decision) {
+                        ExpenseParticipationDecisionInput.APPROVE -> ExpenseParticipationDecisionCommand.APPROVE
+                        ExpenseParticipationDecisionInput.REFUSE -> ExpenseParticipationDecisionCommand.REFUSE
+                    },
+                decidedAt = Instant.now(),
+            ),
+        )
+    }
 }
 
 @Serdeable
@@ -79,6 +107,17 @@ data class ProposeEqualSplitExpenseRequest(
     @field:NotEmpty
     val participants: Set<String>,
 )
+
+@Serdeable
+data class ExpenseParticipationDecisionRequest(
+    val decision: ExpenseParticipationDecisionInput,
+)
+
+@Serdeable
+enum class ExpenseParticipationDecisionInput {
+    APPROVE,
+    REFUSE,
+}
 
 @Serdeable
 data class ExpenseResponse(

@@ -9,11 +9,14 @@ import org.junit.jupiter.api.assertThrows
 import tech.justdev.application.auth.AuthenticatedUser
 import tech.justdev.application.auth.AuthenticatedUserProvider
 import tech.justdev.application.expense.EqualSplitExpenseAllocationCommand
+import tech.justdev.application.expense.ExpenseParticipationDecisionCommand
 import tech.justdev.application.expense.ExpenseSnapshot
 import tech.justdev.application.expense.ListGroupExpensesQuery
 import tech.justdev.application.expense.ListGroupExpensesUseCase
 import tech.justdev.application.expense.ProposeExpenseCommand
 import tech.justdev.application.expense.ProposeExpenseUseCase
+import tech.justdev.application.expense.RecordExpenseParticipationDecisionCommand
+import tech.justdev.application.expense.RecordExpenseParticipationDecisionUseCase
 import tech.justdev.domain.group.valueobject.MemberEmail
 import java.time.Instant
 import java.util.UUID
@@ -22,7 +25,14 @@ class ExpenseControllerTest {
     private val authProvider = FakeAuthProvider(email = "creator@example.com")
     private val listGroupExpensesUseCase = FakeListGroupExpensesUseCase()
     private val proposeExpenseUseCase = FakeProposeExpenseUseCase()
-    private val controller = ExpenseController(authProvider, listGroupExpensesUseCase, proposeExpenseUseCase)
+    private val recordExpenseParticipationDecisionUseCase = FakeRecordExpenseParticipationDecisionUseCase()
+    private val controller =
+        ExpenseController(
+            authProvider,
+            listGroupExpensesUseCase,
+            proposeExpenseUseCase,
+            recordExpenseParticipationDecisionUseCase,
+        )
 
     @Nested
     inner class ListGroupExpenses {
@@ -122,6 +132,47 @@ class ExpenseControllerTest {
         }
     }
 
+    @Nested
+    inner class RecordParticipationDecision {
+        @Test
+        fun `should map an approval decision to the authenticated member command`() =
+            assertDecisionCommandMapped(
+                input = ExpenseParticipationDecisionInput.APPROVE,
+                expected = ExpenseParticipationDecisionCommand.APPROVE,
+            )
+
+        @Test
+        fun `should map a refusal decision to the authenticated member command`() =
+            assertDecisionCommandMapped(
+                input = ExpenseParticipationDecisionInput.REFUSE,
+                expected = ExpenseParticipationDecisionCommand.REFUSE,
+            )
+    }
+
+    private fun assertDecisionCommandMapped(
+        input: ExpenseParticipationDecisionInput,
+        expected: ExpenseParticipationDecisionCommand,
+    ) = runTest {
+        val groupId = UUID.randomUUID()
+        val expenseId = UUID.randomUUID()
+        val before = Instant.now()
+
+        controller.recordParticipationDecision(
+            groupId = groupId,
+            expenseId = expenseId,
+            request = ExpenseParticipationDecisionRequest(input),
+        )
+
+        val after = Instant.now()
+        val command = requireNotNull(recordExpenseParticipationDecisionUseCase.lastCommand)
+        assertEquals(groupId, command.group.toPrimitive())
+        assertEquals(expenseId, command.id)
+        assertEquals("creator@example.com", command.member.toPrimitive())
+        assertEquals(expected, command.decision)
+        assertTrue(!command.decidedAt.isBefore(before))
+        assertTrue(!command.decidedAt.isAfter(after))
+    }
+
     private fun snapshot(seed: String): ExpenseSnapshot =
         ExpenseSnapshot(
             id = UUID.randomUUID(),
@@ -155,6 +206,14 @@ private class FakeProposeExpenseUseCase : ProposeExpenseUseCase {
 
     override suspend fun invoke(command: ProposeExpenseCommand) {
         invocationCount += 1
+        lastCommand = command
+    }
+}
+
+private class FakeRecordExpenseParticipationDecisionUseCase : RecordExpenseParticipationDecisionUseCase {
+    var lastCommand: RecordExpenseParticipationDecisionCommand? = null
+
+    override suspend fun invoke(command: RecordExpenseParticipationDecisionCommand) {
         lastCommand = command
     }
 }
