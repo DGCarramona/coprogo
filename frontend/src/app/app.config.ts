@@ -31,7 +31,7 @@ export const appConfig: ApplicationConfig = {
     provideApiClient(),
     {
       provide: NavigationPort,
-      useClass: RouterNavigationAdapter,
+      useExisting: RouterNavigationAdapter,
     },
     {
       provide: GoogleIdTokenPort,
