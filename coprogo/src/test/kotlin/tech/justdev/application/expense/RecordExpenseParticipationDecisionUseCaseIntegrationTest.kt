@@ -68,7 +68,15 @@ class RecordExpenseParticipationDecisionUseCaseIntegrationTest {
 
         assertEquals("ledger append failed", error.message)
         val persistedFixture = requireNotNull(fixture)
-        val storedExpense = runBlocking { requireNotNull(expenseRepository.findById(persistedFixture.expense.id)) }
+        val storedExpense =
+            runBlocking {
+                requireNotNull(
+                    expenseRepository.findByIdAndGroup(
+                        persistedFixture.expense.id,
+                        persistedFixture.expense.group,
+                    ),
+                )
+            }
         assertEquals(persistedFixture.expense, storedExpense)
         assertEquals(
             ExpenseParticipationStatus.Pending,

@@ -32,13 +32,17 @@ open class R2dbcExpenseRepository(
     @param:Named("default")
     private val connectionFactory: ConnectionFactory,
 ) : ExpenseRepository {
-    override suspend fun findById(id: ExpenseId): Expense? {
+    override suspend fun findByIdAndGroup(
+        id: ExpenseId,
+        group: GroupId,
+    ): Expense? {
         val dsl = connectionFactory.dsl()
         val expense =
             dsl
                 .select(EXPENSES.ID, EXPENSES.GROUP, EXPENSES.TITLE, EXPENSES.CREATED_BY, EXPENSES.TOTAL_AMOUNT, EXPENSES.CREATED_AT)
                 .from(EXPENSES)
                 .where(EXPENSES.ID.eq(id.toPrimitive()))
+                .and(EXPENSES.GROUP.eq(group.toPrimitive()))
                 .awaitFirstOrNull()
                 ?: return null
 

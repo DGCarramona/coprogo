@@ -43,7 +43,7 @@ class R2dbcExpenseRepositoryIntegrationTest {
 
                 expenseRepository.persist(stored)
 
-                assertEquals(stored, expenseRepository.findById(stored.id))
+                assertEquals(stored, expenseRepository.findByIdAndGroup(stored.id, stored.group))
             }
 
         @Test
@@ -89,25 +89,44 @@ class R2dbcExpenseRepositoryIntegrationTest {
 
                 expenseRepository.persist(updated)
 
-                assertEquals(updated, expenseRepository.findById(updated.id))
+                assertEquals(updated, expenseRepository.findByIdAndGroup(updated.id, updated.group))
             }
     }
 
     @Nested
-    inner class FindById {
+    inner class FindByIdAndGroup {
         @Test
-        fun `should find a persisted expense with participations`() =
+        fun `should find a persisted expense for its group`() =
             runTest {
                 val stored = expenseWithEqualSplit("find-expense")
                 expenseRepository.persist(stored)
 
-                assertEquals(stored, expenseRepository.findById(stored.id))
+                assertEquals(stored, expenseRepository.findByIdAndGroup(stored.id, stored.group))
             }
 
         @Test
         fun `should return null when no expense exists for the id`() =
             runTest {
-                assertNull(expenseRepository.findById(expenseId("missing-expense")))
+                assertNull(
+                    expenseRepository.findByIdAndGroup(
+                        expenseId("missing-expense"),
+                        groupId("missing-expense-group"),
+                    ),
+                )
+            }
+
+        @Test
+        fun `should return null when the expense id belongs to another group`() =
+            runTest {
+                val stored = expenseWithEqualSplit("find-expense-other-group")
+                expenseRepository.persist(stored)
+
+                assertNull(
+                    expenseRepository.findByIdAndGroup(
+                        stored.id,
+                        groupId("find-expense-requested-group"),
+                    ),
+                )
             }
     }
 

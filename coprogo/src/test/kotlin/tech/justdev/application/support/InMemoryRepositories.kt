@@ -23,7 +23,10 @@ class InMemoryExpenseRepository(
 ) : ExpenseRepository {
     private val expensesById = expenses.associateBy { expense -> expense.id }.toMutableMap()
 
-    override suspend fun findById(id: ExpenseId): Expense? = expensesById[id]
+    override suspend fun findByIdAndGroup(
+        id: ExpenseId,
+        group: GroupId,
+    ): Expense? = expensesById[id]?.takeIf { expense -> expense.group == group }
 
     override suspend fun findByGroup(group: GroupId): List<Expense> = expensesById.values.filter { expense -> expense.group == group }
 

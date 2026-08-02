@@ -85,7 +85,7 @@ class RecordExpenseParticipationDecisionUseCaseTest {
                             ),
                         ),
                 ),
-                expenseRepository.findById(expenseId("expense-1")),
+                expenseRepository.findByIdAndGroup(expenseId("expense-1"), groupId("group-1")),
             )
             assertEquals(
                 listOf(
@@ -164,7 +164,7 @@ class RecordExpenseParticipationDecisionUseCaseTest {
                             ),
                         ),
                 ),
-                expenseRepository.findById(expenseId("expense-1")),
+                expenseRepository.findByIdAndGroup(expenseId("expense-1"), groupId("group-1")),
             )
             assertEquals(emptyList<AcceptedExpenseLedgerEvent>(), ledgerEventRepository.allEvents())
         }
@@ -208,7 +208,10 @@ class RecordExpenseParticipationDecisionUseCaseTest {
 
         runTest {
             assertEquals("expense ${expenseUuid("expense-1")} was not found", error.message)
-            assertEquals(acceptedExpense, expenseRepository.findById(expenseId("expense-1")))
+            assertEquals(
+                acceptedExpense,
+                expenseRepository.findByIdAndGroup(expenseId("expense-1"), groupId("group-1")),
+            )
             assertEquals(emptyList<AcceptedExpenseLedgerEvent>(), ledgerEventRepository.allEvents())
         }
     }
@@ -276,7 +279,10 @@ class RecordExpenseParticipationDecisionUseCaseTest {
             error.message,
         )
         runTest {
-            assertEquals(proposedExpense(), expenseRepository.findById(expenseId("expense-1")))
+            assertEquals(
+                proposedExpense(),
+                expenseRepository.findByIdAndGroup(expenseId("expense-1"), groupId("group-1")),
+            )
         }
         assertEquals(emptyList<AcceptedExpenseLedgerEvent>(), ledgerEventRepository.allEvents())
     }
@@ -300,7 +306,10 @@ class RecordExpenseParticipationDecisionUseCaseTest {
 
     private fun failIfAccessedExpenseRepository(): ExpenseRepository =
         object : ExpenseRepository {
-            override suspend fun findById(id: ExpenseId): Expense? = throw AssertionError("expense repository should not be accessed")
+            override suspend fun findByIdAndGroup(
+                id: ExpenseId,
+                group: GroupId,
+            ): Expense? = throw AssertionError("expense repository should not be accessed")
 
             override suspend fun findByGroup(group: GroupId): List<Expense> =
                 throw AssertionError("expense repository should not be accessed")

@@ -70,7 +70,7 @@ class ProposeExpenseUseCaseTest {
                             savedExpenseParticipation("carol", 33, ExpenseParticipationStatus.Pending),
                         ),
                 ),
-                expenseRepository.findById(expenseId("expense-1")),
+                expenseRepository.findByIdAndGroup(expenseId("expense-1"), groupId("group-1")),
             )
         }
     }
@@ -121,7 +121,7 @@ class ProposeExpenseUseCaseTest {
                             ),
                         ),
                 ),
-                expenseRepository.findById(expenseId("expense-2")),
+                expenseRepository.findByIdAndGroup(expenseId("expense-2"), groupId("group-1")),
             )
         }
     }
@@ -151,7 +151,7 @@ class ProposeExpenseUseCaseTest {
         }
 
         runTest {
-            assertEquals(null, expenseRepository.findById(expenseId("expense-1")))
+            assertEquals(null, expenseRepository.findByIdAndGroup(expenseId("expense-1"), groupId("group-1")))
         }
     }
 
@@ -205,7 +205,7 @@ class ProposeExpenseUseCaseTest {
             error.message,
         )
         runTest {
-            assertEquals(null, expenseRepository.findById(expenseId("expense-1")))
+            assertEquals(null, expenseRepository.findByIdAndGroup(expenseId("expense-1"), groupId("group-1")))
         }
     }
 
