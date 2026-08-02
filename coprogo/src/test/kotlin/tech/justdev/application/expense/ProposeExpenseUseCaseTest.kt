@@ -3,10 +3,15 @@ package tech.justdev.application.expense
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import tech.justdev.application.group.GroupAccessDeniedException
+import tech.justdev.application.group.GroupAccessPolicy
 import tech.justdev.application.support.InMemoryExpenseRepository
+import tech.justdev.application.support.InMemoryGroupRepository
 import tech.justdev.domain.expense.entity.Expense
 import tech.justdev.domain.expense.valueobject.ExpenseParticipation
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationStatus
+import tech.justdev.domain.group.entity.Group
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.testsupport.FixedExpenseIdGenerator
 import tech.justdev.testsupport.expenseId
@@ -20,9 +25,9 @@ class ProposeExpenseUseCaseTest {
         runTest {
             val expenseRepository = InMemoryExpenseRepository()
             val useCase =
-                ProposeExpenseUseCaseImpl(
-                    expenseRepository = expenseRepository,
-                    expenseIdGenerator = FixedExpenseIdGenerator(listOf(expenseId("expense-1"))),
+                useCase(
+                    expenseRepository,
+                    FixedExpenseIdGenerator(listOf(expenseId("expense-1"))),
                 )
 
             useCase(
@@ -75,9 +80,9 @@ class ProposeExpenseUseCaseTest {
         runTest {
             val expenseRepository = InMemoryExpenseRepository()
             val useCase =
-                ProposeExpenseUseCaseImpl(
-                    expenseRepository = expenseRepository,
-                    expenseIdGenerator = FixedExpenseIdGenerator(listOf(expenseId("expense-2"))),
+                useCase(
+                    expenseRepository,
+                    FixedExpenseIdGenerator(listOf(expenseId("expense-2"))),
                 )
 
             useCase(
@@ -120,6 +125,113 @@ class ProposeExpenseUseCaseTest {
             )
         }
     }
+
+    @Test
+    fun `invoke should reject a creator who is not a group member before generating an expense id`() {
+        val expenseRepository = InMemoryExpenseRepository()
+        val useCase =
+            useCase(
+                expenseRepository,
+                ExpenseIdGenerator { throw AssertionError("expense id should not be generated") },
+            )
+
+        assertThrows<GroupAccessDeniedException> {
+            runTest {
+                useCase(
+                    ProposeExpenseCommand(
+                        group = groupId("group-1"),
+                        title = "Unauthorized expense",
+                        createdBy = memberEmail("outsider"),
+                        totalAmountInCents = 100,
+                        createdAt = Instant.parse("2026-04-03T10:00:00Z"),
+                        allocation = EqualSplitExpenseAllocationCommand(setOf(memberEmail("outsider"))),
+                    ),
+                )
+            }
+        }
+
+        runTest {
+            assertEquals(null, expenseRepository.findById(expenseId("expense-1")))
+        }
+    }
+
+    @Test
+    fun `invoke should reject an equal split participant who is not a group member before generating an expense id`() {
+        assertNonMemberParticipantIsRejected(
+            EqualSplitExpenseAllocationCommand(
+                setOf(memberEmail("alice"), memberEmail("outsider")),
+            ),
+        )
+    }
+
+    @Test
+    fun `invoke should reject a fixed participant who is not a group member before generating an expense id`() {
+        assertNonMemberParticipantIsRejected(
+            FixedExpenseAllocationCommand(
+                setOf(
+                    FixedExpenseParticipationCommand(memberEmail("alice"), 50),
+                    FixedExpenseParticipationCommand(memberEmail("outsider"), 50),
+                ),
+            ),
+        )
+    }
+
+    private fun assertNonMemberParticipantIsRejected(allocation: ExpenseAllocationCommand) {
+        val expenseRepository = InMemoryExpenseRepository()
+        val useCase =
+            useCase(
+                expenseRepository,
+                ExpenseIdGenerator { throw AssertionError("expense id should not be generated") },
+            )
+
+        val error =
+            assertThrows<IllegalArgumentException> {
+                runTest {
+                    useCase(
+                        ProposeExpenseCommand(
+                            group = groupId("group-1"),
+                            title = "Unauthorized expense",
+                            createdBy = memberEmail("alice"),
+                            totalAmountInCents = 100,
+                            createdAt = Instant.parse("2026-04-03T10:00:00Z"),
+                            allocation = allocation,
+                        ),
+                    )
+                }
+            }
+
+        assertEquals(
+            "expense participant ${memberEmail("outsider").toPrimitive()} is not part of group ${groupId("group-1").toPrimitive()}",
+            error.message,
+        )
+        runTest {
+            assertEquals(null, expenseRepository.findById(expenseId("expense-1")))
+        }
+    }
+
+    private fun useCase(
+        expenseRepository: InMemoryExpenseRepository,
+        expenseIdGenerator: ExpenseIdGenerator,
+    ): ProposeExpenseUseCase =
+        ProposeExpenseUseCaseImpl(
+            expenseRepository = expenseRepository,
+            groupAccessPolicy = GroupAccessPolicy(InMemoryGroupRepository(listOf(group()))),
+            expenseIdGenerator = expenseIdGenerator,
+        )
+
+    private fun group(): Group =
+        Group
+            .create(
+                id = groupId("group-1"),
+                createdBy = memberEmail("alice"),
+                createdAt = Instant.parse("2026-04-01T10:00:00Z"),
+            ).addMember(
+                member = memberEmail("bob"),
+                joinedAt = Instant.parse("2026-04-01T10:00:00Z"),
+            ).addMember(
+                member = memberEmail("carol"),
+                joinedAt = Instant.parse("2026-04-01T10:00:00Z"),
+            )
 
     private fun savedExpenseParticipation(
         memberId: String,

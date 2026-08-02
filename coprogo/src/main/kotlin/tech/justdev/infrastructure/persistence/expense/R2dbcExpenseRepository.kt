@@ -91,13 +91,17 @@ open class R2dbcExpenseRepository(
         }
     }
 
-    override suspend fun findProposedById(id: ExpenseId): Expense? {
+    override suspend fun findProposedByIdAndGroup(
+        id: ExpenseId,
+        group: GroupId,
+    ): Expense? {
         val dsl = connectionFactory.dsl()
         val expense =
             dsl
                 .select(EXPENSES.ID, EXPENSES.GROUP, EXPENSES.TITLE, EXPENSES.CREATED_BY, EXPENSES.TOTAL_AMOUNT, EXPENSES.CREATED_AT)
                 .from(EXPENSES)
                 .where(EXPENSES.ID.eq(id.toPrimitive()))
+                .and(EXPENSES.GROUP.eq(group.toPrimitive()))
                 .and(EXPENSES.STATUS.eq(tech.justdev.infrastructure.persistence.jooq.enums.ExpenseStatus.PROPOSED))
                 .awaitFirstOrNull()
                 ?: return null

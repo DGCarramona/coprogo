@@ -112,7 +112,7 @@ class R2dbcExpenseRepositoryIntegrationTest {
     }
 
     @Nested
-    inner class FindProposedById {
+    inner class FindProposedByIdAndGroup {
         @Test
         fun `should return null when the expense is accepted`() =
             runTest {
@@ -129,7 +129,7 @@ class R2dbcExpenseRepositoryIntegrationTest {
 
                 expenseRepository.persist(updated)
 
-                assertNull(expenseRepository.findProposedById(updated.id))
+                assertNull(expenseRepository.findProposedByIdAndGroup(updated.id, updated.group))
             }
 
         @Test
@@ -148,7 +148,7 @@ class R2dbcExpenseRepositoryIntegrationTest {
 
                 expenseRepository.persist(updated)
 
-                assertNull(expenseRepository.findProposedById(updated.id))
+                assertNull(expenseRepository.findProposedByIdAndGroup(updated.id, updated.group))
             }
 
         @Test
@@ -157,7 +157,21 @@ class R2dbcExpenseRepositoryIntegrationTest {
                 val stored = expenseWithEqualSplit("proposed-expense-pending")
                 expenseRepository.persist(stored)
 
-                assertEquals(stored, expenseRepository.findProposedById(stored.id))
+                assertEquals(stored, expenseRepository.findProposedByIdAndGroup(stored.id, stored.group))
+            }
+
+        @Test
+        fun `should return null when the expense id belongs to another group`() =
+            runTest {
+                val stored = expenseWithEqualSplit("proposed-expense-other-group")
+                expenseRepository.persist(stored)
+
+                assertNull(
+                    expenseRepository.findProposedByIdAndGroup(
+                        stored.id,
+                        groupId("requested-other-group"),
+                    ),
+                )
             }
     }
 

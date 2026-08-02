@@ -8,6 +8,7 @@ import tech.justdev.domain.expense.valueobject.ExpenseStatus
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.ledger.event.AcceptedExpenseLedgerEvent
 import tech.justdev.domain.ledger.repository.LedgerEventRepository
+import tech.justdev.domain.shared.valueobject.GroupId
 import java.time.Instant
 import java.util.UUID
 
@@ -17,6 +18,7 @@ enum class ExpenseParticipationDecisionCommand {
 }
 
 data class RecordExpenseParticipationDecisionCommand(
+    val group: GroupId,
     val id: UUID,
     val member: MemberEmail,
     val decision: ExpenseParticipationDecisionCommand,
@@ -34,7 +36,8 @@ class RecordExpenseParticipationDecisionUseCaseImpl(
 ) : RecordExpenseParticipationDecisionUseCase {
     override suspend operator fun invoke(command: RecordExpenseParticipationDecisionCommand) {
         val existingExpense =
-            expenseRepository.findProposedById(ExpenseId(command.id))
+            expenseRepository
+                .findProposedByIdAndGroup(ExpenseId(command.id), command.group)
                 ?: throw IllegalArgumentException("expense ${command.id} was not found")
 
         val updatedExpense =
