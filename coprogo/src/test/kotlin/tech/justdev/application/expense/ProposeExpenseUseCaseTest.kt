@@ -76,6 +76,127 @@ class ProposeExpenseUseCaseTest {
     }
 
     @Test
+    fun `invoke should create and persist a proposed expense with equal split caps`() {
+        runTest {
+            val expenseRepository = InMemoryExpenseRepository()
+            val useCase =
+                useCase(
+                    expenseRepository,
+                    FixedExpenseIdGenerator(listOf(expenseId("expense-3"))),
+                )
+
+            useCase(
+                ProposeExpenseCommand(
+                    group = groupId("group-1"),
+                    title = "Shared repair with cap",
+                    createdBy = memberEmail("alice"),
+                    totalAmountInCents = 100,
+                    createdAt = Instant.parse("2026-04-03T10:00:00Z"),
+                    allocation =
+                        EqualSplitWithCapsExpenseAllocationCommand(
+                            participants =
+                                setOf(
+                                    memberEmail("alice"),
+                                    memberEmail("bob"),
+                                    memberEmail("carol"),
+                                ),
+                            capsInCentsByMember = mapOf(memberEmail("bob") to 20),
+                        ),
+                ),
+            )
+
+            assertEquals(
+                Expense(
+                    id = expenseId("expense-3"),
+                    group = groupId("group-1"),
+                    title = "Shared repair with cap",
+                    createdBy = memberEmail("alice"),
+                    totalAmount = MoneyAmount.ofCents(100),
+                    createdAt = Instant.parse("2026-04-03T10:00:00Z"),
+                    participations =
+                        setOf(
+                            savedExpenseParticipation(
+                                "alice",
+                                40,
+                                ExpenseParticipationStatus.Approved(
+                                    Instant.parse("2026-04-03T10:00:00Z"),
+                                ),
+                            ),
+                            savedExpenseParticipation("bob", 20, ExpenseParticipationStatus.Pending),
+                            savedExpenseParticipation("carol", 40, ExpenseParticipationStatus.Pending),
+                        ),
+                ),
+                expenseRepository.findByIdAndGroup(expenseId("expense-3"), groupId("group-1")),
+            )
+        }
+    }
+
+    @Test
+    fun `invoke should create and persist a proposed expense with cumulative tiers`() {
+        runTest {
+            val expenseRepository = InMemoryExpenseRepository()
+            val useCase =
+                useCase(
+                    expenseRepository,
+                    FixedExpenseIdGenerator(listOf(expenseId("expense-4"))),
+                )
+
+            useCase(
+                ProposeExpenseCommand(
+                    group = groupId("group-1"),
+                    title = "Tiered shared repair",
+                    createdBy = memberEmail("alice"),
+                    totalAmountInCents = 100,
+                    createdAt = Instant.parse("2026-04-03T10:00:00Z"),
+                    allocation =
+                        CumulativeTiersExpenseAllocationCommand(
+                            tiers =
+                                listOf(
+                                    CumulativeExpenseTierCommand(
+                                        upToAmountInCents = 40,
+                                        participants = setOf(memberEmail("alice"), memberEmail("bob")),
+                                    ),
+                                    CumulativeExpenseTierCommand(
+                                        upToAmountInCents = 100,
+                                        participants =
+                                            setOf(
+                                                memberEmail("alice"),
+                                                memberEmail("bob"),
+                                                memberEmail("carol"),
+                                            ),
+                                    ),
+                                ),
+                        ),
+                ),
+            )
+
+            assertEquals(
+                Expense(
+                    id = expenseId("expense-4"),
+                    group = groupId("group-1"),
+                    title = "Tiered shared repair",
+                    createdBy = memberEmail("alice"),
+                    totalAmount = MoneyAmount.ofCents(100),
+                    createdAt = Instant.parse("2026-04-03T10:00:00Z"),
+                    participations =
+                        setOf(
+                            savedExpenseParticipation(
+                                "alice",
+                                40,
+                                ExpenseParticipationStatus.Approved(
+                                    Instant.parse("2026-04-03T10:00:00Z"),
+                                ),
+                            ),
+                            savedExpenseParticipation("bob", 40, ExpenseParticipationStatus.Pending),
+                            savedExpenseParticipation("carol", 20, ExpenseParticipationStatus.Pending),
+                        ),
+                ),
+                expenseRepository.findByIdAndGroup(expenseId("expense-4"), groupId("group-1")),
+            )
+        }
+    }
+
+    @Test
     fun `invoke should accept immediately when creator is the only participant`() {
         runTest {
             val expenseRepository = InMemoryExpenseRepository()
@@ -160,6 +281,35 @@ class ProposeExpenseUseCaseTest {
         assertNonMemberParticipantIsRejected(
             EqualSplitExpenseAllocationCommand(
                 setOf(memberEmail("alice"), memberEmail("outsider")),
+            ),
+        )
+    }
+
+    @Test
+    fun `invoke should reject a non-member cap key before generating an expense id`() {
+        assertNonMemberParticipantIsRejected(
+            EqualSplitWithCapsExpenseAllocationCommand(
+                participants = setOf(memberEmail("alice"), memberEmail("bob")),
+                capsInCentsByMember = mapOf(memberEmail("outsider") to 20),
+            ),
+        )
+    }
+
+    @Test
+    fun `invoke should reject a non-member cumulative tier participant before generating an expense id`() {
+        assertNonMemberParticipantIsRejected(
+            CumulativeTiersExpenseAllocationCommand(
+                tiers =
+                    listOf(
+                        CumulativeExpenseTierCommand(
+                            upToAmountInCents = 50,
+                            participants = setOf(memberEmail("alice")),
+                        ),
+                        CumulativeExpenseTierCommand(
+                            upToAmountInCents = 100,
+                            participants = setOf(memberEmail("alice"), memberEmail("outsider")),
+                        ),
+                    ),
             ),
         )
     }

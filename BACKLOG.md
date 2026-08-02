@@ -69,10 +69,12 @@ Backlog derive de l'etat actuel du depot au 2026-08-02.
 - [x] BE-EXP-007 Conserver `Equal` et ajouter au domaine `EqualWithCaps`, avec redistribution iterative du reliquat.
 - [x] BE-EXP-008 Ajouter au domaine le partage par tranches cumulatives `CumulativeTiers`.
 - [x] BE-EXP-009 Renommer et formaliser le partage completement personnalise actuel de `Fixed` vers `Custom`.
-- [ ] BE-EXP-010 Raccorder `Equal`, `EqualWithCaps`, `CumulativeTiers` et `Custom` a l'application, au REST et a l'OpenAPI.
-- [ ] BE-EXP-011 Ajouter la couverture d'integration des quatre modes d'allocation.
+- [x] BE-EXP-010 Raccorder `Equal`, `EqualWithCaps`, `CumulativeTiers` et `Custom` a l'application.
+- [ ] BE-EXP-011 Raccorder `Equal`, `EqualWithCaps`, `CumulativeTiers` et `Custom` au REST et a l'OpenAPI.
 - [ ] BE-EXP-012 Conserver une raison exploitable de refus/invalidation dans les vues de detail et d'historique.
 - [ ] BE-EXP-013 Ajouter des tests d'integration couvrant acceptation, refus et emission d'evenement ledger.
+- [ ] BE-EXP-014 Ajouter la couverture d'integration des quatre modes d'allocation.
+- [ ] BE-EXP-015 Corriger et tester le motif latent `@Singleton object RandomExpenseIdGenerator` avant le raccordement REST.
 
 ## Backend - remboursements
 
