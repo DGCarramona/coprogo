@@ -9,6 +9,6 @@ fun interface LedgerEventIdGenerator {
 }
 
 @Singleton
-object RandomLedgerEventIdGenerator : LedgerEventIdGenerator {
+class RandomLedgerEventIdGenerator : LedgerEventIdGenerator {
     override fun next(): LedgerEventId = LedgerEventId(UUID.randomUUID())
 }
