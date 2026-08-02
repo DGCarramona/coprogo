@@ -1,6 +1,7 @@
 package tech.justdev.application.expense
 
 import jakarta.inject.Singleton
+import tech.justdev.application.group.GroupAccessPolicy
 import tech.justdev.domain.expense.entity.Expense
 import tech.justdev.domain.expense.repository.ExpenseRepository
 import tech.justdev.domain.expense.valueobject.ExpenseShare
@@ -40,9 +41,26 @@ interface ProposeExpenseUseCase {
 @Singleton
 class ProposeExpenseUseCaseImpl(
     private val expenseRepository: ExpenseRepository,
+    private val groupAccessPolicy: GroupAccessPolicy,
     private val expenseIdGenerator: ExpenseIdGenerator = RandomExpenseIdGenerator,
 ) : ProposeExpenseUseCase {
     override suspend operator fun invoke(command: ProposeExpenseCommand) {
+        val group = groupAccessPolicy.requireMember(command.group, command.createdBy)
+        val nonMember =
+            when (val allocation = command.allocation) {
+                is EqualSplitExpenseAllocationCommand -> allocation.participants
+                is FixedExpenseAllocationCommand -> allocation.participations.map { participation -> participation.member }.toSet()
+            }.let {
+                it
+                    .filterNot(group::contains)
+                    .minByOrNull { member -> member.toPrimitive() }
+            }
+        if (nonMember != null) {
+            throw IllegalArgumentException(
+                "expense participant ${nonMember.toPrimitive()} is not part of group ${command.group.toPrimitive()}",
+            )
+        }
+
         expenseRepository.persist(
             when (val allocation = command.allocation) {
                 is EqualSplitExpenseAllocationCommand -> {

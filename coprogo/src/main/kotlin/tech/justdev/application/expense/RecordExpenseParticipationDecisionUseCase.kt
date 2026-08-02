@@ -1,6 +1,7 @@
 package tech.justdev.application.expense
 
 import jakarta.inject.Singleton
+import tech.justdev.application.group.GroupAccessPolicy
 import tech.justdev.domain.expense.repository.ExpenseRepository
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
@@ -33,8 +34,11 @@ interface RecordExpenseParticipationDecisionUseCase {
 class RecordExpenseParticipationDecisionUseCaseImpl(
     private val expenseRepository: ExpenseRepository,
     private val ledgerEventRepository: LedgerEventRepository,
+    private val groupAccessPolicy: GroupAccessPolicy,
 ) : RecordExpenseParticipationDecisionUseCase {
     override suspend operator fun invoke(command: RecordExpenseParticipationDecisionCommand) {
+        groupAccessPolicy.requireMember(command.group, command.member)
+
         val existingExpense =
             expenseRepository
                 .findProposedByIdAndGroup(ExpenseId(command.id), command.group)
