@@ -67,7 +67,7 @@ Backlog derive de l'etat actuel du depot au 2026-08-02.
 - [x] BE-EXP-005 Exposer l'endpoint REST de detail d'une depense.
 - [x] BE-EXP-006 Exposer l'endpoint REST de liste des depenses d'un groupe.
 - [x] BE-EXP-007 Conserver `Equal` et ajouter au domaine `EqualWithCaps`, avec redistribution iterative du reliquat.
-- [ ] BE-EXP-008 Ajouter au domaine le partage par tranches cumulatives `CumulativeTiers`.
+- [x] BE-EXP-008 Ajouter au domaine le partage par tranches cumulatives `CumulativeTiers`.
 - [ ] BE-EXP-009 Renommer et formaliser le partage completement personnalise actuel de `Fixed` vers `Custom`.
 - [ ] BE-EXP-010 Raccorder `Equal`, `EqualWithCaps`, `CumulativeTiers` et `Custom` a l'application, au REST et a l'OpenAPI.
 - [ ] BE-EXP-011 Ajouter la couverture d'integration des quatre modes d'allocation.

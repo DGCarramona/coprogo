@@ -176,6 +176,140 @@ class ExpenseTest {
         }
     }
 
+    @Nested
+    inner class ProposeCumulativeTiers {
+        @Test
+        fun `should add member contributions across successive tiers`() {
+            val expense =
+                proposeCumulativeTiers(
+                    totalAmountInCents = 100,
+                    tiers =
+                        listOf(
+                            CumulativeExpenseTier(
+                                upTo = MoneyAmount.ofCents(60),
+                                participants = setOf(memberEmail("carol"), memberEmail("alice"), memberEmail("bob")),
+                            ),
+                            CumulativeExpenseTier(
+                                upTo = MoneyAmount.ofCents(80),
+                                participants = setOf(memberEmail("bob"), memberEmail("alice")),
+                            ),
+                            CumulativeExpenseTier(
+                                upTo = MoneyAmount.ofCents(100),
+                                participants = setOf(memberEmail("alice")),
+                            ),
+                        ),
+                )
+
+            assertEquals(
+                mapOf(
+                    memberEmail("alice") to MoneyAmount.ofCents(50),
+                    memberEmail("bob") to MoneyAmount.ofCents(30),
+                    memberEmail("carol") to MoneyAmount.ofCents(20),
+                ),
+                expense.amountsByMember(),
+            )
+        }
+
+        @Test
+        fun `should assign remaining cents by member email in every tier`() {
+            val expense =
+                proposeCumulativeTiers(
+                    totalAmountInCents = 101,
+                    tiers =
+                        listOf(
+                            CumulativeExpenseTier(
+                                upTo = MoneyAmount.ofCents(50),
+                                participants = setOf(memberEmail("carol"), memberEmail("bob"), memberEmail("alice")),
+                            ),
+                            CumulativeExpenseTier(
+                                upTo = MoneyAmount.ofCents(101),
+                                participants = setOf(memberEmail("bob"), memberEmail("alice")),
+                            ),
+                        ),
+                )
+
+            assertEquals(
+                mapOf(
+                    memberEmail("alice") to MoneyAmount.ofCents(43),
+                    memberEmail("bob") to MoneyAmount.ofCents(42),
+                    memberEmail("carol") to MoneyAmount.ofCents(16),
+                ),
+                expense.amountsByMember(),
+            )
+        }
+
+        @Test
+        fun `should reject an empty tier list`() {
+            assertThrows(IllegalArgumentException::class.java) {
+                proposeCumulativeTiers(totalAmountInCents = 100, tiers = emptyList())
+            }
+        }
+
+        @Test
+        fun `should reject non increasing cumulative bounds`() {
+            assertThrows(IllegalArgumentException::class.java) {
+                proposeCumulativeTiers(
+                    totalAmountInCents = 100,
+                    tiers =
+                        listOf(
+                            CumulativeExpenseTier(MoneyAmount.ofCents(60), setOf(memberEmail("alice"))),
+                            CumulativeExpenseTier(MoneyAmount.ofCents(60), setOf(memberEmail("alice"))),
+                            CumulativeExpenseTier(MoneyAmount.ofCents(100), setOf(memberEmail("alice"))),
+                        ),
+                )
+            }
+        }
+
+        @Test
+        fun `should reject when the last bound differs from the total amount`() {
+            assertThrows(IllegalArgumentException::class.java) {
+                proposeCumulativeTiers(
+                    totalAmountInCents = 100,
+                    tiers =
+                        listOf(
+                            CumulativeExpenseTier(MoneyAmount.ofCents(90), setOf(memberEmail("alice"))),
+                        ),
+                )
+            }
+        }
+
+        @Test
+        fun `should reject a tier without participants`() {
+            assertThrows(IllegalArgumentException::class.java) {
+                CumulativeExpenseTier(
+                    upTo = MoneyAmount.ofCents(100),
+                    participants = emptySet(),
+                )
+            }
+        }
+
+        @Test
+        fun `should reject a zero cumulative bound`() {
+            assertThrows(IllegalArgumentException::class.java) {
+                CumulativeExpenseTier(
+                    upTo = MoneyAmount.ZERO,
+                    participants = setOf(memberEmail("alice")),
+                )
+            }
+        }
+
+        @Test
+        fun `should reject a tier that would allocate zero to a participant`() {
+            assertThrows(IllegalArgumentException::class.java) {
+                proposeCumulativeTiers(
+                    totalAmountInCents = 2,
+                    tiers =
+                        listOf(
+                            CumulativeExpenseTier(
+                                upTo = MoneyAmount.ofCents(2),
+                                participants = setOf(memberEmail("alice"), memberEmail("bob"), memberEmail("carol")),
+                            ),
+                        ),
+                )
+            }
+        }
+    }
+
     @Test
     fun `propose should auto approve creator participation and wait for other members`() {
         assertEquals(
@@ -311,6 +445,20 @@ class ExpenseTest {
             createdAt = Instant.parse("2026-04-03T10:00:00Z"),
             participants = participants.map(::memberEmail).toSet(),
             capsByMember = caps.mapKeys { (member) -> memberEmail(member) }.mapValues { (_, amount) -> MoneyAmount.ofCents(amount) },
+        )
+
+    private fun proposeCumulativeTiers(
+        totalAmountInCents: Long,
+        tiers: List<CumulativeExpenseTier>,
+    ): Expense =
+        Expense.proposeCumulativeTiers(
+            id = expenseId("expense-with-cumulative-tiers"),
+            group = groupId("group-1"),
+            title = "Boiler repair",
+            createdBy = memberEmail("alice"),
+            totalAmount = MoneyAmount.ofCents(totalAmountInCents),
+            createdAt = Instant.parse("2026-04-03T10:00:00Z"),
+            tiers = tiers,
         )
 
     private fun Expense.amountsByMember() = participations.associate { participation -> participation.member to participation.amount }

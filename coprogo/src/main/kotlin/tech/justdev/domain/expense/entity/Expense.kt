@@ -12,6 +12,21 @@ import tech.justdev.domain.shared.money.sum
 import tech.justdev.domain.shared.valueobject.GroupId
 import java.time.Instant
 
+data class CumulativeExpenseTier(
+    val upTo: MoneyAmount,
+    val participants: Set<MemberEmail>,
+) {
+    init {
+        require(upTo > MoneyAmount.ZERO) { "cumulative tier bound must be strictly positive" }
+        require(participants.isNotEmpty()) { "cumulative tier participants must not be empty" }
+    }
+}
+
+private data class CumulativeTierAllocation(
+    val previousBound: MoneyAmount,
+    val amountsByMember: Map<MemberEmail, MoneyAmount>,
+)
+
 data class Expense(
     val id: ExpenseId,
     val group: GroupId,
@@ -186,6 +201,59 @@ data class Expense(
                 availableParticipants = availableParticipants.filterNot(newlyCappedShares::containsKey),
                 capsByMember = capsByMember,
                 allocatedShares = allocatedShares + newlyCappedShares,
+            )
+        }
+
+        fun proposeCumulativeTiers(
+            id: ExpenseId,
+            group: GroupId,
+            title: String,
+            createdBy: MemberEmail,
+            totalAmount: MoneyAmount,
+            createdAt: Instant,
+            tiers: List<CumulativeExpenseTier>,
+        ): Expense {
+            require(tiers.isNotEmpty()) { "cumulative tiers must not be empty" }
+            require(tiers.zipWithNext().all { (current, next) -> next.upTo > current.upTo }) {
+                "cumulative tier bounds must be strictly increasing"
+            }
+            require(tiers.last().upTo == totalAmount) { "last cumulative tier bound must equal totalAmount" }
+
+            val allocation =
+                tiers.fold(
+                    CumulativeTierAllocation(
+                        previousBound = MoneyAmount.ZERO,
+                        amountsByMember = emptyMap(),
+                    ),
+                ) { currentAllocation, tier ->
+                    val tierAmount = tier.upTo - currentAllocation.previousBound
+                    val sortedParticipants = tier.participants.sortedBy { member -> member.toPrimitive() }
+                    val tierAmounts = tierAmount.splitEvenly(sortedParticipants.size)
+
+                    require(tierAmounts.none(MoneyAmount::isZero)) {
+                        "cumulative tier requires at least 1 cent per participant"
+                    }
+
+                    CumulativeTierAllocation(
+                        previousBound = tier.upTo,
+                        amountsByMember =
+                            sortedParticipants
+                                .zip(tierAmounts)
+                                .fold(currentAllocation.amountsByMember) { amountsByMember, (member, amount) ->
+                                    amountsByMember +
+                                        (member to ((amountsByMember[member] ?: MoneyAmount.ZERO) + amount))
+                                },
+                    )
+                }
+
+            return propose(
+                id = id,
+                group = group,
+                title = title,
+                createdBy = createdBy,
+                totalAmount = totalAmount,
+                createdAt = createdAt,
+                shares = allocation.amountsByMember.map { (member, amount) -> ExpenseShare(member, amount) }.toSet(),
             )
         }
 
