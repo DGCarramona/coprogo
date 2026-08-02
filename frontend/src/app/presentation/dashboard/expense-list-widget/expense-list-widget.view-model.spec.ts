@@ -1,92 +1,150 @@
+import { Injector } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
+
 import { ExpenseListWidgetViewModel } from './expense-list-widget.view-model';
 import { ExpenseListPort } from '../../../application/expense/expense-list.port';
 import { ExpenseResponseDto } from '../../../infrastructure/api/generated';
 
 describe('ExpenseListWidgetViewModel', () => {
-  it('loads expenses for the given group', async () => {
-    const port = new StubExpenseListPort();
-    const vm = new ExpenseListWidgetViewModel(port);
+  let queryClient: QueryClient;
+  let port: StubExpenseListPort;
+  let injector: Injector;
 
-    await vm.initialize('group-1');
+  beforeEach(() => {
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+      },
+    });
+    TestBed.configureTestingModule({
+      providers: [provideTanStackQuery(queryClient)],
+    });
+    port = new StubExpenseListPort();
+    injector = TestBed.inject(Injector);
+  });
 
-    expect(vm.status()).toBe('ready');
+  it('refreshes expenses when the scoped query is invalidated', async () => {
+    const vm = createViewModel();
+    vm.initialize('group-1');
+    await waitFor(() => vm.isReady());
+    port.result = [expense({ id: 'e2', title: 'Toiture', totalAmountCents: 1250 })];
+
+    await queryClient.invalidateQueries({ queryKey: ['groups', 'group-1', 'expenses'] });
+    await waitFor(
+      () => port.requestedGroupIds.length === 2 && vm.expenses()[0]?.title === 'Toiture',
+    );
+
     expect(vm.expenses()).toEqual([
-      { title: 'Courses', amount: '15,00\u00a0€', createdBy: 'alice@example.com' },
+      { title: 'Toiture', amount: '12,50\u00a0€', createdBy: 'alice@example.com' },
     ]);
   });
 
-  it('exposes empty list when no expenses', async () => {
-    const port = new StubExpenseListPort();
-    port.result = [];
-    const vm = new ExpenseListWidgetViewModel(port);
+  it('loads expenses for the given group', async () => {
+    const vm = createViewModel();
 
-    await vm.initialize('group-1');
+    vm.initialize('group-1');
+    await waitFor(() => vm.isReady());
+
+    expect(vm.expenses()).toEqual([
+      { title: 'Courses', amount: '15,00\u00a0€', createdBy: 'alice@example.com' },
+    ]);
+    expect(port.requestedGroupIds).toEqual(['group-1']);
+  });
+
+  it('exposes empty list when no expenses', async () => {
+    port.result = [];
+    const vm = createViewModel();
+
+    vm.initialize('group-1');
+    await waitFor(() => vm.isReady());
 
     expect(vm.expenses()).toEqual([]);
   });
 
   it('exposes a load error', async () => {
-    const port = new StubExpenseListPort();
     port.failure = new Error('Erreur reseau');
-    const vm = new ExpenseListWidgetViewModel(port);
+    const vm = createViewModel();
 
-    await vm.initialize('group-1');
+    vm.initialize('group-1');
+    await waitFor(() => vm.hasLoadError());
 
     expect(vm.hasLoadError()).toBe(true);
     expect(vm.errorMessage()).toBe('Erreur reseau');
   });
 
   it('is loading while fetching', async () => {
-    const port = new StubExpenseListPort();
     let resolvePromise!: (value: ExpenseResponseDto[]) => void;
     port.resultPromise = new Promise((resolve) => {
       resolvePromise = resolve;
     });
-    const vm = new ExpenseListWidgetViewModel(port);
+    const vm = createViewModel();
 
-    const loadPromise = vm.initialize('group-1');
+    vm.initialize('group-1');
+    await waitFor(() => vm.isLoading());
 
     expect(vm.isLoading()).toBe(true);
 
     resolvePromise([]);
-    await loadPromise;
+    await waitFor(() => vm.isReady());
 
     expect(vm.isReady()).toBe(true);
   });
 
   it('retries loading after a failure', async () => {
-    const port = new StubExpenseListPort();
     port.failure = new Error('Premier echec');
-    const vm = new ExpenseListWidgetViewModel(port);
+    const vm = createViewModel();
 
-    await vm.initialize('group-1');
+    vm.initialize('group-1');
+    await waitFor(() => vm.hasLoadError());
     expect(vm.hasLoadError()).toBe(true);
 
     port.failure = null;
     port.result = [];
-    await vm.retry();
+    vm.retry();
+    await waitFor(() => vm.isReady());
 
     expect(vm.isReady()).toBe(true);
+    expect(port.requestedGroupIds).toEqual(['group-1', 'group-1']);
   });
+
+  const createViewModel = (): ExpenseListWidgetViewModel => {
+    const viewModel = new ExpenseListWidgetViewModel(port, injector);
+    TestBed.tick();
+
+    return viewModel;
+  };
 });
 
 class StubExpenseListPort extends ExpenseListPort {
-  result: ExpenseResponseDto[] = [
-    {
-      id: 'e1',
-      title: 'Courses',
-      createdBy: 'alice@example.com',
-      totalAmountCents: 1500,
-      createdAt: '2026-06-01T10:00:00Z',
-      status: 'ACCEPTED',
-    },
-  ];
+  result: ExpenseResponseDto[] = [expense()];
   failure: Error | null = null;
   resultPromise: Promise<ExpenseResponseDto[]> | null = null;
+  requestedGroupIds: string[] = [];
 
-  override async listByGroup(): Promise<ExpenseResponseDto[]> {
+  override async listByGroup(groupId: string): Promise<ExpenseResponseDto[]> {
+    this.requestedGroupIds.push(groupId);
     if (this.failure) throw this.failure;
     if (this.resultPromise) return this.resultPromise;
     return this.result;
   }
 }
+
+const expense = (overrides: Partial<ExpenseResponseDto> = {}): ExpenseResponseDto => ({
+  id: 'e1',
+  title: 'Courses',
+  createdBy: 'alice@example.com',
+  totalAmountCents: 1500,
+  createdAt: '2026-06-01T10:00:00Z',
+  status: 'ACCEPTED',
+  ...overrides,
+});
+
+const waitFor = async (condition: () => boolean): Promise<void> => {
+  for (let attempt = 0; attempt < 50; attempt += 1) {
+    if (condition()) return;
+    await new Promise((resolve) => setTimeout(resolve));
+  }
+
+  throw new Error('La condition attendue n a pas ete atteinte.');
+};

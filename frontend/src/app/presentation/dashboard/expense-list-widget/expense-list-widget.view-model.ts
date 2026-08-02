@@ -1,11 +1,10 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { computed, Injectable, Injector, signal } from '@angular/core';
+import { injectQuery } from '@tanstack/angular-query-experimental';
 
 import { ExpenseListPort } from '../../../application/expense/expense-list.port';
 import { describeError } from '../../../application/shared/describe-error';
-import { ExpenseResponseDto } from '../../../infrastructure/api/generated';
 import { formatMoneyFromCents } from '../../../shared/format/financial-format';
-
-type WidgetStatus = 'idle' | 'loading' | 'ready' | 'failed';
+import { ExpenseResponseDto } from '../../../infrastructure/api/generated';
 
 export interface ExpenseViewItem {
   readonly title: string;
@@ -15,44 +14,55 @@ export interface ExpenseViewItem {
 
 @Injectable()
 export class ExpenseListWidgetViewModel {
-  private readonly statusState = signal<WidgetStatus>('idle');
-  private readonly expensesState = signal<readonly ExpenseResponseDto[]>([]);
-  private readonly errorMessageState = signal<string | null>(null);
+  private readonly groupIdState = signal<string | null>(null);
 
-  constructor(private readonly expensePort: ExpenseListPort) {}
+  private readonly expensesQuery;
+  readonly expenses = computed<readonly ExpenseViewItem[]>(() => this.expensesQuery.data() ?? []);
+  readonly isLoading = computed(() => this.expensesQuery.isLoading());
+  readonly hasLoadError = computed(() => this.expensesQuery.isError());
+  readonly isReady = computed(() => this.expensesQuery.isSuccess());
+  readonly errorMessage = computed(() => {
+    const error = this.expensesQuery.error();
 
-  readonly status = this.statusState.asReadonly();
-  readonly errorMessage = this.errorMessageState.asReadonly();
-  readonly isLoading = computed(() => this.status() === 'loading');
-  readonly hasLoadError = computed(() => this.status() === 'failed');
-  readonly isReady = computed(() => this.status() === 'ready');
-  readonly expenses = computed<readonly ExpenseViewItem[]>(() =>
-    this.expensesState().map((expense) => ({
-      title: expense.title,
-      amount: formatMoneyFromCents(expense.totalAmountCents),
-      createdBy: expense.createdBy,
-    })),
-  );
+    return error === null ? null : describeError(error, 'Les depenses n ont pas pu etre chargees.');
+  });
 
-  async initialize(groupId: string): Promise<void> {
-    await this.load(groupId);
+  constructor(
+    private readonly expensePort: ExpenseListPort,
+    injector: Injector,
+  ) {
+    this.expensesQuery = injectQuery(
+      () => {
+        const groupId = this.groupIdState();
+
+        return {
+          queryKey: ['groups', groupId, 'expenses'] as const,
+          queryFn: (): Promise<ExpenseResponseDto[]> => {
+            if (groupId === null) {
+              throw new Error('Un groupe doit etre initialise avant de charger ses depenses.');
+            }
+
+            return this.expensePort.listByGroup(groupId);
+          },
+          enabled: groupId !== null,
+          staleTime: 30_000,
+          select: (expenses) =>
+            expenses.map((expense) => ({
+              title: expense.title,
+              amount: formatMoneyFromCents(expense.totalAmountCents),
+              createdBy: expense.createdBy,
+            })),
+        };
+      },
+      { injector },
+    );
   }
 
-  async retry(): Promise<void> {
-    await this.load();
+  initialize(groupId: string): void {
+    this.groupIdState.set(groupId);
   }
 
-  private async load(groupId?: string): Promise<void> {
-    this.statusState.set('loading');
-    this.errorMessageState.set(null);
-
-    try {
-      this.expensesState.set(await this.expensePort.listByGroup(groupId!));
-      this.statusState.set('ready');
-    } catch (error) {
-      this.expensesState.set([]);
-      this.statusState.set('failed');
-      this.errorMessageState.set(describeError(error, 'Les depenses n ont pas pu etre chargees.'));
-    }
+  retry(): void {
+    void this.expensesQuery.refetch();
   }
 }
