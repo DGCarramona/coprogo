@@ -1,5 +1,7 @@
 export * from './cash-pool-balance-response';
 export * from './create-group-response';
+export * from './expense-participation-decision-input';
+export * from './expense-participation-decision-request';
 export * from './expense-response';
 export * from './group-balances-response';
 export * from './group-invitation-response';
@@ -14,6 +16,7 @@ export * from './ownership-share-input';
 export * from './ownership-share-response';
 export * from './ownership-share-timeline-response';
 export * from './pending-group-invitation-response';
+export * from './propose-equal-split-expense-request';
 export * from './record-cash-pool-income-request';
 export * from './record-ownership-share-change-request';
 export * from './revenue-distribution-allocation';

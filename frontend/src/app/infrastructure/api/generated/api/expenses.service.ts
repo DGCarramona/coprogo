@@ -22,7 +22,11 @@ import { Observable } from 'rxjs';
 import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 
 // @ts-ignore
+import { ExpenseParticipationDecisionRequestDto } from '../model/expense-participation-decision-request';
+// @ts-ignore
 import { ExpenseResponseDto } from '../model/expense-response';
+// @ts-ignore
+import { ProposeEqualSplitExpenseRequestDto } from '../model/propose-equal-split-expense-request';
 
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS } from '../variables';
@@ -122,6 +126,208 @@ export class ExpensesService extends BaseService {
     const { basePath, withCredentials } = this.configuration;
     return this.httpClient.request<Array<ExpenseResponseDto>>('get', `${basePath}${localVarPath}`, {
       context: localVarHttpContext,
+      responseType: <any>responseType_,
+      ...(withCredentials ? { withCredentials } : {}),
+      headers: localVarHeaders,
+      observe: observe,
+      ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+      reportProgress: reportProgress,
+    });
+  }
+
+  /**
+   * Propose an expense with an equal split
+   * @endpoint post /api/groups/{groupId}/expenses
+   * @param groupId
+   * @param proposeEqualSplitExpenseRequestDto
+   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+   * @param reportProgress flag to report request and response progress.
+   * @param options additional options
+   */
+  public proposeEqualSplitExpense(
+    groupId: string,
+    proposeEqualSplitExpenseRequestDto: ProposeEqualSplitExpenseRequestDto,
+    observe?: 'body',
+    reportProgress?: boolean,
+    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+  ): Observable<any>;
+  public proposeEqualSplitExpense(
+    groupId: string,
+    proposeEqualSplitExpenseRequestDto: ProposeEqualSplitExpenseRequestDto,
+    observe?: 'response',
+    reportProgress?: boolean,
+    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+  ): Observable<HttpResponse<any>>;
+  public proposeEqualSplitExpense(
+    groupId: string,
+    proposeEqualSplitExpenseRequestDto: ProposeEqualSplitExpenseRequestDto,
+    observe?: 'events',
+    reportProgress?: boolean,
+    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+  ): Observable<HttpEvent<any>>;
+  public proposeEqualSplitExpense(
+    groupId: string,
+    proposeEqualSplitExpenseRequestDto: ProposeEqualSplitExpenseRequestDto,
+    observe: any = 'body',
+    reportProgress: boolean = false,
+    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+  ): Observable<any> {
+    if (groupId === null || groupId === undefined) {
+      throw new Error(
+        'Required parameter groupId was null or undefined when calling proposeEqualSplitExpense.',
+      );
+    }
+    if (
+      proposeEqualSplitExpenseRequestDto === null ||
+      proposeEqualSplitExpenseRequestDto === undefined
+    ) {
+      throw new Error(
+        'Required parameter proposeEqualSplitExpenseRequestDto was null or undefined when calling proposeEqualSplitExpense.',
+      );
+    }
+
+    let localVarHeaders = this.defaultHeaders;
+
+    const localVarHttpHeaderAcceptSelected: string | undefined =
+      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([]);
+    if (localVarHttpHeaderAcceptSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+    }
+
+    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+    const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+    // to determine the Content-Type header
+    const consumes: string[] = ['application/json'];
+    const httpContentTypeSelected: string | undefined =
+      this.configuration.selectHeaderContentType(consumes);
+    if (httpContentTypeSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+    }
+
+    let responseType_: 'text' | 'json' | 'blob' = 'json';
+    if (localVarHttpHeaderAcceptSelected) {
+      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+        responseType_ = 'text';
+      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+        responseType_ = 'json';
+      } else {
+        responseType_ = 'blob';
+      }
+    }
+
+    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/expenses`;
+    const { basePath, withCredentials } = this.configuration;
+    return this.httpClient.request<any>('post', `${basePath}${localVarPath}`, {
+      context: localVarHttpContext,
+      body: proposeEqualSplitExpenseRequestDto,
+      responseType: <any>responseType_,
+      ...(withCredentials ? { withCredentials } : {}),
+      headers: localVarHeaders,
+      observe: observe,
+      ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+      reportProgress: reportProgress,
+    });
+  }
+
+  /**
+   * Record a participation decision for an expense
+   * @endpoint post /api/groups/{groupId}/expenses/{expenseId}/participation-decisions
+   * @param groupId
+   * @param expenseId
+   * @param expenseParticipationDecisionRequestDto
+   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+   * @param reportProgress flag to report request and response progress.
+   * @param options additional options
+   */
+  public recordParticipationDecision(
+    groupId: string,
+    expenseId: string,
+    expenseParticipationDecisionRequestDto: ExpenseParticipationDecisionRequestDto,
+    observe?: 'body',
+    reportProgress?: boolean,
+    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+  ): Observable<any>;
+  public recordParticipationDecision(
+    groupId: string,
+    expenseId: string,
+    expenseParticipationDecisionRequestDto: ExpenseParticipationDecisionRequestDto,
+    observe?: 'response',
+    reportProgress?: boolean,
+    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+  ): Observable<HttpResponse<any>>;
+  public recordParticipationDecision(
+    groupId: string,
+    expenseId: string,
+    expenseParticipationDecisionRequestDto: ExpenseParticipationDecisionRequestDto,
+    observe?: 'events',
+    reportProgress?: boolean,
+    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+  ): Observable<HttpEvent<any>>;
+  public recordParticipationDecision(
+    groupId: string,
+    expenseId: string,
+    expenseParticipationDecisionRequestDto: ExpenseParticipationDecisionRequestDto,
+    observe: any = 'body',
+    reportProgress: boolean = false,
+    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+  ): Observable<any> {
+    if (groupId === null || groupId === undefined) {
+      throw new Error(
+        'Required parameter groupId was null or undefined when calling recordParticipationDecision.',
+      );
+    }
+    if (expenseId === null || expenseId === undefined) {
+      throw new Error(
+        'Required parameter expenseId was null or undefined when calling recordParticipationDecision.',
+      );
+    }
+    if (
+      expenseParticipationDecisionRequestDto === null ||
+      expenseParticipationDecisionRequestDto === undefined
+    ) {
+      throw new Error(
+        'Required parameter expenseParticipationDecisionRequestDto was null or undefined when calling recordParticipationDecision.',
+      );
+    }
+
+    let localVarHeaders = this.defaultHeaders;
+
+    const localVarHttpHeaderAcceptSelected: string | undefined =
+      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([]);
+    if (localVarHttpHeaderAcceptSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+    }
+
+    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+    const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+    // to determine the Content-Type header
+    const consumes: string[] = ['application/json'];
+    const httpContentTypeSelected: string | undefined =
+      this.configuration.selectHeaderContentType(consumes);
+    if (httpContentTypeSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+    }
+
+    let responseType_: 'text' | 'json' | 'blob' = 'json';
+    if (localVarHttpHeaderAcceptSelected) {
+      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+        responseType_ = 'text';
+      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+        responseType_ = 'json';
+      } else {
+        responseType_ = 'blob';
+      }
+    }
+
+    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/expenses/${this.configuration.encodeParam({ name: 'expenseId', value: expenseId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/participation-decisions`;
+    const { basePath, withCredentials } = this.configuration;
+    return this.httpClient.request<any>('post', `${basePath}${localVarPath}`, {
+      context: localVarHttpContext,
+      body: expenseParticipationDecisionRequestDto,
       responseType: <any>responseType_,
       ...(withCredentials ? { withCredentials } : {}),
       headers: localVarHeaders,

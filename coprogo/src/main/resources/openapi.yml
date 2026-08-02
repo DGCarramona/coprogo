@@ -75,30 +75,6 @@ paths:
                 $ref: "#/components/schemas/GroupResponse"
       security:
       - bearerAuth: []
-  /api/groups/{groupId}/expenses:
-    get:
-      tags:
-      - Expenses
-      summary: List expenses for a group
-      operationId: listGroupExpenses
-      parameters:
-      - name: groupId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-      responses:
-        "200":
-          description: listGroupExpenses 200 response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ExpenseResponse"
-      security:
-      - bearerAuth: []
   /api/groups/{groupId}/balances:
     get:
       tags:
@@ -188,6 +164,83 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GroupMemberCashPoolSharesResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/expenses:
+    get:
+      tags:
+      - Expenses
+      summary: List expenses for a group
+      operationId: listGroupExpenses
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: listGroupExpenses 200 response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExpenseResponse"
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - Expenses
+      summary: Propose an expense with an equal split
+      operationId: proposeEqualSplitExpense
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProposeEqualSplitExpenseRequest"
+        required: true
+      responses:
+        "204":
+          description: proposeEqualSplitExpense 204 response
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/expenses/{expenseId}/participation-decisions:
+    post:
+      tags:
+      - Expenses
+      summary: Record a participation decision for an expense
+      operationId: recordParticipationDecision
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: expenseId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseParticipationDecisionRequest"
+        required: true
+      responses:
+        "204":
+          description: recordParticipationDecision 204 response
       security:
       - bearerAuth: []
   /api/groups/{groupId}/invitations:
@@ -330,6 +383,18 @@ components:
         group:
           type: string
           format: uuid
+    ExpenseParticipationDecisionInput:
+      type: string
+      enum:
+      - APPROVE
+      - REFUSE
+    ExpenseParticipationDecisionRequest:
+      required:
+      - decision
+      type: object
+      properties:
+        decision:
+          $ref: "#/components/schemas/ExpenseParticipationDecisionInput"
     ExpenseResponse:
       required:
       - createdAt
@@ -546,6 +611,26 @@ components:
         invitedAt:
           type: string
           format: date-time
+    ProposeEqualSplitExpenseRequest:
+      required:
+      - participants
+      - title
+      - totalAmountInCents
+      type: object
+      properties:
+        title:
+          minLength: 1
+          type: string
+        totalAmountInCents:
+          minimum: 0
+          exclusiveMinimum: true
+          type: integer
+          format: int64
+        participants:
+          minItems: 1
+          type: array
+          items:
+            type: string
     RecordCashPoolIncomeRequest:
       required:
       - amountInCents

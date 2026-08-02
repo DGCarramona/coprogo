@@ -13,6 +13,8 @@ git_push.sh
 index.ts
 model/cash-pool-balance-response.ts
 model/create-group-response.ts
+model/expense-participation-decision-input.ts
+model/expense-participation-decision-request.ts
 model/expense-response.ts
 model/group-balances-response.ts
 model/group-invitation-response.ts
@@ -28,6 +30,7 @@ model/ownership-share-input.ts
 model/ownership-share-response.ts
 model/ownership-share-timeline-response.ts
 model/pending-group-invitation-response.ts
+model/propose-equal-split-expense-request.ts
 model/record-cash-pool-income-request.ts
 model/record-ownership-share-change-request.ts
 model/revenue-distribution-allocation.ts
