@@ -1,14 +1,14 @@
 # Backlog
 
-Backlog derive de l'etat actuel du depot au 2026-04-15.
+Backlog derive de l'etat actuel du depot au 2026-08-02.
 
 ## Etat actuel constate
 
 - Backend: coeur metier deja entame pour `expense`, `revenue` et `ledger`, avec des tests de domaine et d'application.
-- Backend HTTP: seul le preview de distribution de revenus est expose aujourd'hui, plus l'OpenAPI.
-- Backend infra: migrations Flyway presentes pour groupes, membres et appartenances, adaptateurs R2DBC presents pour groupes et membres, validation Google ID token orientee produit en place, pas encore de stockage S3.
-- Frontend: shell Angular Material 3 en place, avec routes de connexion Google et liste des invitations en attente, mais sans ecrans metier au-dela de cet onboarding.
-- Frontend API: client OpenAPI genere uniquement pour le preview de distribution de revenus, avec source reelle de Google ID token et clients HTTP dedies pour l'onboarding groupes.
+- Backend HTTP: les groupes, invitations, quotes-parts, revenus, depenses et lectures financieres du groupe sont exposes avec l'OpenAPI.
+- Backend infra: migrations Flyway et adaptateurs R2DBC presents pour groupes, invitations, quotes-parts, ledger et depenses, validation Google ID token orientee produit en place, pas encore de stockage S3.
+- Frontend: connexion Google, invitations et dashboard de groupe sont en place, avec lecture des soldes, caisse, depenses et proposition de depense a partage egal.
+- Frontend API: client OpenAPI genere pour groupes, depenses, ledger et revenus, avec source reelle de Google ID token.
 - Monorepo: orchestration Gradle racine en place pour piloter ensemble le front et le back.
 
 ## Regles de decoupage
@@ -60,12 +60,12 @@ Backlog derive de l'etat actuel du depot au 2026-04-15.
 
 ## Backend - depenses
 
-- [ ] BE-EXP-001 Ajouter les migrations Flyway pour `expenses` et `expense_participations`.
-- [ ] BE-EXP-002 Creer l'adaptateur R2DBC de `ExpenseRepository`.
-- [ ] BE-EXP-003 Exposer l'endpoint REST de proposition de depense avec partage egal.
-- [ ] BE-EXP-004 Exposer l'endpoint REST d'enregistrement d'une decision de participation.
+- [x] BE-EXP-001 Ajouter les migrations Flyway pour `expenses` et `expense_participations`.
+- [x] BE-EXP-002 Creer l'adaptateur R2DBC de `ExpenseRepository`.
+- [x] BE-EXP-003 Exposer l'endpoint REST de proposition de depense avec partage egal.
+- [x] BE-EXP-004 Exposer l'endpoint REST d'enregistrement d'une decision de participation.
 - [ ] BE-EXP-005 Exposer l'endpoint REST de detail d'une depense.
-- [ ] BE-EXP-006 Exposer l'endpoint REST de liste des depenses d'un groupe.
+- [x] BE-EXP-006 Exposer l'endpoint REST de liste des depenses d'un groupe.
 - [ ] BE-EXP-007 Ajouter au domaine la variante "participation partielle" explicitement nommee dans l'API.
 - [ ] BE-EXP-008 Ajouter au domaine la variante "participation capee".
 - [ ] BE-EXP-009 Ajouter au domaine la variante "contribution maximale".
@@ -135,13 +135,13 @@ Backlog derive de l'etat actuel du depot au 2026-04-15.
 - [x] FE-DASH-004 Afficher le solde disponible de la caisse commune.
 - [x] FE-DASH-005 Afficher les parts de caisse commune par membre.
 - [ ] FE-DASH-006 Ajouter une vue explicative qui rattache les soldes aux evenements financiers.
-- [ ] FE-DASH-007 Ajouter les tests de ViewModel et de rendu du dashboard.
+- [x] FE-DASH-007 Ajouter les tests de ViewModel et de rendu du dashboard.
 
 ## Frontend - depenses
 
 - [ ] FE-EXP-001 Creer la page de liste des depenses d'un groupe.
 - [ ] FE-EXP-002 Creer la page de detail d'une depense avec statuts de participation.
-- [ ] FE-EXP-003 Creer le formulaire de depense a partage egal.
+- [x] FE-EXP-003 Creer le formulaire de depense a partage egal.
 - [ ] FE-EXP-004 Creer le formulaire de depense a montant partiel.
 - [ ] FE-EXP-005 Creer le formulaire de depense pour participations capees.
 - [ ] FE-EXP-006 Creer le formulaire de depense pour contributions maximales.
