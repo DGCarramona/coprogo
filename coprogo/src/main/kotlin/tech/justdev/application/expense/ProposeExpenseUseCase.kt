@@ -16,11 +16,11 @@ data class EqualSplitExpenseAllocationCommand(
     val participants: Set<MemberEmail>,
 ) : ExpenseAllocationCommand
 
-data class FixedExpenseAllocationCommand(
-    val participations: Set<FixedExpenseParticipationCommand>,
+data class CustomExpenseAllocationCommand(
+    val participations: Set<CustomExpenseParticipationCommand>,
 ) : ExpenseAllocationCommand
 
-data class FixedExpenseParticipationCommand(
+data class CustomExpenseParticipationCommand(
     val member: MemberEmail,
     val amountInCents: Long,
 )
@@ -49,7 +49,7 @@ class ProposeExpenseUseCaseImpl(
         val nonMember =
             when (val allocation = command.allocation) {
                 is EqualSplitExpenseAllocationCommand -> allocation.participants
-                is FixedExpenseAllocationCommand -> allocation.participations.map { participation -> participation.member }.toSet()
+                is CustomExpenseAllocationCommand -> allocation.participations.map { participation -> participation.member }.toSet()
             }.let {
                 it
                     .filterNot(group::contains)
@@ -75,7 +75,7 @@ class ProposeExpenseUseCaseImpl(
                     )
                 }
 
-                is FixedExpenseAllocationCommand -> {
+                is CustomExpenseAllocationCommand -> {
                     Expense.propose(
                         id = expenseIdGenerator.next(),
                         group = command.group,

@@ -93,10 +93,10 @@ class ProposeExpenseUseCaseTest {
                     totalAmountInCents = 100,
                     createdAt = Instant.parse("2026-04-03T10:00:00Z"),
                     allocation =
-                        FixedExpenseAllocationCommand(
+                        CustomExpenseAllocationCommand(
                             participations =
                                 setOf(
-                                    FixedExpenseParticipationCommand(memberEmail("alice"), 100),
+                                    CustomExpenseParticipationCommand(memberEmail("alice"), 100),
                                 ),
                         ),
                 ),
@@ -165,12 +165,12 @@ class ProposeExpenseUseCaseTest {
     }
 
     @Test
-    fun `invoke should reject a fixed participant who is not a group member before generating an expense id`() {
+    fun `invoke should reject a custom participant who is not a group member before generating an expense id`() {
         assertNonMemberParticipantIsRejected(
-            FixedExpenseAllocationCommand(
+            CustomExpenseAllocationCommand(
                 setOf(
-                    FixedExpenseParticipationCommand(memberEmail("alice"), 50),
-                    FixedExpenseParticipationCommand(memberEmail("outsider"), 50),
+                    CustomExpenseParticipationCommand(memberEmail("alice"), 50),
+                    CustomExpenseParticipationCommand(memberEmail("outsider"), 50),
                 ),
             ),
         )

@@ -310,24 +310,45 @@ class ExpenseTest {
         }
     }
 
-    @Test
-    fun `propose should auto approve creator participation and wait for other members`() {
-        assertEquals(
-            proposedExpense(),
-            Expense.propose(
-                id = expenseId("expense-1"),
-                group = groupId("group-1"),
-                title = "Plumber invoice",
-                createdBy = memberEmail("alice"),
-                totalAmount = MoneyAmount.ofCents(100),
-                createdAt = Instant.parse("2026-04-03T10:00:00Z"),
-                shares =
-                    setOf(
-                        ExpenseShare(memberEmail("alice"), MoneyAmount.ofCents(40)),
-                        ExpenseShare(memberEmail("bob"), MoneyAmount.ofCents(60)),
-                    ),
-            ),
-        )
+    @Nested
+    inner class Propose {
+        @Test
+        fun `should auto approve creator participation and wait for other members`() {
+            assertEquals(
+                proposedExpense(),
+                Expense.propose(
+                    id = expenseId("expense-1"),
+                    group = groupId("group-1"),
+                    title = "Plumber invoice",
+                    createdBy = memberEmail("alice"),
+                    totalAmount = MoneyAmount.ofCents(100),
+                    createdAt = Instant.parse("2026-04-03T10:00:00Z"),
+                    shares =
+                        setOf(
+                            ExpenseShare(memberEmail("alice"), MoneyAmount.ofCents(40)),
+                            ExpenseShare(memberEmail("bob"), MoneyAmount.ofCents(60)),
+                        ),
+                ),
+            )
+        }
+
+        @Test
+        fun `should fail when creator does not participate`() {
+            assertThrows(IllegalArgumentException::class.java) {
+                Expense.propose(
+                    id = expenseId("expense-1"),
+                    group = groupId("group-1"),
+                    title = "Plumber invoice",
+                    createdBy = memberEmail("alice"),
+                    totalAmount = MoneyAmount.ofCents(100),
+                    createdAt = Instant.parse("2026-04-03T10:00:00Z"),
+                    shares =
+                        setOf(
+                            ExpenseShare(memberEmail("bob"), MoneyAmount.ofCents(100)),
+                        ),
+                )
+            }
+        }
     }
 
     @Test
@@ -396,24 +417,6 @@ class ExpenseTest {
                 decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
             ),
         )
-    }
-
-    @Test
-    fun `propose should fail when creator does not participate`() {
-        assertThrows(IllegalArgumentException::class.java) {
-            Expense.propose(
-                id = expenseId("expense-1"),
-                group = groupId("group-1"),
-                title = "Plumber invoice",
-                createdBy = memberEmail("alice"),
-                totalAmount = MoneyAmount.ofCents(100),
-                createdAt = Instant.parse("2026-04-03T10:00:00Z"),
-                shares =
-                    setOf(
-                        ExpenseShare(memberEmail("bob"), MoneyAmount.ofCents(100)),
-                    ),
-            )
-        }
     }
 
     private fun proposedExpense(): Expense =
