@@ -8,7 +8,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import tech.justdev.application.auth.AuthenticatedUser
 import tech.justdev.application.auth.AuthenticatedUserProvider
-import tech.justdev.application.expense.EqualSplitExpenseAllocationCommand
+import tech.justdev.application.expense.CumulativeExpenseTierCommand
+import tech.justdev.application.expense.CumulativeTiersExpenseAllocationCommand
 import tech.justdev.application.expense.ExpenseDetailParticipationSnapshot
 import tech.justdev.application.expense.ExpenseDetailSnapshot
 import tech.justdev.application.expense.ExpenseParticipationDecisionCommand
@@ -167,20 +168,29 @@ class ExpenseControllerTest {
     }
 
     @Nested
-    inner class ProposeEqualSplitExpense {
+    inner class ProposeExpense {
         @Test
-        fun `should map the request and normalized participants to a proposal command`() =
+        fun `should map a cumulative tiers request to a proposal command`() =
             runTest {
                 val groupId = UUID.randomUUID()
                 val before = Instant.now()
 
-                controller.proposeEqualSplitExpense(
+                controller.proposeExpense(
                     groupId = groupId,
                     request =
-                        ProposeEqualSplitExpenseRequest(
+                        ProposeExpenseRequest(
                             title = "Boiler repair",
                             totalAmountInCents = 12_345,
-                            participants = setOf(" CREATOR@EXAMPLE.COM ", " Bob@Example.com "),
+                            allocation =
+                                CumulativeTiersExpenseAllocationRequest(
+                                    tiers =
+                                        listOf(
+                                            CumulativeExpenseTierRequest(
+                                                upToAmountInCents = 12_345,
+                                                participants = setOf(" CREATOR@EXAMPLE.COM ", " Bob@Example.com "),
+                                            ),
+                                        ),
+                                ),
                         ),
                 )
 
@@ -193,8 +203,20 @@ class ExpenseControllerTest {
                 assertTrue(!command.createdAt.isBefore(before))
                 assertTrue(!command.createdAt.isAfter(after))
                 assertEquals(
-                    setOf(MemberEmail.of("creator@example.com"), MemberEmail.of("bob@example.com")),
-                    (command.allocation as EqualSplitExpenseAllocationCommand).participants,
+                    CumulativeTiersExpenseAllocationCommand(
+                        tiers =
+                            listOf(
+                                CumulativeExpenseTierCommand(
+                                    upToAmountInCents = 12_345,
+                                    participants =
+                                        setOf(
+                                            MemberEmail.of("creator@example.com"),
+                                            MemberEmail.of("bob@example.com"),
+                                        ),
+                                ),
+                            ),
+                    ),
+                    command.allocation,
                 )
             }
 
@@ -202,13 +224,22 @@ class ExpenseControllerTest {
         fun `should reject an invalid participant email before calling the use case`() {
             assertThrows<IllegalArgumentException> {
                 runTest {
-                    controller.proposeEqualSplitExpense(
+                    controller.proposeExpense(
                         groupId = UUID.randomUUID(),
                         request =
-                            ProposeEqualSplitExpenseRequest(
+                            ProposeExpenseRequest(
                                 title = "Boiler repair",
                                 totalAmountInCents = 12_345,
-                                participants = setOf("creator@example.com", "not-an-email"),
+                                allocation =
+                                    CumulativeTiersExpenseAllocationRequest(
+                                        tiers =
+                                            listOf(
+                                                CumulativeExpenseTierRequest(
+                                                    upToAmountInCents = 12_345,
+                                                    participants = setOf("creator@example.com", "not-an-email"),
+                                                ),
+                                            ),
+                                    ),
                             ),
                     )
                 }

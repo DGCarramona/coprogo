@@ -193,8 +193,8 @@ paths:
     post:
       tags:
       - Expenses
-      summary: Propose an expense with an equal split
-      operationId: proposeEqualSplitExpense
+      summary: Propose an expense
+      operationId: proposeExpense
       parameters:
       - name: groupId
         in: path
@@ -206,11 +206,11 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ProposeEqualSplitExpenseRequest"
+              $ref: "#/components/schemas/ProposeExpenseRequest"
         required: true
       responses:
         "204":
-          description: proposeEqualSplitExpense 204 response
+          description: proposeExpense 204 response
       security:
       - bearerAuth: []
   /api/groups/{groupId}/expenses/{expenseId}:
@@ -411,6 +411,126 @@ components:
         group:
           type: string
           format: uuid
+    CumulativeExpenseTierRequest:
+      required:
+      - participants
+      - upToAmountInCents
+      type: object
+      properties:
+        upToAmountInCents:
+          minimum: 0
+          exclusiveMinimum: true
+          type: integer
+          format: int64
+        participants:
+          minItems: 1
+          type: array
+          items:
+            minLength: 1
+            type: string
+            format: email
+    CumulativeTiersExpenseAllocationRequest:
+      required:
+      - tiers
+      type: object
+      properties:
+        tiers:
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/CumulativeExpenseTierRequest"
+        type:
+          type: string
+    CustomExpenseAllocationRequest:
+      required:
+      - participations
+      type: object
+      properties:
+        participations:
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/CustomExpenseParticipationRequest"
+        type:
+          type: string
+    CustomExpenseParticipationRequest:
+      required:
+      - amountInCents
+      - member
+      type: object
+      properties:
+        member:
+          minLength: 1
+          type: string
+          format: email
+        amountInCents:
+          minimum: 0
+          exclusiveMinimum: true
+          type: integer
+          format: int64
+    EqualExpenseAllocationRequest:
+      required:
+      - participants
+      type: object
+      properties:
+        participants:
+          minItems: 1
+          type: array
+          items:
+            minLength: 1
+            type: string
+            format: email
+        type:
+          type: string
+    EqualWithCapsExpenseAllocationRequest:
+      required:
+      - caps
+      - participants
+      type: object
+      properties:
+        participants:
+          minItems: 1
+          type: array
+          items:
+            minLength: 1
+            type: string
+            format: email
+        caps:
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/ExpenseAllocationCapRequest"
+        type:
+          type: string
+    ExpenseAllocationCapRequest:
+      required:
+      - maximumAmountInCents
+      - member
+      type: object
+      properties:
+        member:
+          minLength: 1
+          type: string
+          format: email
+        maximumAmountInCents:
+          minimum: 0
+          exclusiveMinimum: true
+          type: integer
+          format: int64
+    ExpenseAllocationRequest:
+      type: object
+      discriminator:
+        propertyName: type
+        mapping:
+          EQUAL_WITH_CAPS: "#/components/schemas/EqualWithCapsExpenseAllocationRequest"
+          EQUAL: "#/components/schemas/EqualExpenseAllocationRequest"
+          CUSTOM: "#/components/schemas/CustomExpenseAllocationRequest"
+          CUMULATIVE_TIERS: "#/components/schemas/CumulativeTiersExpenseAllocationRequest"
+      oneOf:
+      - $ref: "#/components/schemas/EqualExpenseAllocationRequest"
+      - $ref: "#/components/schemas/EqualWithCapsExpenseAllocationRequest"
+      - $ref: "#/components/schemas/CumulativeTiersExpenseAllocationRequest"
+      - $ref: "#/components/schemas/CustomExpenseAllocationRequest"
     ExpenseDetailParticipationResponse:
       required:
       - amountCents
@@ -683,9 +803,9 @@ components:
         invitedAt:
           type: string
           format: date-time
-    ProposeEqualSplitExpenseRequest:
+    ProposeExpenseRequest:
       required:
-      - participants
+      - allocation
       - title
       - totalAmountInCents
       type: object
@@ -698,11 +818,8 @@ components:
           exclusiveMinimum: true
           type: integer
           format: int64
-        participants:
-          minItems: 1
-          type: array
-          items:
-            type: string
+        allocation:
+          $ref: "#/components/schemas/ExpenseAllocationRequest"
     RecordCashPoolIncomeRequest:
       required:
       - amountInCents

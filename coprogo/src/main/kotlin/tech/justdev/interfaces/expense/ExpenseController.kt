@@ -11,11 +11,7 @@ import io.micronaut.serde.annotation.Serdeable
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotEmpty
-import jakarta.validation.constraints.Positive
 import tech.justdev.application.auth.AuthenticatedUserProvider
-import tech.justdev.application.expense.EqualSplitExpenseAllocationCommand
 import tech.justdev.application.expense.ExpenseDetailParticipationSnapshot
 import tech.justdev.application.expense.ExpenseDetailSnapshot
 import tech.justdev.application.expense.ExpenseParticipationDecisionCommand
@@ -30,7 +26,6 @@ import tech.justdev.application.expense.RecordExpenseParticipationDecisionComman
 import tech.justdev.application.expense.RecordExpenseParticipationDecisionUseCase
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationStatus
-import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.valueobject.GroupId
 import tech.justdev.interfaces.openapi.AuthenticatedApi
 import java.time.Instant
@@ -74,13 +69,12 @@ class ExpenseController(
 
     @Post("/groups/{groupId}/expenses")
     @Status(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Propose an expense with an equal split")
-    suspend fun proposeEqualSplitExpense(
+    @Operation(summary = "Propose an expense")
+    suspend fun proposeExpense(
         @PathVariable groupId: UUID,
-        @Valid @Body request: ProposeEqualSplitExpenseRequest,
+        @Valid @Body request: ProposeExpenseRequest,
     ) {
         val authenticatedUser = authenticatedUserProvider.currentAuthenticatedUser()
-        val participants = request.participants.map(MemberEmail::of).toSet()
 
         proposeExpenseUseCase(
             ProposeExpenseCommand(
@@ -89,7 +83,7 @@ class ExpenseController(
                 createdBy = authenticatedUser.email,
                 totalAmountInCents = request.totalAmountInCents,
                 createdAt = Instant.now(),
-                allocation = EqualSplitExpenseAllocationCommand(participants),
+                allocation = request.allocation.toCommand(),
             ),
         )
     }
@@ -118,16 +112,6 @@ class ExpenseController(
         )
     }
 }
-
-@Serdeable
-data class ProposeEqualSplitExpenseRequest(
-    @field:NotBlank
-    val title: String,
-    @field:Positive
-    val totalAmountInCents: Long,
-    @field:NotEmpty
-    val participants: Set<String>,
-)
 
 @Serdeable
 data class ExpenseParticipationDecisionRequest(
