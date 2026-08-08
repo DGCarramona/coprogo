@@ -18,6 +18,12 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 - Un item backend n'est pas termine sans tests et verifications `./gradlew test` au minimum.
 - Un item frontend n'est pas termine sans tests et verifications `npm run lint`, `npm run test`, `npm run build`.
 
+## Ordre de travail actuel
+
+1. Terminer toutes les tranches de depenses cote backend avec BE-EXP-012, BE-EXP-013 et BE-EXP-014.
+2. Raccorder le client et les formulaires frontend avec FE-EXP-004 a FE-EXP-007.
+3. Traiter les justificatifs avec les lots BE-DOC et FE-DOC.
+
 ## Fondations monorepo et DX
 
 - [x] MONO-001 Ajouter un `settings.gradle.kts` et un `build.gradle.kts` racine pour l'orchestration monorepo.
