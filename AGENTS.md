@@ -30,12 +30,11 @@ A group of family members jointly manage an apartment. Members can advance expen
 #### Expenses
 - An expense is created by a member.
 - Every expense must be traceable and may include one or more supporting documents.
-- Expense participation is equal by default.
-- A participation may also be:
-    - partial
-    - capped
-    - limited to a maximum contribution
-    - limited to a reference amount, with any excess remaining the responsibility of the expense creator
+- Expense allocation is equal by default and uses one of four modes:
+    - equal: the total amount is shared equally between all participants
+    - equal with caps: capped participants never exceed their maximum amount, the remainder is redistributed iteratively, and at least one participant must remain uncapped
+    - cumulative tiers: cumulative thresholds are strictly increasing, each tier is shared equally between its participants, and the final tier covers the total expense amount
+    - custom: an exact amount is specified for each participant
 - The creator records the proposed participations according to what was agreed outside the application.
 - Each impacted member validates or refuses only their own participation.
 - If any impacted member refuses, the expense entry is invalidated and participations must be re-entered.
@@ -409,7 +408,6 @@ Do not force functional or reactive patterns where they make the code harder to 
 - Persistence models must not become domain models by accident.
 - Kotlin application use cases must be defined as an interface with a corresponding `*Impl` implementation class. The interface is injected by consumers; the `Impl` class carries `@Singleton`. This allows clean hand-written fakes in unit tests without Micronaut test infrastructure. All use cases expose their primary entry point as `operator fun invoke(...)`.
 - Create use cases must generate the identifier of the resource they create internally; create commands should not carry the target id.
-- CUD use cases should return no payload on success unless a business need explicitly requires a return value.
 - CUD use cases should return no payload on success unless a business need explicitly requires a return value.
 - Backend id value objects must keep their primitive storage private, expose primitive extraction explicitly through `toPrimitive()`, and must not expose direct `value` access or custom `toString()` behavior.
 - Repository ports and backend application use cases that may cross I/O boundaries should be `suspend`; keep the domain synchronous and pure, and only mark HTTP endpoints `suspend` when they actually invoke a suspendable path.

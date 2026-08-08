@@ -1,6 +1,6 @@
 # Backlog
 
-Backlog derive de l'etat actuel du depot au 2026-08-02.
+Backlog derive de l'etat actuel du depot au 2026-08-08.
 
 ## Etat actuel constate
 
@@ -145,10 +145,10 @@ Backlog derive de l'etat actuel du depot au 2026-08-02.
 - [ ] FE-EXP-001 Creer la page de liste des depenses d'un groupe.
 - [ ] FE-EXP-002 Creer la page de detail d'une depense avec statuts de participation.
 - [x] FE-EXP-003 Creer le formulaire de depense a partage egal.
-- [ ] FE-EXP-004 Creer le formulaire de depense a montant partiel.
-- [ ] FE-EXP-005 Creer le formulaire de depense pour participations capees.
-- [ ] FE-EXP-006 Creer le formulaire de depense pour contributions maximales.
-- [ ] FE-EXP-007 Creer le formulaire de depense a montant de reference.
+- [ ] FE-EXP-004 Ajouter le selecteur de mode et l'orchestration partagee du formulaire de depense.
+- [ ] FE-EXP-005 Ajouter l'interface `EqualWithCaps` avec saisie des plafonds.
+- [ ] FE-EXP-006 Ajouter l'interface `CumulativeTiers` avec saisie des seuils et participants par tranche.
+- [ ] FE-EXP-007 Ajouter l'interface `Custom` avec saisie des montants exacts par participant.
 - [ ] FE-EXP-008 Ajouter l'action d'approbation ou refus de sa propre participation.
 - [ ] FE-EXP-009 Afficher clairement l'invalidation d'une depense refusee et la necessite de ressaisie.
 - [ ] FE-EXP-010 Ajouter les tests de ViewModel, mapping et composants critiques des depenses.
