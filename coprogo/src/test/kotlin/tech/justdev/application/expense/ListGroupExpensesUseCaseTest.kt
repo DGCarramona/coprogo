@@ -12,7 +12,9 @@ import tech.justdev.application.support.InMemoryGroupRepository
 import tech.justdev.domain.expense.entity.Expense
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.expense.valueobject.ExpenseParticipation
+import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationStatus
+import tech.justdev.domain.expense.valueobject.RefusalReason
 import tech.justdev.domain.group.entity.Group
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.money.MoneyAmount
@@ -54,6 +56,33 @@ class ListGroupExpensesUseCaseTest {
 
             assertEquals(2, result.size)
             assertEquals(setOf(expense1.id.toPrimitive(), expense2.id.toPrimitive()), result.map { it.id }.toSet())
+        }
+
+    @Test
+    fun `should expose a refusal snapshot only for an invalidated expense`() =
+        runTest {
+            val proposedExpense = expense(group, owner, setOf(owner, participant))
+            val reason = RefusalReason.of("The invoice amount is incorrect")
+            val refusedAt = Instant.parse("2026-06-02T10:00:00Z")
+            val invalidatedExpense =
+                expense(group, owner, setOf(owner, participant)).recordParticipationDecision(
+                    member = participant,
+                    decision = ExpenseParticipationDecision.REFUSE,
+                    decidedAt = refusedAt,
+                    reason = reason,
+                )
+            expenseRepository.persist(proposedExpense)
+            expenseRepository.persist(invalidatedExpense)
+
+            val result =
+                useCase(ListGroupExpensesQuery(group = group, requestedBy = owner))
+                    .associateBy(ExpenseSnapshot::id)
+
+            assertEquals(null, result.getValue(proposedExpense.id.toPrimitive()).refusal)
+            assertEquals(
+                ExpenseRefusalSnapshot(member = participant, refusedAt = refusedAt, reason = reason),
+                result.getValue(invalidatedExpense.id.toPrimitive()).refusal,
+            )
         }
 
     @Test

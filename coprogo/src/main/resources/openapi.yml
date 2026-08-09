@@ -575,6 +575,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ExpenseDetailParticipationResponse"
+        refusal:
+          nullable: true
+          allOf:
+          - $ref: "#/components/schemas/ExpenseRefusalResponse"
     ExpenseParticipationDecisionInput:
       type: string
       enum:
@@ -587,6 +591,23 @@ components:
       properties:
         decision:
           $ref: "#/components/schemas/ExpenseParticipationDecisionInput"
+        reason:
+          type: string
+          nullable: true
+    ExpenseRefusalResponse:
+      required:
+      - member
+      - refusedAt
+      type: object
+      properties:
+        member:
+          type: string
+        refusedAt:
+          type: string
+          format: date-time
+        reason:
+          type: string
+          nullable: true
     ExpenseResponse:
       required:
       - createdAt
@@ -612,6 +633,10 @@ components:
           format: date-time
         status:
           type: string
+        refusal:
+          nullable: true
+          allOf:
+          - $ref: "#/components/schemas/ExpenseRefusalResponse"
     GroupBalancesResponse:
       required:
       - balances

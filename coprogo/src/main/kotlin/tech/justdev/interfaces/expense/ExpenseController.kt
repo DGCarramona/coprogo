@@ -15,6 +15,7 @@ import tech.justdev.application.auth.AuthenticatedUserProvider
 import tech.justdev.application.expense.ExpenseDetailParticipationSnapshot
 import tech.justdev.application.expense.ExpenseDetailSnapshot
 import tech.justdev.application.expense.ExpenseParticipationDecisionCommand
+import tech.justdev.application.expense.ExpenseRefusalSnapshot
 import tech.justdev.application.expense.ExpenseSnapshot
 import tech.justdev.application.expense.GetExpenseDetailQuery
 import tech.justdev.application.expense.GetExpenseDetailUseCase
@@ -26,6 +27,7 @@ import tech.justdev.application.expense.RecordExpenseParticipationDecisionComman
 import tech.justdev.application.expense.RecordExpenseParticipationDecisionUseCase
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationStatus
+import tech.justdev.domain.expense.valueobject.RefusalReason
 import tech.justdev.domain.shared.valueobject.GroupId
 import tech.justdev.interfaces.openapi.AuthenticatedApi
 import java.time.Instant
@@ -108,6 +110,7 @@ class ExpenseController(
                         ExpenseParticipationDecisionInput.REFUSE -> ExpenseParticipationDecisionCommand.REFUSE
                     },
                 decidedAt = Instant.now(),
+                reason = request.reason?.takeUnless { reason -> reason.isBlank() }?.let(RefusalReason::of),
             ),
         )
     }
@@ -116,6 +119,7 @@ class ExpenseController(
 @Serdeable
 data class ExpenseParticipationDecisionRequest(
     val decision: ExpenseParticipationDecisionInput,
+    val reason: String? = null,
 )
 
 @Serdeable
@@ -132,6 +136,14 @@ data class ExpenseResponse(
     val totalAmountCents: Long,
     val createdAt: Instant,
     val status: String,
+    val refusal: ExpenseRefusalResponse? = null,
+)
+
+@Serdeable
+data class ExpenseRefusalResponse(
+    val member: String,
+    val refusedAt: Instant,
+    val reason: String? = null,
 )
 
 @Serdeable
@@ -150,6 +162,7 @@ data class ExpenseDetailResponse(
     val createdAt: Instant,
     val status: String,
     val participations: List<ExpenseDetailParticipationResponse>,
+    val refusal: ExpenseRefusalResponse? = null,
 )
 
 private fun ExpenseSnapshot.toResponse(): ExpenseResponse =
@@ -160,6 +173,7 @@ private fun ExpenseSnapshot.toResponse(): ExpenseResponse =
         totalAmountCents = totalAmountCents,
         createdAt = createdAt,
         status = status,
+        refusal = refusal?.toResponse(),
     )
 
 private fun ExpenseDetailSnapshot.toResponse(): ExpenseDetailResponse =
@@ -171,6 +185,14 @@ private fun ExpenseDetailSnapshot.toResponse(): ExpenseDetailResponse =
         createdAt = createdAt,
         status = status.name,
         participations = participations.map(ExpenseDetailParticipationSnapshot::toResponse),
+        refusal = refusal?.toResponse(),
+    )
+
+private fun ExpenseRefusalSnapshot.toResponse(): ExpenseRefusalResponse =
+    ExpenseRefusalResponse(
+        member = member.toPrimitive(),
+        refusedAt = refusedAt,
+        reason = reason?.toPrimitive(),
     )
 
 private fun ExpenseDetailParticipationSnapshot.toResponse(): ExpenseDetailParticipationResponse =

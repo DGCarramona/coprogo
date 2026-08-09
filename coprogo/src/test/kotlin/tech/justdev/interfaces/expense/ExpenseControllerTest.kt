@@ -13,6 +13,7 @@ import tech.justdev.application.expense.CumulativeTiersExpenseAllocationCommand
 import tech.justdev.application.expense.ExpenseDetailParticipationSnapshot
 import tech.justdev.application.expense.ExpenseDetailSnapshot
 import tech.justdev.application.expense.ExpenseParticipationDecisionCommand
+import tech.justdev.application.expense.ExpenseRefusalSnapshot
 import tech.justdev.application.expense.ExpenseSnapshot
 import tech.justdev.application.expense.GetExpenseDetailQuery
 import tech.justdev.application.expense.GetExpenseDetailUseCase
@@ -25,6 +26,7 @@ import tech.justdev.application.expense.RecordExpenseParticipationDecisionUseCas
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationStatus
 import tech.justdev.domain.expense.valueobject.ExpenseStatus
+import tech.justdev.domain.expense.valueobject.RefusalReason
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.testsupport.expenseId
@@ -58,6 +60,40 @@ class ExpenseControllerTest {
 
                 assertEquals(1, response.size)
                 assertEquals("e1", response[0].title)
+            }
+
+        @Test
+        fun `should map the refusal snapshot to the list response`() =
+            runTest {
+                val refusedAt = Instant.parse("2026-07-03T10:00:00Z")
+                listGroupExpensesUseCase.result =
+                    listOf(
+                        ExpenseSnapshot(
+                            id = UUID.randomUUID(),
+                            title = "Roof repair",
+                            createdBy = "creator@example.com",
+                            totalAmountCents = 6_000,
+                            createdAt = Instant.parse("2026-07-01T10:00:00Z"),
+                            status = "INVALIDATED",
+                            refusal =
+                                ExpenseRefusalSnapshot(
+                                    member = MemberEmail.of("refused@example.com"),
+                                    refusedAt = refusedAt,
+                                    reason = RefusalReason.of("The work was not agreed"),
+                                ),
+                        ),
+                    )
+
+                val response = controller.listGroupExpenses(UUID.randomUUID()).single()
+
+                assertEquals(
+                    ExpenseRefusalResponse(
+                        member = "refused@example.com",
+                        refusedAt = refusedAt,
+                        reason = "The work was not agreed",
+                    ),
+                    response.refusal,
+                )
             }
 
         @Test
@@ -110,6 +146,12 @@ class ExpenseControllerTest {
                         totalAmount = MoneyAmount.ofCents(6_000),
                         createdAt = createdAt,
                         status = ExpenseStatus.INVALIDATED,
+                        refusal =
+                            ExpenseRefusalSnapshot(
+                                member = MemberEmail.of("refused@example.com"),
+                                refusedAt = refusedAt,
+                                reason = null,
+                            ),
                         participations =
                             listOf(
                                 ExpenseDetailParticipationSnapshot(
@@ -140,6 +182,12 @@ class ExpenseControllerTest {
                         totalAmountCents = 6_000,
                         createdAt = createdAt,
                         status = "INVALIDATED",
+                        refusal =
+                            ExpenseRefusalResponse(
+                                member = "refused@example.com",
+                                refusedAt = refusedAt,
+                                reason = null,
+                            ),
                         participations =
                             listOf(
                                 ExpenseDetailParticipationResponse("creator@example.com", 2_000, "APPROVED"),
@@ -264,11 +312,31 @@ class ExpenseControllerTest {
                 input = ExpenseParticipationDecisionInput.REFUSE,
                 expected = ExpenseParticipationDecisionCommand.REFUSE,
             )
+
+        @Test
+        fun `should map a non-blank refusal reason to the domain value object`() =
+            assertDecisionCommandMapped(
+                input = ExpenseParticipationDecisionInput.REFUSE,
+                expected = ExpenseParticipationDecisionCommand.REFUSE,
+                reason = "The amount does not match the invoice",
+                expectedReason = RefusalReason.of("The amount does not match the invoice"),
+            )
+
+        @Test
+        fun `should normalize a blank refusal reason to absence`() =
+            assertDecisionCommandMapped(
+                input = ExpenseParticipationDecisionInput.REFUSE,
+                expected = ExpenseParticipationDecisionCommand.REFUSE,
+                reason = "  \t ",
+                expectedReason = null,
+            )
     }
 
     private fun assertDecisionCommandMapped(
         input: ExpenseParticipationDecisionInput,
         expected: ExpenseParticipationDecisionCommand,
+        reason: String? = null,
+        expectedReason: RefusalReason? = null,
     ) = runTest {
         val groupId = UUID.randomUUID()
         val expenseId = UUID.randomUUID()
@@ -277,7 +345,7 @@ class ExpenseControllerTest {
         controller.recordParticipationDecision(
             groupId = groupId,
             expenseId = expenseId,
-            request = ExpenseParticipationDecisionRequest(input),
+            request = ExpenseParticipationDecisionRequest(decision = input, reason = reason),
         )
 
         val after = Instant.now()
@@ -286,6 +354,7 @@ class ExpenseControllerTest {
         assertEquals(expenseId, command.id)
         assertEquals("creator@example.com", command.member.toPrimitive())
         assertEquals(expected, command.decision)
+        assertEquals(expectedReason, command.reason)
         assertTrue(!command.decidedAt.isBefore(before))
         assertTrue(!command.decidedAt.isAfter(after))
     }

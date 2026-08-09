@@ -20,6 +20,7 @@ data class ExpenseSnapshot(
     val totalAmountCents: Long,
     val createdAt: Instant,
     val status: String,
+    val refusal: ExpenseRefusalSnapshot? = null,
 )
 
 interface ListGroupExpensesUseCase {
@@ -45,6 +46,7 @@ class ListGroupExpensesUseCaseImpl(
                     totalAmountCents = expense.totalAmount.inCents(),
                     createdAt = expense.createdAt,
                     status = expense.status.name,
+                    refusal = expense.toRefusalSnapshot(),
                 )
             }
     }

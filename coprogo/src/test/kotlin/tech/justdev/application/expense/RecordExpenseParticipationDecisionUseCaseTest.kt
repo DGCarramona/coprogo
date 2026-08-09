@@ -18,6 +18,7 @@ import tech.justdev.domain.expense.valueobject.ExpenseParticipation
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationStatus
 import tech.justdev.domain.expense.valueobject.ExpenseShare
+import tech.justdev.domain.expense.valueobject.RefusalReason
 import tech.justdev.domain.group.entity.Group
 import tech.justdev.domain.ledger.effect.MemberBalanceTransfer
 import tech.justdev.domain.ledger.event.AcceptedExpenseLedgerEvent
@@ -168,6 +169,75 @@ class RecordExpenseParticipationDecisionUseCaseTest {
             )
             assertEquals(emptyList<AcceptedExpenseLedgerEvent>(), ledgerEventRepository.allEvents())
         }
+    }
+
+    @Test
+    fun `invoke should retain the optional reason when a member refuses`() {
+        runTest {
+            val expenseRepository = InMemoryExpenseRepository(expenses = listOf(proposedExpense()))
+            val useCase =
+                RecordExpenseParticipationDecisionUseCaseImpl(
+                    expenseRepository = expenseRepository,
+                    ledgerEventRepository = InMemoryLedgerEventRepository(),
+                    groupAccessPolicy = groupAccessPolicy(),
+                    transactionRunner = DirectTransactionRunner,
+                )
+            val reason = RefusalReason.of("The amount does not match the invoice")
+
+            useCase(
+                RecordExpenseParticipationDecisionCommand(
+                    group = groupId("group-1"),
+                    id = expenseUuid("expense-1"),
+                    member = memberEmail("bob"),
+                    decision = ExpenseParticipationDecisionCommand.REFUSE,
+                    decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
+                    reason = reason,
+                ),
+            )
+
+            val refusedParticipation =
+                requireNotNull(expenseRepository.findByIdAndGroup(expenseId("expense-1"), groupId("group-1")))
+                    .participations
+                    .single { participation -> participation.member == memberEmail("bob") }
+
+            assertEquals(
+                ExpenseParticipationStatus.Refused(
+                    decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
+                    reason = reason,
+                ),
+                refusedParticipation.status,
+            )
+        }
+    }
+
+    @Test
+    fun `invoke should reject an approval carrying a refusal reason`() {
+        val expenseRepository = InMemoryExpenseRepository(expenses = listOf(proposedExpense()))
+        val useCase =
+            RecordExpenseParticipationDecisionUseCaseImpl(
+                expenseRepository = expenseRepository,
+                ledgerEventRepository = InMemoryLedgerEventRepository(),
+                groupAccessPolicy = groupAccessPolicy(),
+                transactionRunner = DirectTransactionRunner,
+            )
+
+        val error =
+            assertThrows<IllegalArgumentException> {
+                runTest {
+                    useCase(
+                        RecordExpenseParticipationDecisionCommand(
+                            group = groupId("group-1"),
+                            id = expenseUuid("expense-1"),
+                            member = memberEmail("bob"),
+                            decision = ExpenseParticipationDecisionCommand.APPROVE,
+                            decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
+                            reason = RefusalReason.of("Only refusals may have a reason"),
+                        ),
+                    )
+                }
+            }
+
+        assertEquals("refusal reason is only allowed for refusal decisions", error.message)
     }
 
     @Test

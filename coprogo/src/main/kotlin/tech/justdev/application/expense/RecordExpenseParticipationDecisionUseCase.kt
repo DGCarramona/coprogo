@@ -7,6 +7,7 @@ import tech.justdev.domain.expense.repository.ExpenseRepository
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
 import tech.justdev.domain.expense.valueobject.ExpenseStatus
+import tech.justdev.domain.expense.valueobject.RefusalReason
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.ledger.event.AcceptedExpenseLedgerEvent
 import tech.justdev.domain.ledger.repository.LedgerEventRepository
@@ -25,6 +26,7 @@ data class RecordExpenseParticipationDecisionCommand(
     val member: MemberEmail,
     val decision: ExpenseParticipationDecisionCommand,
     val decidedAt: Instant,
+    val reason: RefusalReason? = null,
 )
 
 interface RecordExpenseParticipationDecisionUseCase {
@@ -56,6 +58,7 @@ class RecordExpenseParticipationDecisionUseCaseImpl(
                             ExpenseParticipationDecisionCommand.REFUSE -> ExpenseParticipationDecision.REFUSE
                         },
                     decidedAt = command.decidedAt,
+                    reason = command.reason,
                 )
 
             expenseRepository.persist(updatedExpense)

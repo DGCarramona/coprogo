@@ -14,6 +14,7 @@ import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.expense.valueobject.ExpenseParticipation
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationStatus
 import tech.justdev.domain.expense.valueobject.ExpenseStatus
+import tech.justdev.domain.expense.valueobject.RefusalReason
 import tech.justdev.domain.group.entity.Group
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.money.MoneyAmount
@@ -56,6 +57,12 @@ class GetExpenseDetailUseCaseTest {
                     totalAmount = MoneyAmount.ofCents(6_000),
                     createdAt = Instant.parse("2026-07-01T10:00:00Z"),
                     status = ExpenseStatus.INVALIDATED,
+                    refusal =
+                        ExpenseRefusalSnapshot(
+                            member = MemberEmail.of("refused@example.com"),
+                            refusedAt = Instant.parse("2026-07-03T10:00:00Z"),
+                            reason = RefusalReason.of("The work was not agreed"),
+                        ),
                     participations =
                         listOf(
                             ExpenseDetailParticipationSnapshot(
@@ -71,12 +78,32 @@ class GetExpenseDetailUseCaseTest {
                             ExpenseDetailParticipationSnapshot(
                                 member = MemberEmail.of("refused@example.com"),
                                 amount = MoneyAmount.ofCents(2_000),
-                                status = ExpenseParticipationStatus.Refused(Instant.parse("2026-07-03T10:00:00Z")),
+                                status =
+                                    ExpenseParticipationStatus.Refused(
+                                        decidedAt = Instant.parse("2026-07-03T10:00:00Z"),
+                                        reason = RefusalReason.of("The work was not agreed"),
+                                    ),
                             ),
                         ),
                 ),
                 snapshot,
             )
+        }
+
+    @Test
+    fun `should omit the refusal snapshot when the expense is not invalidated`() =
+        runTest {
+            val expense = expense(group = group, refusedStatus = ExpenseParticipationStatus.Pending)
+            val useCase =
+                GetExpenseDetailUseCaseImpl(
+                    expenseRepository = InMemoryExpenseRepository(listOf(expense)),
+                    groupAccessPolicy = groupAccessPolicy,
+                )
+
+            val snapshot =
+                useCase(GetExpenseDetailQuery(group = group, id = expense.id, requestedBy = requestedBy))
+
+            assertEquals(null, snapshot.refusal)
         }
 
     @Test
@@ -147,7 +174,14 @@ class GetExpenseDetailUseCaseTest {
             createdAt = Instant.parse("2026-06-01T08:00:00Z"),
         )
 
-    private fun expense(group: GroupId): Expense =
+    private fun expense(
+        group: GroupId,
+        refusedStatus: ExpenseParticipationStatus =
+            ExpenseParticipationStatus.Refused(
+                decidedAt = Instant.parse("2026-07-03T10:00:00Z"),
+                reason = RefusalReason.of("The work was not agreed"),
+            ),
+    ): Expense =
         Expense(
             id = expenseId("expense-detail"),
             group = group,
@@ -165,7 +199,7 @@ class GetExpenseDetailUseCaseTest {
                     ExpenseParticipation(
                         member = MemberEmail.of("refused@example.com"),
                         amount = MoneyAmount.ofCents(2_000),
-                        status = ExpenseParticipationStatus.Refused(Instant.parse("2026-07-03T10:00:00Z")),
+                        status = refusedStatus,
                     ),
                     ExpenseParticipation(
                         member = MemberEmail.of("pending@example.com"),
