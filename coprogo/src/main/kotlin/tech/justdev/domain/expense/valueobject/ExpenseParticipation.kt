@@ -13,6 +13,7 @@ sealed interface ExpenseParticipationStatus {
 
     data class Refused(
         val decidedAt: Instant,
+        val reason: RefusalReason? = null,
     ) : ExpenseParticipationStatus
 }
 

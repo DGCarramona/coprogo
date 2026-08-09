@@ -6,6 +6,7 @@ import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationStatus
 import tech.justdev.domain.expense.valueobject.ExpenseShare
 import tech.justdev.domain.expense.valueobject.ExpenseStatus
+import tech.justdev.domain.expense.valueobject.RefusalReason
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.domain.shared.money.sum
@@ -62,7 +63,11 @@ data class Expense(
         member: MemberEmail,
         decision: ExpenseParticipationDecision,
         decidedAt: Instant,
+        reason: RefusalReason? = null,
     ): Expense {
+        require(decision == ExpenseParticipationDecision.REFUSE || reason == null) {
+            "refusal reason is only allowed for refusal decisions"
+        }
         require(status == ExpenseStatus.PROPOSED) { "expense is not awaiting participant decisions" }
         require(member != createdBy) { "creator participation is approved at creation time" }
 
@@ -79,7 +84,7 @@ data class Expense(
                 status =
                     when (decision) {
                         ExpenseParticipationDecision.APPROVE -> ExpenseParticipationStatus.Approved(decidedAt)
-                        ExpenseParticipationDecision.REFUSE -> ExpenseParticipationStatus.Refused(decidedAt)
+                        ExpenseParticipationDecision.REFUSE -> ExpenseParticipationStatus.Refused(decidedAt, reason)
                     },
             )
 

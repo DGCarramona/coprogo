@@ -14,6 +14,7 @@ import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.expense.valueobject.ExpenseParticipation
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationStatus
 import tech.justdev.domain.expense.valueobject.ExpenseStatus
+import tech.justdev.domain.expense.valueobject.RefusalReason
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.domain.shared.valueobject.GroupId
@@ -53,6 +54,7 @@ open class R2dbcExpenseRepository(
                     EXPENSE_PARTICIPATIONS.AMOUNT,
                     EXPENSE_PARTICIPATIONS.STATUS,
                     EXPENSE_PARTICIPATIONS.DECIDED_AT,
+                    EXPENSE_PARTICIPATIONS.REFUSAL_REASON,
                 ).from(EXPENSE_PARTICIPATIONS)
                 .where(EXPENSE_PARTICIPATIONS.EXPENSE.eq(id.toPrimitive()))
                 .awaitList()
@@ -82,6 +84,7 @@ open class R2dbcExpenseRepository(
                     EXPENSE_PARTICIPATIONS.AMOUNT,
                     EXPENSE_PARTICIPATIONS.STATUS,
                     EXPENSE_PARTICIPATIONS.DECIDED_AT,
+                    EXPENSE_PARTICIPATIONS.REFUSAL_REASON,
                 ).from(EXPENSE_PARTICIPATIONS)
                 .where(EXPENSE_PARTICIPATIONS.EXPENSE.`in`(expenses.map { it.value1() }))
                 .awaitList()
@@ -117,6 +120,7 @@ open class R2dbcExpenseRepository(
                     EXPENSE_PARTICIPATIONS.AMOUNT,
                     EXPENSE_PARTICIPATIONS.STATUS,
                     EXPENSE_PARTICIPATIONS.DECIDED_AT,
+                    EXPENSE_PARTICIPATIONS.REFUSAL_REASON,
                 ).from(EXPENSE_PARTICIPATIONS)
                 .where(EXPENSE_PARTICIPATIONS.EXPENSE.eq(id.toPrimitive()))
                 .awaitList()
@@ -179,6 +183,7 @@ open class R2dbcExpenseRepository(
                     EXPENSE_PARTICIPATIONS.AMOUNT,
                     EXPENSE_PARTICIPATIONS.STATUS,
                     EXPENSE_PARTICIPATIONS.DECIDED_AT,
+                    EXPENSE_PARTICIPATIONS.REFUSAL_REASON,
                 )
         expense.participations.forEach { participation ->
             insert.values(
@@ -188,6 +193,7 @@ open class R2dbcExpenseRepository(
                 participation.amount.inCents(),
                 participation.status.toJooq(),
                 participation.status.decidedAtOrNull()?.atOffset(ZoneOffset.UTC),
+                participation.status.refusalReasonOrNull(),
             )
         }
         insert.awaitFirstOrNull()
@@ -215,6 +221,13 @@ private fun ExpenseParticipationStatus.decidedAtOrNull(): java.time.Instant? =
         is ExpenseParticipationStatus.Refused -> decidedAt
     }
 
+private fun ExpenseParticipationStatus.refusalReasonOrNull(): String? =
+    when (this) {
+        ExpenseParticipationStatus.Pending -> null
+        is ExpenseParticipationStatus.Approved -> null
+        is ExpenseParticipationStatus.Refused -> reason?.toPrimitive()
+    }
+
 private fun org.jooq.Record6<UUID, UUID, String, String, Long, OffsetDateTime>.toDomain(
     participations: Set<ExpenseParticipation>,
 ): Expense =
@@ -229,21 +242,25 @@ private fun org.jooq.Record6<UUID, UUID, String, String, Long, OffsetDateTime>.t
     )
 
 @Suppress("ktlint:standard:max-line-length")
-private fun org.jooq.Record5<UUID, String, Long, JooqExpenseParticipationStatus, OffsetDateTime?>.toParticipationDomain(): ExpenseParticipation =
+private fun org.jooq.Record6<UUID, String, Long, JooqExpenseParticipationStatus, OffsetDateTime?, String?>.toParticipationDomain(): ExpenseParticipation =
     ExpenseParticipation(
         member = MemberEmail.of(value2()),
         amount = MoneyAmount.ofCents(value3()),
-        status = value4().toDomain(value5()?.toInstant()),
+        status = value4().toDomain(value5()?.toInstant(), value6()),
     )
 
-private fun org.jooq.Record4<String, Long, JooqExpenseParticipationStatus, OffsetDateTime?>.toDomain(): ExpenseParticipation =
+@Suppress("ktlint:standard:max-line-length")
+private fun org.jooq.Record5<String, Long, JooqExpenseParticipationStatus, OffsetDateTime?, String?>.toDomain(): ExpenseParticipation =
     ExpenseParticipation(
         member = MemberEmail.of(value1()),
         amount = MoneyAmount.ofCents(value2()),
-        status = value3().toDomain(value4()?.toInstant()),
+        status = value3().toDomain(value4()?.toInstant(), value5()),
     )
 
-private fun JooqExpenseParticipationStatus.toDomain(decidedAt: java.time.Instant?): ExpenseParticipationStatus =
+private fun JooqExpenseParticipationStatus.toDomain(
+    decidedAt: java.time.Instant?,
+    refusalReason: String?,
+): ExpenseParticipationStatus =
     when (this) {
         JooqExpenseParticipationStatus.PENDING -> {
             ExpenseParticipationStatus.Pending
@@ -258,6 +275,7 @@ private fun JooqExpenseParticipationStatus.toDomain(decidedAt: java.time.Instant
         JooqExpenseParticipationStatus.REFUSED -> {
             ExpenseParticipationStatus.Refused(
                 decidedAt!!,
+                refusalReason?.let(RefusalReason::of),
             )
         }
     }

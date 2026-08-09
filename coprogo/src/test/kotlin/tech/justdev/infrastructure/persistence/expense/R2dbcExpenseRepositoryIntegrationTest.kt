@@ -11,6 +11,7 @@ import tech.justdev.domain.expense.entity.Expense
 import tech.justdev.domain.expense.repository.ExpenseRepository
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
 import tech.justdev.domain.expense.valueobject.ExpenseShare
+import tech.justdev.domain.expense.valueobject.RefusalReason
 import tech.justdev.domain.group.entity.Group
 import tech.justdev.domain.group.entity.Member
 import tech.justdev.domain.group.repository.GroupRepository
@@ -90,6 +91,30 @@ class R2dbcExpenseRepositoryIntegrationTest {
                 expenseRepository.persist(updated)
 
                 assertEquals(updated, expenseRepository.findByIdAndGroup(updated.id, updated.group))
+            }
+
+        @Test
+        fun `should round trip refusal reasons including a missing reason`() =
+            runTest {
+                val withReason =
+                    expenseWithEqualSplit("reason-present").recordParticipationDecision(
+                        member = memberEmail("reason-present-participant"),
+                        decision = ExpenseParticipationDecision.REFUSE,
+                        decidedAt = Instant.parse("2026-06-01T12:00:00Z"),
+                        reason = RefusalReason.of("The amount does not match the invoice"),
+                    )
+                val withoutReason =
+                    expenseWithEqualSplit("reason-missing").recordParticipationDecision(
+                        member = memberEmail("reason-missing-participant"),
+                        decision = ExpenseParticipationDecision.REFUSE,
+                        decidedAt = Instant.parse("2026-06-01T12:00:00Z"),
+                    )
+
+                expenseRepository.persist(withReason)
+                expenseRepository.persist(withoutReason)
+
+                assertEquals(withReason, expenseRepository.findByIdAndGroup(withReason.id, withReason.group))
+                assertEquals(withoutReason, expenseRepository.findByIdAndGroup(withoutReason.id, withoutReason.group))
             }
     }
 

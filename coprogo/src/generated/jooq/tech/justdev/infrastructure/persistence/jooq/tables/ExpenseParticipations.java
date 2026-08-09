@@ -91,6 +91,11 @@ public class ExpenseParticipations extends TableImpl<Record> {
      */
     public final TableField<Record, OffsetDateTime> DECIDED_AT = createField(DSL.name("decided_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "");
 
+    /**
+     * The column <code>public.expense_participations.refusal_reason</code>.
+     */
+    public final TableField<Record, String> REFUSAL_REASON = createField(DSL.name("refusal_reason"), SQLDataType.CLOB, this, "");
+
     private ExpenseParticipations(Name alias, Table<Record> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }
@@ -150,7 +155,8 @@ public class ExpenseParticipations extends TableImpl<Record> {
     @Override
     public List<Check<Record>> getChecks() {
         return Arrays.asList(
-            Internal.createCheck(this, DSL.name("expense_participations_decided_at_check"), "((((status = 'PENDING'::expense_participation_status) AND (decided_at IS NULL)) OR ((status <> 'PENDING'::expense_participation_status) AND (decided_at IS NOT NULL))))", true)
+            Internal.createCheck(this, DSL.name("expense_participations_decided_at_check"), "((((status = 'PENDING'::expense_participation_status) AND (decided_at IS NULL)) OR ((status <> 'PENDING'::expense_participation_status) AND (decided_at IS NOT NULL))))", true),
+            Internal.createCheck(this, DSL.name("expense_participations_refusal_reason_check"), "(((refusal_reason IS NULL) OR ((status = 'REFUSED'::expense_participation_status) AND (btrim(refusal_reason) <> ''::text))))", true)
         );
     }
 

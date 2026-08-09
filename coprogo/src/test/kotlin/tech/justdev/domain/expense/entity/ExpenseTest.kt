@@ -8,6 +8,7 @@ import tech.justdev.domain.expense.valueobject.ExpenseParticipation
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationStatus
 import tech.justdev.domain.expense.valueobject.ExpenseShare
+import tech.justdev.domain.expense.valueobject.RefusalReason
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.testsupport.expenseId
 import tech.justdev.testsupport.groupId
@@ -351,72 +352,109 @@ class ExpenseTest {
         }
     }
 
-    @Test
-    fun `recordParticipationDecision should accept expense when last pending member approves`() {
-        val proposedExpense = proposedExpense()
+    @Nested
+    inner class RecordParticipationDecision {
+        @Test
+        fun `recordParticipationDecision should accept expense when last pending member approves`() {
+            val proposedExpense = proposedExpense()
 
-        assertEquals(
-            Expense(
-                id = expenseId("expense-1"),
-                group = groupId("group-1"),
-                title = "Plumber invoice",
-                createdBy = memberEmail("alice"),
-                totalAmount = MoneyAmount.ofCents(100),
-                createdAt = Instant.parse("2026-04-03T10:00:00Z"),
-                participations =
-                    setOf(
-                        ExpenseParticipation(
-                            memberEmail("alice"),
-                            MoneyAmount.ofCents(40),
-                            ExpenseParticipationStatus.Approved(Instant.parse("2026-04-03T10:00:00Z")),
+            assertEquals(
+                Expense(
+                    id = expenseId("expense-1"),
+                    group = groupId("group-1"),
+                    title = "Plumber invoice",
+                    createdBy = memberEmail("alice"),
+                    totalAmount = MoneyAmount.ofCents(100),
+                    createdAt = Instant.parse("2026-04-03T10:00:00Z"),
+                    participations =
+                        setOf(
+                            ExpenseParticipation(
+                                memberEmail("alice"),
+                                MoneyAmount.ofCents(40),
+                                ExpenseParticipationStatus.Approved(Instant.parse("2026-04-03T10:00:00Z")),
+                            ),
+                            ExpenseParticipation(
+                                memberEmail("bob"),
+                                MoneyAmount.ofCents(60),
+                                ExpenseParticipationStatus.Approved(Instant.parse("2026-04-03T12:00:00Z")),
+                            ),
                         ),
-                        ExpenseParticipation(
-                            memberEmail("bob"),
-                            MoneyAmount.ofCents(60),
-                            ExpenseParticipationStatus.Approved(Instant.parse("2026-04-03T12:00:00Z")),
-                        ),
-                    ),
-            ),
-            proposedExpense.recordParticipationDecision(
-                member = memberEmail("bob"),
-                decision = ExpenseParticipationDecision.APPROVE,
-                decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
-            ),
-        )
-    }
+                ),
+                proposedExpense.recordParticipationDecision(
+                    member = memberEmail("bob"),
+                    decision = ExpenseParticipationDecision.APPROVE,
+                    decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
+                ),
+            )
+        }
 
-    @Test
-    fun `recordParticipationDecision should invalidate expense when a member refuses`() {
-        val proposedExpense = proposedExpense()
+        @Test
+        fun `recordParticipationDecision should invalidate expense when a member refuses`() {
+            val proposedExpense = proposedExpense()
 
-        assertEquals(
-            Expense(
-                id = expenseId("expense-1"),
-                group = groupId("group-1"),
-                title = "Plumber invoice",
-                createdBy = memberEmail("alice"),
-                totalAmount = MoneyAmount.ofCents(100),
-                createdAt = Instant.parse("2026-04-03T10:00:00Z"),
-                participations =
-                    setOf(
-                        ExpenseParticipation(
-                            memberEmail("alice"),
-                            MoneyAmount.ofCents(40),
-                            ExpenseParticipationStatus.Approved(Instant.parse("2026-04-03T10:00:00Z")),
+            assertEquals(
+                Expense(
+                    id = expenseId("expense-1"),
+                    group = groupId("group-1"),
+                    title = "Plumber invoice",
+                    createdBy = memberEmail("alice"),
+                    totalAmount = MoneyAmount.ofCents(100),
+                    createdAt = Instant.parse("2026-04-03T10:00:00Z"),
+                    participations =
+                        setOf(
+                            ExpenseParticipation(
+                                memberEmail("alice"),
+                                MoneyAmount.ofCents(40),
+                                ExpenseParticipationStatus.Approved(Instant.parse("2026-04-03T10:00:00Z")),
+                            ),
+                            ExpenseParticipation(
+                                memberEmail("bob"),
+                                MoneyAmount.ofCents(60),
+                                ExpenseParticipationStatus.Refused(Instant.parse("2026-04-03T12:00:00Z")),
+                            ),
                         ),
-                        ExpenseParticipation(
-                            memberEmail("bob"),
-                            MoneyAmount.ofCents(60),
-                            ExpenseParticipationStatus.Refused(Instant.parse("2026-04-03T12:00:00Z")),
-                        ),
-                    ),
-            ),
-            proposedExpense.recordParticipationDecision(
-                member = memberEmail("bob"),
-                decision = ExpenseParticipationDecision.REFUSE,
-                decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
-            ),
-        )
+                ),
+                proposedExpense.recordParticipationDecision(
+                    member = memberEmail("bob"),
+                    decision = ExpenseParticipationDecision.REFUSE,
+                    decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
+                ),
+            )
+        }
+
+        @Test
+        fun `recordParticipationDecision should retain an optional refusal reason`() {
+            val decidedAt = Instant.parse("2026-04-03T12:00:00Z")
+            val reason = RefusalReason.of("This expense was not agreed")
+
+            val refusedExpense =
+                proposedExpense().recordParticipationDecision(
+                    member = memberEmail("bob"),
+                    decision = ExpenseParticipationDecision.REFUSE,
+                    decidedAt = decidedAt,
+                    reason = reason,
+                )
+
+            assertEquals(
+                ExpenseParticipationStatus.Refused(decidedAt = decidedAt, reason = reason),
+                refusedExpense.participations.single { participation -> participation.member == memberEmail("bob") }.status,
+            )
+        }
+
+        @Test
+        fun `recordParticipationDecision should reject a refusal reason on approval`() {
+            val error =
+                assertThrows(IllegalArgumentException::class.java) {
+                    proposedExpense().recordParticipationDecision(
+                        member = memberEmail("bob"),
+                        decision = ExpenseParticipationDecision.APPROVE,
+                        decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
+                        reason = RefusalReason.of("Only refusals may have a reason"),
+                    )
+                }
+
+            assertEquals("refusal reason is only allowed for refusal decisions", error.message)
+        }
     }
 
     private fun proposedExpense(): Expense =
