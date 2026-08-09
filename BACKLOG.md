@@ -20,9 +20,8 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 
 ## Ordre de travail actuel
 
-1. Terminer toutes les tranches de depenses cote backend avec BE-EXP-014.
-2. Raccorder le client et les formulaires frontend avec FE-EXP-004 a FE-EXP-007.
-3. Traiter les justificatifs avec les lots BE-DOC et FE-DOC.
+1. Raccorder le client et les formulaires frontend avec FE-EXP-004 a FE-EXP-007.
+2. Traiter les justificatifs avec les lots BE-DOC et FE-DOC.
 
 ## Fondations monorepo et DX
 
@@ -81,7 +80,7 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 - [x] BE-EXP-012A Modeliser et persister un motif de refus facultatif.
 - [x] BE-EXP-012B Exposer le motif de refus dans les commandes et les vues de detail et d'historique.
 - [x] BE-EXP-013 Ajouter des tests d'integration couvrant acceptation, refus et emission d'evenement ledger.
-- [ ] BE-EXP-014 Ajouter la couverture d'integration des quatre modes d'allocation.
+- [x] BE-EXP-014 Ajouter la couverture d'integration des quatre modes d'allocation.
 - [x] BE-EXP-015 Corriger et tester le motif latent `@Singleton object RandomExpenseIdGenerator` avant le raccordement REST.
 
 ## Backend - remboursements
