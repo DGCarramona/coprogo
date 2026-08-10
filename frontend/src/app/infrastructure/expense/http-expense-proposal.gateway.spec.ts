@@ -51,7 +51,10 @@ describe('HttpExpenseProposalGateway', () => {
     expect(request.request.body).toEqual({
       title: 'Reparation toiture',
       totalAmountInCents: 12500,
-      participants: ['alice@example.com', 'bob@example.com'],
+      allocation: {
+        type: 'EQUAL',
+        participants: ['alice@example.com', 'bob@example.com'],
+      },
     });
 
     request.flush(null, { status: 204, statusText: 'No Content' });

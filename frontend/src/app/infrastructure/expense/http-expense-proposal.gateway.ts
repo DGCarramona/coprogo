@@ -17,10 +17,13 @@ export class HttpExpenseProposalGateway extends ExpenseProposalPort {
   override async proposeEqualSplit(command: ProposeEqualSplitExpenseCommand): Promise<void> {
     try {
       await firstValueFrom(
-        this.expensesService.proposeEqualSplitExpense(command.groupId, {
+        this.expensesService.proposeExpense(command.groupId, {
           title: command.title,
           totalAmountInCents: command.totalAmountInCents,
-          participants: [...command.participants],
+          allocation: {
+            type: 'EQUAL',
+            participants: [...command.participants],
+          },
         }),
       );
     } catch (error) {

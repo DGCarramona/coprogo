@@ -22,11 +22,13 @@ import { Observable } from 'rxjs';
 import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 
 // @ts-ignore
+import { ExpenseDetailResponseDto } from '../model/expense-detail-response';
+// @ts-ignore
 import { ExpenseParticipationDecisionRequestDto } from '../model/expense-participation-decision-request';
 // @ts-ignore
 import { ExpenseResponseDto } from '../model/expense-response';
 // @ts-ignore
-import { ProposeEqualSplitExpenseRequestDto } from '../model/propose-equal-split-expense-request';
+import { ProposeExpenseRequestDto } from '../model/propose-expense-request';
 
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS } from '../variables';
@@ -43,6 +45,106 @@ export class ExpensesService extends BaseService {
     @Optional() configuration?: Configuration,
   ) {
     super(basePath, configuration);
+  }
+
+  /**
+   * Get expense details
+   * @endpoint get /api/groups/{groupId}/expenses/{expenseId}
+   * @param groupId
+   * @param expenseId
+   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+   * @param reportProgress flag to report request and response progress.
+   * @param options additional options
+   */
+  public getExpenseDetail(
+    groupId: string,
+    expenseId: string,
+    observe?: 'body',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<ExpenseDetailResponseDto>;
+  public getExpenseDetail(
+    groupId: string,
+    expenseId: string,
+    observe?: 'response',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpResponse<ExpenseDetailResponseDto>>;
+  public getExpenseDetail(
+    groupId: string,
+    expenseId: string,
+    observe?: 'events',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpEvent<ExpenseDetailResponseDto>>;
+  public getExpenseDetail(
+    groupId: string,
+    expenseId: string,
+    observe: any = 'body',
+    reportProgress: boolean = false,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<any> {
+    if (groupId === null || groupId === undefined) {
+      throw new Error(
+        'Required parameter groupId was null or undefined when calling getExpenseDetail.',
+      );
+    }
+    if (expenseId === null || expenseId === undefined) {
+      throw new Error(
+        'Required parameter expenseId was null or undefined when calling getExpenseDetail.',
+      );
+    }
+
+    let localVarHeaders = this.defaultHeaders;
+
+    const localVarHttpHeaderAcceptSelected: string | undefined =
+      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
+    if (localVarHttpHeaderAcceptSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+    }
+
+    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+    const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+    let responseType_: 'text' | 'json' | 'blob' = 'json';
+    if (localVarHttpHeaderAcceptSelected) {
+      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+        responseType_ = 'text';
+      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+        responseType_ = 'json';
+      } else {
+        responseType_ = 'blob';
+      }
+    }
+
+    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/expenses/${this.configuration.encodeParam({ name: 'expenseId', value: expenseId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}`;
+    const { basePath, withCredentials } = this.configuration;
+    return this.httpClient.request<ExpenseDetailResponseDto>('get', `${basePath}${localVarPath}`, {
+      context: localVarHttpContext,
+      responseType: <any>responseType_,
+      ...(withCredentials ? { withCredentials } : {}),
+      headers: localVarHeaders,
+      observe: observe,
+      ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+      reportProgress: reportProgress,
+    });
   }
 
   /**
@@ -136,53 +238,50 @@ export class ExpensesService extends BaseService {
   }
 
   /**
-   * Propose an expense with an equal split
+   * Propose an expense
    * @endpoint post /api/groups/{groupId}/expenses
    * @param groupId
-   * @param proposeEqualSplitExpenseRequestDto
+   * @param proposeExpenseRequestDto
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public proposeEqualSplitExpense(
+  public proposeExpense(
     groupId: string,
-    proposeEqualSplitExpenseRequestDto: ProposeEqualSplitExpenseRequestDto,
+    proposeExpenseRequestDto: ProposeExpenseRequestDto,
     observe?: 'body',
     reportProgress?: boolean,
     options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
   ): Observable<any>;
-  public proposeEqualSplitExpense(
+  public proposeExpense(
     groupId: string,
-    proposeEqualSplitExpenseRequestDto: ProposeEqualSplitExpenseRequestDto,
+    proposeExpenseRequestDto: ProposeExpenseRequestDto,
     observe?: 'response',
     reportProgress?: boolean,
     options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
   ): Observable<HttpResponse<any>>;
-  public proposeEqualSplitExpense(
+  public proposeExpense(
     groupId: string,
-    proposeEqualSplitExpenseRequestDto: ProposeEqualSplitExpenseRequestDto,
+    proposeExpenseRequestDto: ProposeExpenseRequestDto,
     observe?: 'events',
     reportProgress?: boolean,
     options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
   ): Observable<HttpEvent<any>>;
-  public proposeEqualSplitExpense(
+  public proposeExpense(
     groupId: string,
-    proposeEqualSplitExpenseRequestDto: ProposeEqualSplitExpenseRequestDto,
+    proposeExpenseRequestDto: ProposeExpenseRequestDto,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
   ): Observable<any> {
     if (groupId === null || groupId === undefined) {
       throw new Error(
-        'Required parameter groupId was null or undefined when calling proposeEqualSplitExpense.',
+        'Required parameter groupId was null or undefined when calling proposeExpense.',
       );
     }
-    if (
-      proposeEqualSplitExpenseRequestDto === null ||
-      proposeEqualSplitExpenseRequestDto === undefined
-    ) {
+    if (proposeExpenseRequestDto === null || proposeExpenseRequestDto === undefined) {
       throw new Error(
-        'Required parameter proposeEqualSplitExpenseRequestDto was null or undefined when calling proposeEqualSplitExpense.',
+        'Required parameter proposeExpenseRequestDto was null or undefined when calling proposeExpense.',
       );
     }
 
@@ -221,7 +320,7 @@ export class ExpensesService extends BaseService {
     const { basePath, withCredentials } = this.configuration;
     return this.httpClient.request<any>('post', `${basePath}${localVarPath}`, {
       context: localVarHttpContext,
-      body: proposeEqualSplitExpenseRequestDto,
+      body: proposeExpenseRequestDto,
       responseType: <any>responseType_,
       ...(withCredentials ? { withCredentials } : {}),
       headers: localVarHeaders,

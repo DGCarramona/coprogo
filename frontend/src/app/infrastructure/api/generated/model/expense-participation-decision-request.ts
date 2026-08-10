@@ -11,5 +11,6 @@ import { ExpenseParticipationDecisionInputDto } from './expense-participation-de
 
 export interface ExpenseParticipationDecisionRequestDto {
   decision: ExpenseParticipationDecisionInputDto;
+  reason?: string | null;
 }
 export namespace ExpenseParticipationDecisionRequestDto {}

@@ -7,14 +7,16 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { ExpenseDetailParticipationResponseDto } from './expense-detail-participation-response';
 import { ExpenseRefusalResponseDto } from './expense-refusal-response';
 
-export interface ExpenseResponseDto {
+export interface ExpenseDetailResponseDto {
   id: string;
   title: string;
   createdBy: string;
   totalAmountCents: number;
   createdAt: string;
   status: string;
+  participations: Array<ExpenseDetailParticipationResponseDto>;
   refusal?: ExpenseRefusalResponseDto | null;
 }

@@ -1,8 +1,10 @@
 package tech.justdev.interfaces.expense
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.micronaut.serde.annotation.Serdeable
+import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
@@ -30,7 +32,7 @@ data class ProposeExpenseRequest(
 @Serdeable
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.PROPERTY,
+    include = JsonTypeInfo.As.EXISTING_PROPERTY,
     property = "type",
 )
 @JsonSubTypes(
@@ -39,18 +41,26 @@ data class ProposeExpenseRequest(
     JsonSubTypes.Type(value = CumulativeTiersExpenseAllocationRequest::class, name = "CUMULATIVE_TIERS"),
     JsonSubTypes.Type(value = CustomExpenseAllocationRequest::class, name = "CUSTOM"),
 )
-sealed interface ExpenseAllocationRequest
+sealed interface ExpenseAllocationRequest {
+    val type: String
+}
 
 @Serdeable
+@JsonIgnoreProperties(ignoreUnknown = false)
 data class EqualExpenseAllocationRequest(
     @field:NotEmpty
     val participants: Set<
         @NotBlank @Email
         String,
     >,
-) : ExpenseAllocationRequest
+) : ExpenseAllocationRequest {
+    @get:Schema(requiredMode = Schema.RequiredMode.REQUIRED, allowableValues = ["EQUAL"])
+    override val type: String
+        get() = "EQUAL"
+}
 
 @Serdeable
+@JsonIgnoreProperties(ignoreUnknown = false)
 data class EqualWithCapsExpenseAllocationRequest(
     @field:NotEmpty
     val participants: Set<
@@ -60,7 +70,11 @@ data class EqualWithCapsExpenseAllocationRequest(
     @field:NotEmpty
     @field:Valid
     val caps: List<ExpenseAllocationCapRequest>,
-) : ExpenseAllocationRequest
+) : ExpenseAllocationRequest {
+    @get:Schema(requiredMode = Schema.RequiredMode.REQUIRED, allowableValues = ["EQUAL_WITH_CAPS"])
+    override val type: String
+        get() = "EQUAL_WITH_CAPS"
+}
 
 @Serdeable
 data class ExpenseAllocationCapRequest(
@@ -72,11 +86,16 @@ data class ExpenseAllocationCapRequest(
 )
 
 @Serdeable
+@JsonIgnoreProperties(ignoreUnknown = false)
 data class CumulativeTiersExpenseAllocationRequest(
     @field:NotEmpty
     @field:Valid
     val tiers: List<CumulativeExpenseTierRequest>,
-) : ExpenseAllocationRequest
+) : ExpenseAllocationRequest {
+    @get:Schema(requiredMode = Schema.RequiredMode.REQUIRED, allowableValues = ["CUMULATIVE_TIERS"])
+    override val type: String
+        get() = "CUMULATIVE_TIERS"
+}
 
 @Serdeable
 data class CumulativeExpenseTierRequest(
@@ -90,11 +109,16 @@ data class CumulativeExpenseTierRequest(
 )
 
 @Serdeable
+@JsonIgnoreProperties(ignoreUnknown = false)
 data class CustomExpenseAllocationRequest(
     @field:NotEmpty
     @field:Valid
     val participations: List<CustomExpenseParticipationRequest>,
-) : ExpenseAllocationRequest
+) : ExpenseAllocationRequest {
+    @get:Schema(requiredMode = Schema.RequiredMode.REQUIRED, allowableValues = ["CUSTOM"])
+    override val type: String
+        get() = "CUSTOM"
+}
 
 @Serdeable
 data class CustomExpenseParticipationRequest(

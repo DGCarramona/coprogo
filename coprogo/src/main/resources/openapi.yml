@@ -432,6 +432,7 @@ components:
     CumulativeTiersExpenseAllocationRequest:
       required:
       - tiers
+      - type
       type: object
       properties:
         tiers:
@@ -441,9 +442,12 @@ components:
             $ref: "#/components/schemas/CumulativeExpenseTierRequest"
         type:
           type: string
+          enum:
+          - CUMULATIVE_TIERS
     CustomExpenseAllocationRequest:
       required:
       - participations
+      - type
       type: object
       properties:
         participations:
@@ -453,6 +457,8 @@ components:
             $ref: "#/components/schemas/CustomExpenseParticipationRequest"
         type:
           type: string
+          enum:
+          - CUSTOM
     CustomExpenseParticipationRequest:
       required:
       - amountInCents
@@ -471,6 +477,7 @@ components:
     EqualExpenseAllocationRequest:
       required:
       - participants
+      - type
       type: object
       properties:
         participants:
@@ -482,10 +489,13 @@ components:
             format: email
         type:
           type: string
+          enum:
+          - EQUAL
     EqualWithCapsExpenseAllocationRequest:
       required:
       - caps
       - participants
+      - type
       type: object
       properties:
         participants:
@@ -502,6 +512,8 @@ components:
             $ref: "#/components/schemas/ExpenseAllocationCapRequest"
         type:
           type: string
+          enum:
+          - EQUAL_WITH_CAPS
     ExpenseAllocationCapRequest:
       required:
       - maximumAmountInCents
@@ -519,6 +531,9 @@ components:
           format: int64
     ExpenseAllocationRequest:
       type: object
+      properties:
+        type:
+          type: string
       discriminator:
         propertyName: type
         mapping:

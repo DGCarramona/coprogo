@@ -8,8 +8,7 @@
  * Do not edit the class manually.
  */
 
-export interface ProposeEqualSplitExpenseRequestDto {
-  title: string;
-  totalAmountInCents: number;
+export interface CumulativeExpenseTierRequestDto {
+  upToAmountInCents: number;
   participants: Array<string>;
 }

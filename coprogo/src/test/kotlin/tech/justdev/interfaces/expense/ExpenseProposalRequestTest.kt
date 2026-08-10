@@ -4,6 +4,7 @@ import io.micronaut.json.JsonMapper
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -129,6 +130,38 @@ class ExpenseProposalRequestTest {
                 ),
                 request.allocation,
             )
+        }
+
+        @Test
+        fun `should reject an allocation payload tagged with an incoherent type`() {
+            assertThrows<Exception> {
+                readRequest(
+                    """
+                    {
+                      "title": "Boiler repair",
+                      "totalAmountInCents": 100,
+                      "allocation": {
+                        "type": "CUSTOM",
+                        "participants": ["alice@example.com", "bob@example.com"]
+                      }
+                    }
+                    """.trimIndent(),
+                )
+            }
+        }
+    }
+
+    @Nested
+    inner class Serialization {
+        @Test
+        fun `should serialize exactly one allocation type discriminant`() {
+            val json =
+                jsonMapper.writeValueAsString(
+                    proposal(EqualExpenseAllocationRequest(setOf("alice@example.com", "bob@example.com"))),
+                )
+
+            assertEquals(1, Regex("\\\"type\\\"").findAll(json).count())
+            assertTrue(Regex("\\\"type\\\"\\s*:\\s*\\\"EQUAL\\\"").containsMatchIn(json))
         }
     }
 
