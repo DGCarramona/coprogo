@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { catchError, firstValueFrom, map } from 'rxjs';
 
 import { GroupCreationPort } from '../../application/group/group-creation.port';
 import { GroupsService } from '../api/generated';
@@ -12,11 +12,13 @@ export class HttpGroupCreationGateway extends GroupCreationPort {
   }
 
   override async create(): Promise<string> {
-    try {
-      const response = await firstValueFrom(this.groupsService.create());
-      return response.group;
-    } catch (error) {
-      throw toApiClientError(error, 'Le groupe n a pas pu etre cree.');
-    }
+    return await firstValueFrom(
+      this.groupsService.create().pipe(
+        catchError((error) => {
+          throw toApiClientError(error, 'Le groupe n a pas pu etre cree.');
+        }),
+        map((response) => response.group),
+      ),
+    );
   }
 }

@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { catchError, firstValueFrom, map } from 'rxjs';
+import { catchError, firstValueFrom } from 'rxjs';
 
 import { ExpenseListPort } from '../../application/expense/expense-list.port';
 import type { ExpenseStatus, ExpenseSummary } from '../../domain/expense/expense-summary';
+import { mapArray } from '../../shared/rxjs/map-array';
 import { ExpenseResponseDto, ExpensesService } from '../api/generated';
 import { toApiClientError } from '../api/api-client.error';
 
@@ -18,7 +19,7 @@ export class HttpExpenseListGateway extends ExpenseListPort {
         catchError((error) => {
           throw toApiClientError(error, 'Les depenses n ont pas pu etre chargees.');
         }),
-        map((expenses) => expenses.map(toExpenseSummary)),
+        mapArray(toExpenseSummary),
       ),
     );
   }

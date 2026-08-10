@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { catchError, firstValueFrom, forkJoin, map } from 'rxjs';
 
 import { GroupFinancialDashboardPort } from '../../application/ledger/group-financial-dashboard.port';
-import { GroupFinancialDashboard } from '../../domain/ledger/group-financial-dashboard';
+import type { GroupFinancialDashboard } from '../../domain/ledger/group-financial-dashboard';
 import { LedgerService } from '../api/generated';
 import { toApiClientError } from '../api/api-client.error';
 
@@ -13,23 +13,24 @@ export class HttpGroupFinancialDashboardGateway extends GroupFinancialDashboardP
   }
 
   override async get(groupId: string): Promise<GroupFinancialDashboard> {
-    try {
-      const [balances, cashPoolBalance, cashPoolShares] = await Promise.all([
-        firstValueFrom(this.ledgerService.getGroupBalances(groupId)),
-        firstValueFrom(this.ledgerService.getCashPoolBalance(groupId)),
-        firstValueFrom(this.ledgerService.getMemberCashPoolShares(groupId)),
-      ]);
-
-      return {
-        groupId: balances.group,
-        memberBalances: balances.balances,
-        cashPoolBalance: {
-          availableAmountInCents: cashPoolBalance.availableAmountInCents,
-        },
-        cashPoolShares: cashPoolShares.shares,
-      };
-    } catch (error) {
-      throw toApiClientError(error, 'Le dashboard financier n a pas pu etre charge.');
-    }
+    return await firstValueFrom(
+      forkJoin({
+        balances: this.ledgerService.getGroupBalances(groupId),
+        cashPoolBalance: this.ledgerService.getCashPoolBalance(groupId),
+        cashPoolShares: this.ledgerService.getMemberCashPoolShares(groupId),
+      }).pipe(
+        catchError((error) => {
+          throw toApiClientError(error, 'Le dashboard financier n a pas pu etre charge.');
+        }),
+        map(({ balances, cashPoolBalance, cashPoolShares }) => ({
+          groupId: balances.group,
+          memberBalances: balances.balances,
+          cashPoolBalance: {
+            availableAmountInCents: cashPoolBalance.availableAmountInCents,
+          },
+          cashPoolShares: cashPoolShares.shares,
+        })),
+      ),
+    );
   }
 }

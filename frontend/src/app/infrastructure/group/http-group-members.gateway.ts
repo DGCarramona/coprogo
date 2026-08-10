@@ -3,7 +3,8 @@ import { catchError, map, Observable, throwError } from 'rxjs';
 
 import { GroupMembersPort } from '../../application/group/group-members.port';
 import { GroupMember } from '../../domain/group/group-member';
-import { GroupMemberResponseDto, GroupsService } from '../api/generated';
+import { mapArray } from '../../shared/rxjs/map-array';
+import { GroupsService } from '../api/generated';
 import { toApiClientError } from '../api/api-client.error';
 
 @Injectable({ providedIn: 'root' })
@@ -14,7 +15,13 @@ export class HttpGroupMembersGateway extends GroupMembersPort {
 
   override listByGroup(groupId: string): Observable<readonly GroupMember[]> {
     return this.groupsService.get(groupId).pipe(
-      map((group) => group.members.map(mapGroupMemberResponseDtoToDomain)),
+      map((group) => group.members),
+      mapArray(
+        ({ member, joinedAt }): GroupMember => ({
+          member,
+          joinedAt: new Date(joinedAt),
+        }),
+      ),
       catchError((error: unknown) =>
         throwError(() =>
           toApiClientError(error, 'Les membres du groupe n ont pas pu etre charges.'),
@@ -23,8 +30,3 @@ export class HttpGroupMembersGateway extends GroupMembersPort {
     );
   }
 }
-
-const mapGroupMemberResponseDtoToDomain = (member: GroupMemberResponseDto): GroupMember => ({
-  member: member.member,
-  joinedAt: new Date(member.joinedAt),
-});

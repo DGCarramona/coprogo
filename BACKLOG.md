@@ -20,9 +20,8 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 
 ## Ordre de travail actuel
 
-1. Aligner les gateways HTTP preexistantes avec FE-CORE-011.
-2. Raccorder le client et les formulaires frontend avec FE-EXP-004B2 puis FE-EXP-005 a FE-EXP-007.
-3. Traiter les justificatifs avec les lots BE-DOC et FE-DOC.
+1. Raccorder le client et les formulaires frontend avec FE-EXP-004B2 puis FE-EXP-005 a FE-EXP-007.
+2. Traiter les justificatifs avec les lots BE-DOC et FE-DOC.
 
 ## Fondations monorepo et DX
 
@@ -136,7 +135,9 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 - [x] FE-CORE-008 Mettre en place la gestion uniforme loading / empty / error.
 - [x] FE-CORE-009 Ajouter des utilitaires de mapping argent / dates / pourcentages.
 - [x] FE-CORE-010 Introduire un socle Angular Material 3 global pour les ecrans frontend.
-- [ ] FE-CORE-011 Aligner les gateways HTTP de creation de groupe, d'invitations et de dashboard financier sur la composition Observable avant conversion Promise.
+- [x] FE-CORE-011A Aligner la gateway HTTP de creation de groupe sur la composition Observable avant conversion Promise.
+- [x] FE-CORE-011B Aligner la gateway HTTP d'invitations sur la composition Observable avant conversion Promise.
+- [x] FE-CORE-011C Aligner la gateway HTTP de dashboard financier sur la composition Observable avant conversion Promise.
 
 ## Frontend - groupes, dashboard et lecture des soldes
 
