@@ -27,6 +27,7 @@
     "@angular/router": "21.2.13",
     "@tanstack/angular-query-experimental": "5.101.4",
     "rxjs": "~7.8.0",
+    "ts-pattern": "5.9.0",
     "tslib": "^2.3.0"
   },
   "devDependencies": {

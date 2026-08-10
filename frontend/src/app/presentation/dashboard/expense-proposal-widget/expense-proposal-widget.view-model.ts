@@ -5,7 +5,7 @@ import { firstValueFrom } from 'rxjs';
 
 import {
   ExpenseProposalPort,
-  ProposeEqualSplitExpenseCommand,
+  ExpenseProposalCommand,
 } from '../../../application/expense/expense-proposal.port';
 import { GroupMembersPort } from '../../../application/group/group-members.port';
 import { describeError } from '../../../application/shared/describe-error';
@@ -77,9 +77,9 @@ export class ExpenseProposalWidgetViewModel {
       },
       { injector },
     );
-    this.proposalMutation = injectMutation<void, Error, ProposeEqualSplitExpenseCommand>(
+    this.proposalMutation = injectMutation<void, Error, ExpenseProposalCommand>(
       () => ({
-        mutationFn: (command) => this.expenseProposalPort.proposeEqualSplit(command),
+        mutationFn: (command) => this.expenseProposalPort.propose(command),
         onSuccess: (_, command) =>
           this.queryClient.invalidateQueries({
             queryKey: ['groups', command.groupId, 'expenses'],
@@ -159,13 +159,21 @@ export class ExpenseProposalWidgetViewModel {
     this.proposalMutation.mutate(this.commandFor(input));
   }
 
-  private commandFor(input: EqualSplitExpenseProposalInput): ProposeEqualSplitExpenseCommand {
+  private commandFor(input: EqualSplitExpenseProposalInput): ExpenseProposalCommand {
     const groupId = this.groupIdState();
     if (groupId === null) {
       throw new Error('Un groupe doit etre initialise avant de proposer une depense.');
     }
 
-    return { ...input, groupId };
+    return {
+      groupId,
+      title: input.title,
+      totalAmountInCents: input.totalAmountInCents,
+      allocation: {
+        type: 'EQUAL',
+        participants: input.participants,
+      },
+    };
   }
 
   toggleParticipant(member: string): void {

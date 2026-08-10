@@ -3,7 +3,7 @@ import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-exper
 import { NEVER, Observable, of, throwError } from 'rxjs';
 import {
   ExpenseProposalPort,
-  ProposeEqualSplitExpenseCommand,
+  ExpenseProposalCommand,
 } from '../../../application/expense/expense-proposal.port';
 import { GroupMembersPort } from '../../../application/group/group-members.port';
 import { GroupMember } from '../../../domain/group/group-member';
@@ -51,7 +51,10 @@ describe('ExpenseProposalWidgetComponent', () => {
         groupId: 'group-1',
         title: 'Toiture',
         totalAmountInCents: 1250,
-        participants: new Set(['a@b.c']),
+        allocation: {
+          type: 'EQUAL',
+          participants: new Set(['a@b.c']),
+        },
       },
     ]);
     expect(host.textContent).toContain('La dépense a été proposée.');
@@ -226,12 +229,12 @@ class Members extends GroupMembersPort {
 }
 
 class StubExpenseProposalPort extends ExpenseProposalPort {
-  commands: ProposeEqualSplitExpenseCommand[] = [];
+  commands: ExpenseProposalCommand[] = [];
   failure: Error | null = null;
   private deferred: Promise<void> | null = null;
   private resolveDeferredPromise: (() => void) | null = null;
 
-  override proposeEqualSplit(command: ProposeEqualSplitExpenseCommand) {
+  override propose(command: ExpenseProposalCommand) {
     this.commands.push(command);
 
     if (this.failure !== null) return Promise.reject(this.failure);

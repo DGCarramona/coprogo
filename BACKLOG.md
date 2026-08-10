@@ -20,8 +20,9 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 
 ## Ordre de travail actuel
 
-1. Raccorder le client et les formulaires frontend avec FE-EXP-004B puis FE-EXP-005 a FE-EXP-007.
-2. Traiter les justificatifs avec les lots BE-DOC et FE-DOC.
+1. Aligner les gateways HTTP preexistantes avec FE-CORE-011.
+2. Raccorder le client et les formulaires frontend avec FE-EXP-004B2 puis FE-EXP-005 a FE-EXP-007.
+3. Traiter les justificatifs avec les lots BE-DOC et FE-DOC.
 
 ## Fondations monorepo et DX
 
@@ -135,6 +136,7 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 - [x] FE-CORE-008 Mettre en place la gestion uniforme loading / empty / error.
 - [x] FE-CORE-009 Ajouter des utilitaires de mapping argent / dates / pourcentages.
 - [x] FE-CORE-010 Introduire un socle Angular Material 3 global pour les ecrans frontend.
+- [ ] FE-CORE-011 Aligner les gateways HTTP de creation de groupe, d'invitations et de dashboard financier sur la composition Observable avant conversion Promise.
 
 ## Frontend - groupes, dashboard et lecture des soldes
 
@@ -152,7 +154,8 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 - [ ] FE-EXP-002 Creer la page de detail d'une depense avec statuts de participation.
 - [x] FE-EXP-003 Creer le formulaire de depense a partage egal.
 - [x] FE-EXP-004A Regenerer le client et maintenir le formulaire Equal sur le contrat polymorphe aux discriminants fermes.
-- [ ] FE-EXP-004B Ajouter le selecteur de mode et l'orchestration partagee du formulaire de depense.
+- [x] FE-EXP-004B1 Generaliser le port de proposition et raccorder les quatre allocations au client HTTP.
+- [ ] FE-EXP-004B2 Ajouter le selecteur de mode et l'orchestration partagee du formulaire de depense.
 - [ ] FE-EXP-005 Ajouter l'interface `EqualWithCaps` avec saisie des plafonds.
 - [ ] FE-EXP-006 Ajouter l'interface `CumulativeTiers` avec saisie des seuils et participants par tranche.
 - [ ] FE-EXP-007 Ajouter l'interface `Custom` avec saisie des montants exacts par participant.

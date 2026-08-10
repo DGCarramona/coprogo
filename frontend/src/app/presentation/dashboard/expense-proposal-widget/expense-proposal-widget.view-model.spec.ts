@@ -7,7 +7,7 @@ import { Observable, of, throwError } from 'rxjs';
 import { GroupMembersPort } from '../../../application/group/group-members.port';
 import {
   ExpenseProposalPort,
-  ProposeEqualSplitExpenseCommand,
+  ExpenseProposalCommand,
 } from '../../../application/expense/expense-proposal.port';
 import { GroupMember } from '../../../domain/group/group-member';
 import { ExpenseProposalWidgetViewModel } from './expense-proposal-widget.view-model';
@@ -103,7 +103,10 @@ describe('ExpenseProposalWidgetViewModel', () => {
         groupId: 'group-1',
         title: 'Reparation toiture',
         totalAmountInCents: 12500,
-        participants: new Set(['alice@example.com', 'bob@example.com']),
+        allocation: {
+          type: 'EQUAL',
+          participants: new Set(['alice@example.com', 'bob@example.com']),
+        },
       },
     ]);
   });
@@ -229,7 +232,10 @@ describe('ExpenseProposalWidgetViewModel', () => {
         groupId: 'group-1',
         title: 'Toiture',
         totalAmountInCents: 1250,
-        participants: new Set(['alice@example.com']),
+        allocation: {
+          type: 'EQUAL',
+          participants: new Set(['alice@example.com']),
+        },
       },
     ]);
   });
@@ -268,12 +274,12 @@ class StubGroupMembersPort extends GroupMembersPort {
 }
 
 class StubExpenseProposalPort extends ExpenseProposalPort {
-  commands: ProposeEqualSplitExpenseCommand[] = [];
+  commands: ExpenseProposalCommand[] = [];
   failure: Error | null = null;
   private deferred: Promise<void> | null = null;
   private resolveDeferredPromise: (() => void) | null = null;
 
-  override proposeEqualSplit(command: ProposeEqualSplitExpenseCommand): Promise<void> {
+  override propose(command: ExpenseProposalCommand): Promise<void> {
     this.commands.push(command);
     if (this.failure) return Promise.reject(this.failure);
     return this.deferred ?? Promise.resolve();

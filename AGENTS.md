@@ -479,6 +479,7 @@ Application use cases should carry real application behavior: orchestration, val
 - Use stable, scoped query keys. Model reads as queries and writes as mutations with explicit invalidation.
 - Expose query and mutation state through Signals. Do not add `shareReplay` or a concurrent custom cache.
 - Promise/Observable conversion is allowed only at the TanStack boundary when required.
+- HTTP gateways returning Promises must compose generated-client Observables with `pipe(...)`, handle API errors there with `catchError(...)`, apply `map(...)` there when mapping responses, and call `firstValueFrom(...)` only as the final Promise boundary. Do not wrap `firstValueFrom(...)` in imperative `try/catch`.
 
 ### Dependency rules
 - Presentation depends on Application, never on Infrastructure details directly.
