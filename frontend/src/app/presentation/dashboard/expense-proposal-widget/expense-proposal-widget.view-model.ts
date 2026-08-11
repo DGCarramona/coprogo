@@ -20,7 +20,10 @@ export interface EqualSplitExpenseProposalInput {
 interface ExpenseProposalFormModel {
   title: string;
   amountInEuros: string;
-  participants: readonly string[];
+  allocationMode: ExpenseProposalCommand['allocation']['type'];
+  equal: {
+    participants: readonly string[];
+  };
 }
 
 @Injectable()
@@ -104,8 +107,16 @@ export class ExpenseProposalWidgetViewModel {
               }
             : undefined,
         );
-        validate(proposal.participants, ({ value }) =>
-          value().length === 0
+        validate(proposal.allocationMode, ({ value }) =>
+          value() === 'EQUAL'
+            ? undefined
+            : {
+                kind: 'mode-unavailable',
+                message: 'Les champs de ce mode de repartition ne sont pas encore disponibles.',
+              },
+        );
+        validate(proposal.equal.participants, ({ value, valueOf }) =>
+          valueOf(proposal.allocationMode) === 'EQUAL' && value().length === 0
             ? { kind: 'participants', message: 'Choisissez au moins un participant.' }
             : undefined,
         );
@@ -124,12 +135,19 @@ export class ExpenseProposalWidgetViewModel {
               };
             }
 
+            if (proposal.allocationMode !== 'EQUAL') {
+              return {
+                kind: 'mode-unavailable',
+                message: 'Les champs de ce mode de repartition ne sont pas encore disponibles.',
+              };
+            }
+
             try {
               await this.proposalMutation.mutateAsync(
                 this.commandFor({
                   title: proposal.title.trim(),
                   totalAmountInCents,
-                  participants: new Set(proposal.participants),
+                  participants: new Set(proposal.equal.participants),
                 }),
               );
 
@@ -179,9 +197,11 @@ export class ExpenseProposalWidgetViewModel {
   toggleParticipant(member: string): void {
     this.proposalModel.update((proposal) => ({
       ...proposal,
-      participants: proposal.participants.includes(member)
-        ? proposal.participants.filter((participant) => participant !== member)
-        : [...proposal.participants, member],
+      equal: {
+        participants: proposal.equal.participants.includes(member)
+          ? proposal.equal.participants.filter((participant) => participant !== member)
+          : [...proposal.equal.participants, member],
+      },
     }));
   }
 }
@@ -189,7 +209,10 @@ export class ExpenseProposalWidgetViewModel {
 const emptyProposalFormModel = (): ExpenseProposalFormModel => ({
   title: '',
   amountInEuros: '',
-  participants: [],
+  allocationMode: 'EQUAL',
+  equal: {
+    participants: [],
+  },
 });
 
 const parseAmountInCents = (amount: string): number | null => {

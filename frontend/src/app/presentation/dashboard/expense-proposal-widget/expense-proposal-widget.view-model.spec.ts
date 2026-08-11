@@ -202,9 +202,63 @@ describe('ExpenseProposalWidgetViewModel', () => {
     expect(viewModel.proposalForm().value()).toEqual({
       title: '',
       amountInEuros: '',
-      participants: [],
+      allocationMode: 'EQUAL',
+      equal: {
+        participants: [],
+      },
     });
     expect(viewModel.proposalForm().invalid()).toBe(true);
+  });
+
+  it.each(['EQUAL_WITH_CAPS', 'CUMULATIVE_TIERS', 'CUSTOM'] as const)(
+    'blocks submission while %s fields are unavailable',
+    async (allocationMode) => {
+      const viewModel = createViewModel();
+      viewModel.initialize('group-1');
+      viewModel.proposalForm.title().value.set('Toiture');
+      viewModel.proposalForm.amountInEuros().value.set('12,50');
+      viewModel.toggleParticipant('alice@example.com');
+
+      viewModel.proposalForm.allocationMode().value.set(allocationMode);
+
+      expect(viewModel.proposalForm().invalid()).toBe(true);
+      await expect(submit(viewModel.proposalForm)).resolves.toBe(false);
+      expect(proposalPort.commands).toEqual([]);
+    },
+  );
+
+  it('preserves the shared fields and equal draft when returning to equal allocation', async () => {
+    const viewModel = createViewModel();
+    viewModel.initialize('group-1');
+    viewModel.proposalForm.title().value.set('  Toiture  ');
+    viewModel.proposalForm.amountInEuros().value.set('12,50');
+    viewModel.toggleParticipant('alice@example.com');
+
+    viewModel.proposalForm.allocationMode().value.set('CUSTOM');
+    expect(viewModel.proposalForm().value()).toEqual({
+      title: '  Toiture  ',
+      amountInEuros: '12,50',
+      allocationMode: 'CUSTOM',
+      equal: {
+        participants: ['alice@example.com'],
+      },
+    });
+
+    viewModel.proposalForm.allocationMode().value.set('EQUAL');
+
+    await expect(submit(viewModel.proposalForm)).resolves.toBe(true);
+    await waitFor(() => proposalPort.commands.length === 1);
+    expect(proposalPort.commands).toEqual([
+      {
+        groupId: 'group-1',
+        title: 'Toiture',
+        totalAmountInCents: 1250,
+        allocation: {
+          type: 'EQUAL',
+          participants: new Set(['alice@example.com']),
+        },
+      },
+    ]);
   });
 
   it('validates non-blank title, amount and selected participants before submitting', async () => {

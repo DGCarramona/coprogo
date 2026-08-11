@@ -36,20 +36,37 @@
           [formField]="viewModel.proposalForm.amountInEuros"
         />
       </p>
-      <fieldset>
-        <legend>Participants</legend>
-        @for (member of viewModel.members(); track member) {
-          <p>
-            <input
-              [id]="'participant-' + member"
-              type="checkbox"
-              [checked]="viewModel.proposalForm().value().participants.includes(member)"
-              (change)="viewModel.toggleParticipant(member)"
-            />
-            <label [for]="'participant-' + member">{{ member }}</label>
-          </p>
-        }
-      </fieldset>
+      <p>
+        <label for="expense-allocation-mode">Mode de répartition</label>
+        <select
+          id="expense-allocation-mode"
+          aria-label="Mode de répartition"
+          [formField]="viewModel.proposalForm.allocationMode"
+        >
+          <option value="EQUAL">Parts égales</option>
+          <option value="EQUAL_WITH_CAPS">Parts égales avec plafonds</option>
+          <option value="CUMULATIVE_TIERS">Répartition par tranches</option>
+          <option value="CUSTOM">Montants personnalisés</option>
+        </select>
+      </p>
+      @if (viewModel.proposalForm().value().allocationMode === 'EQUAL') {
+        <fieldset>
+          <legend>Participants</legend>
+          @for (member of viewModel.members(); track member) {
+            <p>
+              <input
+                [id]="'participant-' + member"
+                type="checkbox"
+                [checked]="viewModel.proposalForm().value().equal.participants.includes(member)"
+                (change)="viewModel.toggleParticipant(member)"
+              />
+              <label [for]="'participant-' + member">{{ member }}</label>
+            </p>
+          }
+        </fieldset>
+      } @else {
+        <p role="status">Les champs de ce mode de répartition ne sont pas encore disponibles.</p>
+      }
       <button
         matButton="filled"
         type="submit"

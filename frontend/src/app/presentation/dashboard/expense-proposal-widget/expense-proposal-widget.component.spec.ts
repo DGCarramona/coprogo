@@ -10,6 +10,49 @@ import { GroupMember } from '../../../domain/group/group-member';
 import { ExpenseProposalWidgetComponent } from './expense-proposal-widget.component';
 
 describe('ExpenseProposalWidgetComponent', () => {
+  it('offers the four allocation modes with equal selected by default', async () => {
+    const { fixture, host } = createFixture(new Members());
+
+    await waitFor(() => {
+      fixture.detectChanges();
+
+      return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+    });
+
+    const allocationMode = requiredSelect(host, 'select[aria-label="Mode de répartition"]');
+
+    expect(allocationMode.value).toBe('EQUAL');
+    expect([...allocationMode.options].map((option) => [option.value, option.textContent])).toEqual(
+      [
+        ['EQUAL', 'Parts égales'],
+        ['EQUAL_WITH_CAPS', 'Parts égales avec plafonds'],
+        ['CUMULATIVE_TIERS', 'Répartition par tranches'],
+        ['CUSTOM', 'Montants personnalisés'],
+      ],
+    );
+  });
+
+  it('shows an unavailable mode without equal fields or submission', async () => {
+    const { fixture, host } = createFixture(new Members());
+
+    await waitFor(() => {
+      fixture.detectChanges();
+
+      return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+    });
+
+    const allocationMode = requiredSelect(host, 'select[aria-label="Mode de répartition"]');
+    allocationMode.value = 'CUSTOM';
+    allocationMode.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(host.querySelector('fieldset')).toBeNull();
+    expect(host.querySelector('[role="status"]')?.textContent?.trim()).toBe(
+      'Les champs de ce mode de répartition ne sont pas encore disponibles.',
+    );
+    expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
+  });
+
   it('submits the filled proposal', async () => {
     const proposals = new StubExpenseProposalPort();
     const { fixture, host } = createFixture(new Members(), proposals);
@@ -195,6 +238,12 @@ const requiredInput = (host: HTMLElement, selector: string): HTMLInputElement =>
   const input = host.querySelector(selector);
   if (!(input instanceof HTMLInputElement)) throw new Error(`Champ absent: ${selector}`);
   return input;
+};
+
+const requiredSelect = (host: HTMLElement, selector: string): HTMLSelectElement => {
+  const select = host.querySelector(selector);
+  if (!(select instanceof HTMLSelectElement)) throw new Error(`Liste absente: ${selector}`);
+  return select;
 };
 
 const requiredButton = (host: HTMLElement, selector: string): HTMLButtonElement => {
