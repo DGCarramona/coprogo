@@ -53,6 +53,93 @@ describe('ExpenseProposalWidgetComponent', () => {
     expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
   });
 
+  it('shows an optional maximum amount only for selected capped-mode participants', async () => {
+    const { fixture, host } = createFixture(new Members());
+
+    await waitFor(() => {
+      fixture.detectChanges();
+      return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+    });
+
+    selectAllocationMode(host, fixture, 'EQUAL_WITH_CAPS');
+
+    expect(host.textContent).toContain(
+      'Un montant maximum est facultatif. Laissez au moins un participant sans maximum.',
+    );
+    expect(host.querySelector('input[aria-label="Montant maximum pour a@b.c"]')).toBeNull();
+
+    requiredInput(host, 'input[id="equal-with-caps-participant-a@b.c"]').click();
+    fixture.detectChanges();
+
+    const maximum = requiredInput(host, 'input[aria-label="Montant maximum pour a@b.c"]');
+    expect(maximum.getAttribute('aria-describedby')).toBe('equal-with-caps-help');
+    expect(host.querySelector('input[aria-label="Montant maximum pour b@c.d"]')).toBeNull();
+  });
+
+  it('submits a valid equal split with caps', async () => {
+    const proposals = new StubExpenseProposalPort();
+    const { fixture, host } = createFixture(new Members(), proposals);
+
+    await waitFor(() => {
+      fixture.detectChanges();
+      return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+    });
+
+    fillSharedFields(host);
+    selectAllocationMode(host, fixture, 'EQUAL_WITH_CAPS');
+    requiredInput(host, 'input[id="equal-with-caps-participant-a@b.c"]').click();
+    requiredInput(host, 'input[id="equal-with-caps-participant-b@c.d"]').click();
+    fixture.detectChanges();
+    const maximum = requiredInput(host, 'input[aria-label="Montant maximum pour b@c.d"]');
+    maximum.value = '25,50';
+    maximum.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const submitButton = requiredButton(host, 'button[type="submit"]');
+    expect(submitButton.disabled).toBe(false);
+    submitButton.click();
+
+    await waitFor(() => proposals.commands.length === 1);
+    expect(proposals.commands).toEqual([
+      {
+        groupId: 'group-1',
+        title: 'Toiture',
+        totalAmountInCents: 1250,
+        allocation: {
+          type: 'EQUAL_WITH_CAPS',
+          participants: new Set(['a@b.c', 'b@c.d']),
+          capsInCentsByMember: new Map([['b@c.d', 2550]]),
+        },
+      },
+    ]);
+  });
+
+  it('disables capped-mode submission for an invalid maximum amount', async () => {
+    const { fixture, host } = createFixture(new Members());
+
+    await waitFor(() => {
+      fixture.detectChanges();
+      return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+    });
+
+    fillSharedFields(host);
+    selectAllocationMode(host, fixture, 'EQUAL_WITH_CAPS');
+    requiredInput(host, 'input[id="equal-with-caps-participant-a@b.c"]').click();
+    requiredInput(host, 'input[id="equal-with-caps-participant-b@c.d"]').click();
+    fixture.detectChanges();
+    const maximum = requiredInput(host, 'input[aria-label="Montant maximum pour b@c.d"]');
+    maximum.value = '25,555';
+    maximum.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
+
+    maximum.value = '25,50';
+    maximum.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(false);
+  });
+
   it('submits the filled proposal', async () => {
     const proposals = new StubExpenseProposalPort();
     const { fixture, host } = createFixture(new Members(), proposals);
@@ -228,6 +315,26 @@ const fillProposal = (
   fixture.detectChanges();
 };
 
+const fillSharedFields = (host: HTMLElement): void => {
+  const title = requiredInput(host, 'input[aria-label="Titre"]');
+  const amount = requiredInput(host, 'input[aria-label="Montant en euros"]');
+  title.value = 'Toiture';
+  title.dispatchEvent(new Event('input'));
+  amount.value = '12,50';
+  amount.dispatchEvent(new Event('input'));
+};
+
+const selectAllocationMode = (
+  host: HTMLElement,
+  fixture: ComponentFixture<ExpenseProposalWidgetComponent>,
+  allocationMode: string,
+): void => {
+  const select = requiredSelect(host, 'select[aria-label="Mode de répartition"]');
+  select.value = allocationMode;
+  select.dispatchEvent(new Event('input'));
+  fixture.detectChanges();
+};
+
 const requiredForm = (host: HTMLElement): HTMLFormElement => {
   const form = host.querySelector('form');
   if (!(form instanceof HTMLFormElement)) throw new Error('Formulaire absent.');
@@ -262,7 +369,10 @@ const waitFor = async (condition: () => boolean): Promise<void> => {
 };
 
 class Members extends GroupMembersPort {
-  readonly members: readonly GroupMember[] = [{ member: 'a@b.c', joinedAt: new Date() }];
+  readonly members: readonly GroupMember[] = [
+    { member: 'a@b.c', joinedAt: new Date() },
+    { member: 'b@c.d', joinedAt: new Date() },
+  ];
   readonly requestedGroupIds: string[] = [];
   failure: Error | null = null;
   loading = false;

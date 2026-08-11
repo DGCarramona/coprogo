@@ -20,7 +20,7 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 
 ## Ordre de travail actuel
 
-1. Raccorder le client et les formulaires frontend avec FE-EXP-005 puis FE-EXP-006 et FE-EXP-007.
+1. Raccorder le client et les formulaires frontend avec FE-EXP-006 puis FE-EXP-007.
 2. Traiter les justificatifs avec les lots BE-DOC et FE-DOC.
 
 ## Fondations monorepo et DX
@@ -157,7 +157,7 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 - [x] FE-EXP-004A Regenerer le client et maintenir le formulaire Equal sur le contrat polymorphe aux discriminants fermes.
 - [x] FE-EXP-004B1 Generaliser le port de proposition et raccorder les quatre allocations au client HTTP.
 - [x] FE-EXP-004B2 Ajouter le selecteur de mode et l'orchestration partagee du formulaire de depense.
-- [ ] FE-EXP-005 Ajouter l'interface `EqualWithCaps` avec saisie des plafonds.
+- [x] FE-EXP-005 Ajouter l'interface `EqualWithCaps` avec saisie des plafonds.
 - [ ] FE-EXP-006 Ajouter l'interface `CumulativeTiers` avec saisie des seuils et participants par tranche.
 - [ ] FE-EXP-007 Ajouter l'interface `Custom` avec saisie des montants exacts par participant.
 - [ ] FE-EXP-008 Ajouter l'action d'approbation ou refus de sa propre participation.

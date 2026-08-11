@@ -21,4 +21,11 @@ export class ExpenseProposalWidgetComponent implements OnInit {
   ngOnInit(): void {
     this.viewModel.initialize(this.groupId);
   }
+
+  updateEqualWithCapsMaximum(member: string, event: Event): void {
+    const input = event.target;
+    if (input instanceof HTMLInputElement) {
+      this.viewModel.setEqualWithCapsMaximum(member, input.value);
+    }
+  }
 }

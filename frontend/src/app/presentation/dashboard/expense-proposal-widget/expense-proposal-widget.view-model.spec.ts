@@ -206,11 +206,15 @@ describe('ExpenseProposalWidgetViewModel', () => {
       equal: {
         participants: [],
       },
+      equalWithCaps: {
+        participants: [],
+        maximumAmountsInEuros: {},
+      },
     });
     expect(viewModel.proposalForm().invalid()).toBe(true);
   });
 
-  it.each(['EQUAL_WITH_CAPS', 'CUMULATIVE_TIERS', 'CUSTOM'] as const)(
+  it.each(['CUMULATIVE_TIERS', 'CUSTOM'] as const)(
     'blocks submission while %s fields are unavailable',
     async (allocationMode) => {
       const viewModel = createViewModel();
@@ -242,6 +246,10 @@ describe('ExpenseProposalWidgetViewModel', () => {
       equal: {
         participants: ['alice@example.com'],
       },
+      equalWithCaps: {
+        participants: [],
+        maximumAmountsInEuros: {},
+      },
     });
 
     viewModel.proposalForm.allocationMode().value.set('EQUAL');
@@ -259,6 +267,116 @@ describe('ExpenseProposalWidgetViewModel', () => {
         },
       },
     ]);
+  });
+
+  it('submits an equal split with one capped participant', async () => {
+    const viewModel = createViewModel();
+    viewModel.initialize('group-1');
+    viewModel.proposalForm.title().value.set('  Toiture  ');
+    viewModel.proposalForm.amountInEuros().value.set('125');
+    viewModel.proposalForm.allocationMode().value.set('EQUAL_WITH_CAPS');
+    viewModel.toggleEqualWithCapsParticipant('alice@example.com');
+    viewModel.toggleEqualWithCapsParticipant('bob@example.com');
+    viewModel.setEqualWithCapsMaximum('bob@example.com', '25,50');
+
+    await expect(submit(viewModel.proposalForm)).resolves.toBe(true);
+    await waitFor(() => proposalPort.commands.length === 1);
+
+    expect(proposalPort.commands).toEqual([
+      {
+        groupId: 'group-1',
+        title: 'Toiture',
+        totalAmountInCents: 12500,
+        allocation: {
+          type: 'EQUAL_WITH_CAPS',
+          participants: new Set(['alice@example.com', 'bob@example.com']),
+          capsInCentsByMember: new Map([['bob@example.com', 2550]]),
+        },
+      },
+    ]);
+  });
+
+  it('submits an equal split with caps without requiring any cap', async () => {
+    const viewModel = createViewModel();
+    viewModel.initialize('group-1');
+    viewModel.proposalForm.title().value.set('Toiture');
+    viewModel.proposalForm.amountInEuros().value.set('125');
+    viewModel.proposalForm.allocationMode().value.set('EQUAL_WITH_CAPS');
+    viewModel.toggleEqualWithCapsParticipant('alice@example.com');
+
+    await expect(submit(viewModel.proposalForm)).resolves.toBe(true);
+    await waitFor(() => proposalPort.commands.length === 1);
+
+    expect(proposalPort.commands[0]?.allocation).toEqual({
+      type: 'EQUAL_WITH_CAPS',
+      participants: new Set(['alice@example.com']),
+      capsInCentsByMember: new Map(),
+    });
+  });
+
+  it('requires an equal with caps participant', async () => {
+    const viewModel = createViewModel();
+    viewModel.initialize('group-1');
+    viewModel.proposalForm.title().value.set('Toiture');
+    viewModel.proposalForm.amountInEuros().value.set('125');
+    viewModel.proposalForm.allocationMode().value.set('EQUAL_WITH_CAPS');
+
+    expect(viewModel.proposalForm().invalid()).toBe(true);
+    await expect(submit(viewModel.proposalForm)).resolves.toBe(false);
+    expect(proposalPort.commands).toEqual([]);
+  });
+
+  it('rejects an invalid equal with caps maximum amount', async () => {
+    const viewModel = createViewModel();
+    viewModel.initialize('group-1');
+    viewModel.proposalForm.title().value.set('Toiture');
+    viewModel.proposalForm.amountInEuros().value.set('125');
+    viewModel.proposalForm.allocationMode().value.set('EQUAL_WITH_CAPS');
+    viewModel.toggleEqualWithCapsParticipant('alice@example.com');
+    viewModel.toggleEqualWithCapsParticipant('bob@example.com');
+    viewModel.setEqualWithCapsMaximum('bob@example.com', '25,555');
+
+    expect(viewModel.proposalForm().invalid()).toBe(true);
+    await expect(submit(viewModel.proposalForm)).resolves.toBe(false);
+    expect(proposalPort.commands).toEqual([]);
+  });
+
+  it('requires at least one uncapped participant', async () => {
+    const viewModel = createViewModel();
+    viewModel.initialize('group-1');
+    viewModel.proposalForm.title().value.set('Toiture');
+    viewModel.proposalForm.amountInEuros().value.set('125');
+    viewModel.proposalForm.allocationMode().value.set('EQUAL_WITH_CAPS');
+    viewModel.toggleEqualWithCapsParticipant('alice@example.com');
+    viewModel.toggleEqualWithCapsParticipant('bob@example.com');
+    viewModel.setEqualWithCapsMaximum('alice@example.com', '50');
+    viewModel.setEqualWithCapsMaximum('bob@example.com', '25,50');
+
+    expect(viewModel.proposalForm().invalid()).toBe(true);
+    await expect(submit(viewModel.proposalForm)).resolves.toBe(false);
+    expect(proposalPort.commands).toEqual([]);
+  });
+
+  it('keeps equal with caps selection and amounts independent from equal', () => {
+    const viewModel = createViewModel();
+    viewModel.initialize('group-1');
+    viewModel.toggleParticipant('alice@example.com');
+    viewModel.proposalForm.allocationMode().value.set('EQUAL_WITH_CAPS');
+    viewModel.toggleEqualWithCapsParticipant('bob@example.com');
+    viewModel.setEqualWithCapsMaximum('bob@example.com', '25,50');
+
+    viewModel.proposalForm.allocationMode().value.set('EQUAL');
+    viewModel.proposalForm.allocationMode().value.set('EQUAL_WITH_CAPS');
+
+    expect(viewModel.proposalForm().value().equal).toEqual({
+      participants: ['alice@example.com'],
+    });
+    expect(viewModel.proposalForm().value().equalWithCaps).toEqual({
+      participants: ['bob@example.com'],
+      maximumAmountsInEuros: {
+        'bob@example.com': '25,50',
+      },
+    });
   });
 
   it('validates non-blank title, amount and selected participants before submitting', async () => {

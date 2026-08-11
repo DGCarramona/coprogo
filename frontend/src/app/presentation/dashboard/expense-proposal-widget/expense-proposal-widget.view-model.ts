@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import {
   ExpenseProposalPort,
   ExpenseProposalCommand,
+  ExpenseAllocation,
 } from '../../../application/expense/expense-proposal.port';
 import { GroupMembersPort } from '../../../application/group/group-members.port';
 import { describeError } from '../../../application/shared/describe-error';
@@ -17,6 +18,17 @@ export interface EqualSplitExpenseProposalInput {
   participants: ReadonlySet<string>;
 }
 
+interface ExpenseProposalInput {
+  title: string;
+  totalAmountInCents: number;
+  allocation: ExpenseAllocation;
+}
+
+interface EqualWithCapsFormModel {
+  participants: readonly string[];
+  maximumAmountsInEuros: Readonly<Partial<Record<string, string>>>;
+}
+
 interface ExpenseProposalFormModel {
   title: string;
   amountInEuros: string;
@@ -24,6 +36,7 @@ interface ExpenseProposalFormModel {
   equal: {
     participants: readonly string[];
   };
+  equalWithCaps: EqualWithCapsFormModel;
 }
 
 @Injectable()
@@ -108,7 +121,7 @@ export class ExpenseProposalWidgetViewModel {
             : undefined,
         );
         validate(proposal.allocationMode, ({ value }) =>
-          value() === 'EQUAL'
+          value() === 'EQUAL' || value() === 'EQUAL_WITH_CAPS'
             ? undefined
             : {
                 kind: 'mode-unavailable',
@@ -118,6 +131,11 @@ export class ExpenseProposalWidgetViewModel {
         validate(proposal.equal.participants, ({ value, valueOf }) =>
           valueOf(proposal.allocationMode) === 'EQUAL' && value().length === 0
             ? { kind: 'participants', message: 'Choisissez au moins un participant.' }
+            : undefined,
+        );
+        validate(proposal.equalWithCaps, ({ value, valueOf }) =>
+          valueOf(proposal.allocationMode) === 'EQUAL_WITH_CAPS'
+            ? equalWithCapsValidationError(value())
             : undefined,
         );
       },
@@ -135,19 +153,39 @@ export class ExpenseProposalWidgetViewModel {
               };
             }
 
-            if (proposal.allocationMode !== 'EQUAL') {
+            if (
+              proposal.allocationMode === 'CUMULATIVE_TIERS' ||
+              proposal.allocationMode === 'CUSTOM'
+            ) {
               return {
                 kind: 'mode-unavailable',
                 message: 'Les champs de ce mode de repartition ne sont pas encore disponibles.',
               };
             }
 
+            const equalWithCapsError = equalWithCapsValidationError(proposal.equalWithCaps);
+            if (proposal.allocationMode === 'EQUAL_WITH_CAPS' && equalWithCapsError) {
+              return equalWithCapsError;
+            }
+
+            const allocation: ExpenseAllocation =
+              proposal.allocationMode === 'EQUAL'
+                ? {
+                    type: 'EQUAL',
+                    participants: new Set(proposal.equal.participants),
+                  }
+                : {
+                    type: 'EQUAL_WITH_CAPS',
+                    participants: new Set(proposal.equalWithCaps.participants),
+                    capsInCentsByMember: toCapsInCentsByMember(proposal.equalWithCaps),
+                  };
+
             try {
               await this.proposalMutation.mutateAsync(
                 this.commandFor({
                   title: proposal.title.trim(),
                   totalAmountInCents,
-                  participants: new Set(proposal.equal.participants),
+                  allocation,
                 }),
               );
 
@@ -174,10 +212,19 @@ export class ExpenseProposalWidgetViewModel {
   }
 
   proposeEqualSplit(input: EqualSplitExpenseProposalInput): void {
-    this.proposalMutation.mutate(this.commandFor(input));
+    this.proposalMutation.mutate(
+      this.commandFor({
+        title: input.title,
+        totalAmountInCents: input.totalAmountInCents,
+        allocation: {
+          type: 'EQUAL',
+          participants: input.participants,
+        },
+      }),
+    );
   }
 
-  private commandFor(input: EqualSplitExpenseProposalInput): ExpenseProposalCommand {
+  private commandFor(input: ExpenseProposalInput): ExpenseProposalCommand {
     const groupId = this.groupIdState();
     if (groupId === null) {
       throw new Error('Un groupe doit etre initialise avant de proposer une depense.');
@@ -187,10 +234,7 @@ export class ExpenseProposalWidgetViewModel {
       groupId,
       title: input.title,
       totalAmountInCents: input.totalAmountInCents,
-      allocation: {
-        type: 'EQUAL',
-        participants: input.participants,
-      },
+      allocation: input.allocation,
     };
   }
 
@@ -204,6 +248,44 @@ export class ExpenseProposalWidgetViewModel {
       },
     }));
   }
+
+  toggleEqualWithCapsParticipant(member: string): void {
+    this.proposalModel.update((proposal) => {
+      const isSelected = proposal.equalWithCaps.participants.includes(member);
+
+      return {
+        ...proposal,
+        equalWithCaps: {
+          participants: isSelected
+            ? proposal.equalWithCaps.participants.filter((participant) => participant !== member)
+            : [...proposal.equalWithCaps.participants, member],
+          maximumAmountsInEuros: isSelected
+            ? withoutMember(proposal.equalWithCaps.maximumAmountsInEuros, member)
+            : proposal.equalWithCaps.maximumAmountsInEuros,
+        },
+      };
+    });
+  }
+
+  setEqualWithCapsMaximum(member: string, amountInEuros: string): void {
+    this.proposalModel.update((proposal) => {
+      if (!proposal.equalWithCaps.participants.includes(member)) return proposal;
+
+      return {
+        ...proposal,
+        equalWithCaps: {
+          ...proposal.equalWithCaps,
+          maximumAmountsInEuros:
+            amountInEuros.trim().length === 0
+              ? withoutMember(proposal.equalWithCaps.maximumAmountsInEuros, member)
+              : {
+                  ...proposal.equalWithCaps.maximumAmountsInEuros,
+                  [member]: amountInEuros,
+                },
+        },
+      };
+    });
+  }
 }
 
 const emptyProposalFormModel = (): ExpenseProposalFormModel => ({
@@ -213,7 +295,61 @@ const emptyProposalFormModel = (): ExpenseProposalFormModel => ({
   equal: {
     participants: [],
   },
+  equalWithCaps: {
+    participants: [],
+    maximumAmountsInEuros: {},
+  },
 });
+
+const equalWithCapsValidationError = (
+  equalWithCaps: EqualWithCapsFormModel,
+): { kind: string; message: string } | undefined => {
+  if (equalWithCaps.participants.length === 0) {
+    return { kind: 'participants', message: 'Choisissez au moins un participant.' };
+  }
+
+  const hasInvalidMaximum = equalWithCaps.participants.some((member) => {
+    const maximum = equalWithCaps.maximumAmountsInEuros[member]?.trim() ?? '';
+    return maximum.length > 0 && parseAmountInCents(maximum) === null;
+  });
+  if (hasInvalidMaximum) {
+    return {
+      kind: 'maximum-amount',
+      message: 'Indiquez un montant maximum positif avec deux decimales au plus.',
+    };
+  }
+
+  const hasUncappedParticipant = equalWithCaps.participants.some(
+    (member) => (equalWithCaps.maximumAmountsInEuros[member]?.trim() ?? '').length === 0,
+  );
+  return hasUncappedParticipant
+    ? undefined
+    : {
+        kind: 'uncapped-participant',
+        message: 'Laissez au moins un participant sans montant maximum.',
+      };
+};
+
+const toCapsInCentsByMember = (
+  equalWithCaps: EqualWithCapsFormModel,
+): ReadonlyMap<string, number> =>
+  new Map(
+    equalWithCaps.participants.flatMap((member): [string, number][] => {
+      const maximum = equalWithCaps.maximumAmountsInEuros[member]?.trim() ?? '';
+      if (maximum.length === 0) return [];
+
+      const maximumInCents = parseAmountInCents(maximum);
+      return maximumInCents === null ? [] : [[member, maximumInCents]];
+    }),
+  );
+
+const withoutMember = (
+  maximumAmountsInEuros: Readonly<Partial<Record<string, string>>>,
+  member: string,
+): Readonly<Partial<Record<string, string>>> =>
+  Object.fromEntries(
+    Object.entries(maximumAmountsInEuros).filter(([cappedMember]) => cappedMember !== member),
+  );
 
 const parseAmountInCents = (amount: string): number | null => {
   const match = /^(\d+)(?:[,.](\d{1,2}))?$/.exec(amount.trim());

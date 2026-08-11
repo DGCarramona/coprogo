@@ -64,6 +64,45 @@
             </p>
           }
         </fieldset>
+      } @else if (viewModel.proposalForm().value().allocationMode === 'EQUAL_WITH_CAPS') {
+        <fieldset>
+          <legend>Participants et montants maximums</legend>
+          <p id="equal-with-caps-help">
+            Un montant maximum est facultatif. Laissez au moins un participant sans maximum.
+          </p>
+          @for (member of viewModel.members(); track member) {
+            <p>
+              <input
+                [id]="'equal-with-caps-participant-' + member"
+                type="checkbox"
+                [checked]="
+                  viewModel.proposalForm().value().equalWithCaps.participants.includes(member)
+                "
+                (change)="viewModel.toggleEqualWithCapsParticipant(member)"
+              />
+              <label [for]="'equal-with-caps-participant-' + member">{{ member }}</label>
+            </p>
+            @if (viewModel.proposalForm().value().equalWithCaps.participants.includes(member)) {
+              <p>
+                <label [for]="'equal-with-caps-maximum-' + member">
+                  Montant maximum pour {{ member }}
+                </label>
+                <input
+                  [id]="'equal-with-caps-maximum-' + member"
+                  type="text"
+                  inputmode="decimal"
+                  [attr.aria-label]="'Montant maximum pour ' + member"
+                  aria-describedby="equal-with-caps-help"
+                  [value]="
+                    viewModel.proposalForm().value().equalWithCaps.maximumAmountsInEuros[member] ??
+                    ''
+                  "
+                  (input)="updateEqualWithCapsMaximum(member, $event)"
+                />
+              </p>
+            }
+          }
+        </fieldset>
       } @else {
         <p role="status">Les champs de ce mode de répartition ne sont pas encore disponibles.</p>
       }
