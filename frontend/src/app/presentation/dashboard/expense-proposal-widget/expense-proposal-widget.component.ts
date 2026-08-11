@@ -24,8 +24,13 @@ export class ExpenseProposalWidgetComponent implements OnInit {
 
   updateEqualWithCapsMaximum(member: string, event: Event): void {
     const input = event.target;
-    if (input instanceof HTMLInputElement) {
-      this.viewModel.setEqualWithCapsMaximum(member, input.value);
-    }
+    if (!(input instanceof HTMLInputElement)) return;
+    this.viewModel.setEqualWithCapsMaximum(member, input.value);
+  }
+
+  updateCumulativeIntermediateThreshold(index: number, event: Event): void {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement)) return;
+    this.viewModel.setCumulativeIntermediateThreshold(index, input.value);
   }
 }

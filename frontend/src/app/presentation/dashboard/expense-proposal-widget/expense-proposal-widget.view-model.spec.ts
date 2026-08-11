@@ -210,11 +210,15 @@ describe('ExpenseProposalWidgetViewModel', () => {
         participants: [],
         maximumAmountsInEuros: {},
       },
+      cumulativeTiers: {
+        intermediateTiers: [],
+        finalParticipants: [],
+      },
     });
     expect(viewModel.proposalForm().invalid()).toBe(true);
   });
 
-  it.each(['CUMULATIVE_TIERS', 'CUSTOM'] as const)(
+  it.each(['CUSTOM'] as const)(
     'blocks submission while %s fields are unavailable',
     async (allocationMode) => {
       const viewModel = createViewModel();
@@ -249,6 +253,10 @@ describe('ExpenseProposalWidgetViewModel', () => {
       equalWithCaps: {
         participants: [],
         maximumAmountsInEuros: {},
+      },
+      cumulativeTiers: {
+        intermediateTiers: [],
+        finalParticipants: [],
       },
     });
 
@@ -379,6 +387,145 @@ describe('ExpenseProposalWidgetViewModel', () => {
     });
   });
 
+  it('submits cumulative tiers with the final threshold set to the total amount', async () => {
+    const viewModel = createViewModel();
+    viewModel.initialize('group-1');
+    viewModel.proposalForm.title().value.set('  Toiture  ');
+    viewModel.proposalForm.amountInEuros().value.set('101');
+    viewModel.proposalForm.allocationMode().value.set('CUMULATIVE_TIERS');
+    viewModel.addCumulativeIntermediateTier();
+    viewModel.setCumulativeIntermediateThreshold(0, '40');
+    viewModel.toggleCumulativeIntermediateParticipant(0, 'alice@example.com');
+    viewModel.toggleCumulativeIntermediateParticipant(0, 'bob@example.com');
+    viewModel.toggleCumulativeFinalParticipant('alice@example.com');
+
+    await expect(submit(viewModel.proposalForm)).resolves.toBe(true);
+    await waitFor(() => proposalPort.commands.length === 1);
+
+    expect(proposalPort.commands).toEqual([
+      {
+        groupId: 'group-1',
+        title: 'Toiture',
+        totalAmountInCents: 10100,
+        allocation: {
+          type: 'CUMULATIVE_TIERS',
+          tiers: [
+            {
+              upToAmountInCents: 4000,
+              participants: new Set(['alice@example.com', 'bob@example.com']),
+            },
+            {
+              upToAmountInCents: 10100,
+              participants: new Set(['alice@example.com']),
+            },
+          ],
+        },
+      },
+    ]);
+  });
+
+  it('requires participants in every cumulative tier', async () => {
+    const viewModel = createViewModel();
+    prepareCumulativeProposal(viewModel, '101');
+    viewModel.addCumulativeIntermediateTier();
+    viewModel.setCumulativeIntermediateThreshold(0, '40');
+    viewModel.toggleCumulativeFinalParticipant('alice@example.com');
+
+    expect(viewModel.proposalForm().invalid()).toBe(true);
+    await expect(submit(viewModel.proposalForm)).resolves.toBe(false);
+    expect(proposalPort.commands).toEqual([]);
+  });
+
+  it('requires participants in the final cumulative tier', async () => {
+    const viewModel = createViewModel();
+    prepareCumulativeProposal(viewModel, '101');
+
+    expect(viewModel.proposalForm().invalid()).toBe(true);
+    await expect(submit(viewModel.proposalForm)).resolves.toBe(false);
+    expect(proposalPort.commands).toEqual([]);
+  });
+
+  it.each([
+    ['an invalid threshold', ['40,555']],
+    ['a zero threshold', ['0']],
+    ['a negative threshold', ['-1']],
+    ['non-increasing thresholds', ['40', '40']],
+    ['a threshold equal to the total', ['101']],
+    ['a threshold above the total', ['102']],
+  ])('rejects %s', async (_description, thresholds) => {
+    const viewModel = createViewModel();
+    prepareCumulativeProposal(viewModel, '101');
+    thresholds.forEach((threshold, index) => {
+      viewModel.addCumulativeIntermediateTier();
+      viewModel.setCumulativeIntermediateThreshold(index, threshold);
+      viewModel.toggleCumulativeIntermediateParticipant(index, 'alice@example.com');
+    });
+    viewModel.toggleCumulativeFinalParticipant('bob@example.com');
+
+    expect(viewModel.proposalForm().invalid()).toBe(true);
+    await expect(submit(viewModel.proposalForm)).resolves.toBe(false);
+    expect(proposalPort.commands).toEqual([]);
+  });
+
+  it('rejects a cumulative tier that would give a zero-cent share', async () => {
+    const viewModel = createViewModel();
+    prepareCumulativeProposal(viewModel, '0,01');
+    viewModel.toggleCumulativeFinalParticipant('alice@example.com');
+    viewModel.toggleCumulativeFinalParticipant('bob@example.com');
+
+    expect(viewModel.proposalForm().invalid()).toBe(true);
+    await expect(submit(viewModel.proposalForm)).resolves.toBe(false);
+    expect(proposalPort.commands).toEqual([]);
+  });
+
+  it('adds and removes intermediate tiers immutably while guarding invalid indexes', () => {
+    const viewModel = createViewModel();
+    prepareCumulativeProposal(viewModel, '101');
+    viewModel.addCumulativeIntermediateTier();
+    viewModel.setCumulativeIntermediateThreshold(0, '40');
+    viewModel.toggleCumulativeIntermediateParticipant(0, 'alice@example.com');
+    viewModel.addCumulativeIntermediateTier();
+    viewModel.setCumulativeIntermediateThreshold(1, '70');
+    viewModel.toggleCumulativeIntermediateParticipant(1, 'bob@example.com');
+    const beforeInvalidIndexes = viewModel.proposalForm().value().cumulativeTiers;
+
+    viewModel.setCumulativeIntermediateThreshold(3, '90');
+    viewModel.toggleCumulativeIntermediateParticipant(3, 'alice@example.com');
+    viewModel.removeCumulativeIntermediateTier(3);
+
+    expect(viewModel.proposalForm().value().cumulativeTiers).toEqual(beforeInvalidIndexes);
+
+    viewModel.removeCumulativeIntermediateTier(0);
+    expect(viewModel.proposalForm().value().cumulativeTiers.intermediateTiers).toEqual([
+      {
+        upToAmountInEuros: '70',
+        participants: ['bob@example.com'],
+      },
+    ]);
+  });
+
+  it('preserves the cumulative tiers draft between allocation modes', () => {
+    const viewModel = createViewModel();
+    prepareCumulativeProposal(viewModel, '101');
+    viewModel.addCumulativeIntermediateTier();
+    viewModel.setCumulativeIntermediateThreshold(0, '40');
+    viewModel.toggleCumulativeIntermediateParticipant(0, 'alice@example.com');
+    viewModel.toggleCumulativeFinalParticipant('bob@example.com');
+
+    viewModel.proposalForm.allocationMode().value.set('EQUAL');
+    viewModel.proposalForm.allocationMode().value.set('CUMULATIVE_TIERS');
+
+    expect(viewModel.proposalForm().value().cumulativeTiers).toEqual({
+      intermediateTiers: [
+        {
+          upToAmountInEuros: '40',
+          participants: ['alice@example.com'],
+        },
+      ],
+      finalParticipants: ['bob@example.com'],
+    });
+  });
+
   it('validates non-blank title, amount and selected participants before submitting', async () => {
     const viewModel = createViewModel();
     viewModel.initialize('group-1');
@@ -426,6 +573,15 @@ describe('ExpenseProposalWidgetViewModel', () => {
     const viewModel = new ExpenseProposalWidgetViewModel(port, proposalPort, queryClient, injector);
     TestBed.tick();
     return viewModel;
+  };
+
+  const prepareCumulativeProposal = (
+    viewModel: ExpenseProposalWidgetViewModel,
+    totalAmountInEuros: string,
+  ): void => {
+    viewModel.proposalForm.title().value.set('Toiture');
+    viewModel.proposalForm.amountInEuros().value.set(totalAmountInEuros);
+    viewModel.proposalForm.allocationMode().value.set('CUMULATIVE_TIERS');
   };
 });
 

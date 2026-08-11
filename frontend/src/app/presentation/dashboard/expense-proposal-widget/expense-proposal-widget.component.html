@@ -103,6 +103,90 @@
             }
           }
         </fieldset>
+      } @else if (viewModel.proposalForm().value().allocationMode === 'CUMULATIVE_TIERS') {
+        <section>
+          <h3>Répartition par tranches</h3>
+          <p id="cumulative-tiers-help">
+            Ajoutez des seuils intermédiaires. La dernière tranche va toujours jusqu’au montant
+            total.
+          </p>
+          @for (
+            tier of viewModel.proposalForm().value().cumulativeTiers.intermediateTiers;
+            track $index;
+            let tierIndex = $index
+          ) {
+            <section>
+              <h4>Tranche {{ tierIndex + 1 }}</h4>
+              <p>
+                <label [for]="'cumulative-tier-threshold-' + tierIndex">
+                  Seuil de la tranche {{ tierIndex + 1 }} en euros
+                </label>
+                <input
+                  [id]="'cumulative-tier-threshold-' + tierIndex"
+                  type="text"
+                  inputmode="decimal"
+                  [attr.aria-label]="'Seuil de la tranche ' + (tierIndex + 1) + ' en euros'"
+                  aria-describedby="cumulative-tiers-help"
+                  [value]="tier.upToAmountInEuros"
+                  (input)="updateCumulativeIntermediateThreshold(tierIndex, $event)"
+                />
+              </p>
+              <fieldset>
+                <legend>Participants de la tranche {{ tierIndex + 1 }}</legend>
+                @for (member of viewModel.members(); track member) {
+                  <p>
+                    <input
+                      [id]="'cumulative-tier-' + tierIndex + '-participant-' + member"
+                      type="checkbox"
+                      [checked]="tier.participants.includes(member)"
+                      (change)="
+                        viewModel.toggleCumulativeIntermediateParticipant(tierIndex, member)
+                      "
+                    />
+                    <label [for]="'cumulative-tier-' + tierIndex + '-participant-' + member">
+                      {{ member }}
+                    </label>
+                  </p>
+                }
+              </fieldset>
+              <button
+                matButton="outlined"
+                type="button"
+                [attr.aria-label]="'Supprimer la tranche ' + (tierIndex + 1)"
+                (click)="viewModel.removeCumulativeIntermediateTier(tierIndex)"
+              >
+                Supprimer cette tranche
+              </button>
+            </section>
+          }
+          <button
+            matButton="outlined"
+            type="button"
+            aria-label="Ajouter une tranche"
+            (click)="viewModel.addCumulativeIntermediateTier()"
+          >
+            Ajouter une tranche
+          </button>
+          <fieldset>
+            <legend>Tranche finale jusqu’au montant total</legend>
+            @for (member of viewModel.members(); track member) {
+              <p>
+                <input
+                  [id]="'cumulative-final-participant-' + member"
+                  type="checkbox"
+                  [checked]="
+                    viewModel
+                      .proposalForm()
+                      .value()
+                      .cumulativeTiers.finalParticipants.includes(member)
+                  "
+                  (change)="viewModel.toggleCumulativeFinalParticipant(member)"
+                />
+                <label [for]="'cumulative-final-participant-' + member">{{ member }}</label>
+              </p>
+            }
+          </fieldset>
+        </section>
       } @else {
         <p role="status">Les champs de ce mode de répartition ne sont pas encore disponibles.</p>
       }

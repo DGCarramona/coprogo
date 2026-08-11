@@ -29,6 +29,18 @@ interface EqualWithCapsFormModel {
   maximumAmountsInEuros: Readonly<Partial<Record<string, string>>>;
 }
 
+interface CumulativeIntermediateTierFormModel {
+  upToAmountInEuros: string;
+  participants: readonly string[];
+}
+
+interface CumulativeTiersFormModel {
+  intermediateTiers: readonly CumulativeIntermediateTierFormModel[];
+  finalParticipants: readonly string[];
+}
+
+type CumulativeTiersAllocation = Extract<ExpenseAllocation, { type: 'CUMULATIVE_TIERS' }>;
+
 interface ExpenseProposalFormModel {
   title: string;
   amountInEuros: string;
@@ -37,6 +49,7 @@ interface ExpenseProposalFormModel {
     participants: readonly string[];
   };
   equalWithCaps: EqualWithCapsFormModel;
+  cumulativeTiers: CumulativeTiersFormModel;
 }
 
 @Injectable()
@@ -121,12 +134,12 @@ export class ExpenseProposalWidgetViewModel {
             : undefined,
         );
         validate(proposal.allocationMode, ({ value }) =>
-          value() === 'EQUAL' || value() === 'EQUAL_WITH_CAPS'
-            ? undefined
-            : {
+          value() === 'CUSTOM'
+            ? {
                 kind: 'mode-unavailable',
                 message: 'Les champs de ce mode de repartition ne sont pas encore disponibles.',
-              },
+              }
+            : undefined,
         );
         validate(proposal.equal.participants, ({ value, valueOf }) =>
           valueOf(proposal.allocationMode) === 'EQUAL' && value().length === 0
@@ -138,6 +151,14 @@ export class ExpenseProposalWidgetViewModel {
             ? equalWithCapsValidationError(value())
             : undefined,
         );
+        validate(proposal.cumulativeTiers, ({ value, valueOf }) => {
+          if (valueOf(proposal.allocationMode) !== 'CUMULATIVE_TIERS') return undefined;
+
+          const totalAmountInCents = parseAmountInCents(valueOf(proposal.amountInEuros));
+          return totalAmountInCents === null
+            ? undefined
+            : cumulativeTiersValidationError(value(), totalAmountInCents);
+        });
       },
       {
         injector,
@@ -153,10 +174,7 @@ export class ExpenseProposalWidgetViewModel {
               };
             }
 
-            if (
-              proposal.allocationMode === 'CUMULATIVE_TIERS' ||
-              proposal.allocationMode === 'CUSTOM'
-            ) {
+            if (proposal.allocationMode === 'CUSTOM') {
               return {
                 kind: 'mode-unavailable',
                 message: 'Les champs de ce mode de repartition ne sont pas encore disponibles.',
@@ -168,17 +186,31 @@ export class ExpenseProposalWidgetViewModel {
               return equalWithCapsError;
             }
 
-            const allocation: ExpenseAllocation =
-              proposal.allocationMode === 'EQUAL'
-                ? {
+            const cumulativeTiersError = cumulativeTiersValidationError(
+              proposal.cumulativeTiers,
+              totalAmountInCents,
+            );
+            if (proposal.allocationMode === 'CUMULATIVE_TIERS' && cumulativeTiersError) {
+              return cumulativeTiersError;
+            }
+
+            const allocation: ExpenseAllocation = (() => {
+              switch (proposal.allocationMode) {
+                case 'EQUAL':
+                  return {
                     type: 'EQUAL',
                     participants: new Set(proposal.equal.participants),
-                  }
-                : {
+                  };
+                case 'EQUAL_WITH_CAPS':
+                  return {
                     type: 'EQUAL_WITH_CAPS',
                     participants: new Set(proposal.equalWithCaps.participants),
                     capsInCentsByMember: toCapsInCentsByMember(proposal.equalWithCaps),
                   };
+                case 'CUMULATIVE_TIERS':
+                  return toCumulativeTiersAllocation(proposal.cumulativeTiers, totalAmountInCents);
+              }
+            })();
 
             try {
               await this.proposalMutation.mutateAsync(
@@ -286,6 +318,79 @@ export class ExpenseProposalWidgetViewModel {
       };
     });
   }
+
+  addCumulativeIntermediateTier(): void {
+    this.proposalModel.update((proposal) => ({
+      ...proposal,
+      cumulativeTiers: {
+        ...proposal.cumulativeTiers,
+        intermediateTiers: [
+          ...proposal.cumulativeTiers.intermediateTiers,
+          { upToAmountInEuros: '', participants: [] },
+        ],
+      },
+    }));
+  }
+
+  removeCumulativeIntermediateTier(index: number): void {
+    this.proposalModel.update((proposal) => {
+      if (!hasIndex(proposal.cumulativeTiers.intermediateTiers, index)) return proposal;
+
+      return {
+        ...proposal,
+        cumulativeTiers: {
+          ...proposal.cumulativeTiers,
+          intermediateTiers: proposal.cumulativeTiers.intermediateTiers.filter(
+            (_, tierIndex) => tierIndex !== index,
+          ),
+        },
+      };
+    });
+  }
+
+  setCumulativeIntermediateThreshold(index: number, upToAmountInEuros: string): void {
+    this.proposalModel.update((proposal) => {
+      if (!hasIndex(proposal.cumulativeTiers.intermediateTiers, index)) return proposal;
+
+      return {
+        ...proposal,
+        cumulativeTiers: {
+          ...proposal.cumulativeTiers,
+          intermediateTiers: proposal.cumulativeTiers.intermediateTiers.map((tier, tierIndex) =>
+            tierIndex === index ? { ...tier, upToAmountInEuros } : tier,
+          ),
+        },
+      };
+    });
+  }
+
+  toggleCumulativeIntermediateParticipant(index: number, member: string): void {
+    this.proposalModel.update((proposal) => {
+      if (!hasIndex(proposal.cumulativeTiers.intermediateTiers, index)) return proposal;
+
+      return {
+        ...proposal,
+        cumulativeTiers: {
+          ...proposal.cumulativeTiers,
+          intermediateTiers: proposal.cumulativeTiers.intermediateTiers.map((tier, tierIndex) =>
+            tierIndex === index
+              ? { ...tier, participants: toggleMember(tier.participants, member) }
+              : tier,
+          ),
+        },
+      };
+    });
+  }
+
+  toggleCumulativeFinalParticipant(member: string): void {
+    this.proposalModel.update((proposal) => ({
+      ...proposal,
+      cumulativeTiers: {
+        ...proposal.cumulativeTiers,
+        finalParticipants: toggleMember(proposal.cumulativeTiers.finalParticipants, member),
+      },
+    }));
+  }
 }
 
 const emptyProposalFormModel = (): ExpenseProposalFormModel => ({
@@ -299,7 +404,92 @@ const emptyProposalFormModel = (): ExpenseProposalFormModel => ({
     participants: [],
     maximumAmountsInEuros: {},
   },
+  cumulativeTiers: {
+    intermediateTiers: [],
+    finalParticipants: [],
+  },
 });
+
+const cumulativeTiersValidationError = (
+  cumulativeTiers: CumulativeTiersFormModel,
+  totalAmountInCents: number,
+): { kind: string; message: string } | undefined => {
+  if (
+    cumulativeTiers.intermediateTiers.some((tier) => tier.participants.length === 0) ||
+    cumulativeTiers.finalParticipants.length === 0
+  ) {
+    return {
+      kind: 'tier-participants',
+      message: 'Choisissez au moins un participant pour chaque tranche.',
+    };
+  }
+
+  const parsedThresholds = cumulativeTiers.intermediateTiers.map((tier) =>
+    parseAmountInCents(tier.upToAmountInEuros),
+  );
+  if (parsedThresholds.some((threshold) => threshold === null)) {
+    return {
+      kind: 'tier-threshold',
+      message: 'Indiquez des seuils positifs avec deux decimales au plus.',
+    };
+  }
+
+  const thresholds = parsedThresholds.filter(
+    (threshold): threshold is number => threshold !== null,
+  );
+  const hasInvalidOrder = thresholds.some(
+    (threshold, index) =>
+      threshold >= totalAmountInCents || (index > 0 && threshold <= thresholds[index - 1]),
+  );
+  if (hasInvalidOrder) {
+    return {
+      kind: 'tier-order',
+      message: 'Les seuils doivent augmenter et rester inferieurs au montant total.',
+    };
+  }
+
+  const boundaries = [0, ...thresholds, totalAmountInCents];
+  const participantCounts = [
+    ...cumulativeTiers.intermediateTiers.map((tier) => tier.participants.length),
+    cumulativeTiers.finalParticipants.length,
+  ];
+  const hasZeroCentShare = participantCounts.some(
+    (participantCount, index) => boundaries[index + 1] - boundaries[index] < participantCount,
+  );
+  return hasZeroCentShare
+    ? {
+        kind: 'tier-share',
+        message: 'Chaque participant doit recevoir au moins un centime dans chaque tranche.',
+      }
+    : undefined;
+};
+
+const toCumulativeTiersAllocation = (
+  cumulativeTiers: CumulativeTiersFormModel,
+  totalAmountInCents: number,
+): CumulativeTiersAllocation => ({
+  type: 'CUMULATIVE_TIERS',
+  tiers: [
+    ...cumulativeTiers.intermediateTiers.flatMap((tier): CumulativeTiersAllocation['tiers'] => {
+      const upToAmountInCents = parseAmountInCents(tier.upToAmountInEuros);
+      return upToAmountInCents === null
+        ? []
+        : [{ upToAmountInCents, participants: new Set(tier.participants) }];
+    }),
+    {
+      upToAmountInCents: totalAmountInCents,
+      participants: new Set(cumulativeTiers.finalParticipants),
+    },
+  ],
+});
+
+const hasIndex = <T>(values: readonly T[], index: number): boolean =>
+  index >= 0 && index < values.length;
+
+const toggleMember = (members: readonly string[], member: string): readonly string[] =>
+  members.includes(member)
+    ? members.filter((selectedMember) => selectedMember !== member)
+    : [...members, member];
 
 const equalWithCapsValidationError = (
   equalWithCaps: EqualWithCapsFormModel,

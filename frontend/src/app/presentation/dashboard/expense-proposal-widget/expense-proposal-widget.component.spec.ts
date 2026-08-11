@@ -140,6 +140,100 @@ describe('ExpenseProposalWidgetComponent', () => {
     expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(false);
   });
 
+  it('adds and removes an intermediate cumulative tier before the final tier', async () => {
+    const { fixture, host } = createFixture(new Members());
+
+    await waitFor(() => {
+      fixture.detectChanges();
+      return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+    });
+
+    selectAllocationMode(host, fixture, 'CUMULATIVE_TIERS');
+
+    expect(host.textContent).toContain(
+      'Ajoutez des seuils intermédiaires. La dernière tranche va toujours jusqu’au montant total.',
+    );
+    expect(host.textContent).toContain('Tranche finale jusqu’au montant total');
+    expect(host.querySelector('input[aria-label="Seuil de la tranche 1 en euros"]')).toBeNull();
+
+    requiredButton(host, 'button[aria-label="Ajouter une tranche"]').click();
+    fixture.detectChanges();
+
+    expect(requiredInput(host, 'input[aria-label="Seuil de la tranche 1 en euros"]')).toBeDefined();
+    expect(host.textContent).toContain('Tranche 1');
+
+    requiredButton(host, 'button[aria-label="Supprimer la tranche 1"]').click();
+    fixture.detectChanges();
+
+    expect(host.querySelector('input[aria-label="Seuil de la tranche 1 en euros"]')).toBeNull();
+    expect(host.textContent).toContain('Tranche finale jusqu’au montant total');
+  });
+
+  it('submits cumulative tiers with a final tier bounded by the total amount', async () => {
+    const proposals = new StubExpenseProposalPort();
+    const { fixture, host } = createFixture(new Members(), proposals);
+
+    await waitFor(() => {
+      fixture.detectChanges();
+      return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+    });
+
+    fillSharedFields(host, '101');
+    selectAllocationMode(host, fixture, 'CUMULATIVE_TIERS');
+    requiredButton(host, 'button[aria-label="Ajouter une tranche"]').click();
+    fixture.detectChanges();
+    const threshold = requiredInput(host, 'input[aria-label="Seuil de la tranche 1 en euros"]');
+    threshold.value = '40';
+    threshold.dispatchEvent(new Event('input'));
+    requiredInput(host, 'input[id="cumulative-tier-0-participant-a@b.c"]').click();
+    requiredInput(host, 'input[id="cumulative-tier-0-participant-b@c.d"]').click();
+    requiredInput(host, 'input[id="cumulative-final-participant-a@b.c"]').click();
+    fixture.detectChanges();
+
+    const submitButton = requiredButton(host, 'button[type="submit"]');
+    expect(submitButton.disabled).toBe(false);
+    submitButton.click();
+
+    await waitFor(() => proposals.commands.length === 1);
+    expect(proposals.commands).toEqual([
+      {
+        groupId: 'group-1',
+        title: 'Toiture',
+        totalAmountInCents: 10100,
+        allocation: {
+          type: 'CUMULATIVE_TIERS',
+          tiers: [
+            {
+              upToAmountInCents: 4000,
+              participants: new Set(['a@b.c', 'b@c.d']),
+            },
+            {
+              upToAmountInCents: 10100,
+              participants: new Set(['a@b.c']),
+            },
+          ],
+        },
+      },
+    ]);
+  });
+
+  it('disables cumulative submission when a participant would receive zero cents', async () => {
+    const { fixture, host } = createFixture(new Members());
+
+    await waitFor(() => {
+      fixture.detectChanges();
+      return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+    });
+
+    fillSharedFields(host, '0,01');
+    selectAllocationMode(host, fixture, 'CUMULATIVE_TIERS');
+    requiredInput(host, 'input[id="cumulative-final-participant-a@b.c"]').click();
+    requiredInput(host, 'input[id="cumulative-final-participant-b@c.d"]').click();
+    fixture.detectChanges();
+
+    expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
+  });
+
   it('submits the filled proposal', async () => {
     const proposals = new StubExpenseProposalPort();
     const { fixture, host } = createFixture(new Members(), proposals);
@@ -315,12 +409,12 @@ const fillProposal = (
   fixture.detectChanges();
 };
 
-const fillSharedFields = (host: HTMLElement): void => {
+const fillSharedFields = (host: HTMLElement, amountInEuros = '12,50'): void => {
   const title = requiredInput(host, 'input[aria-label="Titre"]');
   const amount = requiredInput(host, 'input[aria-label="Montant en euros"]');
   title.value = 'Toiture';
   title.dispatchEvent(new Event('input'));
-  amount.value = '12,50';
+  amount.value = amountInEuros;
   amount.dispatchEvent(new Event('input'));
 };
 
