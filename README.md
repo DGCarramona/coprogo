@@ -139,6 +139,15 @@ Le backend valide les Google ID tokens. Pour tester localement :
 
 Voir `coprogo/README.md` pour plus de détails sur les conventions de test backend.
 
+### Infrastructure locale
+
+```bash
+docker compose up -d
+```
+
+Cette commande démarre PostgreSQL et Adobe S3Mock. Le stockage objet local est accessible sur `http://localhost:9090`, avec le bucket `coprogo-documents` dans la région `eu-west-1` par défaut.
+Les clients S3 doivent utiliser l'accès path-style. S3Mock est uniquement un mock de développement local : il n'est pas déployé dans les environnements applicatifs.
+
 ## Workflow de développement typique
 
 ### Avant de commencer une branche

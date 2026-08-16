@@ -1,13 +1,13 @@
 # Backlog
 
-Backlog derive de l'etat actuel du depot au 2026-08-08.
+Backlog derive de l'etat actuel du depot au 2026-08-16.
 
 ## Etat actuel constate
 
 - Backend: coeur metier deja entame pour `expense`, `revenue` et `ledger`, avec des tests de domaine et d'application.
 - Backend HTTP: les groupes, invitations, quotes-parts, revenus, depenses et lectures financieres du groupe sont exposes avec l'OpenAPI.
-- Backend infra: migrations Flyway et adaptateurs R2DBC presents pour groupes, invitations, quotes-parts, ledger et depenses, validation Google ID token orientee produit en place, pas encore de stockage S3.
-- Frontend: connexion Google, invitations et dashboard de groupe sont en place, avec lecture des soldes, caisse, depenses et proposition de depense a partage egal.
+- Backend infra: migrations Flyway et adaptateurs R2DBC presents pour groupes, invitations, quotes-parts, ledger et depenses, validation Google ID token orientee produit et Adobe S3Mock local en place, sans adaptateur S3 applicatif pour le moment.
+- Frontend: connexion Google, invitations et dashboard de groupe sont en place, avec lecture des soldes, caisse, depenses et proposition selon les quatre modes `Equal`, `EqualWithCaps`, `CumulativeTiers` et `Custom`.
 - Frontend API: client OpenAPI genere pour groupes, depenses, ledger et revenus, avec source reelle de Google ID token.
 - Monorepo: orchestration Gradle racine en place pour piloter ensemble le front et le back.
 
@@ -30,7 +30,7 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 - [x] MONO-004 Ajouter des taches Gradle racine pour lancer `lint`, `test` et `build` du frontend depuis Gradle.
 - [x] MONO-005 Ajouter des taches Gradle racine qui agregent les checks front et back (`checkAll`, `buildAll` ou equivalent).
 - [x] MONO-006 Ajouter une tache Gradle de dev qui demarre front et back ensemble, avec un mecanisme explicite pour les processus longs (`execfork` ou equivalent).
-- [ ] MONO-007 Completer `docker-compose.yml` avec un service S3-compatible local (ex: MinIO).
+- [x] MONO-007 Ajouter Adobe S3Mock local au `docker-compose.yml` avec un stockage persistant.
 - [x] MONO-008 Documenter le workflow local monorepo et les nouvelles commandes Gradle racine dans un README racine.
 - [x] MONO-009 Ajouter une CI qui execute les checks front et back via les entrees Gradle racine.
 
