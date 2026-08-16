@@ -8,51 +8,55 @@ import { GoogleIdTokenPort } from '../../application/auth/google-id-token.port';
 import { GroupsService } from './generated';
 import { provideApiClient, resolveApiBasePath } from './provide-api-client';
 
-describe('provideApiClient', () => {
-  it('prefers the provided base path over the runtime environment', () => {
-    expect(resolveApiBasePath({ basePath: 'https://override.example' })).toBe(
-      'https://override.example',
-    );
-  });
-
-  it('falls back to the runtime environment base path when no override is provided', () => {
-    expect(resolveApiBasePath({}, { APP_API_BASE_URL: 'https://env.example' })).toBe(
-      'https://env.example',
-    );
-  });
-
-  it('falls back to the default base path when no override or environment value is provided', () => {
-    expect(resolveApiBasePath({}, {})).toBe('http://localhost:8080');
-  });
-
-  it('provides the base path to generated services and adds auth interceptor', async () => {
-    TestBed.configureTestingModule({
-      providers: [
-        provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting(),
-        {
-          provide: GoogleIdTokenPort,
-          useClass: StubGoogleIdTokenPort,
-        },
-        provideApiClient({
-          basePath: 'http://localhost:8080',
-        }),
-      ],
+describe('API client providers', () => {
+  describe('resolveApiBasePath', () => {
+    it('prefers the provided base path over the runtime environment', () => {
+      expect(resolveApiBasePath({ basePath: 'https://override.example' })).toBe(
+        'https://override.example',
+      );
     });
-    TestBed.inject(GoogleIdTokenPort).store('google-id-token');
 
-    const responsePromise = firstValueFrom(TestBed.inject(GroupsService).listPending());
+    it('falls back to the runtime environment base path when no override is provided', () => {
+      expect(resolveApiBasePath({}, { APP_API_BASE_URL: 'https://env.example' })).toBe(
+        'https://env.example',
+      );
+    });
 
-    const request = TestBed.inject(HttpTestingController).expectOne(
-      'http://localhost:8080/api/group-invitations/pending',
-    );
+    it('falls back to the default base path when no override or environment value is provided', () => {
+      expect(resolveApiBasePath({}, {})).toBe('http://localhost:8080');
+    });
+  });
 
-    expect(request.request.method).toBe('GET');
-    expect(request.request.headers.get('Authorization')).toBe('Bearer google-id-token');
+  describe('provideApiClient', () => {
+    it('provides the base path to generated services and adds auth interceptor', async () => {
+      TestBed.configureTestingModule({
+        providers: [
+          provideHttpClient(withInterceptorsFromDi()),
+          provideHttpClientTesting(),
+          {
+            provide: GoogleIdTokenPort,
+            useClass: StubGoogleIdTokenPort,
+          },
+          provideApiClient({
+            basePath: 'http://localhost:8080',
+          }),
+        ],
+      });
+      TestBed.inject(GoogleIdTokenPort).store('google-id-token');
 
-    request.flush([]);
+      const responsePromise = firstValueFrom(TestBed.inject(GroupsService).listPending());
 
-    await responsePromise;
-    TestBed.inject(HttpTestingController).verify();
+      const request = TestBed.inject(HttpTestingController).expectOne(
+        'http://localhost:8080/api/group-invitations/pending',
+      );
+
+      expect(request.request.method).toBe('GET');
+      expect(request.request.headers.get('Authorization')).toBe('Bearer google-id-token');
+
+      request.flush([]);
+
+      await responsePromise;
+      TestBed.inject(HttpTestingController).verify();
+    });
   });
 });
