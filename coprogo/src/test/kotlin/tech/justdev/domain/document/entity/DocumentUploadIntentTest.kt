@@ -45,6 +45,53 @@ class DocumentUploadIntentTest {
     }
 
     @Nested
+    inner class Restore {
+        @Test
+        fun `should restore every coherent persisted state`() {
+            val readyAt = Instant.parse("2026-08-16T10:02:00Z")
+            val consumedAt = Instant.parse("2026-08-16T10:03:00Z")
+            val statuses =
+                listOf(
+                    DocumentUploadIntentStatus.Pending,
+                    DocumentUploadIntentStatus.Ready(readyAt),
+                    DocumentUploadIntentStatus.Consumed(readyAt, consumedAt),
+                )
+
+            statuses.forEach { status ->
+                assertEquals(status, restoredIntent(status).status)
+            }
+        }
+
+        @Test
+        fun `should reject a ready timestamp outside the intent lifetime`() {
+            listOf(CREATED_AT.minusNanos(1), EXPIRES_AT).forEach { readyAt ->
+                val error =
+                    assertThrows<IllegalArgumentException> {
+                        restoredIntent(DocumentUploadIntentStatus.Ready(readyAt))
+                    }
+
+                assertEquals("document verification must occur during the upload intent lifetime", error.message)
+            }
+        }
+
+        @Test
+        fun `should reject incoherent consumed timestamps`() {
+            val readyAt = Instant.parse("2026-08-16T10:02:00Z")
+            val beforeVerification =
+                assertThrows<IllegalArgumentException> {
+                    restoredIntent(DocumentUploadIntentStatus.Consumed(readyAt, readyAt.minusNanos(1)))
+                }
+            val atExpiry =
+                assertThrows<IllegalArgumentException> {
+                    restoredIntent(DocumentUploadIntentStatus.Consumed(readyAt, EXPIRES_AT))
+                }
+
+            assertEquals("document consumption must not precede verification", beforeVerification.message)
+            assertEquals("document consumption must occur during the upload intent lifetime", atExpiry.message)
+        }
+    }
+
+    @Nested
     inner class MarkReady {
         @Test
         fun `should become ready when stored metadata exactly matches expectations`() {
@@ -146,6 +193,19 @@ class DocumentUploadIntentTest {
             expectedMetadata = EXPECTED_METADATA,
             createdAt = CREATED_AT,
             expiresAt = expiresAt,
+        )
+
+    private fun restoredIntent(status: DocumentUploadIntentStatus): DocumentUploadIntent =
+        DocumentUploadIntent.restore(
+            id = DocumentUploadIntentId(testUuid("document-upload-intent")),
+            group = groupId("documents"),
+            uploader = memberEmail("uploader"),
+            storageKey = KEY,
+            fileName = FILE_NAME,
+            expectedMetadata = EXPECTED_METADATA,
+            createdAt = CREATED_AT,
+            expiresAt = EXPIRES_AT,
+            status = status,
         )
 
     private companion object {

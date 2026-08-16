@@ -20,7 +20,7 @@ Backlog derive de l'etat actuel du depot au 2026-08-16.
 
 ## Ordre de travail actuel
 
-1. Implementer BE-DOC-003B, puis poursuivre les lots backend BE-DOC suivants.
+1. Implementer BE-DOC-004, puis poursuivre les lots backend BE-DOC suivants.
 2. Raccorder le frontend FE-DOC apres les lots backend.
 
 ## Fondations monorepo et DX
@@ -115,7 +115,7 @@ Backlog derive de l'etat actuel du depot au 2026-08-16.
 - [x] BE-DOC-001 Introduire un port applicatif de presignature PUT/GET et d'inspection HEAD, sans transit d'octets ni suppression physique.
 - [x] BE-DOC-002 Ajouter un adaptateur S3-compatible de presignature PUT/GET et d'inspection HEAD.
 - [x] BE-DOC-003A Ajouter le modele metier des upload intents `PENDING`, `READY` et `CONSUMED` et leur schema Flyway contraint.
-- [ ] BE-DOC-003B Ajouter le port de persistance des upload intents et son adaptateur R2DBC.
+- [x] BE-DOC-003B Ajouter le port de persistance group-scoped des upload intents et son adaptateur R2DBC.
 - [ ] BE-DOC-004 Creer une depense avec justificatif uniquement en consommant un upload `READY` dans la meme transaction DB.
 - [ ] BE-DOC-005 Implementer le remplacement d'un justificatif sans detruire l'ancien.
 - [ ] BE-DOC-006 Implementer la suppression logique d'un justificatif avec audit.

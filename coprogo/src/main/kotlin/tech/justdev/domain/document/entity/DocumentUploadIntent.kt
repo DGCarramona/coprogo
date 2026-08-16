@@ -47,9 +47,7 @@ class DocumentUploadIntent private constructor(
         require(status is DocumentUploadIntentStatus.Pending) {
             "only a pending document upload intent can become ready"
         }
-        require(verifiedAt >= createdAt && verifiedAt < expiresAt) {
-            "document verification must occur during the upload intent lifetime"
-        }
+        requireValidVerification(createdAt, expiresAt, verifiedAt)
         require(metadata == expectedMetadata) {
             "stored document metadata does not match upload intent"
         }
@@ -61,8 +59,7 @@ class DocumentUploadIntent private constructor(
         require(status is DocumentUploadIntentStatus.Ready) {
             "only a ready document upload intent can be consumed"
         }
-        require(consumedAt >= status.verifiedAt) { "document consumption must not precede verification" }
-        require(consumedAt < expiresAt) { "document consumption must occur during the upload intent lifetime" }
+        requireValidConsumption(status.verifiedAt, expiresAt, consumedAt)
 
         return withStatus(
             DocumentUploadIntentStatus.Consumed(
@@ -95,10 +92,8 @@ class DocumentUploadIntent private constructor(
             expectedMetadata: DocumentMetadata,
             createdAt: Instant,
             expiresAt: Instant,
-        ): DocumentUploadIntent {
-            require(expiresAt > createdAt) { "document upload intent expiry must be after creation" }
-
-            return DocumentUploadIntent(
+        ): DocumentUploadIntent =
+            restore(
                 id = id,
                 group = group,
                 uploader = uploader,
@@ -109,6 +104,64 @@ class DocumentUploadIntent private constructor(
                 expiresAt = expiresAt,
                 status = DocumentUploadIntentStatus.Pending,
             )
+
+        fun restore(
+            id: DocumentUploadIntentId,
+            group: GroupId,
+            uploader: MemberEmail,
+            storageKey: DocumentStorageKey,
+            fileName: DocumentFileName,
+            expectedMetadata: DocumentMetadata,
+            createdAt: Instant,
+            expiresAt: Instant,
+            status: DocumentUploadIntentStatus,
+        ): DocumentUploadIntent {
+            require(expiresAt > createdAt) { "document upload intent expiry must be after creation" }
+            when (status) {
+                DocumentUploadIntentStatus.Pending -> {
+                    Unit
+                }
+
+                is DocumentUploadIntentStatus.Ready -> {
+                    requireValidVerification(createdAt, expiresAt, status.verifiedAt)
+                }
+
+                is DocumentUploadIntentStatus.Consumed -> {
+                    requireValidVerification(createdAt, expiresAt, status.verifiedAt)
+                    requireValidConsumption(status.verifiedAt, expiresAt, status.consumedAt)
+                }
+            }
+
+            return DocumentUploadIntent(
+                id = id,
+                group = group,
+                uploader = uploader,
+                storageKey = storageKey,
+                fileName = fileName,
+                expectedMetadata = expectedMetadata,
+                createdAt = createdAt,
+                expiresAt = expiresAt,
+                status = status,
+            )
+        }
+
+        private fun requireValidVerification(
+            createdAt: Instant,
+            expiresAt: Instant,
+            verifiedAt: Instant,
+        ) {
+            require(verifiedAt in createdAt..<expiresAt) {
+                "document verification must occur during the upload intent lifetime"
+            }
+        }
+
+        private fun requireValidConsumption(
+            verifiedAt: Instant,
+            expiresAt: Instant,
+            consumedAt: Instant,
+        ) {
+            require(consumedAt >= verifiedAt) { "document consumption must not precede verification" }
+            require(consumedAt < expiresAt) { "document consumption must occur during the upload intent lifetime" }
         }
     }
 }

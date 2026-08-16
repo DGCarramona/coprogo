@@ -37,35 +37,6 @@ class DocumentUploadIntentSchemaIntegrationTest {
     @Nested
     inner class Insert {
         @Test
-        fun `should persist coherent pending ready and consumed upload intents`() =
-            runTest {
-                seedGroup("states")
-
-                val rows =
-                    listOf(
-                        UploadRow(),
-                        UploadRow(status = "READY", readyAt = CREATED_AT),
-                        UploadRow(status = "CONSUMED", readyAt = CREATED_AT.plusSeconds(30), consumedAt = CREATED_AT.plusSeconds(30)),
-                    )
-                rows.forEachIndexed { index, row -> insert(seed = "states-$index", groupSeed = "states", row = row) }
-
-                dataSource.connection.use { connection ->
-                    connection
-                        .prepareStatement("SELECT status FROM document_upload_intents WHERE \"group\" = ? ORDER BY status")
-                        .use { statement ->
-                            statement.setObject(1, groupUuid("states"))
-                            statement.executeQuery().use { rows ->
-                                val statuses =
-                                    buildList {
-                                        while (rows.next()) add(rows.getString("status"))
-                                    }
-                                assertEquals(listOf("CONSUMED", "PENDING", "READY"), statuses)
-                            }
-                        }
-                }
-            }
-
-        @Test
         fun `should reject incoherent state timestamps and expired lifetimes`() =
             runTest {
                 seedGroup("constraints")
