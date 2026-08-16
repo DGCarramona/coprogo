@@ -8,16 +8,18 @@ describe('App', () => {
     }).compileComponents();
   });
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
+  describe('application shell', () => {
+    it('should create the app', () => {
+      const fixture = TestBed.createComponent(App);
+      const app = fixture.componentInstance;
+      expect(app).toBeTruthy();
+    });
 
-  it('should render the application shell', async () => {
-    const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('router-outlet')).not.toBeNull();
+    it('should render the application shell', async () => {
+      const fixture = TestBed.createComponent(App);
+      await fixture.whenStable();
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('router-outlet')).not.toBeNull();
+    });
   });
 });
