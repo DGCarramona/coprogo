@@ -19,15 +19,13 @@ export class HttpGroupInvitationsGateway extends PendingGroupInvitationsPort {
         catchError((error) => {
           throw toApiClientError(error, 'Les invitations en attente n ont pas pu etre chargees.');
         }),
-        mapArray(
-          (invitation): PendingGroupInvitation => ({
-            invitationId: invitation.invitation,
-            groupId: invitation.group,
-            invitedMember: invitation.invitedMember,
-            invitedBy: invitation.invitedBy,
-            invitedAt: new Date(invitation.invitedAt),
-          }),
-        ),
+        mapArray((invitation): PendingGroupInvitation => ({
+          invitationId: invitation.invitation,
+          groupId: invitation.group,
+          invitedMember: invitation.invitedMember,
+          invitedBy: invitation.invitedBy,
+          invitedAt: new Date(invitation.invitedAt),
+        })),
       ),
     );
   }
