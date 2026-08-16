@@ -41,9 +41,7 @@ describe('provideApiClient', () => {
     });
     TestBed.inject(GoogleIdTokenPort).store('google-id-token');
 
-    const responsePromise = firstValueFrom(
-      TestBed.inject(GroupsService).listPending(),
-    );
+    const responsePromise = firstValueFrom(TestBed.inject(GroupsService).listPending());
 
     const request = TestBed.inject(HttpTestingController).expectOne(
       'http://localhost:8080/api/group-invitations/pending',

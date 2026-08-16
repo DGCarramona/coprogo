@@ -13,9 +13,7 @@ export class AuthSessionFacade {
 
   readonly status = this.statusState.asReadonly();
   readonly errorMessage = this.errorMessageState.asReadonly();
-  readonly isBusy = computed(
-    () => this.status() === 'signing-in' || this.status() === 'restoring',
-  );
+  readonly isBusy = computed(() => this.status() === 'signing-in' || this.status() === 'restoring');
 
   hasStoredToken(): boolean {
     return this.idTokenPort.currentToken() !== null;
