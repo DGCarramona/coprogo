@@ -312,7 +312,11 @@ Every behavior change must include or update tests, and the agent MUST follow Te
 - Backend tests requiring PostgreSQL must reuse the repository's Micronaut Test Resources PostgreSQL infrastructure via `@PostgresMicronautTest` instead of declaring containers or database property wiring in each suite.
 - Backend integration tests that need the Micronaut application context but do not exercise persistence must reuse the repository's shared no-database Micronaut test environment via `@NoDbMicronautTest` instead of duplicating datasource/Flyway overrides in each test class.
 - Controller tests must be pure unit tests (no `@MicronautTest`, no database) using hand-written fakes for project-owned interfaces. Reserve `@PostgresMicronautTest` and `@NoDbMicronautTest` for adapter-level integration tests only.
-- Tests for a subject that exposes multiple public entrypoints must group cases by entrypoint using JUnit 5 `@Nested` classes, for example by public method or public HTTP endpoint.
+- Tests for a subject that exposes multiple public entrypoints must group cases by the public entrypoint under test.
+- Backend tests must use JUnit 5 `@Nested` classes for each public method or HTTP route.
+- Frontend class, ViewModel, and gateway specs must use `describe('<publicMethod>')` for each public entrypoint under test.
+- Frontend pure-function module specs must use `describe('<exportedFunction>')` for each exported function under test.
+- Frontend component specs must group cases by visible behavior or user interaction, not by lifecycle hooks or internal methods.
 - Backend local runtime configuration must use Micronaut environment files rather than custom `.env` loading: keep shared local defaults in `application-runtime.properties`, reserve `application-local.properties` for machine-specific overrides, and commit only `application-local.example.properties`.
 - In coroutine-based backend tests, prefer `assertThrows { runTest { ... } }` for error assertions over manual `try/catch + fail`.
 - Prioritize tests around:

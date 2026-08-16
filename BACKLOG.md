@@ -20,8 +20,9 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 
 ## Ordre de travail actuel
 
-1. Raccorder le client et les formulaires frontend avec FE-EXP-007.
-2. Traiter les justificatifs avec les lots BE-DOC et FE-DOC.
+1. Terminer l'audit des conventions de tests frontend avec FE-TEST-001B.
+2. Raccorder le client et les formulaires frontend avec FE-EXP-007.
+3. Traiter les justificatifs avec les lots BE-DOC et FE-DOC.
 
 ## Fondations monorepo et DX
 
@@ -148,6 +149,11 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 - [x] FE-DASH-005 Afficher les parts de caisse commune par membre.
 - [ ] FE-DASH-006 Ajouter une vue explicative qui rattache les soldes aux evenements financiers.
 - [x] FE-DASH-007 Ajouter les tests de ViewModel et de rendu du dashboard.
+
+## Frontend - qualite des tests
+
+- [x] FE-TEST-001A Structurer les specs du formulaire de depense par point d'entree public.
+- [ ] FE-TEST-001B Structurer les autres specs frontend par point d'entree public ou comportement visible.
 
 ## Frontend - depenses
 
