@@ -16,12 +16,10 @@ export class HttpGroupMembersGateway extends GroupMembersPort {
   override listByGroup(groupId: string): Observable<readonly GroupMember[]> {
     return this.groupsService.get(groupId).pipe(
       map((group) => group.members),
-      mapArray(
-        ({ member, joinedAt }): GroupMember => ({
-          member,
-          joinedAt: new Date(joinedAt),
-        }),
-      ),
+      mapArray(({ member, joinedAt }): GroupMember => ({
+        member,
+        joinedAt: new Date(joinedAt),
+      })),
       catchError((error: unknown) =>
         throwError(() =>
           toApiClientError(error, 'Les membres du groupe n ont pas pu etre charges.'),
