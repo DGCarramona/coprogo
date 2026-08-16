@@ -15,12 +15,12 @@ import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import tech.justdev.application.document.DocumentDownloadRequest
-import tech.justdev.application.document.DocumentFileName
-import tech.justdev.application.document.DocumentMediaType
-import tech.justdev.application.document.DocumentSha256
-import tech.justdev.application.document.DocumentSize
-import tech.justdev.application.document.DocumentStorageKey
 import tech.justdev.application.document.DocumentUploadRequest
+import tech.justdev.domain.document.valueobject.DocumentFileName
+import tech.justdev.domain.document.valueobject.DocumentMediaType
+import tech.justdev.domain.document.valueobject.DocumentSha256
+import tech.justdev.domain.document.valueobject.DocumentSize
+import tech.justdev.domain.document.valueobject.DocumentStorageKey
 import java.net.URI
 import java.time.Duration
 import java.time.Instant

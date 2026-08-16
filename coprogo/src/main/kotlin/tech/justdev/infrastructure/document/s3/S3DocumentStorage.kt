@@ -12,15 +12,15 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest
 import tech.justdev.application.document.DocumentDownloadRequest
 import tech.justdev.application.document.DocumentDownloadTarget
-import tech.justdev.application.document.DocumentFileName
-import tech.justdev.application.document.DocumentMediaType
-import tech.justdev.application.document.DocumentSha256
-import tech.justdev.application.document.DocumentSize
 import tech.justdev.application.document.DocumentStorage
-import tech.justdev.application.document.DocumentStorageKey
 import tech.justdev.application.document.DocumentUploadRequest
 import tech.justdev.application.document.DocumentUploadTarget
-import tech.justdev.application.document.StoredDocumentMetadata
+import tech.justdev.domain.document.entity.DocumentMetadata
+import tech.justdev.domain.document.valueobject.DocumentFileName
+import tech.justdev.domain.document.valueobject.DocumentMediaType
+import tech.justdev.domain.document.valueobject.DocumentSha256
+import tech.justdev.domain.document.valueobject.DocumentSize
+import tech.justdev.domain.document.valueobject.DocumentStorageKey
 import java.nio.charset.StandardCharsets.UTF_8
 
 class S3DocumentStorage(
@@ -58,7 +58,7 @@ class S3DocumentStorage(
         )
     }
 
-    override suspend fun inspect(key: DocumentStorageKey): StoredDocumentMetadata? =
+    override suspend fun inspect(key: DocumentStorageKey): DocumentMetadata? =
         try {
             val response =
                 client
@@ -71,7 +71,7 @@ class S3DocumentStorage(
                             .build(),
                     ).await()
 
-            StoredDocumentMetadata(
+            DocumentMetadata(
                 mediaType = DocumentMediaType.of(requireNotNull(response.contentType()) { "stored document media type is missing" }),
                 size = DocumentSize.ofBytes(response.contentLength()),
                 checksum = DocumentSha256.fromBase64(requireNotNull(response.checksumSHA256()) { "stored document checksum is missing" }),

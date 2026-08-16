@@ -13,6 +13,7 @@ import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SchemaImpl;
 
+import tech.justdev.infrastructure.persistence.jooq.tables.DocumentUploadIntents;
 import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseParticipations;
 import tech.justdev.infrastructure.persistence.jooq.tables.Expenses;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupInvitations;
@@ -41,6 +42,11 @@ public class Public extends SchemaImpl {
      * The reference instance of <code>public</code>
      */
     public static final Public PUBLIC = new Public();
+
+    /**
+     * The table <code>public.document_upload_intents</code>.
+     */
+    public final DocumentUploadIntents DOCUMENT_UPLOAD_INTENTS = DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS;
 
     /**
      * The table <code>public.expense_participations</code>.
@@ -139,6 +145,7 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
+            DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS,
             ExpenseParticipations.EXPENSE_PARTICIPATIONS,
             Expenses.EXPENSES,
             GroupInvitations.GROUP_INVITATIONS,

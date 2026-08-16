@@ -6,7 +6,7 @@ Backlog derive de l'etat actuel du depot au 2026-08-16.
 
 - Backend: coeur metier deja entame pour `expense`, `revenue` et `ledger`, avec des tests de domaine et d'application.
 - Backend HTTP: les groupes, invitations, quotes-parts, revenus, depenses et lectures financieres du groupe sont exposes avec l'OpenAPI.
-- Backend infra: migrations Flyway et adaptateurs R2DBC presents pour groupes, invitations, quotes-parts, ledger et depenses, validation Google ID token orientee produit et Adobe S3Mock local en place, sans adaptateur S3 applicatif pour le moment.
+- Backend infra: migrations Flyway et adaptateurs R2DBC presents pour groupes, invitations, quotes-parts, ledger et depenses, validation Google ID token orientee produit, Adobe S3Mock local et adaptateur S3-compatible en place.
 - Frontend: connexion Google, invitations et dashboard de groupe sont en place, avec lecture des soldes, caisse, depenses et proposition selon les quatre modes `Equal`, `EqualWithCaps`, `CumulativeTiers` et `Custom`.
 - Frontend API: client OpenAPI genere pour groupes, depenses, ledger et revenus, avec source reelle de Google ID token.
 - Monorepo: orchestration Gradle racine en place pour piloter ensemble le front et le back.
@@ -20,7 +20,7 @@ Backlog derive de l'etat actuel du depot au 2026-08-16.
 
 ## Ordre de travail actuel
 
-1. Implementer BE-DOC-003, puis poursuivre les lots backend BE-DOC suivants.
+1. Implementer BE-DOC-003B, puis poursuivre les lots backend BE-DOC suivants.
 2. Raccorder le frontend FE-DOC apres les lots backend.
 
 ## Fondations monorepo et DX
@@ -114,7 +114,8 @@ Backlog derive de l'etat actuel du depot au 2026-08-16.
 
 - [x] BE-DOC-001 Introduire un port applicatif de presignature PUT/GET et d'inspection HEAD, sans transit d'octets ni suppression physique.
 - [x] BE-DOC-002 Ajouter un adaptateur S3-compatible de presignature PUT/GET et d'inspection HEAD.
-- [ ] BE-DOC-003 Ajouter le modele de metadonnees, les upload intents `PENDING`, `READY` et `CONSUMED`, et leurs migrations Flyway.
+- [x] BE-DOC-003A Ajouter le modele metier des upload intents `PENDING`, `READY` et `CONSUMED` et leur schema Flyway contraint.
+- [ ] BE-DOC-003B Ajouter le port de persistance des upload intents et son adaptateur R2DBC.
 - [ ] BE-DOC-004 Creer une depense avec justificatif uniquement en consommant un upload `READY` dans la meme transaction DB.
 - [ ] BE-DOC-005 Implementer le remplacement d'un justificatif sans detruire l'ancien.
 - [ ] BE-DOC-006 Implementer la suppression logique d'un justificatif avec audit.

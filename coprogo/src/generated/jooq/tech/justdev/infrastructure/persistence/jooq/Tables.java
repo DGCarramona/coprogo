@@ -4,6 +4,7 @@
 package tech.justdev.infrastructure.persistence.jooq;
 
 
+import tech.justdev.infrastructure.persistence.jooq.tables.DocumentUploadIntents;
 import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseParticipations;
 import tech.justdev.infrastructure.persistence.jooq.tables.Expenses;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupInvitations;
@@ -25,6 +26,11 @@ import tech.justdev.infrastructure.persistence.jooq.tables.OwnershipShareChanges
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Tables {
+
+    /**
+     * The table <code>public.document_upload_intents</code>.
+     */
+    public static final DocumentUploadIntents DOCUMENT_UPLOAD_INTENTS = DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS;
 
     /**
      * The table <code>public.expense_participations</code>.

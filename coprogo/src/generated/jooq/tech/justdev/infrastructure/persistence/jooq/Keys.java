@@ -12,6 +12,7 @@ import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 import org.jooq.impl.QOM.ForeignKeyRule;
 
+import tech.justdev.infrastructure.persistence.jooq.tables.DocumentUploadIntents;
 import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseParticipations;
 import tech.justdev.infrastructure.persistence.jooq.tables.Expenses;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupInvitations;
@@ -39,6 +40,8 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final UniqueKey<Record> DOCUMENT_UPLOAD_INTENTS_PKEY = Internal.createUniqueKey(DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS, DSL.name("document_upload_intents_pkey"), new TableField[] { DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS.ID }, true);
+    public static final UniqueKey<Record> DOCUMENT_UPLOAD_INTENTS_STORAGE_KEY_KEY = Internal.createUniqueKey(DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS, DSL.name("document_upload_intents_storage_key_key"), new TableField[] { DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS.STORAGE_KEY }, true);
     public static final UniqueKey<Record> EXPENSE_PARTICIPATIONS_EXPENSE_MEMBER_UNIQUE = Internal.createUniqueKey(ExpenseParticipations.EXPENSE_PARTICIPATIONS, DSL.name("expense_participations_expense_member_unique"), new TableField[] { ExpenseParticipations.EXPENSE_PARTICIPATIONS.EXPENSE, ExpenseParticipations.EXPENSE_PARTICIPATIONS.MEMBER }, true);
     public static final UniqueKey<Record> EXPENSE_PARTICIPATIONS_PKEY = Internal.createUniqueKey(ExpenseParticipations.EXPENSE_PARTICIPATIONS, DSL.name("expense_participations_pkey"), new TableField[] { ExpenseParticipations.EXPENSE_PARTICIPATIONS.ID }, true);
     public static final UniqueKey<Record> EXPENSES_PKEY = Internal.createUniqueKey(Expenses.EXPENSES, DSL.name("expenses_pkey"), new TableField[] { Expenses.EXPENSES.ID }, true);
@@ -63,6 +66,7 @@ public class Keys {
     // FOREIGN KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final ForeignKey<Record, Record> DOCUMENT_UPLOAD_INTENTS__DOCUMENT_UPLOAD_INTENTS_GROUP_UPLOADER_FK = Internal.createForeignKey(DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS, DSL.name("document_upload_intents_group_uploader_fk"), new TableField[] { DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS.GROUP, DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS.UPLOADER }, Keys.GROUP_MEMBERSHIPS_GROUP_MEMBER_UNIQUE, new TableField[] { GroupMemberships.GROUP_MEMBERSHIPS.GROUP, GroupMemberships.GROUP_MEMBERSHIPS.MEMBER_EMAIL }, true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION);
     public static final ForeignKey<Record, Record> EXPENSE_PARTICIPATIONS__EXPENSE_PARTICIPATIONS_EXPENSE_FKEY = Internal.createForeignKey(ExpenseParticipations.EXPENSE_PARTICIPATIONS, DSL.name("expense_participations_expense_fkey"), new TableField[] { ExpenseParticipations.EXPENSE_PARTICIPATIONS.EXPENSE }, Keys.EXPENSES_PKEY, new TableField[] { Expenses.EXPENSES.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.NO_ACTION);
     public static final ForeignKey<Record, Record> EXPENSE_PARTICIPATIONS__EXPENSE_PARTICIPATIONS_MEMBER_FKEY = Internal.createForeignKey(ExpenseParticipations.EXPENSE_PARTICIPATIONS, DSL.name("expense_participations_member_fkey"), new TableField[] { ExpenseParticipations.EXPENSE_PARTICIPATIONS.MEMBER }, Keys.MEMBERS_PKEY, new TableField[] { Members.MEMBERS.EMAIL }, true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION);
     public static final ForeignKey<Record, Record> EXPENSES__EXPENSES_CREATED_BY_FKEY = Internal.createForeignKey(Expenses.EXPENSES, DSL.name("expenses_created_by_fkey"), new TableField[] { Expenses.EXPENSES.CREATED_BY }, Keys.MEMBERS_PKEY, new TableField[] { Members.MEMBERS.EMAIL }, true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION);
