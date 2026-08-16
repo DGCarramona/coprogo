@@ -91,7 +91,6 @@ updates:
         patterns:
           - "@angular/*"
           - "angular-eslint"
-          - "typescript"
           - "rxjs"
           - "tslib"
       eslint-tooling:
@@ -103,5 +102,9 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      - dependency-name: "typescript"
+        versions:
+          - ">=6.1.0"
     cooldown:
       default-days: 7
