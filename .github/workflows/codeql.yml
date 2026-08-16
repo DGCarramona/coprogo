@@ -92,7 +92,7 @@ jobs:
 
     - name: Build Kotlin backend for CodeQL
       if: matrix.language == 'java-kotlin'
-      run: ./gradlew --no-daemon -p coprogo clean classes
+      run: ./gradlew --no-daemon backendClean backendClasses
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4
