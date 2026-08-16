@@ -38,10 +38,10 @@
     "@openapitools/openapi-generator-cli": "^2.40.1",
     "angular-eslint": "22.1.0",
     "eslint": "^10.5.0",
-    "jsdom": "^29.1.1",
+    "jsdom": "^30.0.1",
     "prettier": "^3.9.6",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.61.1",
+    "typescript-eslint": "8.66.0",
     "vitest": "^4.1.9"
   }
 }
