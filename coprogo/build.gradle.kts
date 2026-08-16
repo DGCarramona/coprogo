@@ -41,6 +41,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.11.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+    implementation("software.amazon.awssdk:s3")
 
     compileOnly("io.swagger.core.v3:swagger-annotations")
 
@@ -50,6 +51,7 @@ dependencies {
     runtimeOnly("org.flywaydb:flyway-database-postgresql")
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("org.postgresql:r2dbc-postgresql")
+    runtimeOnly("software.amazon.awssdk:netty-nio-client")
 
     testImplementation("io.micronaut:micronaut-http-client")
     testImplementation("io.projectreactor:reactor-core")
