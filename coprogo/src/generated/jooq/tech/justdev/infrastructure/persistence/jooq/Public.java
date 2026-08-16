@@ -15,6 +15,7 @@ import org.jooq.impl.SchemaImpl;
 
 import tech.justdev.infrastructure.persistence.jooq.tables.DocumentUploadIntents;
 import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseParticipations;
+import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseSupportingDocuments;
 import tech.justdev.infrastructure.persistence.jooq.tables.Expenses;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupInvitations;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupMemberships;
@@ -28,6 +29,7 @@ import tech.justdev.infrastructure.persistence.jooq.tables.LedgerMemberCashPoolS
 import tech.justdev.infrastructure.persistence.jooq.tables.Members;
 import tech.justdev.infrastructure.persistence.jooq.tables.OwnershipShareAllocations;
 import tech.justdev.infrastructure.persistence.jooq.tables.OwnershipShareChanges;
+import tech.justdev.infrastructure.persistence.jooq.tables.SupportingDocumentAttachments;
 
 
 /**
@@ -52,6 +54,11 @@ public class Public extends SchemaImpl {
      * The table <code>public.expense_participations</code>.
      */
     public final ExpenseParticipations EXPENSE_PARTICIPATIONS = ExpenseParticipations.EXPENSE_PARTICIPATIONS;
+
+    /**
+     * The table <code>public.expense_supporting_documents</code>.
+     */
+    public final ExpenseSupportingDocuments EXPENSE_SUPPORTING_DOCUMENTS = ExpenseSupportingDocuments.EXPENSE_SUPPORTING_DOCUMENTS;
 
     /**
      * The table <code>public.expenses</code>.
@@ -119,6 +126,11 @@ public class Public extends SchemaImpl {
     public final OwnershipShareChanges OWNERSHIP_SHARE_CHANGES = OwnershipShareChanges.OWNERSHIP_SHARE_CHANGES;
 
     /**
+     * The table <code>public.supporting_document_attachments</code>.
+     */
+    public final SupportingDocumentAttachments SUPPORTING_DOCUMENT_ATTACHMENTS = SupportingDocumentAttachments.SUPPORTING_DOCUMENT_ATTACHMENTS;
+
+    /**
      * No further instances allowed
      */
     private Public() {
@@ -147,6 +159,7 @@ public class Public extends SchemaImpl {
         return Arrays.asList(
             DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS,
             ExpenseParticipations.EXPENSE_PARTICIPATIONS,
+            ExpenseSupportingDocuments.EXPENSE_SUPPORTING_DOCUMENTS,
             Expenses.EXPENSES,
             GroupInvitations.GROUP_INVITATIONS,
             GroupMemberships.GROUP_MEMBERSHIPS,
@@ -159,7 +172,8 @@ public class Public extends SchemaImpl {
             LedgerMemberCashPoolShareDeltas.LEDGER_MEMBER_CASH_POOL_SHARE_DELTAS,
             Members.MEMBERS,
             OwnershipShareAllocations.OWNERSHIP_SHARE_ALLOCATIONS,
-            OwnershipShareChanges.OWNERSHIP_SHARE_CHANGES
+            OwnershipShareChanges.OWNERSHIP_SHARE_CHANGES,
+            SupportingDocumentAttachments.SUPPORTING_DOCUMENT_ATTACHMENTS
         );
     }
 }

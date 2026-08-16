@@ -11,6 +11,7 @@ import org.jooq.impl.Internal;
 
 import tech.justdev.infrastructure.persistence.jooq.tables.DocumentUploadIntents;
 import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseParticipations;
+import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseSupportingDocuments;
 import tech.justdev.infrastructure.persistence.jooq.tables.Expenses;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupInvitations;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupMemberships;
@@ -34,6 +35,7 @@ public class Indexes {
     public static final Index DOCUMENT_UPLOAD_INTENTS_GROUP_UPLOADER_IDX = Internal.createIndex(DSL.name("document_upload_intents_group_uploader_idx"), DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS, new OrderField[] { DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS.GROUP, DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS.UPLOADER }, false);
     public static final Index DOCUMENT_UPLOAD_INTENTS_STATUS_EXPIRES_AT_IDX = Internal.createIndex(DSL.name("document_upload_intents_status_expires_at_idx"), DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS, new OrderField[] { DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS.STATUS, DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS.EXPIRES_AT }, false);
     public static final Index EXPENSE_PARTICIPATIONS_EXPENSE_IDX = Internal.createIndex(DSL.name("expense_participations_expense_idx"), ExpenseParticipations.EXPENSE_PARTICIPATIONS, new OrderField[] { ExpenseParticipations.EXPENSE_PARTICIPATIONS.EXPENSE }, false);
+    public static final Index EXPENSE_SUPPORTING_DOCUMENTS_GROUP_EXPENSE_IDX = Internal.createIndex(DSL.name("expense_supporting_documents_group_expense_idx"), ExpenseSupportingDocuments.EXPENSE_SUPPORTING_DOCUMENTS, new OrderField[] { ExpenseSupportingDocuments.EXPENSE_SUPPORTING_DOCUMENTS.GROUP, ExpenseSupportingDocuments.EXPENSE_SUPPORTING_DOCUMENTS.EXPENSE, ExpenseSupportingDocuments.EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT }, false);
     public static final Index EXPENSES_GROUP_IDX = Internal.createIndex(DSL.name("expenses_group_idx"), Expenses.EXPENSES, new OrderField[] { Expenses.EXPENSES.GROUP, Expenses.EXPENSES.CREATED_AT, Expenses.EXPENSES.ID }, false);
     public static final Index GROUP_INVITATIONS_GROUP_PENDING_IDX = Internal.createIndex(DSL.name("group_invitations_group_pending_idx"), GroupInvitations.GROUP_INVITATIONS, new OrderField[] { GroupInvitations.GROUP_INVITATIONS.GROUP }, false);
     public static final Index GROUP_INVITATIONS_INVITED_EMAIL_PENDING_IDX = Internal.createIndex(DSL.name("group_invitations_invited_email_pending_idx"), GroupInvitations.GROUP_INVITATIONS, new OrderField[] { GroupInvitations.GROUP_INVITATIONS.INVITED_EMAIL }, false);

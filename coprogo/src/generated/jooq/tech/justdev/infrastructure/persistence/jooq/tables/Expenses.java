@@ -140,6 +140,11 @@ public class Expenses extends TableImpl<Record> {
     }
 
     @Override
+    public List<UniqueKey<Record>> getUniqueKeys() {
+        return Arrays.asList(Keys.EXPENSES_ID_GROUP_UNIQUE);
+    }
+
+    @Override
     public List<ForeignKey<Record, ?>> getReferences() {
         return Arrays.asList(Keys.EXPENSES__EXPENSES_CREATED_BY_FKEY, Keys.EXPENSES__EXPENSES_GROUP_FKEY);
     }

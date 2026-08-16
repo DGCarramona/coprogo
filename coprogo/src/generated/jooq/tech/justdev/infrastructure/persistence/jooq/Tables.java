@@ -6,6 +6,7 @@ package tech.justdev.infrastructure.persistence.jooq;
 
 import tech.justdev.infrastructure.persistence.jooq.tables.DocumentUploadIntents;
 import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseParticipations;
+import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseSupportingDocuments;
 import tech.justdev.infrastructure.persistence.jooq.tables.Expenses;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupInvitations;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupMemberships;
@@ -19,6 +20,7 @@ import tech.justdev.infrastructure.persistence.jooq.tables.LedgerMemberCashPoolS
 import tech.justdev.infrastructure.persistence.jooq.tables.Members;
 import tech.justdev.infrastructure.persistence.jooq.tables.OwnershipShareAllocations;
 import tech.justdev.infrastructure.persistence.jooq.tables.OwnershipShareChanges;
+import tech.justdev.infrastructure.persistence.jooq.tables.SupportingDocumentAttachments;
 
 
 /**
@@ -36,6 +38,11 @@ public class Tables {
      * The table <code>public.expense_participations</code>.
      */
     public static final ExpenseParticipations EXPENSE_PARTICIPATIONS = ExpenseParticipations.EXPENSE_PARTICIPATIONS;
+
+    /**
+     * The table <code>public.expense_supporting_documents</code>.
+     */
+    public static final ExpenseSupportingDocuments EXPENSE_SUPPORTING_DOCUMENTS = ExpenseSupportingDocuments.EXPENSE_SUPPORTING_DOCUMENTS;
 
     /**
      * The table <code>public.expenses</code>.
@@ -101,4 +108,9 @@ public class Tables {
      * The table <code>public.ownership_share_changes</code>.
      */
     public static final OwnershipShareChanges OWNERSHIP_SHARE_CHANGES = OwnershipShareChanges.OWNERSHIP_SHARE_CHANGES;
+
+    /**
+     * The table <code>public.supporting_document_attachments</code>.
+     */
+    public static final SupportingDocumentAttachments SUPPORTING_DOCUMENT_ATTACHMENTS = SupportingDocumentAttachments.SUPPORTING_DOCUMENT_ATTACHMENTS;
 }
