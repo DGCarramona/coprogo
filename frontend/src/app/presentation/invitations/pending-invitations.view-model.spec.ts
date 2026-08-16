@@ -9,54 +9,58 @@ import { PendingGroupInvitation } from '../../domain/group/pending-group-invitat
 import { PendingInvitationsViewModel } from './pending-invitations.view-model';
 
 describe('PendingInvitationsViewModel', () => {
-  it('restores the session and loads pending invitations', async () => {
-    const invitationsPort = new StubPendingGroupInvitationsPort();
-    invitationsPort.invitations = [pendingInvitation('invitation-1')];
-    const viewModel = createViewModel({ invitationsPort });
+  describe('initialize', () => {
+    it('restores the session and loads pending invitations', async () => {
+      const invitationsPort = new StubPendingGroupInvitationsPort();
+      invitationsPort.invitations = [pendingInvitation('invitation-1')];
+      const viewModel = createViewModel({ invitationsPort });
 
-    await viewModel.initialize();
+      await viewModel.initialize();
 
-    expect(viewModel.isLoading()).toBe(false);
-    expect(viewModel.invitations()).toEqual([pendingInvitation('invitation-1')]);
-    expect(viewModel.isEmpty()).toBe(false);
-  });
-
-  it('redirects to sign-in when no token is stored', async () => {
-    const navigation = new StubNavigationPort();
-    const viewModel = createViewModel({
-      authSessionFacade: authSessionFacadeWithToken(false),
-      navigation,
+      expect(viewModel.isLoading()).toBe(false);
+      expect(viewModel.invitations()).toEqual([pendingInvitation('invitation-1')]);
+      expect(viewModel.isEmpty()).toBe(false);
     });
 
-    await viewModel.initialize();
+    it('redirects to sign-in when no token is stored', async () => {
+      const navigation = new StubNavigationPort();
+      const viewModel = createViewModel({
+        authSessionFacade: authSessionFacadeWithToken(false),
+        navigation,
+      });
 
-    expect(navigation.navigatedTo).toBe('/connexion');
+      await viewModel.initialize();
+
+      expect(navigation.navigatedTo).toBe('/connexion');
+    });
+
+    it('exposes load errors', async () => {
+      const invitationsPort = new StubPendingGroupInvitationsPort();
+      invitationsPort.failure = new Error('Backend indisponible');
+      const viewModel = createViewModel({ invitationsPort });
+
+      await viewModel.initialize();
+
+      expect(viewModel.hasLoadError()).toBe(true);
+      expect(viewModel.errorMessage()).toBe('Backend indisponible');
+    });
   });
 
-  it('accepts an invitation and removes it locally', async () => {
-    const invitationsPort = new StubPendingGroupInvitationsPort();
-    invitationsPort.invitations = [
-      pendingInvitation('invitation-1'),
-      pendingInvitation('invitation-2'),
-    ];
-    const viewModel = createViewModel({ invitationsPort });
-    await viewModel.initialize();
+  describe('acceptInvitation', () => {
+    it('accepts an invitation and removes it locally', async () => {
+      const invitationsPort = new StubPendingGroupInvitationsPort();
+      invitationsPort.invitations = [
+        pendingInvitation('invitation-1'),
+        pendingInvitation('invitation-2'),
+      ];
+      const viewModel = createViewModel({ invitationsPort });
+      await viewModel.initialize();
 
-    await viewModel.acceptInvitation('invitation-1');
+      await viewModel.acceptInvitation('invitation-1');
 
-    expect(invitationsPort.acceptedInvitations).toEqual(['invitation-1']);
-    expect(viewModel.invitations()).toEqual([pendingInvitation('invitation-2')]);
-  });
-
-  it('exposes load errors', async () => {
-    const invitationsPort = new StubPendingGroupInvitationsPort();
-    invitationsPort.failure = new Error('Backend indisponible');
-    const viewModel = createViewModel({ invitationsPort });
-
-    await viewModel.initialize();
-
-    expect(viewModel.hasLoadError()).toBe(true);
-    expect(viewModel.errorMessage()).toBe('Backend indisponible');
+      expect(invitationsPort.acceptedInvitations).toEqual(['invitation-1']);
+      expect(viewModel.invitations()).toEqual([pendingInvitation('invitation-2')]);
+    });
   });
 });
 

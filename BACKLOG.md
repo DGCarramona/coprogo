@@ -20,7 +20,7 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 
 ## Ordre de travail actuel
 
-1. Terminer l'audit des conventions de tests frontend avec FE-TEST-001B.
+1. Terminer l'audit des conventions de tests frontend avec FE-TEST-001B2.
 2. Raccorder le client et les formulaires frontend avec FE-EXP-007.
 3. Traiter les justificatifs avec les lots BE-DOC et FE-DOC.
 
@@ -153,7 +153,8 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 ## Frontend - qualite des tests
 
 - [x] FE-TEST-001A Structurer les specs du formulaire de depense par point d'entree public.
-- [ ] FE-TEST-001B Structurer les autres specs frontend par point d'entree public ou comportement visible.
+- [x] FE-TEST-001B1 Structurer les facades et ViewModels restants par point d'entree public.
+- [ ] FE-TEST-001B2 Structurer les utilitaires, gateways et composants restants par point d'entree public ou comportement visible.
 
 ## Frontend - depenses
 

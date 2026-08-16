@@ -10,46 +10,53 @@ import { StubNavigationPort } from '../../../../__test__/app/application/shared/
 import { GroupDashboardPageViewModel } from './group-dashboard-page.view-model';
 
 describe('GroupDashboardPageViewModel', () => {
-  it('loads the group financial dashboard', async () => {
-    const dashboardPort = new StubGroupFinancialDashboardPort();
-    const viewModel = createViewModel({ dashboardPort });
+  describe('initialize', () => {
+    it('loads the group financial dashboard', async () => {
+      const dashboardPort = new StubGroupFinancialDashboardPort();
+      const viewModel = createViewModel({ dashboardPort });
 
-    await viewModel.initialize();
+      await viewModel.initialize();
 
-    expect(viewModel.status()).toBe('ready');
-    expect(viewModel.groupId()).toBe('group-1');
-    expect(viewModel.cashPoolBalance()).toBe('75,00\u00a0€');
-    expect(viewModel.memberBalances()).toEqual([
-      { member: 'alice@example.com', label: 'A recevoir', amount: '+40,00\u00a0€', tone: 'credit' },
-      { member: 'bob@example.com', label: 'A payer', amount: '-40,00\u00a0€', tone: 'debt' },
-    ]);
-    expect(viewModel.cashPoolShares()).toEqual([
-      { member: 'alice@example.com', amount: '35,00\u00a0€' },
-      { member: 'bob@example.com', amount: '40,00\u00a0€' },
-    ]);
-  });
-
-  it('redirects to sign-in when no token is stored', async () => {
-    const navigation = new StubNavigationPort();
-    const viewModel = createViewModel({
-      authSessionFacade: authSessionFacadeWithToken(false),
-      navigation,
+      expect(viewModel.status()).toBe('ready');
+      expect(viewModel.groupId()).toBe('group-1');
+      expect(viewModel.cashPoolBalance()).toBe('75,00\u00a0€');
+      expect(viewModel.memberBalances()).toEqual([
+        {
+          member: 'alice@example.com',
+          label: 'A recevoir',
+          amount: '+40,00\u00a0€',
+          tone: 'credit',
+        },
+        { member: 'bob@example.com', label: 'A payer', amount: '-40,00\u00a0€', tone: 'debt' },
+      ]);
+      expect(viewModel.cashPoolShares()).toEqual([
+        { member: 'alice@example.com', amount: '35,00\u00a0€' },
+        { member: 'bob@example.com', amount: '40,00\u00a0€' },
+      ]);
     });
 
-    await viewModel.initialize();
+    it('redirects to sign-in when no token is stored', async () => {
+      const navigation = new StubNavigationPort();
+      const viewModel = createViewModel({
+        authSessionFacade: authSessionFacadeWithToken(false),
+        navigation,
+      });
 
-    expect(navigation.navigatedTo).toBe('/connexion');
-  });
+      await viewModel.initialize();
 
-  it('exposes a load error', async () => {
-    const dashboardPort = new StubGroupFinancialDashboardPort();
-    dashboardPort.failure = new Error('Backend indisponible');
-    const viewModel = createViewModel({ dashboardPort });
+      expect(navigation.navigatedTo).toBe('/connexion');
+    });
 
-    await viewModel.initialize();
+    it('exposes a load error', async () => {
+      const dashboardPort = new StubGroupFinancialDashboardPort();
+      dashboardPort.failure = new Error('Backend indisponible');
+      const viewModel = createViewModel({ dashboardPort });
 
-    expect(viewModel.hasLoadError()).toBe(true);
-    expect(viewModel.errorMessage()).toBe('Backend indisponible');
+      await viewModel.initialize();
+
+      expect(viewModel.hasLoadError()).toBe(true);
+      expect(viewModel.errorMessage()).toBe('Backend indisponible');
+    });
   });
 });
 
