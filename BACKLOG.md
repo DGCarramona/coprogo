@@ -20,7 +20,7 @@ Backlog derive de l'etat actuel du depot au 2026-08-16.
 
 ## Ordre de travail actuel
 
-1. Implementer BE-DOC-004, puis poursuivre les lots backend BE-DOC suivants.
+1. Implementer BE-DOC-004B, puis poursuivre les lots backend BE-DOC suivants.
 2. Raccorder le frontend FE-DOC apres les lots backend.
 
 ## Fondations monorepo et DX
@@ -116,7 +116,8 @@ Backlog derive de l'etat actuel du depot au 2026-08-16.
 - [x] BE-DOC-002 Ajouter un adaptateur S3-compatible de presignature PUT/GET et d'inspection HEAD.
 - [x] BE-DOC-003A Ajouter le modele metier des upload intents `PENDING`, `READY` et `CONSUMED` et leur schema Flyway contraint.
 - [x] BE-DOC-003B Ajouter le port de persistance group-scoped des upload intents et son adaptateur R2DBC.
-- [ ] BE-DOC-004 Creer une depense avec justificatif uniquement en consommant un upload `READY` dans la meme transaction DB.
+- [x] BE-DOC-004A Ajouter la persistance CAS des transitions d'upload intents, avec une seule transition `READY` vers `CONSUMED` gagnante.
+- [ ] BE-DOC-004B Ajouter l'interactor qui verifie l'uploader, consomme l'agregat `READY`, puis persiste depense, lien durable et intent dans la meme transaction DB.
 - [ ] BE-DOC-005 Implementer le remplacement d'un justificatif sans detruire l'ancien.
 - [ ] BE-DOC-006 Implementer la suppression logique d'un justificatif avec audit.
 - [ ] BE-DOC-007 Enforcer la regle "seul le createur de l'evenement peut supprimer son justificatif".

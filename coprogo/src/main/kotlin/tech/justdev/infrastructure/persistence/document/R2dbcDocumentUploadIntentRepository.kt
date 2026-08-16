@@ -156,7 +156,7 @@ private fun PersistenceState.allowedCurrentState(): Condition {
     return when (status) {
         PersistenceStatus.PENDING -> pending
         PersistenceStatus.READY -> pending.or(currentReadyState())
-        PersistenceStatus.CONSUMED -> pending.or(currentReadyState()).or(currentConsumedState())
+        PersistenceStatus.CONSUMED -> currentReadyState()
     }
 }
 
@@ -165,12 +165,6 @@ private fun PersistenceState.currentReadyState(): Condition =
         .eq(PersistenceStatus.READY.name)
         .and(DOCUMENT_UPLOAD_INTENTS.READY_AT.eq(requireNotNull(readyAt).atOffset(ZoneOffset.UTC)))
         .and(DOCUMENT_UPLOAD_INTENTS.CONSUMED_AT.isNull)
-
-private fun PersistenceState.currentConsumedState(): Condition =
-    DOCUMENT_UPLOAD_INTENTS.STATUS
-        .eq(PersistenceStatus.CONSUMED.name)
-        .and(DOCUMENT_UPLOAD_INTENTS.READY_AT.eq(requireNotNull(readyAt).atOffset(ZoneOffset.UTC)))
-        .and(DOCUMENT_UPLOAD_INTENTS.CONSUMED_AT.eq(requireNotNull(consumedAt).atOffset(ZoneOffset.UTC)))
 
 private fun UploadIntentRecord.toDomain(): DocumentUploadIntent =
     DocumentUploadIntent.restore(

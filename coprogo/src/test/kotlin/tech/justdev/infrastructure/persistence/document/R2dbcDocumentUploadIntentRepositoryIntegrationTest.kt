@@ -21,6 +21,7 @@ import tech.justdev.domain.group.entity.Member
 import tech.justdev.domain.group.repository.GroupRepository
 import tech.justdev.domain.group.repository.MemberRepository
 import tech.justdev.domain.shared.valueobject.GroupId
+import tech.justdev.infrastructure.persistence.jooq.R2dbcTransactionRunner
 import tech.justdev.testsupport.PostgresMicronautTest
 import tech.justdev.testsupport.groupId
 import tech.justdev.testsupport.memberEmail
@@ -38,6 +39,9 @@ class R2dbcDocumentUploadIntentRepositoryIntegrationTest {
 
     @Inject
     lateinit var groupRepository: GroupRepository
+
+    @Inject
+    lateinit var transactionRunner: R2dbcTransactionRunner
 
     @Nested
     inner class Persist {
@@ -124,13 +128,47 @@ class R2dbcDocumentUploadIntentRepositoryIntegrationTest {
             }
 
             assertPersistenceRejected(pending.markReady(METADATA, READY_AT.plusSeconds(1)))
+        }
+
+        @Test
+        fun `should allow only one consumed transition writer`() {
+            val seed = "consumed-writer"
+            val ready = pendingIntent(seed).markReady(METADATA, READY_AT)
+            runTest {
+                seedGroup(seed)
+                repository.persist(ready)
+            }
 
             val consumed = ready.consume(CONSUMED_AT)
             runTest { repository.persist(consumed) }
+            assertPersistenceRejected(consumed)
             assertPersistenceRejected(ready.consume(CONSUMED_AT.plusSeconds(1)))
 
             runTest {
                 assertIntentEquals(consumed, repository.findByIdAndGroup(consumed.id, consumed.group))
+            }
+        }
+
+        @Test
+        fun `should roll back a consumed aggregate persisted in the surrounding transaction`() {
+            val seed = "persist-rollback"
+            val ready = pendingIntent(seed).markReady(METADATA, READY_AT)
+            val error =
+                assertThrows<IllegalStateException> {
+                    runTest {
+                        seedGroup(seed)
+                        repository.persist(ready)
+                        transactionRunner.transaction {
+                            val stored = requireNotNull(repository.findByIdAndGroup(ready.id, ready.group))
+                            repository.persist(stored.consume(CONSUMED_AT))
+                            error("rollback consumption")
+                        }
+                    }
+                }
+
+            assertEquals("rollback consumption", error.message)
+            runTest {
+                assertIntentEquals(ready, repository.findByIdAndGroup(ready.id, ready.group))
             }
         }
     }
