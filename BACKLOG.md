@@ -20,7 +20,7 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 
 ## Ordre de travail actuel
 
-1. Raccorder le client et les formulaires frontend avec FE-EXP-007.
+1. Raccorder le formulaire frontend `Custom` avec FE-EXP-007B.
 2. Traiter les justificatifs avec les lots BE-DOC et FE-DOC.
 
 ## Fondations monorepo et DX
@@ -167,7 +167,8 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 - [x] FE-EXP-005 Ajouter l'interface `EqualWithCaps` avec saisie des plafonds.
 - [x] FE-EXP-006 Ajouter l'interface `CumulativeTiers` avec saisie des seuils et participants par tranche.
 - [x] FE-EXP-006R Extraire les modeles et regles pures des formulaires `EqualWithCaps` et `CumulativeTiers`.
-- [ ] FE-EXP-007 Ajouter l'interface `Custom` avec saisie des montants exacts par participant.
+- [x] FE-EXP-007A Ajouter le modele pur, la validation et le mapping de l'allocation `Custom`.
+- [ ] FE-EXP-007B Raccorder l'allocation `Custom` au Signal Form et a l'interface.
 - [ ] FE-EXP-008 Ajouter l'action d'approbation ou refus de sa propre participation.
 - [ ] FE-EXP-009 Afficher clairement l'invalidation d'une depense refusee et la necessite de ressaisie.
 - [ ] FE-EXP-010 Ajouter les tests de ViewModel, mapping et composants critiques des depenses.
