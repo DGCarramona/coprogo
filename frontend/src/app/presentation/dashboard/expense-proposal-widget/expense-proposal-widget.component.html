@@ -187,8 +187,30 @@
             }
           </fieldset>
         </section>
-      } @else {
-        <p role="status">Les champs de ce mode de répartition ne sont pas encore disponibles.</p>
+      } @else if (viewModel.proposalForm().value().allocationMode === 'CUSTOM') {
+        <fieldset>
+          <legend>Montants personnalisés</legend>
+          <p id="custom-allocation-help">
+            Saisissez des montants positifs. Leur somme doit correspondre exactement au montant
+            total. Le créateur doit inclure sa propre part.
+          </p>
+          @for (member of viewModel.members(); track member) {
+            <p>
+              <label [for]="'custom-amount-' + member">Montant pour {{ member }}</label>
+              <input
+                [id]="'custom-amount-' + member"
+                type="text"
+                inputmode="decimal"
+                [attr.aria-label]="'Montant pour ' + member"
+                aria-describedby="custom-allocation-help"
+                [value]="
+                  viewModel.proposalForm().value().custom.amountsInEurosByMember[member] ?? ''
+                "
+                (input)="updateCustomAmount(member, $event)"
+              />
+            </p>
+          }
+        </fieldset>
       }
       <button
         matButton="filled"

@@ -93,6 +93,9 @@ describe('ExpenseProposalWidgetViewModel', () => {
           intermediateTiers: [],
           finalParticipants: [],
         },
+        custom: {
+          amountsInEurosByMember: {},
+        },
       });
       expect(viewModel.proposalForm().invalid()).toBe(true);
     });
@@ -231,22 +234,22 @@ describe('ExpenseProposalWidgetViewModel', () => {
       expect(viewModel.proposalErrorMessage()).toBe('Proposition indisponible');
     });
 
-    it.each(['CUSTOM'] as const)(
-      'blocks submission while %s fields are unavailable',
-      async (allocationMode) => {
-        const viewModel = createViewModel();
-        viewModel.initialize('group-1');
-        viewModel.proposalForm.title().value.set('Toiture');
-        viewModel.proposalForm.amountInEuros().value.set('12,50');
-        viewModel.toggleParticipant('alice@example.com');
+    it.each([
+      ['without any participation', []],
+      ['with an invalid amount', [['alice@example.com', '12,555']]],
+      ['when the participation sum differs from the total', [['alice@example.com', '10']]],
+    ])('rejects a custom proposal %s', async (_description, amounts) => {
+      const viewModel = createViewModel();
+      viewModel.initialize('group-1');
+      viewModel.proposalForm.title().value.set('Toiture');
+      viewModel.proposalForm.amountInEuros().value.set('12,50');
+      viewModel.proposalForm.allocationMode().value.set('CUSTOM');
+      amounts.forEach(([member, amount]) => viewModel.setCustomAmount(member, amount));
 
-        viewModel.proposalForm.allocationMode().value.set(allocationMode);
-
-        expect(viewModel.proposalForm().invalid()).toBe(true);
-        await expect(submit(viewModel.proposalForm)).resolves.toBe(false);
-        expect(proposalPort.commands).toEqual([]);
-      },
-    );
+      expect(viewModel.proposalForm().invalid()).toBe(true);
+      await expect(submit(viewModel.proposalForm)).resolves.toBe(false);
+      expect(proposalPort.commands).toEqual([]);
+    });
 
     it('preserves the shared fields and equal draft when returning to equal allocation', async () => {
       const viewModel = createViewModel();
@@ -270,6 +273,9 @@ describe('ExpenseProposalWidgetViewModel', () => {
         cumulativeTiers: {
           intermediateTiers: [],
           finalParticipants: [],
+        },
+        custom: {
+          amountsInEurosByMember: {},
         },
       });
 
@@ -469,6 +475,34 @@ describe('ExpenseProposalWidgetViewModel', () => {
       expect(proposalPort.commands).toEqual([]);
     });
 
+    it('submits exact custom participation amounts', async () => {
+      const viewModel = createViewModel();
+      viewModel.initialize('group-1');
+      viewModel.proposalForm.title().value.set('  Toiture  ');
+      viewModel.proposalForm.amountInEuros().value.set('12,50');
+      viewModel.proposalForm.allocationMode().value.set('CUSTOM');
+      viewModel.setCustomAmount('alice@example.com', '7,50');
+      viewModel.setCustomAmount('bob@example.com', '5');
+
+      await expect(submit(viewModel.proposalForm)).resolves.toBe(true);
+      await waitFor(() => proposalPort.commands.length === 1);
+
+      expect(proposalPort.commands).toEqual([
+        {
+          groupId: 'group-1',
+          title: 'Toiture',
+          totalAmountInCents: 1250,
+          allocation: {
+            type: 'CUSTOM',
+            amountsInCentsByMember: new Map([
+              ['alice@example.com', 750],
+              ['bob@example.com', 500],
+            ]),
+          },
+        },
+      ]);
+    });
+
     it('validates non-blank title, amount and selected participants before submitting', async () => {
       const viewModel = createViewModel();
       viewModel.initialize('group-1');
@@ -549,6 +583,22 @@ describe('ExpenseProposalWidgetViewModel', () => {
         maximumAmountsInEuros: {
           'bob@example.com': '25,50',
         },
+      });
+    });
+  });
+
+  describe('setCustomAmount', () => {
+    it('keeps custom amounts in their draft between allocation modes', () => {
+      const viewModel = createViewModel();
+      viewModel.initialize('group-1');
+      viewModel.proposalForm.allocationMode().value.set('CUSTOM');
+      viewModel.setCustomAmount('alice@example.com', '12,50');
+
+      viewModel.proposalForm.allocationMode().value.set('EQUAL');
+      viewModel.proposalForm.allocationMode().value.set('CUSTOM');
+
+      expect(viewModel.proposalForm().value().custom).toEqual({
+        amountsInEurosByMember: { 'alice@example.com': '12,50' },
       });
     });
   });

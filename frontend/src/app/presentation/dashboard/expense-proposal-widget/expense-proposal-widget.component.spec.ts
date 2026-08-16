@@ -32,8 +32,10 @@ describe('ExpenseProposalWidgetComponent', () => {
         ['CUSTOM', 'Montants personnalisés'],
       ]);
     });
+  });
 
-    it('shows an unavailable mode without equal fields or submission', async () => {
+  describe('custom proposal', () => {
+    it('shows an accessible amount for each member and plain-language guidance', async () => {
       const { fixture, host } = createFixture(new Members());
 
       await waitFor(() => {
@@ -42,16 +44,73 @@ describe('ExpenseProposalWidgetComponent', () => {
         return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
       });
 
-      const allocationMode = requiredSelect(host, 'select[aria-label="Mode de répartition"]');
-      allocationMode.value = 'CUSTOM';
-      allocationMode.dispatchEvent(new Event('input'));
+      selectAllocationMode(host, fixture, 'CUSTOM');
+
+      expect(host.textContent).toContain(
+        'Saisissez des montants positifs. Leur somme doit correspondre exactement au montant total. Le créateur doit inclure sa propre part.',
+      );
+      const aliceAmount = requiredInput(host, 'input[aria-label="Montant pour a@b.c"]');
+      expect(aliceAmount.inputMode).toBe('decimal');
+      expect(aliceAmount.getAttribute('aria-describedby')).toBe('custom-allocation-help');
+      expect(requiredInput(host, 'input[aria-label="Montant pour b@c.d"]')).toBeDefined();
+      expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
+    });
+
+    it('disables submission for an invalid amount or an inexact sum', async () => {
+      const { fixture, host } = createFixture(new Members());
+
+      await waitFor(() => {
+        fixture.detectChanges();
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
+
+      fillSharedFields(host);
+      selectAllocationMode(host, fixture, 'CUSTOM');
+      const aliceAmount = requiredInput(host, 'input[aria-label="Montant pour a@b.c"]');
+
+      aliceAmount.value = '12,555';
+      aliceAmount.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
+
+      aliceAmount.value = '10';
+      aliceAmount.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
+    });
+
+    it('submits exact custom amounts while excluding blank members', async () => {
+      const proposals = new StubExpenseProposalPort();
+      const { fixture, host } = createFixture(new Members(), proposals);
+
+      await waitFor(() => {
+        fixture.detectChanges();
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
+
+      fillSharedFields(host);
+      selectAllocationMode(host, fixture, 'CUSTOM');
+      const aliceAmount = requiredInput(host, 'input[aria-label="Montant pour a@b.c"]');
+      aliceAmount.value = '12,50';
+      aliceAmount.dispatchEvent(new Event('input'));
       fixture.detectChanges();
 
-      expect(host.querySelector('fieldset')).toBeNull();
-      expect(host.querySelector('[role="status"]')?.textContent?.trim()).toBe(
-        'Les champs de ce mode de répartition ne sont pas encore disponibles.',
-      );
-      expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
+      const submitButton = requiredButton(host, 'button[type="submit"]');
+      expect(submitButton.disabled).toBe(false);
+      submitButton.click();
+
+      await waitFor(() => proposals.commands.length === 1);
+      expect(proposals.commands).toEqual([
+        {
+          groupId: 'group-1',
+          title: 'Toiture',
+          totalAmountInCents: 1250,
+          allocation: {
+            type: 'CUSTOM',
+            amountsInCentsByMember: new Map([['a@b.c', 1250]]),
+          },
+        },
+      ]);
     });
   });
 

@@ -33,4 +33,10 @@ export class ExpenseProposalWidgetComponent implements OnInit {
     if (!(input instanceof HTMLInputElement)) return;
     this.viewModel.setCumulativeIntermediateThreshold(index, input.value);
   }
+
+  updateCustomAmount(member: string, event: Event): void {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement)) return;
+    this.viewModel.setCustomAmount(member, input.value);
+  }
 }

@@ -23,6 +23,13 @@ import {
   validateCumulativeTiersForm,
 } from './cumulative-tiers-allocation-form';
 import {
+  CustomAllocationFormModel,
+  emptyCustomAllocationForm,
+  setCustomAmount,
+  toCustomAllocation,
+  validateCustomAllocationForm,
+} from './custom-allocation-form';
+import {
   emptyEqualWithCapsForm,
   EqualWithCapsFormModel,
   setEqualWithCapsMaximum,
@@ -53,6 +60,7 @@ interface ExpenseProposalFormModel {
   };
   equalWithCaps: EqualWithCapsFormModel;
   cumulativeTiers: CumulativeTiersFormModel;
+  custom: CustomAllocationFormModel;
 }
 
 @Injectable()
@@ -136,14 +144,6 @@ export class ExpenseProposalWidgetViewModel {
               }
             : undefined,
         );
-        validate(proposal.allocationMode, ({ value }) =>
-          value() === 'CUSTOM'
-            ? {
-                kind: 'mode-unavailable',
-                message: 'Les champs de ce mode de repartition ne sont pas encore disponibles.',
-              }
-            : undefined,
-        );
         validate(proposal.equal.participants, ({ value, valueOf }) =>
           valueOf(proposal.allocationMode) === 'EQUAL' && value().length === 0
             ? { kind: 'participants', message: 'Choisissez au moins un participant.' }
@@ -162,6 +162,14 @@ export class ExpenseProposalWidgetViewModel {
             ? undefined
             : validateCumulativeTiersForm(value(), totalAmountInCents);
         });
+        validate(proposal.custom, ({ value, valueOf }) => {
+          if (valueOf(proposal.allocationMode) !== 'CUSTOM') return undefined;
+
+          const totalAmountInCents = parseAmountInCents(valueOf(proposal.amountInEuros));
+          return totalAmountInCents === null
+            ? undefined
+            : validateCustomAllocationForm(value(), totalAmountInCents);
+        });
       },
       {
         injector,
@@ -174,13 +182,6 @@ export class ExpenseProposalWidgetViewModel {
               return {
                 kind: 'amount',
                 message: 'Indiquez un montant positif avec deux decimales au plus.',
-              };
-            }
-
-            if (proposal.allocationMode === 'CUSTOM') {
-              return {
-                kind: 'mode-unavailable',
-                message: 'Les champs de ce mode de repartition ne sont pas encore disponibles.',
               };
             }
 
@@ -197,6 +198,11 @@ export class ExpenseProposalWidgetViewModel {
               return cumulativeTiersError;
             }
 
+            if (proposal.allocationMode === 'CUSTOM') {
+              const customError = validateCustomAllocationForm(proposal.custom, totalAmountInCents);
+              if (customError) return customError;
+            }
+
             const allocation: ExpenseAllocation = (() => {
               switch (proposal.allocationMode) {
                 case 'EQUAL':
@@ -208,6 +214,8 @@ export class ExpenseProposalWidgetViewModel {
                   return toEqualWithCapsAllocation(proposal.equalWithCaps);
                 case 'CUMULATIVE_TIERS':
                   return toCumulativeTiersAllocation(proposal.cumulativeTiers, totalAmountInCents);
+                case 'CUSTOM':
+                  return toCustomAllocation(proposal.custom);
               }
             })();
 
@@ -340,6 +348,13 @@ export class ExpenseProposalWidgetViewModel {
       cumulativeTiers: toggleCumulativeFinalParticipant(proposal.cumulativeTiers, member),
     }));
   }
+
+  setCustomAmount(member: string, amountInEuros: string): void {
+    this.proposalModel.update((proposal) => {
+      const custom = setCustomAmount(proposal.custom, member, amountInEuros);
+      return custom === proposal.custom ? proposal : { ...proposal, custom };
+    });
+  }
 }
 
 const emptyProposalFormModel = (): ExpenseProposalFormModel => ({
@@ -351,4 +366,5 @@ const emptyProposalFormModel = (): ExpenseProposalFormModel => ({
   },
   equalWithCaps: emptyEqualWithCapsForm(),
   cumulativeTiers: emptyCumulativeTiersForm(),
+  custom: emptyCustomAllocationForm(),
 });
