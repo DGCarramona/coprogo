@@ -11,6 +11,26 @@ import {
 import { GroupMembersPort } from '../../../application/group/group-members.port';
 import { describeError } from '../../../application/shared/describe-error';
 import { GroupMember } from '../../../domain/group/group-member';
+import {
+  addCumulativeIntermediateTier,
+  CumulativeTiersFormModel,
+  emptyCumulativeTiersForm,
+  removeCumulativeIntermediateTier,
+  setCumulativeIntermediateThreshold,
+  toCumulativeTiersAllocation,
+  toggleCumulativeFinalParticipant,
+  toggleCumulativeIntermediateParticipant,
+  validateCumulativeTiersForm,
+} from './cumulative-tiers-allocation-form';
+import {
+  emptyEqualWithCapsForm,
+  EqualWithCapsFormModel,
+  setEqualWithCapsMaximum,
+  toEqualWithCapsAllocation,
+  toggleEqualWithCapsParticipant,
+  validateEqualWithCapsForm,
+} from './equal-with-caps-allocation-form';
+import { parseAmountInCents, toggleMember } from './expense-proposal-form';
 
 export interface EqualSplitExpenseProposalInput {
   title: string;
@@ -23,23 +43,6 @@ interface ExpenseProposalInput {
   totalAmountInCents: number;
   allocation: ExpenseAllocation;
 }
-
-interface EqualWithCapsFormModel {
-  participants: readonly string[];
-  maximumAmountsInEuros: Readonly<Partial<Record<string, string>>>;
-}
-
-interface CumulativeIntermediateTierFormModel {
-  upToAmountInEuros: string;
-  participants: readonly string[];
-}
-
-interface CumulativeTiersFormModel {
-  intermediateTiers: readonly CumulativeIntermediateTierFormModel[];
-  finalParticipants: readonly string[];
-}
-
-type CumulativeTiersAllocation = Extract<ExpenseAllocation, { type: 'CUMULATIVE_TIERS' }>;
 
 interface ExpenseProposalFormModel {
   title: string;
@@ -148,7 +151,7 @@ export class ExpenseProposalWidgetViewModel {
         );
         validate(proposal.equalWithCaps, ({ value, valueOf }) =>
           valueOf(proposal.allocationMode) === 'EQUAL_WITH_CAPS'
-            ? equalWithCapsValidationError(value())
+            ? validateEqualWithCapsForm(value())
             : undefined,
         );
         validate(proposal.cumulativeTiers, ({ value, valueOf }) => {
@@ -157,7 +160,7 @@ export class ExpenseProposalWidgetViewModel {
           const totalAmountInCents = parseAmountInCents(valueOf(proposal.amountInEuros));
           return totalAmountInCents === null
             ? undefined
-            : cumulativeTiersValidationError(value(), totalAmountInCents);
+            : validateCumulativeTiersForm(value(), totalAmountInCents);
         });
       },
       {
@@ -181,12 +184,12 @@ export class ExpenseProposalWidgetViewModel {
               };
             }
 
-            const equalWithCapsError = equalWithCapsValidationError(proposal.equalWithCaps);
+            const equalWithCapsError = validateEqualWithCapsForm(proposal.equalWithCaps);
             if (proposal.allocationMode === 'EQUAL_WITH_CAPS' && equalWithCapsError) {
               return equalWithCapsError;
             }
 
-            const cumulativeTiersError = cumulativeTiersValidationError(
+            const cumulativeTiersError = validateCumulativeTiersForm(
               proposal.cumulativeTiers,
               totalAmountInCents,
             );
@@ -202,11 +205,7 @@ export class ExpenseProposalWidgetViewModel {
                     participants: new Set(proposal.equal.participants),
                   };
                 case 'EQUAL_WITH_CAPS':
-                  return {
-                    type: 'EQUAL_WITH_CAPS',
-                    participants: new Set(proposal.equalWithCaps.participants),
-                    capsInCentsByMember: toCapsInCentsByMember(proposal.equalWithCaps),
-                  };
+                  return toEqualWithCapsAllocation(proposal.equalWithCaps);
                 case 'CUMULATIVE_TIERS':
                   return toCumulativeTiersAllocation(proposal.cumulativeTiers, totalAmountInCents);
               }
@@ -274,121 +273,71 @@ export class ExpenseProposalWidgetViewModel {
     this.proposalModel.update((proposal) => ({
       ...proposal,
       equal: {
-        participants: proposal.equal.participants.includes(member)
-          ? proposal.equal.participants.filter((participant) => participant !== member)
-          : [...proposal.equal.participants, member],
+        participants: toggleMember(proposal.equal.participants, member),
       },
     }));
   }
 
   toggleEqualWithCapsParticipant(member: string): void {
-    this.proposalModel.update((proposal) => {
-      const isSelected = proposal.equalWithCaps.participants.includes(member);
-
-      return {
-        ...proposal,
-        equalWithCaps: {
-          participants: isSelected
-            ? proposal.equalWithCaps.participants.filter((participant) => participant !== member)
-            : [...proposal.equalWithCaps.participants, member],
-          maximumAmountsInEuros: isSelected
-            ? withoutMember(proposal.equalWithCaps.maximumAmountsInEuros, member)
-            : proposal.equalWithCaps.maximumAmountsInEuros,
-        },
-      };
-    });
+    this.proposalModel.update((proposal) => ({
+      ...proposal,
+      equalWithCaps: toggleEqualWithCapsParticipant(proposal.equalWithCaps, member),
+    }));
   }
 
   setEqualWithCapsMaximum(member: string, amountInEuros: string): void {
     this.proposalModel.update((proposal) => {
-      if (!proposal.equalWithCaps.participants.includes(member)) return proposal;
-
-      return {
-        ...proposal,
-        equalWithCaps: {
-          ...proposal.equalWithCaps,
-          maximumAmountsInEuros:
-            amountInEuros.trim().length === 0
-              ? withoutMember(proposal.equalWithCaps.maximumAmountsInEuros, member)
-              : {
-                  ...proposal.equalWithCaps.maximumAmountsInEuros,
-                  [member]: amountInEuros,
-                },
-        },
-      };
+      const equalWithCaps = setEqualWithCapsMaximum(proposal.equalWithCaps, member, amountInEuros);
+      return equalWithCaps === proposal.equalWithCaps ? proposal : { ...proposal, equalWithCaps };
     });
   }
 
   addCumulativeIntermediateTier(): void {
     this.proposalModel.update((proposal) => ({
       ...proposal,
-      cumulativeTiers: {
-        ...proposal.cumulativeTiers,
-        intermediateTiers: [
-          ...proposal.cumulativeTiers.intermediateTiers,
-          { upToAmountInEuros: '', participants: [] },
-        ],
-      },
+      cumulativeTiers: addCumulativeIntermediateTier(proposal.cumulativeTiers),
     }));
   }
 
   removeCumulativeIntermediateTier(index: number): void {
     this.proposalModel.update((proposal) => {
-      if (!hasIndex(proposal.cumulativeTiers.intermediateTiers, index)) return proposal;
-
-      return {
-        ...proposal,
-        cumulativeTiers: {
-          ...proposal.cumulativeTiers,
-          intermediateTiers: proposal.cumulativeTiers.intermediateTiers.filter(
-            (_, tierIndex) => tierIndex !== index,
-          ),
-        },
-      };
+      const cumulativeTiers = removeCumulativeIntermediateTier(proposal.cumulativeTiers, index);
+      return cumulativeTiers === proposal.cumulativeTiers
+        ? proposal
+        : { ...proposal, cumulativeTiers };
     });
   }
 
   setCumulativeIntermediateThreshold(index: number, upToAmountInEuros: string): void {
     this.proposalModel.update((proposal) => {
-      if (!hasIndex(proposal.cumulativeTiers.intermediateTiers, index)) return proposal;
-
-      return {
-        ...proposal,
-        cumulativeTiers: {
-          ...proposal.cumulativeTiers,
-          intermediateTiers: proposal.cumulativeTiers.intermediateTiers.map((tier, tierIndex) =>
-            tierIndex === index ? { ...tier, upToAmountInEuros } : tier,
-          ),
-        },
-      };
+      const cumulativeTiers = setCumulativeIntermediateThreshold(
+        proposal.cumulativeTiers,
+        index,
+        upToAmountInEuros,
+      );
+      return cumulativeTiers === proposal.cumulativeTiers
+        ? proposal
+        : { ...proposal, cumulativeTiers };
     });
   }
 
   toggleCumulativeIntermediateParticipant(index: number, member: string): void {
     this.proposalModel.update((proposal) => {
-      if (!hasIndex(proposal.cumulativeTiers.intermediateTiers, index)) return proposal;
-
-      return {
-        ...proposal,
-        cumulativeTiers: {
-          ...proposal.cumulativeTiers,
-          intermediateTiers: proposal.cumulativeTiers.intermediateTiers.map((tier, tierIndex) =>
-            tierIndex === index
-              ? { ...tier, participants: toggleMember(tier.participants, member) }
-              : tier,
-          ),
-        },
-      };
+      const cumulativeTiers = toggleCumulativeIntermediateParticipant(
+        proposal.cumulativeTiers,
+        index,
+        member,
+      );
+      return cumulativeTiers === proposal.cumulativeTiers
+        ? proposal
+        : { ...proposal, cumulativeTiers };
     });
   }
 
   toggleCumulativeFinalParticipant(member: string): void {
     this.proposalModel.update((proposal) => ({
       ...proposal,
-      cumulativeTiers: {
-        ...proposal.cumulativeTiers,
-        finalParticipants: toggleMember(proposal.cumulativeTiers.finalParticipants, member),
-      },
+      cumulativeTiers: toggleCumulativeFinalParticipant(proposal.cumulativeTiers, member),
     }));
   }
 }
@@ -400,152 +349,6 @@ const emptyProposalFormModel = (): ExpenseProposalFormModel => ({
   equal: {
     participants: [],
   },
-  equalWithCaps: {
-    participants: [],
-    maximumAmountsInEuros: {},
-  },
-  cumulativeTiers: {
-    intermediateTiers: [],
-    finalParticipants: [],
-  },
+  equalWithCaps: emptyEqualWithCapsForm(),
+  cumulativeTiers: emptyCumulativeTiersForm(),
 });
-
-const cumulativeTiersValidationError = (
-  cumulativeTiers: CumulativeTiersFormModel,
-  totalAmountInCents: number,
-): { kind: string; message: string } | undefined => {
-  if (
-    cumulativeTiers.intermediateTiers.some((tier) => tier.participants.length === 0) ||
-    cumulativeTiers.finalParticipants.length === 0
-  ) {
-    return {
-      kind: 'tier-participants',
-      message: 'Choisissez au moins un participant pour chaque tranche.',
-    };
-  }
-
-  const parsedThresholds = cumulativeTiers.intermediateTiers.map((tier) =>
-    parseAmountInCents(tier.upToAmountInEuros),
-  );
-  if (parsedThresholds.some((threshold) => threshold === null)) {
-    return {
-      kind: 'tier-threshold',
-      message: 'Indiquez des seuils positifs avec deux decimales au plus.',
-    };
-  }
-
-  const thresholds = parsedThresholds.filter(
-    (threshold): threshold is number => threshold !== null,
-  );
-  const hasInvalidOrder = thresholds.some(
-    (threshold, index) =>
-      threshold >= totalAmountInCents || (index > 0 && threshold <= thresholds[index - 1]),
-  );
-  if (hasInvalidOrder) {
-    return {
-      kind: 'tier-order',
-      message: 'Les seuils doivent augmenter et rester inferieurs au montant total.',
-    };
-  }
-
-  const boundaries = [0, ...thresholds, totalAmountInCents];
-  const participantCounts = [
-    ...cumulativeTiers.intermediateTiers.map((tier) => tier.participants.length),
-    cumulativeTiers.finalParticipants.length,
-  ];
-  const hasZeroCentShare = participantCounts.some(
-    (participantCount, index) => boundaries[index + 1] - boundaries[index] < participantCount,
-  );
-  return hasZeroCentShare
-    ? {
-        kind: 'tier-share',
-        message: 'Chaque participant doit recevoir au moins un centime dans chaque tranche.',
-      }
-    : undefined;
-};
-
-const toCumulativeTiersAllocation = (
-  cumulativeTiers: CumulativeTiersFormModel,
-  totalAmountInCents: number,
-): CumulativeTiersAllocation => ({
-  type: 'CUMULATIVE_TIERS',
-  tiers: [
-    ...cumulativeTiers.intermediateTiers.flatMap((tier): CumulativeTiersAllocation['tiers'] => {
-      const upToAmountInCents = parseAmountInCents(tier.upToAmountInEuros);
-      return upToAmountInCents === null
-        ? []
-        : [{ upToAmountInCents, participants: new Set(tier.participants) }];
-    }),
-    {
-      upToAmountInCents: totalAmountInCents,
-      participants: new Set(cumulativeTiers.finalParticipants),
-    },
-  ],
-});
-
-const hasIndex = <T>(values: readonly T[], index: number): boolean =>
-  index >= 0 && index < values.length;
-
-const toggleMember = (members: readonly string[], member: string): readonly string[] =>
-  members.includes(member)
-    ? members.filter((selectedMember) => selectedMember !== member)
-    : [...members, member];
-
-const equalWithCapsValidationError = (
-  equalWithCaps: EqualWithCapsFormModel,
-): { kind: string; message: string } | undefined => {
-  if (equalWithCaps.participants.length === 0) {
-    return { kind: 'participants', message: 'Choisissez au moins un participant.' };
-  }
-
-  const hasInvalidMaximum = equalWithCaps.participants.some((member) => {
-    const maximum = equalWithCaps.maximumAmountsInEuros[member]?.trim() ?? '';
-    return maximum.length > 0 && parseAmountInCents(maximum) === null;
-  });
-  if (hasInvalidMaximum) {
-    return {
-      kind: 'maximum-amount',
-      message: 'Indiquez un montant maximum positif avec deux decimales au plus.',
-    };
-  }
-
-  const hasUncappedParticipant = equalWithCaps.participants.some(
-    (member) => (equalWithCaps.maximumAmountsInEuros[member]?.trim() ?? '').length === 0,
-  );
-  return hasUncappedParticipant
-    ? undefined
-    : {
-        kind: 'uncapped-participant',
-        message: 'Laissez au moins un participant sans montant maximum.',
-      };
-};
-
-const toCapsInCentsByMember = (
-  equalWithCaps: EqualWithCapsFormModel,
-): ReadonlyMap<string, number> =>
-  new Map(
-    equalWithCaps.participants.flatMap((member): [string, number][] => {
-      const maximum = equalWithCaps.maximumAmountsInEuros[member]?.trim() ?? '';
-      if (maximum.length === 0) return [];
-
-      const maximumInCents = parseAmountInCents(maximum);
-      return maximumInCents === null ? [] : [[member, maximumInCents]];
-    }),
-  );
-
-const withoutMember = (
-  maximumAmountsInEuros: Readonly<Partial<Record<string, string>>>,
-  member: string,
-): Readonly<Partial<Record<string, string>>> =>
-  Object.fromEntries(
-    Object.entries(maximumAmountsInEuros).filter(([cappedMember]) => cappedMember !== member),
-  );
-
-const parseAmountInCents = (amount: string): number | null => {
-  const match = /^(\d+)(?:[,.](\d{1,2}))?$/.exec(amount.trim());
-  if (!match) return null;
-  const whole = Number(match[1]);
-  const fraction = Number((match[2] ?? '').padEnd(2, '0'));
-  const cents = whole * 100 + fraction;
-  return Number.isSafeInteger(cents) && cents > 0 ? cents : null;
-};

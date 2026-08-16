@@ -159,6 +159,7 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 - [x] FE-EXP-004B2 Ajouter le selecteur de mode et l'orchestration partagee du formulaire de depense.
 - [x] FE-EXP-005 Ajouter l'interface `EqualWithCaps` avec saisie des plafonds.
 - [x] FE-EXP-006 Ajouter l'interface `CumulativeTiers` avec saisie des seuils et participants par tranche.
+- [x] FE-EXP-006R Extraire les modeles et regles pures des formulaires `EqualWithCaps` et `CumulativeTiers`.
 - [ ] FE-EXP-007 Ajouter l'interface `Custom` avec saisie des montants exacts par participant.
 - [ ] FE-EXP-008 Ajouter l'action d'approbation ou refus de sa propre participation.
 - [ ] FE-EXP-009 Afficher clairement l'invalidation d'une depense refusee et la necessite de ressaisie.
