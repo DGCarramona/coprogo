@@ -46,7 +46,7 @@ jobs:
         - language: actions
           build-mode: none
         - language: java-kotlin
-          build-mode: none
+          build-mode: manual
         - language: javascript-typescript
           build-mode: none
         # CodeQL supports the following values keywords for 'language': 'actions', 'c-cpp', 'csharp', 'go', 'java-kotlin', 'javascript-typescript', 'python', 'ruby', 'rust', 'swift'
@@ -61,18 +61,37 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v7.0.1
 
+    - name: Setup Java
+      if: matrix.language == 'java-kotlin'
+      uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        java-version: '25'
+
+    - name: Setup Gradle
+      if: matrix.language == 'java-kotlin'
+      uses: gradle/actions/setup-gradle@v6
+
+    - name: Make Gradle wrapper executable
+      if: matrix.language == 'java-kotlin'
+      run: chmod +x ./gradlew
+
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v4
       with:
         languages: ${{ matrix.language }}
         build-mode: ${{ matrix.build-mode }}
+        queries: +security-extended
         # If you wish to specify custom queries, you can do so here or in a config file.
         # By default, queries listed here will override any specified in a config file.
         # Prefix the list here with "+" to use these queries and those in the config file.
 
         # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
-        # queries: security-extended,security-and-quality
+
+    - name: Build Kotlin backend for CodeQL
+      if: matrix.language == 'java-kotlin'
+      run: ./gradlew --no-daemon backendClasses
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4
