@@ -20,7 +20,9 @@ Backlog derive de l'etat actuel du depot au 2026-08-16.
 
 ## Ordre de travail actuel
 
-1. Traiter les justificatifs avec les lots BE-DOC et FE-DOC.
+1. Implementer BE-DOC-002, l'adaptateur S3-compatible de presignature et d'inspection.
+2. Implementer BE-DOC-003, puis poursuivre les lots backend BE-DOC suivants.
+3. Raccorder le frontend FE-DOC apres les lots backend.
 
 ## Fondations monorepo et DX
 
@@ -111,10 +113,10 @@ Backlog derive de l'etat actuel du depot au 2026-08-16.
 
 ## Backend - justificatifs, audit et traceabilite
 
-- [ ] BE-DOC-001 Introduire un port applicatif pour le stockage de justificatifs.
-- [ ] BE-DOC-002 Ajouter un adaptateur S3-compatible pour l'upload et le download de documents.
-- [ ] BE-DOC-003 Ajouter les migrations Flyway pour les metadonnees de documents et leur historique.
-- [ ] BE-DOC-004 Implementer l'ajout d'un justificatif a une depense.
+- [x] BE-DOC-001 Introduire un port applicatif de presignature PUT/GET et d'inspection HEAD, sans transit d'octets ni suppression physique.
+- [ ] BE-DOC-002 Ajouter un adaptateur S3-compatible de presignature PUT/GET et d'inspection HEAD.
+- [ ] BE-DOC-003 Ajouter le modele de metadonnees, les upload intents `PENDING`, `READY` et `CONSUMED`, et leurs migrations Flyway.
+- [ ] BE-DOC-004 Creer une depense avec justificatif uniquement en consommant un upload `READY` dans la meme transaction DB.
 - [ ] BE-DOC-005 Implementer le remplacement d'un justificatif sans detruire l'ancien.
 - [ ] BE-DOC-006 Implementer la suppression logique d'un justificatif avec audit.
 - [ ] BE-DOC-007 Enforcer la regle "seul le createur de l'evenement peut supprimer son justificatif".
