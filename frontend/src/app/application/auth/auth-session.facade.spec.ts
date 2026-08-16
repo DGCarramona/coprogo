@@ -22,7 +22,8 @@ describe('AuthSessionFacade', () => {
     overrides: {
       idTokenPort?: GoogleIdTokenPort;
     } = {},
-  ): AuthSessionFacade => new AuthSessionFacade(overrides.idTokenPort ?? new InMemoryGoogleIdTokenPort());
+  ): AuthSessionFacade =>
+    new AuthSessionFacade(overrides.idTokenPort ?? new InMemoryGoogleIdTokenPort());
 
   it('stores a Google id token and marks the session ready', async () => {
     const idTokenPort = new InMemoryGoogleIdTokenPort();

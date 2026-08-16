@@ -10,7 +10,11 @@
   padding: 1.25rem 1.5rem;
   border-radius: 28px;
   background:
-    radial-gradient(circle at 12% 16%, color-mix(in srgb, var(--mat-sys-primary) 18%, transparent), transparent 32%),
+    radial-gradient(
+      circle at 12% 16%,
+      color-mix(in srgb, var(--mat-sys-primary) 18%, transparent),
+      transparent 32%
+    ),
     color-mix(in srgb, var(--mat-sys-surface) 90%, white);
 }
 

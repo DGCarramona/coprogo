@@ -6,7 +6,10 @@ import { GroupFinancialDashboardPort } from '../../application/ledger/group-fina
 import { NavigationPort } from '../../application/shared/navigation.port';
 import { describeError } from '../../application/shared/describe-error';
 import { GroupFinancialDashboard } from '../../domain/ledger/group-financial-dashboard';
-import { formatMoneyFromCents, formatSignedMoneyFromCents } from '../../shared/format/financial-format';
+import {
+  formatMoneyFromCents,
+  formatSignedMoneyFromCents,
+} from '../../shared/format/financial-format';
 
 type DashboardStatus = 'idle' | 'loading' | 'ready' | 'failed';
 
@@ -37,27 +40,35 @@ export class GroupDashboardPageViewModel {
 
   readonly status = this.statusState.asReadonly();
   readonly errorMessage = this.errorMessageState.asReadonly();
-  readonly groupId = computed(() => this.dashboardState()?.groupId ?? this.route.snapshot.paramMap.get('groupId'));
+  readonly groupId = computed(
+    () => this.dashboardState()?.groupId ?? this.route.snapshot.paramMap.get('groupId'),
+  );
   readonly isLoading = computed(() => this.status() === 'loading');
   readonly hasLoadError = computed(() => this.status() === 'failed');
   readonly isReady = computed(() => this.status() === 'ready');
   readonly cashPoolBalance = computed(() =>
     formatMoneyFromCents(this.dashboardState()?.cashPoolBalance.availableAmountInCents ?? 0),
   );
-  readonly memberBalances = computed<readonly MemberBalanceViewItem[]>(() =>
-    this.dashboardState()?.memberBalances.map((balance) => ({
-      member: balance.member,
-      label: balance.netAmountInCents >= 0 ? 'A recevoir' : 'A payer',
-      amount: formatSignedMoneyFromCents(balance.netAmountInCents),
-      tone:
-        balance.netAmountInCents > 0 ? 'credit' : balance.netAmountInCents < 0 ? 'debt' : 'neutral',
-    })) ?? [],
+  readonly memberBalances = computed<readonly MemberBalanceViewItem[]>(
+    () =>
+      this.dashboardState()?.memberBalances.map((balance) => ({
+        member: balance.member,
+        label: balance.netAmountInCents >= 0 ? 'A recevoir' : 'A payer',
+        amount: formatSignedMoneyFromCents(balance.netAmountInCents),
+        tone:
+          balance.netAmountInCents > 0
+            ? 'credit'
+            : balance.netAmountInCents < 0
+              ? 'debt'
+              : 'neutral',
+      })) ?? [],
   );
-  readonly cashPoolShares = computed<readonly CashPoolShareViewItem[]>(() =>
-    this.dashboardState()?.cashPoolShares.map((share) => ({
-      member: share.member,
-      amount: formatMoneyFromCents(share.amountInCents),
-    })) ?? [],
+  readonly cashPoolShares = computed<readonly CashPoolShareViewItem[]>(
+    () =>
+      this.dashboardState()?.cashPoolShares.map((share) => ({
+        member: share.member,
+        amount: formatMoneyFromCents(share.amountInCents),
+      })) ?? [],
   );
 
   async initialize(): Promise<void> {
@@ -90,7 +101,9 @@ export class GroupDashboardPageViewModel {
     } catch (error) {
       this.dashboardState.set(null);
       this.statusState.set('failed');
-      this.errorMessageState.set(describeError(error, 'Le dashboard financier n a pas pu etre charge.'));
+      this.errorMessageState.set(
+        describeError(error, 'Le dashboard financier n a pas pu etre charge.'),
+      );
     }
   }
 }
