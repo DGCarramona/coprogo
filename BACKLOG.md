@@ -1,6 +1,6 @@
 # Backlog
 
-Backlog derive de l'etat actuel du depot au 2026-08-16.
+Backlog derive de l'etat actuel du depot au 2026-08-30.
 
 ## Etat actuel constate
 
@@ -20,7 +20,7 @@ Backlog derive de l'etat actuel du depot au 2026-08-16.
 
 ## Ordre de travail actuel
 
-1. Implementer BE-DOC-004B2, puis poursuivre les lots backend BE-DOC suivants.
+1. Implementer BE-DOC-004B3, puis poursuivre les lots backend BE-DOC suivants.
 2. Raccorder le frontend FE-DOC apres les lots backend.
 
 ## Fondations monorepo et DX
@@ -118,7 +118,7 @@ Backlog derive de l'etat actuel du depot au 2026-08-16.
 - [x] BE-DOC-003B Ajouter le port de persistance group-scoped des upload intents et son adaptateur R2DBC.
 - [x] BE-DOC-004A Ajouter la persistance CAS des transitions d'upload intents, avec une seule transition `READY` vers `CONSUMED` gagnante.
 - [x] BE-DOC-004B1 Ajouter le modele d'association d'un justificatif a une depense et le registre parent d'attachements identifie par l'upload intent consomme, sans dupliquer ses metadonnees.
-- [ ] BE-DOC-004B2 Ajouter le port et l'adaptateur de persistance des associations de justificatifs.
+- [x] BE-DOC-004B2 Ajouter le port et l'adaptateur de persistance des associations de justificatifs.
 - [ ] BE-DOC-004B3 Ajouter l'interactor qui verifie l'uploader, consomme l'agregat `READY`, puis persiste depense, association durable et intent dans la meme transaction DB.
 - [ ] BE-DOC-005 Implementer le remplacement d'un justificatif sans detruire l'ancien.
 - [ ] BE-DOC-006 Implementer la suppression logique d'un justificatif avec audit.

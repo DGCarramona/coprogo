@@ -19,6 +19,27 @@ import java.util.Base64
 
 class ExpenseSupportingDocumentAttachmentTest {
     @Nested
+    inner class Restore {
+        @Test
+        fun `should restore an association from its immutable resource identities`() {
+            val sourceUploadIntent = DocumentUploadIntentId(testUuid("restored-support-document"))
+            val group = groupId("documents")
+            val expense = expenseId("documented")
+
+            val attachment =
+                ExpenseSupportingDocumentAttachment.restore(
+                    sourceUploadIntent = sourceUploadIntent,
+                    group = group,
+                    expense = expense,
+                )
+
+            assertEquals(sourceUploadIntent, attachment.sourceUploadIntent)
+            assertEquals(group, attachment.group)
+            assertEquals(expense, attachment.expense)
+        }
+    }
+
+    @Nested
     inner class Attach {
         @Test
         fun `should associate a consumed upload intent with an expense in its group`() {

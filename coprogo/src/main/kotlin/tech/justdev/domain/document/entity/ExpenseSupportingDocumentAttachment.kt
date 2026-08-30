@@ -10,6 +10,17 @@ class ExpenseSupportingDocumentAttachment private constructor(
     val expense: ExpenseId,
 ) {
     companion object {
+        fun restore(
+            sourceUploadIntent: DocumentUploadIntentId,
+            group: GroupId,
+            expense: ExpenseId,
+        ): ExpenseSupportingDocumentAttachment =
+            ExpenseSupportingDocumentAttachment(
+                sourceUploadIntent = sourceUploadIntent,
+                group = group,
+                expense = expense,
+            )
+
         fun attach(
             expense: ExpenseId,
             group: GroupId,
