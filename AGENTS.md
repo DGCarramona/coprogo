@@ -319,6 +319,8 @@ Every behavior change must include or update tests, and the agent MUST follow Te
 - Frontend component specs must group cases by visible behavior or user interaction, not by lifecycle hooks or internal methods.
 - Backend local runtime configuration must use Micronaut environment files rather than custom `.env` loading: keep shared local defaults in `application-runtime.properties`, reserve `application-local.properties` for machine-specific overrides, and commit only `application-local.example.properties`.
 - In coroutine-based backend tests, prefer `assertThrows { runTest { ... } }` for error assertions over manual `try/catch + fail`.
+- Collection assertions MUST compare complete expected and actual collections in one assertion after projecting elements to stable snapshots or comparable values where needed.
+- Do not execute assertions inside `forEach`, `forEachIndexed`, `zip(...).forEach`, or any other iteration callback. For independent cases, use parameterized/nested tests or collect stable outcomes and assert the complete resulting list. Iteration for setup without assertions is allowed.
 - Prioritize tests around:
     - expense validation/refusal
     - reimbursement recording and contestation
