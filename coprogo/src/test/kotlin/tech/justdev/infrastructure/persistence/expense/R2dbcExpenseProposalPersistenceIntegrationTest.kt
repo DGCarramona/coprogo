@@ -81,7 +81,7 @@ class R2dbcExpenseProposalPersistenceIntegrationTest {
                 assertEquals(
                     consumed.map(DocumentUploadIntent::id).sortedBy(DocumentUploadIntentId::toPrimitive),
                     attachmentRepository
-                        .findByExpenseAndGroup(expense.id, fixture.group.id)
+                        .findCurrentByExpenseAndGroup(expense.id, fixture.group.id)
                         .map(ExpenseSupportingDocumentAttachment::sourceUploadIntent),
                 )
                 assertEquals(
@@ -115,7 +115,12 @@ class R2dbcExpenseProposalPersistenceIntegrationTest {
                                 override suspend fun persistAll(attachments: List<ExpenseSupportingDocumentAttachment>): Nothing =
                                     error("attachment persistence failed")
 
-                                override suspend fun findByExpenseAndGroup(
+                                override suspend fun findCurrentByExpenseAndGroup(
+                                    expense: ExpenseId,
+                                    group: GroupId,
+                                ): List<ExpenseSupportingDocumentAttachment> = emptyList()
+
+                                override suspend fun findHistoryByExpenseAndGroup(
                                     expense: ExpenseId,
                                     group: GroupId,
                                 ): List<ExpenseSupportingDocumentAttachment> = emptyList()

@@ -68,7 +68,7 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
 
                 assertAttachmentsEqual(
                     listOf(first, second).sortedBy { it.sourceUploadIntent.toPrimitive() },
-                    repository.findByExpenseAndGroup(expense, group.id),
+                    repository.findCurrentByExpenseAndGroup(expense, group.id),
                 )
             }
 
@@ -82,7 +82,7 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
                 repository.persist(attachment)
                 repository.persist(attachment)
 
-                assertAttachmentsEqual(listOf(attachment), repository.findByExpenseAndGroup(expense, group.id))
+                assertAttachmentsEqual(listOf(attachment), repository.findCurrentByExpenseAndGroup(expense, group.id))
             }
 
         @Test
@@ -106,8 +106,8 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
                     }
 
                 assertEquals("supporting document attachment is already associated with another expense", error.message)
-                assertAttachmentsEqual(listOf(stored), repository.findByExpenseAndGroup(firstExpense, group.id))
-                assertTrue(repository.findByExpenseAndGroup(secondExpense, group.id).isEmpty())
+                assertAttachmentsEqual(listOf(stored), repository.findCurrentByExpenseAndGroup(firstExpense, group.id))
+                assertTrue(repository.findCurrentByExpenseAndGroup(secondExpense, group.id).isEmpty())
             }
 
         @Test
@@ -132,8 +132,8 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
                     }
 
                 assertEquals("supporting document attachment is already associated with another resource", error.message)
-                assertAttachmentsEqual(listOf(stored), repository.findByExpenseAndGroup(sourceExpense, sourceGroup.id))
-                assertTrue(repository.findByExpenseAndGroup(otherExpense, otherGroup.id).isEmpty())
+                assertAttachmentsEqual(listOf(stored), repository.findCurrentByExpenseAndGroup(sourceExpense, sourceGroup.id))
+                assertTrue(repository.findCurrentByExpenseAndGroup(otherExpense, otherGroup.id).isEmpty())
             }
 
         @Test
@@ -160,12 +160,35 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
 
                 repository.persist(valid)
 
-                assertAttachmentsEqual(listOf(valid), repository.findByExpenseAndGroup(sourceExpense, sourceGroup.id))
+                assertAttachmentsEqual(listOf(valid), repository.findCurrentByExpenseAndGroup(sourceExpense, sourceGroup.id))
             }
     }
 
     @Nested
     inner class PersistAll {
+        @Test
+        fun `should persist and replay an immutable replacement association`() =
+            runTest {
+                val group = seedGroup("replacement")
+                val expense = seedExpense("replacement", group)
+                val original = attachment("replacement-original", group, expense)
+                val replacementIntent = consumedIntent("replacement-successor", group, CONSUMED_AT.plusSeconds(60))
+                uploadIntentRepository.persist(replacementIntent)
+                val replacement = ExpenseSupportingDocumentAttachment.replace(original, replacementIntent)
+
+                repository.persistAll(listOf(original, replacement))
+                repository.persistAll(listOf(replacement, original))
+
+                assertAttachmentsEqual(
+                    listOf(original, replacement),
+                    repository.findHistoryByExpenseAndGroup(expense, group.id),
+                )
+                assertAttachmentsEqual(
+                    listOf(replacement),
+                    repository.findCurrentByExpenseAndGroup(expense, group.id),
+                )
+            }
+
         @Test
         fun `should persist and replay multiple immutable associations`() =
             runTest {
@@ -179,7 +202,7 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
 
                 assertAttachmentsEqual(
                     listOf(first, second).sortedBy { it.sourceUploadIntent.toPrimitive() },
-                    repository.findByExpenseAndGroup(expense, group.id),
+                    repository.findCurrentByExpenseAndGroup(expense, group.id),
                 )
             }
 
@@ -219,21 +242,21 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
                     }
 
                 assertEquals("expense supporting document attachment must reference an expense in the same group", error.message)
-                assertTrue(repository.findByExpenseAndGroup(sourceExpense, sourceGroup.id).isEmpty())
+                assertTrue(repository.findCurrentByExpenseAndGroup(sourceExpense, sourceGroup.id).isEmpty())
 
                 repository.persist(valid)
-                assertAttachmentsEqual(listOf(valid), repository.findByExpenseAndGroup(sourceExpense, sourceGroup.id))
+                assertAttachmentsEqual(listOf(valid), repository.findCurrentByExpenseAndGroup(sourceExpense, sourceGroup.id))
             }
     }
 
     @Nested
-    inner class FindByExpenseAndGroup {
+    inner class FindCurrentByExpenseAndGroup {
         @Test
         fun `should return an empty list when the expense is missing`() =
             runTest {
                 val group = seedGroup("missing")
 
-                assertTrue(repository.findByExpenseAndGroup(expenseId("missing"), group.id).isEmpty())
+                assertTrue(repository.findCurrentByExpenseAndGroup(expenseId("missing"), group.id).isEmpty())
             }
 
         @Test
@@ -245,7 +268,60 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
                 val otherGroup = seedGroup("scoped-other")
                 repository.persist(attachment)
 
-                assertTrue(repository.findByExpenseAndGroup(expense, otherGroup.id).isEmpty())
+                assertTrue(repository.findCurrentByExpenseAndGroup(expense, otherGroup.id).isEmpty())
+            }
+
+        @Test
+        fun `should return the leaves of multiple replacement chains and unreplaced documents in consumption order`() =
+            runTest {
+                val group = seedGroup("current-chains")
+                val expense = seedExpense("current-chains", group)
+                val original = attachment("current-original", group, expense, CONSUMED_AT)
+                val successorIntent = consumedIntent("current-successor", group, CONSUMED_AT.plusSeconds(120))
+                val unreplaced = attachment("current-unreplaced", group, expense, CONSUMED_AT.plusSeconds(60))
+                uploadIntentRepository.persist(successorIntent)
+                val successor = ExpenseSupportingDocumentAttachment.replace(original, successorIntent)
+
+                repository.persistAll(listOf(original, successor, unreplaced))
+
+                assertAttachmentsEqual(
+                    listOf(unreplaced, successor),
+                    repository.findCurrentByExpenseAndGroup(expense, group.id),
+                )
+            }
+    }
+
+    @Nested
+    inner class FindHistoryByExpenseAndGroup {
+        @Test
+        fun `should return all attachment versions in consumption order`() =
+            runTest {
+                val group = seedGroup("history")
+                val expense = seedExpense("history", group)
+                val first = attachment("history-first", group, expense, CONSUMED_AT)
+                val second = attachment("history-second", group, expense, CONSUMED_AT.plusSeconds(60))
+                val replacementIntent = consumedIntent("history-replacement", group, CONSUMED_AT.plusSeconds(120))
+                uploadIntentRepository.persist(replacementIntent)
+                val replacement = ExpenseSupportingDocumentAttachment.replace(first, replacementIntent)
+
+                repository.persistAll(listOf(second, replacement, first))
+
+                assertAttachmentsEqual(
+                    listOf(first, second, replacement),
+                    repository.findHistoryByExpenseAndGroup(expense, group.id),
+                )
+            }
+
+        @Test
+        fun `should not expose attachment history from another group`() =
+            runTest {
+                val sourceGroup = seedGroup("history-source")
+                val expense = seedExpense("history-scoped", sourceGroup)
+                val attachment = attachment("history-scoped", sourceGroup, expense)
+                val otherGroup = seedGroup("other-history")
+                repository.persist(attachment)
+
+                assertTrue(repository.findHistoryByExpenseAndGroup(expense, otherGroup.id).isEmpty())
             }
     }
 
@@ -253,8 +329,9 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
         seed: String,
         group: SeededGroup,
         expense: ExpenseId,
+        consumedAt: Instant = CONSUMED_AT,
     ): ExpenseSupportingDocumentAttachment {
-        val intent = consumedIntent(seed, group)
+        val intent = consumedIntent(seed, group, consumedAt)
         uploadIntentRepository.persist(intent)
         return ExpenseSupportingDocumentAttachment.attach(expense = expense, group = group.id, intent = intent)
     }
@@ -290,6 +367,7 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
     private fun consumedIntent(
         seed: String,
         group: SeededGroup,
+        consumedAt: Instant = CONSUMED_AT,
     ): DocumentUploadIntent =
         DocumentUploadIntent
             .create(
@@ -302,7 +380,7 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
                 createdAt = CREATED_AT,
                 expiresAt = EXPIRES_AT,
             ).markReady(METADATA, READY_AT)
-            .consume(CONSUMED_AT)
+            .consume(consumedAt)
 
     private fun assertAttachmentsEqual(
         expected: List<ExpenseSupportingDocumentAttachment>,
@@ -312,7 +390,7 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
     }
 
     private fun ExpenseSupportingDocumentAttachment.toProperties(): AttachmentProperties =
-        AttachmentProperties(sourceUploadIntent, group, expense)
+        AttachmentProperties(sourceUploadIntent, group, expense, replacesSourceUploadIntent)
 
     private data class SeededGroup(
         val id: GroupId,
@@ -323,6 +401,7 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
         val sourceUploadIntent: DocumentUploadIntentId,
         val group: GroupId,
         val expense: ExpenseId,
+        val replacesSourceUploadIntent: DocumentUploadIntentId?,
     )
 
     private companion object {

@@ -9,7 +9,12 @@ interface ExpenseSupportingDocumentAttachmentRepository {
 
     suspend fun persistAll(attachments: List<ExpenseSupportingDocumentAttachment>)
 
-    suspend fun findByExpenseAndGroup(
+    suspend fun findCurrentByExpenseAndGroup(
+        expense: ExpenseId,
+        group: GroupId,
+    ): List<ExpenseSupportingDocumentAttachment>
+
+    suspend fun findHistoryByExpenseAndGroup(
         expense: ExpenseId,
         group: GroupId,
     ): List<ExpenseSupportingDocumentAttachment>

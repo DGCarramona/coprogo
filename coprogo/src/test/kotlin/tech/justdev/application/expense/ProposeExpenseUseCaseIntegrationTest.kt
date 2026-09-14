@@ -231,7 +231,7 @@ class ProposeExpenseUseCaseIntegrationTest {
                 assertEquals(
                     listOf(first.id, second.id).sortedBy(DocumentUploadIntentId::toPrimitive),
                     attachmentRepository
-                        .findByExpenseAndGroup(id, fixture.group.id)
+                        .findCurrentByExpenseAndGroup(id, fixture.group.id)
                         .map(ExpenseSupportingDocumentAttachment::sourceUploadIntent),
                 )
                 assertEquals(

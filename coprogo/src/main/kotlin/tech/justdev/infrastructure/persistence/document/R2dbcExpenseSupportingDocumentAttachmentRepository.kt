@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.Record3
+import org.jooq.Record4
 import org.jooq.ResultQuery
 import org.jooq.exception.IntegrityConstraintViolationException
 import org.jooq.impl.DSL
@@ -15,6 +16,7 @@ import tech.justdev.domain.document.repository.ExpenseSupportingDocumentAttachme
 import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.shared.valueobject.GroupId
+import tech.justdev.infrastructure.persistence.jooq.Tables.DOCUMENT_UPLOAD_INTENTS
 import tech.justdev.infrastructure.persistence.jooq.Tables.EXPENSE_SUPPORTING_DOCUMENTS
 import tech.justdev.infrastructure.persistence.jooq.Tables.SUPPORTING_DOCUMENT_ATTACHMENTS
 import tech.justdev.infrastructure.persistence.jooq.dsl
@@ -23,7 +25,7 @@ import tech.justdev.infrastructure.persistence.jooq.transaction
 import java.util.UUID
 
 private typealias AttachmentParentRecord = Record3<UUID, UUID, SupportingDocumentAttachmentType>
-private typealias ExpenseAttachmentRecord = Record3<UUID, UUID, UUID>
+private typealias ExpenseAttachmentRecord = Record4<UUID, UUID, UUID, UUID?>
 
 @Singleton
 class R2dbcExpenseSupportingDocumentAttachmentRepository(
@@ -73,6 +75,7 @@ class R2dbcExpenseSupportingDocumentAttachmentRepository(
                         EXPENSE_SUPPORTING_DOCUMENTS.GROUP,
                         EXPENSE_SUPPORTING_DOCUMENTS.TYPE,
                         EXPENSE_SUPPORTING_DOCUMENTS.EXPENSE,
+                        EXPENSE_SUPPORTING_DOCUMENTS.REPLACES_SOURCE_UPLOAD_INTENT,
                     ).valuesOfRows(
                         attachments.map { attachment ->
                             DSL.row(
@@ -80,6 +83,7 @@ class R2dbcExpenseSupportingDocumentAttachmentRepository(
                                 attachment.group.toPrimitive(),
                                 SupportingDocumentAttachmentType.EXPENSE,
                                 attachment.expense.toPrimitive(),
+                                attachment.replacesSourceUploadIntent?.toPrimitive(),
                             )
                         },
                     ).onConflict(EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT)
@@ -99,13 +103,52 @@ class R2dbcExpenseSupportingDocumentAttachmentRepository(
         }
     }
 
-    override suspend fun findByExpenseAndGroup(
+    override suspend fun findCurrentByExpenseAndGroup(
+        expense: ExpenseId,
+        group: GroupId,
+    ): List<ExpenseSupportingDocumentAttachment> {
+        val dsl = connectionFactory.dsl()
+        val successor = EXPENSE_SUPPORTING_DOCUMENTS.`as`("successor")
+
+        return dsl
+            .select(
+                EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT,
+                EXPENSE_SUPPORTING_DOCUMENTS.GROUP,
+                EXPENSE_SUPPORTING_DOCUMENTS.EXPENSE,
+                EXPENSE_SUPPORTING_DOCUMENTS.REPLACES_SOURCE_UPLOAD_INTENT,
+            ).from(EXPENSE_SUPPORTING_DOCUMENTS)
+            .join(DOCUMENT_UPLOAD_INTENTS)
+            .on(DOCUMENT_UPLOAD_INTENTS.ID.eq(EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT))
+            .and(DOCUMENT_UPLOAD_INTENTS.GROUP.eq(EXPENSE_SUPPORTING_DOCUMENTS.GROUP))
+            .leftJoin(successor)
+            .on(successor.REPLACES_SOURCE_UPLOAD_INTENT.eq(EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT))
+            .where(EXPENSE_SUPPORTING_DOCUMENTS.EXPENSE.eq(expense.toPrimitive()))
+            .and(EXPENSE_SUPPORTING_DOCUMENTS.GROUP.eq(group.toPrimitive()))
+            .and(successor.SOURCE_UPLOAD_INTENT.isNull)
+            .orderBy(DOCUMENT_UPLOAD_INTENTS.CONSUMED_AT, EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT)
+            .awaitList()
+            .map { record -> record.toDomain() }
+    }
+
+    override suspend fun findHistoryByExpenseAndGroup(
         expense: ExpenseId,
         group: GroupId,
     ): List<ExpenseSupportingDocumentAttachment> =
         connectionFactory
             .dsl()
-            .findExpenseAttachments(expense.toPrimitive(), group.toPrimitive())
+            .select(
+                EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT,
+                EXPENSE_SUPPORTING_DOCUMENTS.GROUP,
+                EXPENSE_SUPPORTING_DOCUMENTS.EXPENSE,
+                EXPENSE_SUPPORTING_DOCUMENTS.REPLACES_SOURCE_UPLOAD_INTENT,
+            ).from(EXPENSE_SUPPORTING_DOCUMENTS)
+            .join(DOCUMENT_UPLOAD_INTENTS)
+            .on(DOCUMENT_UPLOAD_INTENTS.ID.eq(EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT))
+            .and(DOCUMENT_UPLOAD_INTENTS.GROUP.eq(EXPENSE_SUPPORTING_DOCUMENTS.GROUP))
+            .where(EXPENSE_SUPPORTING_DOCUMENTS.EXPENSE.eq(expense.toPrimitive()))
+            .and(EXPENSE_SUPPORTING_DOCUMENTS.GROUP.eq(group.toPrimitive()))
+            .orderBy(DOCUMENT_UPLOAD_INTENTS.CONSUMED_AT, EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT)
+            .awaitList()
             .map { record -> record.toDomain() }
 }
 
@@ -125,22 +168,9 @@ private suspend fun org.jooq.DSLContext.findExpenseAttachmentsBySourceUploadInte
         EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT,
         EXPENSE_SUPPORTING_DOCUMENTS.GROUP,
         EXPENSE_SUPPORTING_DOCUMENTS.EXPENSE,
+        EXPENSE_SUPPORTING_DOCUMENTS.REPLACES_SOURCE_UPLOAD_INTENT,
     ).from(EXPENSE_SUPPORTING_DOCUMENTS)
         .where(EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT.`in`(sourceUploadIntents))
-        .awaitList()
-
-private suspend fun org.jooq.DSLContext.findExpenseAttachments(
-    expense: UUID,
-    group: UUID,
-): List<ExpenseAttachmentRecord> =
-    select(
-        EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT,
-        EXPENSE_SUPPORTING_DOCUMENTS.GROUP,
-        EXPENSE_SUPPORTING_DOCUMENTS.EXPENSE,
-    ).from(EXPENSE_SUPPORTING_DOCUMENTS)
-        .where(EXPENSE_SUPPORTING_DOCUMENTS.EXPENSE.eq(expense))
-        .and(EXPENSE_SUPPORTING_DOCUMENTS.GROUP.eq(group))
-        .orderBy(EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT)
         .awaitList()
 
 private fun AttachmentParentRecord.matchesParent(attachment: ExpenseSupportingDocumentAttachment): Boolean =
@@ -151,7 +181,8 @@ private fun AttachmentParentRecord.matchesParent(attachment: ExpenseSupportingDo
 private fun ExpenseAttachmentRecord.matchesExpenseAttachment(attachment: ExpenseSupportingDocumentAttachment): Boolean =
     value1() == attachment.sourceUploadIntent.toPrimitive() &&
         value2() == attachment.group.toPrimitive() &&
-        value3() == attachment.expense.toPrimitive()
+        value3() == attachment.expense.toPrimitive() &&
+        value4() == attachment.replacesSourceUploadIntent?.toPrimitive()
 
 private fun List<AttachmentParentRecord>.matchParentsExactly(attachments: List<ExpenseSupportingDocumentAttachment>): Boolean {
     val parentsByUploadIntent = associateBy { it.value1() }
@@ -174,6 +205,7 @@ private fun ExpenseAttachmentRecord.toDomain(): ExpenseSupportingDocumentAttachm
         sourceUploadIntent = DocumentUploadIntentId(value1()),
         group = GroupId(value2()),
         expense = ExpenseId(value3()),
+        replacesSourceUploadIntent = value4()?.let(::DocumentUploadIntentId),
     )
 
 private suspend fun <R : org.jooq.Record> ResultQuery<R>.awaitList(): List<R> = asFlow().toList()
