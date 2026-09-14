@@ -1,599 +1,214 @@
 # Canonical AI Agent Policy
 
-This file is the single source of truth for AI coding behavior in this repository.
-All tool-specific instruction files must defer to this policy.
+This file is the single source of truth for AI coding behavior in this repository. All tool-specific instruction files must defer to it.
 
-## 0. Product and Business Context (Mandatory)
+## 0. Product and Business Context
 
-This repository contains a monorepo for a shared-expense management application.
+This monorepo implements a shared-expense application.
 
 ### Product goal
 
-The application helps a group of people manage:
-- shared expenses
-- reimbursements
-- a virtual common cash pool
-- income linked to a shared asset
-- unequal ownership shares for revenue distribution
+It helps a group manage shared expenses, reimbursements, a virtual common cash pool, income linked to a shared asset, and unequal ownership shares for revenue distribution.
 
-Primary use case:
-A group of family members jointly manage an apartment. Members can advance expenses, validate or refuse proposed participations, reimburse later, upload supporting documents, and track how much they still owe or are owed. The apartment also generates rental income, which belongs to members according to ownership shares that may differ.
+Its primary use case is family members jointly managing an apartment: they can advance expenses, validate or refuse proposed participations, reimburse later, upload supporting documents, and follow what they owe or are owed. Rental income belongs to members according to ownership shares that may differ.
 
 ### Core business rules
 
 #### Groups and members
-- The application supports multiple groups.
-- A group cannot be deleted.
+
+- The application supports multiple groups; a group cannot be deleted.
 - Any member may invite another member.
 - Only the group creator may change ownership shares.
 
 #### Expenses
-- An expense is created by a member.
-- Every expense must be traceable and may include one or more supporting documents.
-- Expense allocation is equal by default and uses one of four modes:
-    - equal: the total amount is shared equally between all participants
-    - equal with caps: capped participants never exceed their maximum amount, the remainder is redistributed iteratively, and at least one participant must remain uncapped
-    - cumulative tiers: cumulative thresholds are strictly increasing, each tier is shared equally between its participants, and the final tier covers the total expense amount
-    - custom: an exact amount is specified for each participant
-- The creator records the proposed participations according to what was agreed outside the application.
-- Each impacted member validates or refuses only their own participation.
-- If any impacted member refuses, the expense entry is invalidated and participations must be re-entered.
-- An expense only affects balances once it is effectively accepted according to the above validation rule.
-- A member cannot create an expense “for others only” as a separate business case for now.
+
+- An expense is created by a member, is traceable, and may have one or more supporting documents.
+- Allocation is equal by default and uses exactly one of these modes:
+  - **equal**: share the total equally between all participants;
+  - **equal with caps**: capped participants never exceed their maximum; redistribute the remainder iteratively, with at least one uncapped participant;
+  - **cumulative tiers**: strictly increasing cumulative thresholds; each tier is equally shared by its participants and the final tier covers the total;
+  - **custom**: specify an exact amount for every participant.
+- The creator records participations agreed outside the application. Each impacted member alone validates or refuses theirs.
+- One refusal invalidates the expense and requires participations to be re-entered. An expense affects balances only once accepted under that rule.
+- Creating an expense “for others only” is not a separate business case for now.
 
 #### Reimbursements
-- Reimbursements may be direct or indirect.
-- The application must show a unified history of what reduced a member’s debt:
-    - direct reimbursement
-    - compensation through a validated expense
-    - compensation through a cash-pool withdrawal exceeding the withdrawer’s own revenue share
-- If Alice records that Bob reimbursed her, Bob does not need to confirm.
-- If Bob records that he reimbursed Alice and provides a supporting document, Alice may reject it.
-- Reimbursements with supporting documents must remain visible and reviewable.
 
-#### Common cash pool
-- Rental income goes into a virtual common cash pool.
-- Any group member may record incoming rental income.
-- Incoming rental income recording must support a future contestation/review mechanism.
-- Revenue distribution follows ownership shares.
-- Ownership shares do not apply by default to ordinary expenses.
-- A member cannot withdraw money from the common cash pool if sufficient money is not available.
-- If a member withdraws more than their own revenue share, the excess reduces what other members owe them.
+- Reimbursements may be direct or indirect. The unified history of debt reduction includes direct reimbursement, compensation through a validated expense, and the excess of a cash-pool withdrawal over the withdrawer’s own revenue share.
+- If Alice records Bob reimbursing her, Bob does not confirm. If Bob records reimbursing Alice with a supporting document, Alice may reject it.
+- Reimbursements with supporting documents stay visible and reviewable.
 
-#### Ownership shares
-- Ownership shares are historized with an effective date.
-- A share change is a major business event and must never rewrite history.
+#### Common cash pool and ownership shares
+
+- Rental income enters a virtual common cash pool. Any member may record it, with future contestation/review supported.
+- Revenue follows ownership shares; those shares do not apply by default to ordinary expenses.
+- A member cannot withdraw unavailable money. Withdrawal above their own revenue share reduces what other members owe them.
+- Ownership shares are historized with an effective date; a change is a major event and must never rewrite history.
 
 #### Traceability and immutability
-- Historical financial movements are immutable in amount.
-- If the amount changes in practice, model it as:
-    - multiple invoices, or
-    - cancellation/replacement, not destructive mutation
-- The canonical source of truth for member balances is an immutable financial ledger.
-- Balance-affecting business facts must be modeled as append-only financial events:
-    - accepted expenses
-    - reimbursements
-    - cash-pool income
-    - cash-pool withdrawals
-    - revenue distributions
-- Current balances and debt views are projections derived from that immutable ledger, not authoritative mutable state.
-- Supporting document replacement or deletion must be traced.
-- Previous supporting documents must remain accessible in history.
-- Only the creator of an event may delete its attachment, and deletion must be audited.
 
-### Visibility and UX expectations
-- Each member must be able to understand:
-    - what they still owe
-    - what has already been reimbursed
-    - which expenses generated the debt
-    - which events reduced that debt
-- The system’s source of truth is financial events and balances.
-- The UI may provide an explanatory allocation of remaining debt to expenses, but this is a presentation concern, not a separate source of truth.
-- User-facing labels, messages, and help text must avoid technical and financial jargon (e.g. "ledger", "immutable ledger", "projection", "endpoint", "backend", "identifiant technique") in favor of plain language (e.g. "historique des opérations", "ce qui reste à payer", "identifiant du groupe"). Technical terms are acceptable in developer-facing documentation only.
+- Historical financial movements are immutable in amount. Model a practical amount change as multiple invoices or cancellation/replacement, never destructive mutation.
+- The immutable financial ledger is the canonical source for balances. Accepted expenses, reimbursements, cash-pool income and withdrawals, and revenue distributions are append-only financial events; balances and debt views are derived projections, never authoritative mutable state.
+- Supporting-document replacement or deletion is traced; prior documents remain accessible in history. Only an event creator may delete its attachment, and deletion is audited.
 
-### Non-goals
-- The application does not implement a voting system for decisions.
-- The application does not aim to be full legal/accounting software.
-- The application does not support multiple currencies for now.
-- The application does not require SSR for the frontend.
+### Visibility, language, and non-goals
 
-## 1. Goal
+- Each member must understand what remains to pay, what was reimbursed, which expenses generated debt, and which events reduced it.
+- The UI may explain how remaining debt relates to expenses, but that explanation is not another source of truth.
+- User-facing labels, messages, and help avoid technical/financial jargon such as “ledger”, “immutable ledger”, “projection”, “endpoint”, “backend”, or “identifiant technique”; use plain terms such as “historique des opérations”, “ce qui reste à payer”, and “identifiant du groupe”. Developer documentation may use technical terms.
+- No voting system, legal/accounting suite, multiple currencies, or SSR is required for now.
 
-Generate production-ready code that:
-- follows Clean Architecture
-- is fully testable
-- preserves GraalVM native-image compatibility for the backend
-- includes meaningful automated tests
-- preserves auditability and historical traceability
+## 1. Goal and normative language
 
-## User Interaction and Guideline Evolution (Mandatory)
+Produce production-ready, fully testable code with meaningful automated tests; follow Clean Architecture, preserve GraalVM native-image compatibility where relevant, and preserve auditability and historical traceability.
 
-### Clarification before implementation
+- **MUST** means mandatory. A change that violates it is incomplete.
+- **MUST NOT** prohibits the behavior.
+- **SHOULD** is a strong default; depart only when the alternative is clearer while preserving correctness, auditability, native compatibility, and architecture.
+- **MAY** permits a context-dependent choice.
 
-- The agent must surface all blocking questions, ambiguities, and conflicting interpretations in the user request before starting implementation or editing files.
-- When an assumption could materially affect scope, behavior, architecture, or acceptance criteria, the agent must ask first instead of silently choosing an interpretation.
-- The agent may proceed without additional questions only when the request is already precise enough that no material uncertainty remains.
+The policy remains deliberately specific where product correctness, security, auditability, testability, or build reproducibility is at stake. Avoid weakening a precise rule merely because a nearby guideline is expressed as a preference.
 
-### Proposing guideline updates
+## 2. Collaboration and repository boundaries
 
-- If the user provides an instruction that complements, refines, or extends the existing repository guidance in a reusable way, the agent must propose updating this `AGENTS.md` file.
-- The proposal should be made in the same conversation, before the instruction is likely to be lost or applied only implicitly.
-- If the user confirms, the agent should update the guidelines as part of the task when feasible.
+### Clarification and guideline evolution
 
-## 2. Monorepo Architecture (Mandatory)
+- Before editing, surface blocking questions, ambiguities, and conflicting interpretations. Ask before assuming anything that materially changes scope, behavior, architecture, or acceptance criteria; proceed without a question only when the request is precise enough.
+- When a user provides a reusable addition or refinement to these rules, propose updating this file in the same conversation. Update it after confirmation when feasible.
 
-Treat the repository as a polyglot monorepo with explicit boundaries.
+### Monorepo and shared contracts
 
-Expected top-level structure:
+- This is a polyglot monorepo. The backend lives in `coprogo/` (named `backend` in the composite Gradle build); `frontend/` is the Angular SPA; `.github/` contains CI/CD and automation. Root files may orchestrate the monorepo. Do not blur these boundaries.
+- Never share backend domain models directly with the frontend. Intentional shared contracts are API schemas, generated clients, stable DTOs, and documentation artifacts only; do not introduce hidden runtime coupling.
 
-- `backend/`: Micronaut backend (Kotlin, Gradle)
-- `frontend/`: Angular SPA
-- `.github/`: CI/CD and automation
-- optional root files for monorepo orchestration only
+## 3. Clean Architecture
 
-Do not blur backend and frontend boundaries.
+### Layers and dependency direction
 
-### Shared code rules
-- Do not share backend domain models directly with the frontend.
-- Shared contracts are allowed only when intentionally designed:
-    - API schemas
-    - generated clients
-    - stable DTO contracts
-    - documentation artifacts
-- Never introduce hidden runtime coupling between frontend and backend through convenience “shared” code.
+- **Backend**: Domain (entities, value objects, domain services, invariants, policies); Application (use cases, ports, orchestration, commands, queries, DTOs); Interface Adapters (REST controllers, request/response mappers, presenters, repository adapters); Infrastructure (Micronaut wiring, persistence, S3-compatible storage, token validation adapters, external integrations).
+- **Frontend**: Domain (pure TypeScript business models/rules); Application (use cases, orchestration, application services); Presentation/Interface Adapters (Angular pages, view models, presentational components, forms, mappers); Infrastructure (HTTP clients, Google auth adapters, storage adapters, DTO mapping).
+- Dependencies point inward: Domain depends on no outer layer; Application only on Domain; adapters and infrastructure depend inward through ports. Business logic never lives in Micronaut controllers or Angular components.
+- At transport boundaries convert primitives to domain/application types as early as practical. Do not let raw strings, UUIDs, amounts, or dates pass deeper when a validating type already exists; make conversion explicit and fail fast.
 
-## 3. Clean Architecture (Mandatory)
+Keep adapters focused on conversion, delivery, and persistence/integration mechanics. A controller, component, mapper, or persistence model is never a convenient substitute for an aggregate, domain policy, or application workflow.
 
-Use clear layers.
+## 4. Technology and runtime constraints
 
 ### Backend
-- **Domain**: entities, value objects, domain services, invariants, policies
-- **Application**: use cases, ports, orchestration, commands, queries, DTOs
-- **Interface Adapters**: REST controllers, request/response mappers, presenters, repository adapters
-- **Infrastructure**: Micronaut wiring, persistence, S3-compatible document storage, token validation adapters, external integrations
-
-### Frontend
-- **Domain**: pure TypeScript domain models and business rules
-- **Application**: use cases, orchestration, application services
-- **Presentation / Interface Adapters**: Angular pages, view models, presentational components, forms, mappers
-- **Infrastructure**: HTTP clients, Google auth adapters, storage adapters, API DTO mapping
-
-### Dependency direction
-Dependencies must point inward only.
-
-- Domain depends on nothing outer.
-- Application depends only on Domain.
-- Adapters depend inward through ports.
-- Infrastructure depends inward through ports and framework composition.
-
-Business logic must not live in Micronaut controllers or Angular components.
-
-### Boundary conversion
-- Convert transport primitives into Domain/Application types, including value objects, as early as practical at boundaries such as HTTP controllers.
-- Do not pass raw strings, UUIDs, numeric amounts, or dates deeper than necessary when a domain/application type already exists and can validate the input at the boundary.
-- Keep boundary conversion explicit and fail fast so invalid transport input does not leak into inner layers.
-
-## 4. Technical Constraints (Mandatory)
-
-### Backend
-- Micronaut
-- Kotlin
-- Gradle Kotlin DSL
-- PostgreSQL
-- Micronaut Data R2DBC
-- Flyway for schema migrations
-- GraalVM native-image compatibility
-- REST API
-- Google account authentication only, with login performed client-side
-- Backend validates and recognizes the user from a Google ID token sent by the client
-- The canonical user identity is the normalized, verified Google email address, and that email is also the internal member identifier; Google `sub` may be stored only as non-canonical metadata if needed
-- S3-compatible object storage for supporting documents
-
-### Frontend
-- Angular SPA
-- standalone APIs
-- Angular Signals for reactive state
-- no SSR required by default
-
-### Monorepo
-- A root Gradle build is used as the monorepo orchestration layer.
-- Gradle remains the source of truth for backend build logic.
-- Angular CLI / Angular build tooling remains the source of truth for frontend build logic.
-- Root Gradle tasks coordinate install, checks, local developer entrypoints, and CI ergonomics.
-- Prefer the Gradle Node plugin (`com.github.node-gradle.node`) or equivalent when Gradle needs to provision Node.js and run frontend package-manager commands.
-- Long-running frontend/backend developer processes may be wrapped by Gradle convenience tasks, but the native backend and frontend tools remain the authoritative runtime entrypoints.
-- In CI, prefer direct frontend npm/Angular commands for frontend-only jobs unless a specific Gradle aggregation need exists.
-- When running Gradle commands in a non-interactive shell, if a root `.sdkmanrc` file exists and SDKMAN is installed, source SDKMAN and run `sdk env` before invoking `./gradlew` so the project Java version is respected.
-
-## 4.5. Backend Reactive and Functional Style (Mandatory)
-
-Backend code should be as non-blocking, reactive, functional, and set-oriented as practical.
-
-### Non-blocking I/O
-- Prefer non-blocking I/O at infrastructure boundaries.
-- Prefer R2DBC for database access.
-- Prefer non-blocking HTTP and integration clients where relevant.
-- Avoid introducing blocking calls in reactive execution paths.
-- If blocking code is unavoidable, isolate it explicitly at the edge.
-
-### Reactive execution model
-- Prefer reactive or suspendable flows at application boundaries when they improve correctness and composability.
-- Prefer explicit asynchronous composition over hidden thread-blocking behavior.
-- Do not introduce reactive complexity where a simpler pure function is sufficient.
-- Prefer Kotlin coroutines and Flow in project-owned code unless a framework boundary naturally requires another reactive type.
-
-### Functional style
-- Prefer pure functions and explicit transformations.
-- Prefer immutable data and copy-based updates where practical.
-- Prefer map/filter/fold/grouping/partitioning style over manual mutable orchestration.
-- Keep side effects at the outer layers.
-
-### Set-based style
-- Prefer set-oriented and aggregate-oriented reasoning for:
-    - expense allocations
-    - participant validation
-    - debt computation
-    - revenue distribution
-    - balance derivation
-- Prefer batch and set-based persistence operations over per-item loops when possible.
-- Avoid N+1 processing where a relational or set-based approach is clearer.
-
-### Repository and query performance
-- Repository adapters must be designed with data volume and query performance in mind.
-- Prefer set-based SQL, joins, grouped queries, and bulk operations over per-row or per-aggregate loops when practical.
-- Avoid N+1 access patterns; when returning aggregate views, fetch the required related data in bounded, explicit queries.
-- Consider indexes, uniqueness constraints, ordering, and filtering at the database level for expected access patterns.
-- Do not introduce convenience repository methods that are correct only for small datasets when a scalable query shape is available.
-
-### PostgreSQL schema types
-- Because PostgreSQL is the only supported database, prefer explicit PostgreSQL types for stable database concepts.
-- Use PostgreSQL `ENUM` types for closed vocabularies that are part of persisted business state.
-- Use PostgreSQL `DOMAIN` types for recurring constrained scalar values such as normalized member emails, money amounts in cents, positive amounts, signed ledger deltas, and ownership basis points.
-- Keep database constraints as part of the auditability boundary; application/domain validation complements them but does not replace them.
-
-### jOOQ and schema generation
-- SQL Flyway migrations are the source of truth for the database schema.
-- Backend jOOQ sources are generated from a dedicated PostgreSQL code-generation database named `coprogo_codegen`, not from the ordinary `coprogo` development database.
-- Generated jOOQ sources are committed under `coprogo/src/generated/jooq` and compiled as regular backend sources.
-- The normal backend build must not require PostgreSQL or trigger jOOQ generation implicitly.
-- Regenerate jOOQ explicitly after schema migration changes with `./gradlew -p coprogo regenerateJooqFromScratch`.
-- Verification should use `./gradlew -p coprogo verifyJooqIsUpToDate`, which regenerates from a clean `coprogo_codegen` schema and fails when committed generated sources differ.
-- Runtime persistence should prefer R2DBC for application queries; JDBC is reserved for Flyway runtime migration and jOOQ code generation unless an explicit architectural decision changes this.
-
-### Database naming
-- Prefer business-oriented column names over technical suffixes when the table context makes the meaning clear, for example `event`, `expense`, and `type` rather than `event_id`, `expense_id`, and `event_type`.
-- Keep exceptions when the suffix is part of the stable business meaning or avoids ambiguity, for example `member_email`.
-
-### Boundary discipline
-- Do not leak framework-specific reactive types deep into the domain without a clear reason.
-- Keep Domain and most of Application focused on business semantics first.
-- Use framework-reactive types at the edges when needed for transport, persistence, or orchestration.
-
-## 5. Native Image Compatibility (Mandatory)
-
-Backend changes must preserve GraalVM native-image compatibility.
-
-- Avoid unnecessary runtime reflection, dynamic class loading, and opaque framework magic in core logic.
-- Prefer compile-time wiring and explicit configuration.
-- If reflection metadata or special native configuration is required, add it explicitly.
-- A backend change is not complete if JVM tests pass but native compilation breaks.
-
-## 6. Testing and TDD (Mandatory)
-
-Every behavior change must include or update tests, and the agent MUST follow Test-Driven Development (TDD) with strict red-green-refactor discipline.
-
-### TDD rules (MUST — not optional, not "prefer")
-
-1. **Red phase first**: Before writing or modifying any production code, write the failing test that defines the desired behavior. Run the test to confirm it fails (red).
-2. **Green phase**: Implement the smallest possible production change to make the test pass. No extra code, no premature optimisation.
-3. **Refactor phase**: Once the test passes, clean up the code — remove duplication, improve naming, simplify — while keeping the test green.
-4. **No production code without a test**: The agent MUST NOT write or edit production source files unless a corresponding test file already exists (written during an earlier red phase in the same session or inherited from the existing codebase).
-5. **Commit only when green**: The agent MUST NOT commit code if any relevant test is failing. Run the test suite before every commit.
-6. **Test must specify the file**: The test must import from or reference the exact file path it tests. A generic "tests exist somewhere" is not sufficient.
-7. **Test location conventions**:
-   - Frontend: colocated `.spec.ts` next to the source file (e.g. `src/app/foo/bar.service.ts` → `src/app/foo/bar.service.spec.ts`), or shared stubs in `__test__/app/...`
-   - Backend: `src/test/kotlin/...` mirroring the source package under `src/main/kotlin/...`
-8. **Violation**: If the agent writes or edits a production file without a corresponding failing (or passing) test, the change is invalid and must be reverted. The correct workflow is: write/find the test first, run it to confirm red, write the production code, confirm green, then commit.
-
-### Backend preferred mix
-- many unit tests for Domain and Application
-- integration tests for persistence, storage, auth, and HTTP boundaries
-- minimal end-to-end tests for critical flows
-
-### Frontend preferred mix
-- many unit tests for pure logic
-- component/integration tests for important screens and workflows
-- minimal end-to-end tests for critical flows
-
-### General rules
-- Test behavior and outcomes, not implementation details.
-- Keep use cases testable without framework coupling.
-- Avoid hidden global state and nondeterminism.
-- Backend tests requiring PostgreSQL must reuse the repository's Micronaut Test Resources PostgreSQL infrastructure via `@PostgresMicronautTest` instead of declaring containers or database property wiring in each suite.
-- Backend integration tests that need the Micronaut application context but do not exercise persistence must reuse the repository's shared no-database Micronaut test environment via `@NoDbMicronautTest` instead of duplicating datasource/Flyway overrides in each test class.
-- Controller tests must be pure unit tests (no `@MicronautTest`, no database) using hand-written fakes for project-owned interfaces. Reserve `@PostgresMicronautTest` and `@NoDbMicronautTest` for adapter-level integration tests only.
-- Tests for a subject that exposes multiple public entrypoints must group cases by the public entrypoint under test.
-- Backend tests must use JUnit 5 `@Nested` classes for each public method or HTTP route.
-- Frontend class, ViewModel, and gateway specs must use `describe('<publicMethod>')` for each public entrypoint under test.
-- Frontend pure-function module specs must use `describe('<exportedFunction>')` for each exported function under test.
-- Frontend component specs must group cases by visible behavior or user interaction, not by lifecycle hooks or internal methods.
-- Backend local runtime configuration must use Micronaut environment files rather than custom `.env` loading: keep shared local defaults in `application-runtime.properties`, reserve `application-local.properties` for machine-specific overrides, and commit only `application-local.example.properties`.
-- In coroutine-based backend tests, prefer `assertThrows { runTest { ... } }` for error assertions over manual `try/catch + fail`.
-- Collection assertions MUST compare complete expected and actual collections in one assertion after projecting elements to stable snapshots or comparable values where needed.
-- Do not execute assertions inside `forEach`, `forEachIndexed`, `zip(...).forEach`, or any other iteration callback. For independent cases, use parameterized/nested tests or collect stable outcomes and assert the complete resulting list. Iteration for setup without assertions is allowed.
-- Prioritize tests around:
-    - expense validation/refusal
-    - reimbursement recording and contestation
-    - cash-pool income distribution
-    - over-withdrawal effects on balances
-    - ownership-share history with effective dates
-    - attachment traceability and audit history
-
-## 7. Mocking Policy (Strict)
-
-Never mock framework internals or vendor SDKs directly.
-
-### Forbidden
-- mocking Micronaut internals
-- mocking Angular internals
-- mocking R2DBC internals
-- mocking Flyway internals
-- mocking S3 SDK internals directly
-- mocking Google auth provider internals directly
-
-### Allowed
-- in-memory implementations for project-owned ports
-- handwritten fakes/stubs for interfaces owned by this codebase
-- integration tests for real adapters
-- framework-supported test utilities at the boundary
-
-If a dependency is hard to test, introduce a project-owned port and test the adapter at integration level.
-
-## 8. Quality Bar
-
-Prefer:
-- small, cohesive classes and functions
-- explicit types
-- fail-fast validation
-- immutable domain logic where practical
-- readable naming
-- non-redundant naming in Domain and Application when the type already carries the meaning, for example `member: MemberId` rather than `memberId: MemberId`
-- explicit money/value abstractions
-- explicit audit/event models
-- declarative transformations over imperative mutation
-- set-oriented reasoning when operating on collections or allocations
-
-Avoid:
-- god services
-- hidden side effects
-- framework leakage into inner layers
-- transport or persistence concerns in domain code
-- destructive mutation of historical business events
-- forced casts (`as unknown as`, `as any as`, or similar escape hatches) even in tests
-
-## 8.5. Programming Style Preferences (Strong Preference)
-
-Prefer code that is as reactive, functional, and set-based as practical.
-
-### Reactive style
-- Prefer reactive state propagation and derived state over imperative state mutation.
-- On the frontend, use Angular Signals for local and application state exposure.
-- Prefer computed state and explicit derivations over manual synchronization.
-- Avoid event spaghetti and ad hoc mutable shared state.
-
-### Functional style
-- Prefer pure functions when possible.
-- Prefer transformation pipelines over step-by-step mutable procedures.
-- Prefer explicit inputs/outputs over hidden side effects.
-- Favor immutability by default, especially in Domain and Application layers.
-- Keep side effects at the edges of the system.
-
-### Set-based style
-- Prefer set-based and collection-oriented thinking over item-by-item procedural logic when the intent is naturally relational or aggregate.
-- In persistence code, prefer set-oriented queries and batch operations over unnecessary per-item loops.
-- In domain logic, model membership, inclusion, exclusion, intersections, and allocations explicitly when relevant.
-- Avoid N+1-style processing when a set-based approach is clearer and more efficient.
-
-### Practicality rule
-These are strong preferences, not dogma.
-Choose the most readable and maintainable solution that respects:
-- correctness
-- auditability
-- native-image compatibility
-- clear architecture boundaries
-
-Do not force functional or reactive patterns where they make the code harder to understand.
-
-## 9. Backend Rules (Mandatory)
-
-- Keep Micronaut annotations out of inner layers where possible.
-- Repository interfaces belong to inner layers; implementations belong to outer layers.
-- Project-owned repository ports should prefer `persist(...)` over `save(...)` for write methods.
-- External integrations must go through project-owned ports.
-- Configuration must enter through explicit adapters/config abstractions.
-- Persistence models must not become domain models by accident.
-- Kotlin application use cases must be defined as an interface with a corresponding `*Impl` implementation class. The interface is injected by consumers; the `Impl` class carries `@Singleton`. This allows clean hand-written fakes in unit tests without Micronaut test infrastructure. All use cases expose their primary entry point as `operator fun invoke(...)`.
-- Create use cases must generate the identifier of the resource they create internally; create commands should not carry the target id.
-- CUD use cases should return no payload on success unless a business need explicitly requires a return value.
-- Backend id value objects must keep their primitive storage private, expose primitive extraction explicitly through `toPrimitive()`, and must not expose direct `value` access or custom `toString()` behavior.
-- Repository ports and backend application use cases that may cross I/O boundaries should be `suspend`; keep the domain synchronous and pure, and only mark HTTP endpoints `suspend` when they actually invoke a suspendable path.
-- All use cases that receive a `GroupId` must verify membership via `GroupAccessPolicy.requireMember` as their first operation.
-- Financial calculations must use appropriate money-safe representations and deterministic rounding rules.
-- Prefer immutable value objects and pure domain services where practical.
-- Prefer collection and batch-oriented operations over procedural per-item orchestration when possible.
-- Keep side effects in outer layers.
-
-## 10. Frontend Rules (Mandatory)
-
-- Keep Angular-specific concerns at the edge.
-- Prefer standalone components and `bootstrapApplication`.
-- Use Signals for state exposure and derived state.
-- Prefer computed signals over manual synchronization.
-- Organize presentation in an MVVM-like style:
-    - page/container components
-    - explicit view models
-    - presentational components
-- Components orchestrate UI interaction; they do not own core business rules.
-- Prefer application services/use cases for screen actions.
-- Do not call HTTP directly from deeply nested presentational components.
-- Keep transport DTOs distinct from domain/application models.
-- Prefer pure mapping functions for DTO/view-model/form transformations.
-- Do not introduce NgRx unless there is a demonstrated need that simpler signal-based services cannot handle.
-
-## 10.5. Frontend Architecture and Testability (Mandatory)
-
-Frontend code must maximize testability and separation of concerns.
-
-### Architectural style
-Use a Clean Architecture frontend with a presentation layer organized in an MVVM-like style.
-
-Preferred structure:
-- Domain: pure business models, value objects, rules, pure functions
-- Application: use cases, orchestration, application services
-- Infrastructure: HTTP clients, auth adapters, storage adapters, DTO mapping
-- Presentation: Angular pages, view models, presentational components
-
-Application use cases should carry real application behavior: orchestration, validation, workflow decisions, aggregation, or reusable policy. Do not introduce pass-through use cases whose only behavior is forwarding a single call to a port; in that case, inject the focused port directly into the ViewModel or application service that actually owns the workflow.
-
-### Presentation rules
-- Treat Angular components as thin UI adapters.
-- Keep business logic out of components.
-- Prefer page/container components for composition and routing concerns.
-- Prefer presentational components for rendering and user interaction only.
-- Expose screen state through explicit ViewModels.
-- ViewModels should primarily use Angular Signals and computed state.
-- Prefer one clear view-model per screen or feature rather than scattered mutable state.
-- Prefer constructor injection over Angular `inject()` in project-owned frontend classes when practical, especially ViewModels, application services, components, and infrastructure adapters. Keep `inject()` for functional Angular APIs such as guards, generated code, or cases where constructor injection is not practical.
-- Extract widget components with their own ViewModel for independently-loading page sub-sections. When a section of a page loads its own data (separate API call, separate error/loading states), create a dedicated widget component and ViewModel instead of putting everything in the page ViewModel. The parent passes context (e.g. `groupId`) as `@Input()`.
-
-### Testability rules
-- Domain logic must be testable without Angular.
-- Application/use-case logic must be testable without Angular.
-- ViewModels must be testable with minimal framework setup.
-- Components should be simple enough that most of their tests focus on rendering, bindings, and emitted interactions.
-- Avoid designs that require heavy TestBed setup for ordinary business behavior.
-- Prefer pure mapping functions for DTO-to-domain, domain-to-view-model, and form-to-command transformations.
-
-### State management rules
-- Prefer Signals for local and feature state.
-- Prefer computed state over manual synchronization.
-- Prefer explicit command methods over ad hoc mutable state manipulation.
-- Do not introduce NgRx unless there is a demonstrated need that simpler signal-based architecture cannot satisfy.
-
-### Frontend server-state convention
-- TanStack Query is the standard frontend cache and server-state mechanism. Use the experimental package locked at exactly `@tanstack/angular-query-experimental@5.101.4`; upgrades are deliberate changes.
-- Use stable, scoped query keys. Model reads as queries and writes as mutations with explicit invalidation.
-- Expose query and mutation state through Signals. Do not add `shareReplay` or a concurrent custom cache.
-- Promise/Observable conversion is allowed only at the TanStack boundary when required.
-- HTTP gateways returning Promises must compose generated-client Observables with `pipe(...)`, handle API errors there with `catchError(...)`, apply `map(...)` there when mapping responses, and call `firstValueFrom(...)` only as the final Promise boundary. Do not wrap `firstValueFrom(...)` in imperative `try/catch`.
-
-### Dependency rules
-- Presentation depends on Application, never on Infrastructure details directly.
-- Infrastructure must not leak transport DTOs into Domain.
-- HTTP calls must not be embedded in deeply nested components.
-
-## 11. Security and Auditability (Mandatory)
-
-Treat security and traceability as first-class requirements.
-
-- Supporting documents may contain sensitive financial information.
-- Authentication is based on Google accounts, but application authorization remains internal to this system.
-- Every important business event must be auditable:
-    - creation
-    - validation/refusal
-    - reimbursement declaration
-    - attachment replacement/removal
-    - ownership-share change
-    - cash-pool income registration
-    - cash-pool withdrawal
-- Never silently destroy historical evidence.
-
-## 12. Static Analysis and Style (Mandatory)
-
-Work is not complete unless repository checks pass.
-
-### Backend
-All modified backend files must pass the repository’s configured:
-- formatting
-- static analysis
-- tests
-- native build checks when relevant, especially in CI
-
-Do not repeatedly run `./gradlew nativeCompile` locally after every backend edit. Run it when native-image compatibility is materially at risk or before final delivery of significant backend changes when practical; CI should keep native compilation as present as possible.
-
-Backend Kotlin formatting is enforced with `ktlint`.
-- Use `./gradlew ktlintFormat` locally to apply formatting.
-- CI must verify formatting with `./gradlew ktlintCheck` and must not auto-correct formatting.
-
-### Frontend
-All modified frontend files must pass the repository’s configured:
-- formatting
-- linting
-- type checking
-- tests
-- production build
-
-Do not bypass rules; fix the code.
-
-## 13. Completion Criteria (Mandatory)
-
-A change is not complete unless all relevant checks pass.
-
-Typical expected commands:
-
-### Backend
-- `./gradlew check`
-- `./gradlew test`
-- `./gradlew nativeCompile` for backend-impacting changes
-
-### Frontend
-- `npm run lint`
-- `npm run test`
-- `npm run build`
-
-### Monorepo
-- use root Gradle orchestration commands when the repository is configured for them
-- prefer project-scoped Gradle tasks or CI matrix execution where appropriate
-- frontend-only CI jobs may use direct `npm` commands instead of Gradle
-
-## 14. PR / Change Checklist
-
-- Product rules respected
-- Clean Architecture boundaries preserved
-- Dependencies point inward
-- Native compatibility preserved
-- Tests added or updated
-- No forbidden mocking introduced
-- Auditability preserved
-- Historical traceability preserved
-- Quality checks passing
-
-## 15. Commit Message Policy (Mandatory)
-
-Use Conventional Commits format:
-
-`<type>(<optional-scope>): <imperative summary>`
-
-Allowed types:
-- feat
-- fix
-- refactor
-- test
-- docs
-- chore
-- perf
-- build
-- ci
-
-Rules:
-- Summary must be imperative and specific
-- Include scope when useful
-- Add a body when the change is non-trivial
-- Reference issues/tickets in the footer when available
-
-Examples:
-- `feat(expenses): validate participant approval flow`
-- `fix(reimbursements): reject contested repayment document`
-- `refactor(backend-ledger): extract balance computation service`
-- `build(frontend): add angular lint and test scripts`
-- `ci(monorepo): run root gradle frontend and backend checks`
+
+- Use Micronaut, Kotlin, Gradle Kotlin DSL, PostgreSQL, Micronaut Data R2DBC, Flyway, REST, GraalVM native-image compatibility, Google account authentication, and S3-compatible document storage.
+- Login occurs client-side; the backend validates the Google ID token. The canonical identity and internal member identifier is the normalized, verified Google email. Google `sub` is optional non-canonical metadata only.
+
+### Frontend and monorepo
+
+- Use an Angular SPA with standalone APIs and Angular Signals; SSR is not required by default.
+- Root Gradle orchestrates the monorepo; Gradle remains authoritative for backend logic and Angular CLI/tooling for frontend logic. Root tasks coordinate install, checks, local entrypoints, and CI ergonomics.
+- When Gradle needs Node, prefer `com.github.node-gradle.node` or equivalent. Convenience Gradle tasks may wrap long-running processes, but native backend/frontend tools remain the authoritative entrypoints. In frontend-only CI, prefer direct npm/Angular commands unless aggregation is needed.
+- In a non-interactive Gradle shell, when a root `.sdkmanrc` exists and SDKMAN is installed, source SDKMAN and run `sdk env` before `./gradlew`.
+
+## 5. Backend implementation rules
+
+### Architecture, concurrency, and style
+
+- Keep Micronaut annotations and framework-reactive types at the outer edge. Repository interfaces belong inward; implementations belong outward. External integrations use project-owned ports; configuration enters through explicit adapters; persistence models must not accidentally become domain models.
+- SHOULD use non-blocking I/O at infrastructure boundaries: R2DBC for databases and non-blocking integration HTTP where relevant. Do not introduce blocking work in reactive paths; isolate unavoidable blocking at the edge.
+- SHOULD use suspendable/reactive composition where it improves correctness and composability, preferring Kotlin coroutines and Flow in project-owned code. Do not add reactive complexity where a pure function is clearer.
+- Prefer pure transformations, immutable/copy-based updates, and side effects at outer layers. Prefer map/filter/fold/grouping/partitioning over manual mutable orchestration when clearer.
+- Prefer set- and aggregate-oriented reasoning for allocations, participant validation, debt computation, revenue distribution, and balance derivation. Prefer batch/set persistence, SQL joins/grouping/bulk operations, bounded aggregate reads, and database-level filters over N+1 or small-data-only convenience methods. Consider indexes, uniqueness, ordering, and filtering.
+- Keep Domain and most Application focused on business semantics rather than framework types. Do not let a framework boundary force reactive complexity into otherwise pure domain behavior.
+
+Repository adapters must be designed for expected data volume and query shape. Where an aggregate view needs related data, fetch it through explicit bounded queries; choose a relational or set-based query whenever it is clearer and scalable than one query per row or aggregate.
+- PostgreSQL is the sole database: use `ENUM` for closed persisted vocabularies and `DOMAIN` for recurring constrained scalars (normalized emails, money cents, positive amounts, signed ledger deltas, ownership basis points). Database constraints are part of the auditability boundary, complementary to application/domain validation.
+- Prefer business-oriented column names where the table context suffices (`event`, `expense`, `type`); retain names such as `member_email` when their qualifier is stable business meaning or prevents ambiguity.
+
+### jOOQ and native image
+
+- Flyway SQL migrations are the schema source of truth. Generate committed jOOQ sources under `coprogo/src/generated/jooq` from the dedicated `coprogo_codegen` PostgreSQL database, never the ordinary `coprogo` development database.
+- Normal builds must neither require PostgreSQL nor generate jOOQ implicitly. After migration changes run `./gradlew -p coprogo regenerateJooqFromScratch`; verify with `./gradlew -p coprogo verifyJooqIsUpToDate`, which rebuilds a clean codegen schema and fails if committed generated sources differ.
+- Runtime persistence prefers R2DBC; JDBC is reserved for Flyway runtime migration and jOOQ generation unless an explicit architectural decision changes this.
+- Preserve native-image compatibility: avoid unnecessary reflection, dynamic class loading, and opaque magic in core logic; prefer compile-time wiring and explicit native metadata when necessary. A JVM-green backend change is incomplete if native compilation breaks.
+
+### Application, Kotlin, and domain conventions
+
+- Project-owned write ports prefer `persist(...)` to `save(...)`.
+- A Kotlin application use case is an interface plus a `*Impl` carrying `@Singleton`; consumers inject the interface, and the primary entrypoint is `operator fun invoke(...)`. This enables hand-written fakes without Micronaut test infrastructure.
+- Create use cases generate their target identifier internally; create commands do not carry it. CUD use cases return no success payload unless business needs require one.
+- IDs keep primitive storage private and expose it only through `toPrimitive()`; they expose neither direct `value` nor custom `toString()`.
+- Repository ports and I/O-crossing application use cases are `suspend`; keep domain synchronous and pure, and mark an HTTP endpoint `suspend` only when it invokes a suspendable path.
+- A use case receiving `GroupId` first calls `GroupAccessPolicy.requireMember`. Financial calculations use money-safe representations and deterministic rounding.
+- Do not create a Kotlin extension function used only once unless reuse, a transversal semantic contract, or notable composition is explicitly justified; otherwise use a normal private function or inline/local code.
+- The general quality bar is explicit types, fail-fast validation, small cohesive functions/classes, readable names, immutable domain values, explicit money and audit/event models, and no transport or persistence concern in Domain.
+
+## 6. Frontend architecture and server state
+
+### Architecture and presentation
+
+- Keep Angular concerns at the edge. Use standalone components and `bootstrapApplication`; keep transport DTOs distinct from domain/application models and use pure mappings for DTO/domain/view-model/form conversion.
+- Follow frontend Clean Architecture: pure Domain; Application use cases, orchestration, and services; Infrastructure HTTP/auth/storage/DTO mapping; Presentation pages, view models, and presentational components. Presentation depends on Application, never infrastructure details; infrastructure does not leak DTOs into Domain.
+- Application use cases contain real orchestration, validation, workflow decisions, aggregation, or reusable policy. Do not create one-call pass-through use cases; inject the focused port into the ViewModel/application service that owns the workflow instead.
+- Organize presentation as page/container components, explicit ViewModels, and presentational components. Components are thin UI adapters that orchestrate interaction, not core business rules; do not embed HTTP in deeply nested components.
+- Use Signals for state exposure and derived state, especially computed signals rather than manual synchronization. Prefer explicit commands over ad hoc mutable state; do not introduce NgRx without demonstrated need.
+- Prefer one clear ViewModel per screen/feature. Use constructor injection in project-owned frontend classes where practical; reserve `inject()` for functional Angular APIs (guards), generated code, or impractical constructor cases.
+- For an independently loading page sub-section with its own request and loading/error state, extract a widget component and ViewModel; its parent passes context such as `groupId` through `@Input()`.
+- Domain and application logic remain testable without Angular; ViewModels use minimal framework setup; component tests focus on rendering, bindings, and emitted interactions rather than lifecycle/internal methods.
+- Prefer a clear page/container composition over scattered mutable state. A component may coordinate user interaction and routing, but reusable business behavior belongs in Domain or Application.
+
+Presentational components render and emit interaction; page/container components compose features and routing context. Keep one explicit ownership point for a screen action so loading, errors, invalidation, and UI feedback do not become event spaghetti or ad hoc shared mutable state.
+
+### TanStack Query and HTTP gateways
+
+- TanStack Query is the standard frontend server-state cache.
+- Use stable scoped query keys, model reads as queries and writes as mutations with explicit invalidation, and expose query/mutation state through Signals. Do not add `shareReplay` or a concurrent custom cache.
+- Promise/Observable conversion is permitted only where TanStack requires it. A Promise-returning HTTP gateway composes generated-client Observables with `pipe(...)`, handles API errors there with `catchError(...)`, maps there with `map(...)`, and calls `firstValueFrom(...)` only as the final Promise boundary. Do not imperatively wrap it in `try/catch`.
+
+## 7. Tests and TDD
+
+Every behavior change MUST use strict red-green-refactor TDD:
+
+1. Write the failing test before production code and run it to establish red.
+2. Make the smallest production change that makes it green; do not add speculative code.
+3. Refactor only while green.
+4. Never edit production code without a corresponding test already written in this session or inherited from the codebase. The test must import or reference the exact source path; generic tests elsewhere do not qualify.
+5. Never commit with relevant failing tests; run the relevant suite before commit.
+6. Frontend tests are colocated `.spec.ts` files (or shared stubs under `__test__/app/...`); backend tests mirror `src/main/kotlin/...` under `src/test/kotlin/...`.
+
+Writing or editing production code without that test is invalid; revert the production change and resume with the red phase.
+
+- Test outcomes, not implementation details; keep use cases framework-free, avoid hidden globals/nondeterminism, and use many Domain/Application unit tests, integration tests for persistence, storage, auth, and HTTP boundaries, plus few critical end-to-end tests.
+- PostgreSQL backend tests use `@PostgresMicronautTest` and its shared Test Resources PostgreSQL infrastructure. Context-only non-persistence integration tests use `@NoDbMicronautTest`. Controller tests are pure unit tests with hand-written fakes, never `@MicronautTest` or a database.
+- Group multi-entrypoint tests by public entrypoint: backend with JUnit 5 `@Nested` per public method or HTTP route; frontend classes, ViewModels, and gateways with `describe('<publicMethod>')`; frontend pure modules with `describe('<exportedFunction>')`; components by visible behavior/interaction.
+- Backend local runtime configuration uses Micronaut environment files, never custom `.env` loading: shared defaults in `application-runtime.properties`, machine overrides in `application-local.properties`, and only `application-local.example.properties` committed.
+- For coroutine error assertions prefer `assertThrows { runTest { ... } }` to manual `try/catch + fail`.
+- Collection assertions compare complete expected and actual collections in one assertion, after stable projections when necessary. Never assert inside `forEach`, `forEachIndexed`, `zip(...).forEach`, or another iteration callback. For independent cases use parameterized/nested tests or collect stable outcomes then compare the complete list; setup iteration without assertions is permitted.
+- Prioritize expense validation/refusal, reimbursement recording/contestation, cash-pool income distribution, over-withdrawal balance effects, effective-dated ownership-share history, and attachment traceability/audit history.
+
+Use framework test facilities only at their intended boundary. Do not mock a vendor SDK or framework internal merely to make a unit test convenient; test a project-owned abstraction with a fake or test the real adapter at integration level.
+
+### Mocking policy
+
+- Never mock Micronaut, Angular, R2DBC, Flyway, S3 SDK, or Google-auth-provider internals directly.
+- Use in-memory project-owned ports, hand-written project-interface fakes/stubs, real adapter integration tests, or framework-supported boundary utilities. Introduce a project-owned port when a dependency is hard to test.
+
+## 8. Security, quality, and completion
+
+### Security and quality
+
+- Supporting documents are sensitive financial information. Google authenticates accounts, but authorization remains internal. Audit creation, validation/refusal, reimbursement declaration, attachment replacement/removal, ownership-share change, cash-pool income, and cash-pool withdrawal; never silently destroy historical evidence.
+- Prefer small cohesive functions/classes, explicit types, fail-fast validation, immutable values, readable and non-redundant names (for example `member: MemberId`, not `memberId: MemberId`), explicit money and audit/event models, and declarative collection transformations. These preferences do not justify harder-to-read functional/reactive code.
+- Avoid god services, hidden side effects, framework leakage into inner layers, persistence/transport concerns in Domain, destructive mutation of financial history, and forced casts such as `as unknown as` or `as any as`, including tests.
+
+### Verification and acceptance checklist
+
+- All modified backend files pass configured formatting, static analysis, tests, and native checks when relevant (especially CI). Use `./gradlew ktlintFormat` to format and `./gradlew ktlintCheck` in CI; CI must not auto-correct. Do not repeatedly run native compilation after every edit, but run it when native compatibility is materially at risk or before delivery of significant backend work when practical; CI should keep native compilation present as far as possible.
+- All modified frontend files pass configured formatting, lint, type checking, tests, and production build; fix violations rather than bypassing rules.
+- Do not bypass backend checks either: fix the code or configuration while preserving the stated constraints.
+- Typical relevant commands are `./gradlew check`, `./gradlew test`, and `./gradlew nativeCompile` for backend-impacting work; `npm run lint`, `npm run test`, and `npm run build` for frontend work. Use root Gradle orchestration when configured; prefer project-scoped tasks or CI matrix execution where appropriate, while frontend-only CI may use direct npm.
+- Before delivery or PR, confirm product rules, clean boundaries and inward dependencies, native compatibility, tests, no forbidden mocking, auditability/historical traceability, and quality checks.
+
+## 9. Commit messages
+
+Use Conventional Commits: `<type>(<optional-scope>): <imperative summary>`.
+
+- Allowed types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`, `build`, `ci`.
+- Summaries are imperative and specific; use a scope when useful, add a body for non-trivial changes, and reference tickets in the footer when available.
+- Examples: `feat(expenses): validate participant approval flow`; `fix(reimbursements): reject contested repayment document`; `refactor(backend-ledger): extract balance computation service`; `build(frontend): add angular lint and test scripts`; `ci(monorepo): run root gradle frontend and backend checks`.
