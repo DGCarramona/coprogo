@@ -139,6 +139,90 @@ class SupportingDocumentAttachmentSchemaIntegrationTest {
         }
     }
 
+    @Nested
+    inner class Replacement {
+        @Test
+        fun `should retain the replaced document and link its successor in the same expense`() =
+            runTest {
+                seedGroup("replacement-history")
+                insertExpense("replacement-history", "history-expense")
+                listOf("history-original", "history-successor").forEach { intentSeed ->
+                    insertConsumedIntent("replacement-history", intentSeed)
+                    insertRegistry("replacement-history", intentSeed)
+                }
+                insertExpenseAttachment("replacement-history", "history-expense", "history-original")
+                insertExpenseAttachment(
+                    groupSeed = "replacement-history",
+                    expenseSeed = "history-expense",
+                    intentSeed = "history-successor",
+                    replacesIntentSeed = "history-original",
+                )
+
+                assertEquals(
+                    listOf(
+                        AttachmentReference("history-original", null),
+                        AttachmentReference("history-successor", "history-original"),
+                    ),
+                    expenseAttachmentReferences("replacement-history", "history-expense"),
+                )
+            }
+
+        @Test
+        fun `should reject a second direct successor for the same document`() =
+            runTest {
+                seedGroup("replacement-successor")
+                insertExpense("replacement-successor", "branch-expense")
+                listOf("branch-original", "branch-first", "branch-second").forEach { intentSeed ->
+                    insertConsumedIntent("replacement-successor", intentSeed)
+                    insertRegistry("replacement-successor", intentSeed)
+                }
+                insertExpenseAttachment("replacement-successor", "branch-expense", "branch-original")
+                insertExpenseAttachment(
+                    groupSeed = "replacement-successor",
+                    expenseSeed = "branch-expense",
+                    intentSeed = "branch-first",
+                    replacesIntentSeed = "branch-original",
+                )
+
+                val error =
+                    assertThrows<SQLException> {
+                        insertExpenseAttachment(
+                            groupSeed = "replacement-successor",
+                            expenseSeed = "branch-expense",
+                            intentSeed = "branch-second",
+                            replacesIntentSeed = "branch-original",
+                        )
+                    }
+
+                assertEquals("23505", error.sqlState)
+            }
+
+        @Test
+        fun `should reject replacing a document associated with another expense`() =
+            runTest {
+                seedGroup("replacement-expense-scope")
+                insertExpense("replacement-expense-scope", "scope-replaced")
+                insertExpense("replacement-expense-scope", "scope-other")
+                listOf("scope-original", "scope-successor").forEach { intentSeed ->
+                    insertConsumedIntent("replacement-expense-scope", intentSeed)
+                    insertRegistry("replacement-expense-scope", intentSeed)
+                }
+                insertExpenseAttachment("replacement-expense-scope", "scope-replaced", "scope-original")
+
+                val error =
+                    assertThrows<SQLException> {
+                        insertExpenseAttachment(
+                            groupSeed = "replacement-expense-scope",
+                            expenseSeed = "scope-other",
+                            intentSeed = "scope-successor",
+                            replacesIntentSeed = "scope-original",
+                        )
+                    }
+
+                assertEquals("23503", error.sqlState)
+            }
+    }
+
     private suspend fun seedGroup(seed: String) {
         val creator = memberEmail("$seed-uploader")
         memberRepository.persist(Member(creator, CREATED_AT))
@@ -254,22 +338,62 @@ class SupportingDocumentAttachmentSchemaIntegrationTest {
         groupSeed: String,
         expenseSeed: String,
         intentSeed: String,
+        replacesIntentSeed: String? = null,
     ) {
         dataSource.connection.use { connection ->
             connection
                 .prepareStatement(
                     """
-                    INSERT INTO expense_supporting_documents (source_upload_intent, "group", type, expense)
-                    VALUES (?, ?, 'EXPENSE', ?)
+                    INSERT INTO expense_supporting_documents (
+                        source_upload_intent, "group", type, expense, replaces_source_upload_intent
+                    ) VALUES (?, ?, 'EXPENSE', ?, ?)
                     """.trimIndent(),
                 ).use { statement ->
                     statement.setObject(1, uploadIntentUuid(intentSeed))
                     statement.setObject(2, groupUuid(groupSeed))
                     statement.setObject(3, expenseUuid(expenseSeed))
+                    statement.setObject(4, replacesIntentSeed?.let(::uploadIntentUuid))
                     statement.executeUpdate()
                 }
         }
     }
+
+    private fun expenseAttachmentReferences(
+        groupSeed: String,
+        expenseSeed: String,
+    ): List<AttachmentReference> =
+        dataSource.connection.use { connection ->
+            connection
+                .prepareStatement(
+                    """
+                    SELECT source_upload_intent, replaces_source_upload_intent
+                    FROM expense_supporting_documents
+                    WHERE "group" = ? AND expense = ?
+                    ORDER BY source_upload_intent
+                    """.trimIndent(),
+                ).use { statement ->
+                    statement.setObject(1, groupUuid(groupSeed))
+                    statement.setObject(2, expenseUuid(expenseSeed))
+                    statement.executeQuery().use { rows ->
+                        buildList {
+                            while (rows.next()) {
+                                add(
+                                    AttachmentReference(
+                                        sourceIntentSeed = attachmentSeed(rows.getObject(1).toString()),
+                                        replacesIntentSeed = rows.getObject(2)?.toString()?.let(::attachmentSeed),
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                }
+        }
+
+    private fun attachmentSeed(uploadIntent: String): String =
+        mapOf(
+            uploadIntentUuid("history-original").toString() to "history-original",
+            uploadIntentUuid("history-successor").toString() to "history-successor",
+        ).getValue(uploadIntent)
 
     private fun uploadIntentUuid(seed: String) = testUuid("di:$seed")
 
@@ -279,4 +403,9 @@ class SupportingDocumentAttachmentSchemaIntegrationTest {
         val CONSUMED_AT: Instant = Instant.parse("2026-08-16T10:02:00Z")
         val EXPIRES_AT: Instant = Instant.parse("2026-08-16T10:05:00Z")
     }
+
+    private data class AttachmentReference(
+        val sourceIntentSeed: String,
+        val replacesIntentSeed: String?,
+    )
 }

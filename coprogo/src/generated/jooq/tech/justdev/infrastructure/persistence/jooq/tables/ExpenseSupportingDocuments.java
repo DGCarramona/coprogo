@@ -80,6 +80,12 @@ public class ExpenseSupportingDocuments extends TableImpl<Record> {
      */
     public final TableField<Record, UUID> EXPENSE = createField(DSL.name("expense"), SQLDataType.UUID.nullable(false), this, "");
 
+    /**
+     * The column
+     * <code>public.expense_supporting_documents.replaces_source_upload_intent</code>.
+     */
+    public final TableField<Record, UUID> REPLACES_SOURCE_UPLOAD_INTENT = createField(DSL.name("replaces_source_upload_intent"), SQLDataType.UUID, this, "");
+
     private ExpenseSupportingDocuments(Name alias, Table<Record> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }
@@ -127,13 +133,19 @@ public class ExpenseSupportingDocuments extends TableImpl<Record> {
     }
 
     @Override
+    public List<UniqueKey<Record>> getUniqueKeys() {
+        return Arrays.asList(Keys.EXPENSE_SUPPORTING_DOCUMENTS_REPLACED_ONCE_UNIQUE, Keys.EXPENSE_SUPPORTING_DOCUMENTS_SOURCE_GROUP_EXPENSE_UNIQUE);
+    }
+
+    @Override
     public List<ForeignKey<Record, ?>> getReferences() {
-        return Arrays.asList(Keys.EXPENSE_SUPPORTING_DOCUMENTS__EXPENSE_SUPPORTING_DOCUMENTS_ATTACHMENT_FK, Keys.EXPENSE_SUPPORTING_DOCUMENTS__EXPENSE_SUPPORTING_DOCUMENTS_EXPENSE_GROUP_FK);
+        return Arrays.asList(Keys.EXPENSE_SUPPORTING_DOCUMENTS__EXPENSE_SUPPORTING_DOCUMENTS_ATTACHMENT_FK, Keys.EXPENSE_SUPPORTING_DOCUMENTS__EXPENSE_SUPPORTING_DOCUMENTS_EXPENSE_GROUP_FK, Keys.EXPENSE_SUPPORTING_DOCUMENTS__EXPENSE_SUPPORTING_DOCUMENTS_REPLACEMENT_SAME_EXPENSE_FK);
     }
 
     @Override
     public List<Check<Record>> getChecks() {
         return Arrays.asList(
+            Internal.createCheck(this, DSL.name("expense_supporting_documents_replacement_not_self_check"), "(((replaces_source_upload_intent IS NULL) OR (replaces_source_upload_intent <> source_upload_intent)))", true),
             Internal.createCheck(this, DSL.name("expense_supporting_documents_type_check"), "((type = 'EXPENSE'::supporting_document_attachment_type))", true)
         );
     }

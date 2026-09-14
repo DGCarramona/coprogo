@@ -8,18 +8,26 @@ class ExpenseSupportingDocumentAttachment private constructor(
     val sourceUploadIntent: DocumentUploadIntentId,
     val group: GroupId,
     val expense: ExpenseId,
+    val replacesSourceUploadIntent: DocumentUploadIntentId?,
 ) {
     companion object {
         fun restore(
             sourceUploadIntent: DocumentUploadIntentId,
             group: GroupId,
             expense: ExpenseId,
-        ): ExpenseSupportingDocumentAttachment =
-            ExpenseSupportingDocumentAttachment(
+            replacesSourceUploadIntent: DocumentUploadIntentId? = null,
+        ): ExpenseSupportingDocumentAttachment {
+            require(sourceUploadIntent != replacesSourceUploadIntent) {
+                "replaced and replacement documents must use distinct upload intents"
+            }
+
+            return ExpenseSupportingDocumentAttachment(
                 sourceUploadIntent = sourceUploadIntent,
                 group = group,
                 expense = expense,
+                replacesSourceUploadIntent = replacesSourceUploadIntent,
             )
+        }
 
         fun attach(
             expense: ExpenseId,
@@ -41,7 +49,34 @@ class ExpenseSupportingDocumentAttachment private constructor(
                 sourceUploadIntent = intent.id,
                 group = group,
                 expense = expense,
+                replacesSourceUploadIntent = null,
             )
         }
+
+        fun replace(
+            replaced: ExpenseSupportingDocumentAttachment,
+            intent: DocumentUploadIntent,
+        ): ExpenseSupportingDocumentAttachment {
+            require(replaced.group == intent.group) {
+                "replaced and replacement documents must belong to the same group"
+            }
+            require(replaced.sourceUploadIntent != intent.id) {
+                "replaced and replacement documents must use distinct upload intents"
+            }
+
+            return attach(
+                expense = replaced.expense,
+                group = replaced.group,
+                intent = intent,
+            ).copyReplacing(replaced.sourceUploadIntent)
+        }
     }
+
+    private fun copyReplacing(replaced: DocumentUploadIntentId): ExpenseSupportingDocumentAttachment =
+        ExpenseSupportingDocumentAttachment(
+            sourceUploadIntent = sourceUploadIntent,
+            group = group,
+            expense = expense,
+            replacesSourceUploadIntent = replaced,
+        )
 }

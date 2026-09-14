@@ -20,7 +20,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-14.
 
 ## Ordre de travail actuel
 
-1. Implementer BE-DOC-005, puis poursuivre les lots backend BE-DOC suivants.
+1. Implementer BE-DOC-005B, puis BE-DOC-005C et poursuivre les lots backend BE-DOC suivants.
 2. Raccorder le frontend FE-DOC apres les lots backend.
 
 ## Fondations monorepo et DX
@@ -123,7 +123,9 @@ Backlog derive de l'etat actuel du depot au 2026-09-14.
 - [x] BE-DOC-004B3R Extraire la persistance atomique de proposition de depense dans un port applicatif et son adaptateur R2DBC transactionnel.
 - [x] BE-DOC-004B3Q Restreindre la lecture des upload intents aux identifiants `READY` du groupe et de l'uploader de la proposition.
 - [x] BE-DOC-004B3B Persister les upload intents et les associations de justificatifs par lots, de facon atomique et set-based.
-- [ ] BE-DOC-005 Implementer le remplacement d'un justificatif sans detruire l'ancien.
+- [x] BE-DOC-005A Modeliser une chaine append-only de remplacements de justificatifs, contrainte au meme groupe et a la meme depense, sans detruire les versions precedentes.
+- [ ] BE-DOC-005B Persister les remplacements et distinguer les justificatifs courants de leur historique.
+- [ ] BE-DOC-005C Ajouter l'interactor de remplacement, reserve au createur tant que la depense est `PROPOSED`.
 - [ ] BE-DOC-006 Implementer la suppression logique d'un justificatif avec audit.
 - [ ] BE-DOC-007 Enforcer la regle "seul le createur de l'evenement peut supprimer son justificatif".
 - [ ] BE-DOC-008 Exposer les endpoints REST d'upload, liste, consultation et suppression de justificatifs.

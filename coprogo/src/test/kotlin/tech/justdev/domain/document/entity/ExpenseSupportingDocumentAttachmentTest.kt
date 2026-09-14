@@ -31,11 +31,30 @@ class ExpenseSupportingDocumentAttachmentTest {
                     sourceUploadIntent = sourceUploadIntent,
                     group = group,
                     expense = expense,
+                    replacesSourceUploadIntent = DocumentUploadIntentId(testUuid("previous-support-document")),
                 )
 
             assertEquals(sourceUploadIntent, attachment.sourceUploadIntent)
             assertEquals(group, attachment.group)
             assertEquals(expense, attachment.expense)
+            assertEquals(DocumentUploadIntentId(testUuid("previous-support-document")), attachment.replacesSourceUploadIntent)
+        }
+
+        @Test
+        fun `should reject an attachment replacing itself`() {
+            val sourceUploadIntent = DocumentUploadIntentId(testUuid("self-replacing-support-document"))
+
+            val error =
+                assertThrows<IllegalArgumentException> {
+                    ExpenseSupportingDocumentAttachment.restore(
+                        sourceUploadIntent = sourceUploadIntent,
+                        group = groupId("documents"),
+                        expense = expenseId("documented"),
+                        replacesSourceUploadIntent = sourceUploadIntent,
+                    )
+                }
+
+            assertEquals("replaced and replacement documents must use distinct upload intents", error.message)
         }
     }
 
@@ -62,18 +81,19 @@ class ExpenseSupportingDocumentAttachmentTest {
             val pending = pendingIntent()
             val ready = pending.markReady(METADATA, READY_AT)
 
-            listOf(pending, ready).forEach { intent ->
-                val error =
-                    assertThrows<IllegalArgumentException> {
-                        ExpenseSupportingDocumentAttachment.attach(
-                            expense = expenseId("documented"),
-                            group = intent.group,
-                            intent = intent,
-                        )
-                    }
+            val errors =
+                listOf(
+                    attachFailure(pending),
+                    attachFailure(ready),
+                )
 
-                assertEquals("expense supporting document requires a consumed upload intent", error.message)
-            }
+            assertEquals(
+                listOf(
+                    "expense supporting document requires a consumed upload intent",
+                    "expense supporting document requires a consumed upload intent",
+                ),
+                errors,
+            )
         }
 
         @Test
@@ -93,10 +113,67 @@ class ExpenseSupportingDocumentAttachmentTest {
         }
     }
 
-    private fun pendingIntent(): DocumentUploadIntent =
+    @Nested
+    inner class Replace {
+        @Test
+        fun `should create a successor for a consumed upload intent in the same expense`() {
+            val previousIntent = pendingIntent("previous").markReady(METADATA, READY_AT).consume(CONSUMED_AT)
+            val replacementIntent = pendingIntent("replacement").markReady(METADATA, READY_AT).consume(CONSUMED_AT)
+            val previous = ExpenseSupportingDocumentAttachment.attach(expenseId("documented"), previousIntent.group, previousIntent)
+
+            val replacement = ExpenseSupportingDocumentAttachment.replace(previous, replacementIntent)
+
+            assertEquals(replacementIntent.id, replacement.sourceUploadIntent)
+            assertEquals(previous.group, replacement.group)
+            assertEquals(previous.expense, replacement.expense)
+            assertEquals(previous.sourceUploadIntent, replacement.replacesSourceUploadIntent)
+        }
+
+        @Test
+        fun `should reject a replacement upload intent from another group`() {
+            val previousIntent = pendingIntent("previous-group").markReady(METADATA, READY_AT).consume(CONSUMED_AT)
+            val replacementIntent =
+                pendingIntent("replacement-other-group", groupId("other")).markReady(METADATA, READY_AT).consume(CONSUMED_AT)
+            val previous = ExpenseSupportingDocumentAttachment.attach(expenseId("documented"), previousIntent.group, previousIntent)
+
+            val error =
+                assertThrows<IllegalArgumentException> {
+                    ExpenseSupportingDocumentAttachment.replace(previous, replacementIntent)
+                }
+
+            assertEquals("replaced and replacement documents must belong to the same group", error.message)
+        }
+
+        @Test
+        fun `should reject reusing the replaced upload intent as its successor`() {
+            val intent = pendingIntent("same-intent").markReady(METADATA, READY_AT).consume(CONSUMED_AT)
+            val previous = ExpenseSupportingDocumentAttachment.attach(expenseId("documented"), intent.group, intent)
+
+            val error =
+                assertThrows<IllegalArgumentException> {
+                    ExpenseSupportingDocumentAttachment.replace(previous, intent)
+                }
+
+            assertEquals("replaced and replacement documents must use distinct upload intents", error.message)
+        }
+    }
+
+    private fun attachFailure(intent: DocumentUploadIntent): String? =
+        assertThrows<IllegalArgumentException> {
+            ExpenseSupportingDocumentAttachment.attach(
+                expense = expenseId("documented"),
+                group = intent.group,
+                intent = intent,
+            )
+        }.message
+
+    private fun pendingIntent(
+        seed: String = "support-document",
+        group: tech.justdev.domain.shared.valueobject.GroupId = groupId("documents"),
+    ): DocumentUploadIntent =
         DocumentUploadIntent.create(
-            id = DocumentUploadIntentId(testUuid("support-document")),
-            group = groupId("documents"),
+            id = DocumentUploadIntentId(testUuid(seed)),
+            group = group,
             uploader = memberEmail("uploader"),
             storageKey = DocumentStorageKey.of("groups/documents/invoice.pdf"),
             fileName = DocumentFileName.of("Facture.pdf"),
