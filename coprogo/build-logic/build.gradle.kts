@@ -8,9 +8,9 @@ repositories {
 }
 
 dependencies {
-    implementation("org.flywaydb:flyway-core:13.3.0")
-    implementation("org.flywaydb:flyway-database-postgresql:13.3.0")
-    implementation("org.jooq:jooq-codegen:3.21.7")
+    implementation("org.flywaydb:flyway-core:13.5.0")
+    implementation("org.flywaydb:flyway-database-postgresql:13.5.0")
+    implementation("org.jooq:jooq-codegen:3.21.8")
     implementation("org.postgresql:postgresql:42.7.13")
 }
 
