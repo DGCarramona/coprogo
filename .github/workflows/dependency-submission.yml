@@ -45,7 +45,7 @@ jobs:
         uses: actions/checkout@v7.0.1
 
       - name: Generate and submit npm dependency graph
-        uses: advanced-security/component-detection-dependency-submission-action@v0.1.4
+        uses: advanced-security/component-detection-dependency-submission-action@v0.1.6
         with:
           filePath: frontend
           detectorsCategories: Npm
