@@ -165,6 +165,68 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
     }
 
     @Nested
+    inner class PersistAll {
+        @Test
+        fun `should persist and replay multiple immutable associations`() =
+            runTest {
+                val group = seedGroup("persist-all")
+                val expense = seedExpense("persist-all", group)
+                val first = attachment("persist-all-first", group, expense)
+                val second = attachment("persist-all-second", group, expense)
+
+                repository.persistAll(listOf(first, second))
+                repository.persistAll(listOf(second, first))
+
+                assertAttachmentsEqual(
+                    listOf(first, second).sortedBy { it.sourceUploadIntent.toPrimitive() },
+                    repository.findByExpenseAndGroup(expense, group.id),
+                )
+            }
+
+        @Test
+        fun `should reject duplicate upload intent identifiers before persisting`() =
+            runTest {
+                val duplicate =
+                    ExpenseSupportingDocumentAttachment.restore(
+                        sourceUploadIntent = DocumentUploadIntentId(testUuid("duplicate-attachment")),
+                        group = groupId("duplicate-attachment"),
+                        expense = expenseId("duplicate-attachment"),
+                    )
+
+                val error =
+                    assertThrows<IllegalArgumentException> {
+                        repository.persistAll(listOf(duplicate, duplicate))
+                    }
+
+                assertEquals("supporting document attachment upload intent identifiers must be unique", error.message)
+            }
+
+        @Test
+        fun `should roll back the whole batch when one attachment references an expense from another group`() =
+            runTest {
+                val sourceGroup = seedGroup("source-persist-all-fk")
+                val sourceExpense = seedExpense("source-persist-all-fk", sourceGroup)
+                val otherGroup = seedGroup("other-persist-all-fk")
+                val otherExpense = seedExpense("other-persist-all-fk", otherGroup)
+                val valid = attachment("valid:persist-all-fk", sourceGroup, sourceExpense)
+                val invalidIntent = consumedIntent("invalid:persist-all-fk", sourceGroup)
+                uploadIntentRepository.persist(invalidIntent)
+                val invalid = ExpenseSupportingDocumentAttachment.attach(otherExpense, sourceGroup.id, invalidIntent)
+
+                val error =
+                    assertThrows<IllegalStateException> {
+                        repository.persistAll(listOf(valid, invalid))
+                    }
+
+                assertEquals("expense supporting document attachment must reference an expense in the same group", error.message)
+                assertTrue(repository.findByExpenseAndGroup(sourceExpense, sourceGroup.id).isEmpty())
+
+                repository.persist(valid)
+                assertAttachmentsEqual(listOf(valid), repository.findByExpenseAndGroup(sourceExpense, sourceGroup.id))
+            }
+    }
+
+    @Nested
     inner class FindByExpenseAndGroup {
         @Test
         fun `should return an empty list when the expense is missing`() =
