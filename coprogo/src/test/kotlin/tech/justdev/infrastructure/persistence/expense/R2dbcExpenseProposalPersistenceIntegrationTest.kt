@@ -120,6 +120,12 @@ class R2dbcExpenseProposalPersistenceIntegrationTest {
                                     group: GroupId,
                                 ): List<ExpenseSupportingDocumentAttachment> = emptyList()
 
+                                override suspend fun findCurrentBySourceUploadIntentAndExpenseAndGroup(
+                                    sourceUploadIntent: DocumentUploadIntentId,
+                                    expense: ExpenseId,
+                                    group: GroupId,
+                                ): ExpenseSupportingDocumentAttachment? = null
+
                                 override suspend fun findHistoryByExpenseAndGroup(
                                     expense: ExpenseId,
                                     group: GroupId,

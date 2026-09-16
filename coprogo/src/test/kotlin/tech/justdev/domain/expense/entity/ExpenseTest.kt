@@ -457,6 +457,58 @@ class ExpenseTest {
         }
     }
 
+    @Nested
+    inner class RequireSupportingDocumentReplacementBy {
+        @Test
+        fun `should allow the expense creator while the expense is proposed`() {
+            proposedExpense().requireSupportingDocumentReplacementBy(memberEmail("alice"))
+        }
+
+        @Test
+        fun `should reject a member other than the expense creator`() {
+            val error =
+                assertThrows(IllegalArgumentException::class.java) {
+                    proposedExpense().requireSupportingDocumentReplacementBy(memberEmail("bob"))
+                }
+
+            assertEquals("only the expense creator can replace a supporting document", error.message)
+        }
+
+        @Test
+        fun `should reject replacement after the expense is accepted`() {
+            val acceptedExpense =
+                proposedExpense().recordParticipationDecision(
+                    member = memberEmail("bob"),
+                    decision = ExpenseParticipationDecision.APPROVE,
+                    decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
+                )
+
+            val error =
+                assertThrows(IllegalArgumentException::class.java) {
+                    acceptedExpense.requireSupportingDocumentReplacementBy(memberEmail("alice"))
+                }
+
+            assertEquals("supporting documents can only be replaced while the expense is proposed", error.message)
+        }
+
+        @Test
+        fun `should reject replacement after the expense is invalidated`() {
+            val invalidatedExpense =
+                proposedExpense().recordParticipationDecision(
+                    member = memberEmail("bob"),
+                    decision = ExpenseParticipationDecision.REFUSE,
+                    decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
+                )
+
+            val error =
+                assertThrows(IllegalArgumentException::class.java) {
+                    invalidatedExpense.requireSupportingDocumentReplacementBy(memberEmail("alice"))
+                }
+
+            assertEquals("supporting documents can only be replaced while the expense is proposed", error.message)
+        }
+    }
+
     private fun proposedExpense(): Expense =
         Expense.propose(
             id = expenseId("expense-1"),

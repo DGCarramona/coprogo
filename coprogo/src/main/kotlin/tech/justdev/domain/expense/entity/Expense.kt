@@ -105,6 +105,13 @@ data class Expense(
             ?: throw IllegalStateException("accepted expense must expose an approval timestamp")
     }
 
+    fun requireSupportingDocumentReplacementBy(member: MemberEmail) {
+        require(member == createdBy) { "only the expense creator can replace a supporting document" }
+        require(status == ExpenseStatus.PROPOSED) {
+            "supporting documents can only be replaced while the expense is proposed"
+        }
+    }
+
     companion object {
         fun proposeEqualSplit(
             id: ExpenseId,

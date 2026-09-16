@@ -64,6 +64,38 @@ open class R2dbcExpenseRepository(
         return expense.toDomain(participations)
     }
 
+    internal suspend fun findByIdAndGroupForUpdate(
+        id: ExpenseId,
+        group: GroupId,
+    ): Expense? {
+        val dsl = connectionFactory.dsl()
+        val expense =
+            dsl
+                .select(EXPENSES.ID, EXPENSES.GROUP, EXPENSES.TITLE, EXPENSES.CREATED_BY, EXPENSES.TOTAL_AMOUNT, EXPENSES.CREATED_AT)
+                .from(EXPENSES)
+                .where(EXPENSES.ID.eq(id.toPrimitive()))
+                .and(EXPENSES.GROUP.eq(group.toPrimitive()))
+                .forUpdate()
+                .awaitFirstOrNull()
+                ?: return null
+
+        val participations =
+            dsl
+                .select(
+                    EXPENSE_PARTICIPATIONS.MEMBER,
+                    EXPENSE_PARTICIPATIONS.AMOUNT,
+                    EXPENSE_PARTICIPATIONS.STATUS,
+                    EXPENSE_PARTICIPATIONS.DECIDED_AT,
+                    EXPENSE_PARTICIPATIONS.REFUSAL_REASON,
+                ).from(EXPENSE_PARTICIPATIONS)
+                .where(EXPENSE_PARTICIPATIONS.EXPENSE.eq(id.toPrimitive()))
+                .awaitList()
+                .map { it.toDomain() }
+                .toSet()
+
+        return expense.toDomain(participations)
+    }
+
     override suspend fun findByGroup(group: GroupId): List<Expense> {
         val dsl = connectionFactory.dsl()
         val expenses =

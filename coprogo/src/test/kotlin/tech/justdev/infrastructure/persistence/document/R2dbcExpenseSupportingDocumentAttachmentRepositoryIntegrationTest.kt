@@ -3,6 +3,7 @@ package tech.justdev.infrastructure.persistence.document
 import jakarta.inject.Inject
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -287,6 +288,88 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
                 assertAttachmentsEqual(
                     listOf(unreplaced, successor),
                     repository.findCurrentByExpenseAndGroup(expense, group.id),
+                )
+            }
+    }
+
+    @Nested
+    inner class FindCurrentBySourceUploadIntentAndExpenseAndGroup {
+        @Test
+        fun `should return the current attachment for its source upload intent`() =
+            runTest {
+                val group = seedGroup("qa-cbs-group")
+                val expense = seedExpense("qa-cbs-expense", group)
+                val original = attachment("qa-cbs-original", group, expense)
+                val replacementIntent = consumedIntent("qa-cbs-successor", group, CONSUMED_AT.plusSeconds(60))
+                uploadIntentRepository.persist(replacementIntent)
+                val replacement = ExpenseSupportingDocumentAttachment.replace(original, replacementIntent)
+                repository.persistAll(listOf(original, replacement))
+
+                assertEquals(
+                    replacement.toProperties(),
+                    requireNotNull(
+                        repository.findCurrentBySourceUploadIntentAndExpenseAndGroup(
+                            sourceUploadIntent = replacement.sourceUploadIntent,
+                            expense = expense,
+                            group = group.id,
+                        ),
+                    ).toProperties(),
+                )
+            }
+
+        @Test
+        fun `should not return a replaced attachment`() =
+            runTest {
+                val group = seedGroup("qb-rbs-group")
+                val expense = seedExpense("qb-rbs-expense", group)
+                val original = attachment("qb-rbs-original", group, expense)
+                val replacementIntent = consumedIntent("qb-rbs-successor", group, CONSUMED_AT.plusSeconds(60))
+                uploadIntentRepository.persist(replacementIntent)
+                val replacement = ExpenseSupportingDocumentAttachment.replace(original, replacementIntent)
+                repository.persistAll(listOf(original, replacement))
+
+                assertNull(
+                    repository.findCurrentBySourceUploadIntentAndExpenseAndGroup(
+                        sourceUploadIntent = original.sourceUploadIntent,
+                        expense = expense,
+                        group = group.id,
+                    ),
+                )
+            }
+
+        @Test
+        fun `should not return an attachment from another group`() =
+            runTest {
+                val sourceGroup = seedGroup("qc-group-source")
+                val expense = seedExpense("qc-expense-source", sourceGroup)
+                val attachment = attachment("qc-attachment", sourceGroup, expense)
+                val otherGroup = seedGroup("qc-group-other")
+                repository.persist(attachment)
+
+                assertNull(
+                    repository.findCurrentBySourceUploadIntentAndExpenseAndGroup(
+                        sourceUploadIntent = attachment.sourceUploadIntent,
+                        expense = expense,
+                        group = otherGroup.id,
+                    ),
+                )
+            }
+
+        @Test
+        fun `should not return an attachment from another expense`() =
+            runTest {
+                val group = seedGroup("qd-group")
+                val sourceExpense = seedExpense("qd-expense-source", group)
+                val otherExpense = seedExpense("qd-expense-other", group)
+                val attachment = attachment("qd-attachment", group, sourceExpense)
+                repository.persist(attachment)
+
+                assertNull(
+                    repository.findCurrentBySourceUploadIntentAndExpenseAndGroup(
+                        sourceUploadIntent = attachment.sourceUploadIntent,
+                        expense = otherExpense,
+                        group = group.id,
+                    ),
                 )
             }
     }

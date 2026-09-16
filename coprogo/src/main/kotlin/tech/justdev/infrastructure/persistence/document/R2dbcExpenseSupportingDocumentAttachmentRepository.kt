@@ -3,6 +3,7 @@ package tech.justdev.infrastructure.persistence.document
 import io.r2dbc.spi.ConnectionFactory
 import jakarta.inject.Named
 import jakarta.inject.Singleton
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -90,6 +91,12 @@ class R2dbcExpenseSupportingDocumentAttachmentRepository(
                     .doNothing()
                     .awaitFirstOrNull()
             } catch (exception: IntegrityConstraintViolationException) {
+                if (exception.sqlState() == "23505") {
+                    throw IllegalStateException(
+                        "expense supporting document attachment must replace a current document",
+                        exception,
+                    )
+                }
                 throw IllegalStateException(
                     "expense supporting document attachment must reference an expense in the same group",
                     exception,
@@ -128,6 +135,65 @@ class R2dbcExpenseSupportingDocumentAttachmentRepository(
             .orderBy(DOCUMENT_UPLOAD_INTENTS.CONSUMED_AT, EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT)
             .awaitList()
             .map { record -> record.toDomain() }
+    }
+
+    override suspend fun findCurrentBySourceUploadIntentAndExpenseAndGroup(
+        sourceUploadIntent: DocumentUploadIntentId,
+        expense: ExpenseId,
+        group: GroupId,
+    ): ExpenseSupportingDocumentAttachment? {
+        val successor = EXPENSE_SUPPORTING_DOCUMENTS.`as`("successor")
+
+        return connectionFactory
+            .dsl()
+            .select(
+                EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT,
+                EXPENSE_SUPPORTING_DOCUMENTS.GROUP,
+                EXPENSE_SUPPORTING_DOCUMENTS.EXPENSE,
+                EXPENSE_SUPPORTING_DOCUMENTS.REPLACES_SOURCE_UPLOAD_INTENT,
+            ).from(EXPENSE_SUPPORTING_DOCUMENTS)
+            .leftJoin(successor)
+            .on(successor.REPLACES_SOURCE_UPLOAD_INTENT.eq(EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT))
+            .where(EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT.eq(sourceUploadIntent.toPrimitive()))
+            .and(EXPENSE_SUPPORTING_DOCUMENTS.EXPENSE.eq(expense.toPrimitive()))
+            .and(EXPENSE_SUPPORTING_DOCUMENTS.GROUP.eq(group.toPrimitive()))
+            .and(successor.SOURCE_UPLOAD_INTENT.isNull)
+            .limit(1)
+            .asFlow()
+            .firstOrNull()
+            ?.toDomain()
+    }
+
+    internal suspend fun findCurrentBySourceUploadIntentAndExpenseAndGroupForUpdate(
+        sourceUploadIntent: DocumentUploadIntentId,
+        expense: ExpenseId,
+        group: GroupId,
+    ): ExpenseSupportingDocumentAttachment? {
+        val successor = EXPENSE_SUPPORTING_DOCUMENTS.`as`("successor")
+
+        return connectionFactory
+            .dsl()
+            .select(
+                EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT,
+                EXPENSE_SUPPORTING_DOCUMENTS.GROUP,
+                EXPENSE_SUPPORTING_DOCUMENTS.EXPENSE,
+                EXPENSE_SUPPORTING_DOCUMENTS.REPLACES_SOURCE_UPLOAD_INTENT,
+            ).from(EXPENSE_SUPPORTING_DOCUMENTS)
+            .where(EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT.eq(sourceUploadIntent.toPrimitive()))
+            .and(EXPENSE_SUPPORTING_DOCUMENTS.EXPENSE.eq(expense.toPrimitive()))
+            .and(EXPENSE_SUPPORTING_DOCUMENTS.GROUP.eq(group.toPrimitive()))
+            .and(
+                DSL.notExists(
+                    DSL
+                        .selectOne()
+                        .from(successor)
+                        .where(successor.REPLACES_SOURCE_UPLOAD_INTENT.eq(EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT)),
+                ),
+            ).limit(1)
+            .forUpdate()
+            .asFlow()
+            .firstOrNull()
+            ?.toDomain()
     }
 
     override suspend fun findHistoryByExpenseAndGroup(
