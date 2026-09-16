@@ -1,6 +1,6 @@
 # Backlog
 
-Backlog derive de l'etat actuel du depot au 2026-09-14.
+Backlog derive de l'etat actuel du depot au 2026-09-16.
 
 ## Etat actuel constate
 
@@ -20,7 +20,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-14.
 
 ## Ordre de travail actuel
 
-1. Implementer BE-DOC-005B, puis BE-DOC-005C et poursuivre les lots backend BE-DOC suivants.
+1. Implementer BE-DOC-006, puis poursuivre les lots backend BE-DOC suivants.
 2. Raccorder le frontend FE-DOC apres les lots backend.
 
 ## Fondations monorepo et DX
@@ -125,7 +125,9 @@ Backlog derive de l'etat actuel du depot au 2026-09-14.
 - [x] BE-DOC-004B3B Persister les upload intents et les associations de justificatifs par lots, de facon atomique et set-based.
 - [x] BE-DOC-005A Modeliser une chaine append-only de remplacements de justificatifs, contrainte au meme groupe et a la meme depense, sans detruire les versions precedentes.
 - [x] BE-DOC-005B Persister les remplacements et distinguer les justificatifs courants de leur historique.
-- [ ] BE-DOC-005C Ajouter l'interactor de remplacement, reserve au createur tant que la depense est `PROPOSED`.
+- [x] BE-DOC-005C1 Encapsuler la regle de remplacement dans `Expense` et ajouter la lecture group-scoped d'un justificatif courant par upload intent.
+- [x] BE-DOC-005C2 Ajouter l'interactor de remplacement, reserve au createur tant que la depense est `PROPOSED`.
+- [x] BE-DOC-005C2R Encapsuler les lectures verrouillees et la persistance atomique du remplacement dans un scope transactionnel specialise, sans exposer les repositories ni la commande a l'adaptateur.
 - [ ] BE-DOC-006 Implementer la suppression logique d'un justificatif avec audit.
 - [ ] BE-DOC-007 Enforcer la regle "seul le createur de l'evenement peut supprimer son justificatif".
 - [ ] BE-DOC-008 Exposer les endpoints REST d'upload, liste, consultation et suppression de justificatifs.
