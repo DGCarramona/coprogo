@@ -4,6 +4,7 @@
 package tech.justdev.infrastructure.persistence.jooq.tables;
 
 
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -25,11 +26,13 @@ import org.jooq.TableField;
 import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
+import org.jooq.impl.AutoConverter;
 import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
+import tech.justdev.infrastructure.persistence.jooq.Domains;
 import tech.justdev.infrastructure.persistence.jooq.Keys;
 import tech.justdev.infrastructure.persistence.jooq.Public;
 import tech.justdev.infrastructure.persistence.jooq.enums.SupportingDocumentAttachmentType;
@@ -78,6 +81,18 @@ public class SupportingDocumentAttachments extends TableImpl<Record> {
      * The column <code>public.supporting_document_attachments.type</code>.
      */
     public final TableField<Record, SupportingDocumentAttachmentType> TYPE = createField(DSL.name("type"), SQLDataType.VARCHAR.nullable(false).asEnumDataType(SupportingDocumentAttachmentType.class), this, "");
+
+    /**
+     * The column
+     * <code>public.supporting_document_attachments.deleted_by</code>.
+     */
+    public final TableField<Record, String> DELETED_BY = createField(DSL.name("deleted_by"), Domains.MEMBER_EMAIL_ADDRESS.getDataType(), this, "", new AutoConverter<String, String>(String.class, String.class));
+
+    /**
+     * The column
+     * <code>public.supporting_document_attachments.deleted_at</code>.
+     */
+    public final TableField<Record, OffsetDateTime> DELETED_AT = createField(DSL.name("deleted_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "");
 
     private SupportingDocumentAttachments(Name alias, Table<Record> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -128,12 +143,13 @@ public class SupportingDocumentAttachments extends TableImpl<Record> {
 
     @Override
     public List<ForeignKey<Record, ?>> getReferences() {
-        return Arrays.asList(Keys.SUPPORTING_DOCUMENT_ATTACHMENTS__SUPPORTING_DOCUMENT_ATTACHMENTS_SOURCE_GROUP_STATUS_FK);
+        return Arrays.asList(Keys.SUPPORTING_DOCUMENT_ATTACHMENTS__SUPPORTING_DOCUMENT_ATTACHMENTS_DELETED_BY_GROUP_FK, Keys.SUPPORTING_DOCUMENT_ATTACHMENTS__SUPPORTING_DOCUMENT_ATTACHMENTS_SOURCE_GROUP_STATUS_FK);
     }
 
     @Override
     public List<Check<Record>> getChecks() {
         return Arrays.asList(
+            Internal.createCheck(this, DSL.name("supporting_document_attachments_deletion_audit_check"), "((((deleted_by IS NULL) AND (deleted_at IS NULL)) OR ((deleted_by IS NOT NULL) AND (deleted_at IS NOT NULL))))", true),
             Internal.createCheck(this, DSL.name("supporting_document_attachments_source_status_check"), "((source_status = 'CONSUMED'::text))", true)
         );
     }

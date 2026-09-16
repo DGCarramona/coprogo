@@ -1,14 +1,18 @@
 package tech.justdev.domain.document.entity
 
 import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
+import tech.justdev.domain.document.valueobject.SupportingDocumentAttachmentDeletion
 import tech.justdev.domain.expense.valueobject.ExpenseId
+import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.valueobject.GroupId
+import java.time.Instant
 
 class ExpenseSupportingDocumentAttachment private constructor(
     val sourceUploadIntent: DocumentUploadIntentId,
     val group: GroupId,
     val expense: ExpenseId,
     val replacesSourceUploadIntent: DocumentUploadIntentId?,
+    val deletion: SupportingDocumentAttachmentDeletion?,
 ) {
     companion object {
         fun restore(
@@ -16,6 +20,7 @@ class ExpenseSupportingDocumentAttachment private constructor(
             group: GroupId,
             expense: ExpenseId,
             replacesSourceUploadIntent: DocumentUploadIntentId? = null,
+            deletion: SupportingDocumentAttachmentDeletion? = null,
         ): ExpenseSupportingDocumentAttachment {
             require(sourceUploadIntent != replacesSourceUploadIntent) {
                 "replaced and replacement documents must use distinct upload intents"
@@ -26,6 +31,7 @@ class ExpenseSupportingDocumentAttachment private constructor(
                 group = group,
                 expense = expense,
                 replacesSourceUploadIntent = replacesSourceUploadIntent,
+                deletion = deletion,
             )
         }
 
@@ -50,6 +56,7 @@ class ExpenseSupportingDocumentAttachment private constructor(
                 group = group,
                 expense = expense,
                 replacesSourceUploadIntent = null,
+                deletion = null,
             )
         }
 
@@ -57,6 +64,9 @@ class ExpenseSupportingDocumentAttachment private constructor(
             replaced: ExpenseSupportingDocumentAttachment,
             intent: DocumentUploadIntent,
         ): ExpenseSupportingDocumentAttachment {
+            require(replaced.deletion == null) {
+                "deleted supporting document cannot be replaced"
+            }
             require(replaced.group == intent.group) {
                 "replaced and replacement documents must belong to the same group"
             }
@@ -72,11 +82,29 @@ class ExpenseSupportingDocumentAttachment private constructor(
         }
     }
 
+    fun delete(
+        by: MemberEmail,
+        at: Instant,
+    ): ExpenseSupportingDocumentAttachment {
+        check(deletion == null) {
+            "supporting document attachment has already been deleted"
+        }
+
+        return copy(deletion = SupportingDocumentAttachmentDeletion(by, at))
+    }
+
     private fun copyReplacing(replaced: DocumentUploadIntentId): ExpenseSupportingDocumentAttachment =
+        copy(replacesSourceUploadIntent = replaced)
+
+    private fun copy(
+        replacesSourceUploadIntent: DocumentUploadIntentId? = this.replacesSourceUploadIntent,
+        deletion: SupportingDocumentAttachmentDeletion? = this.deletion,
+    ): ExpenseSupportingDocumentAttachment =
         ExpenseSupportingDocumentAttachment(
             sourceUploadIntent = sourceUploadIntent,
             group = group,
             expense = expense,
-            replacesSourceUploadIntent = replaced,
+            replacesSourceUploadIntent = replacesSourceUploadIntent,
+            deletion = deletion,
         )
 }

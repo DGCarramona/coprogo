@@ -252,6 +252,82 @@ class SupportingDocumentAttachmentSchemaIntegrationTest {
         }
     }
 
+    @Nested
+    inner class DeletionAudit {
+        @Test
+        fun `should allow an attachment with no deletion audit`() =
+            runTest {
+                seedGroup("deletion-not-deleted")
+                insertConsumedIntent("deletion-not-deleted", "document-no-audit")
+
+                assertEquals(1, insertRegistry("deletion-not-deleted", "document-no-audit"))
+            }
+
+        @Test
+        fun `should allow a complete deletion audit from a group member`() =
+            runTest {
+                seedGroup("deletion-audited")
+                insertConsumedIntent("deletion-audited", "document-audited")
+
+                assertEquals(
+                    1,
+                    insertRegistry(
+                        groupSeed = "deletion-audited",
+                        intentSeed = "document-audited",
+                        deletedBy = memberEmailString("deletion-audited-uploader"),
+                        deletedAt = DELETED_AT,
+                    ),
+                )
+            }
+
+        @Test
+        fun `should reject a partial deletion audit`() =
+            runTest {
+                seedGroup("deletion-partial")
+                insertConsumedIntent("deletion-partial", "document-partial")
+
+                val deletedByOnly =
+                    assertThrows<SQLException> {
+                        insertRegistry(
+                            groupSeed = "deletion-partial",
+                            intentSeed = "document-partial",
+                            deletedBy = memberEmailString("deletion-partial-uploader"),
+                        )
+                    }
+                val deletedAtOnly =
+                    assertThrows<SQLException> {
+                        insertRegistry(
+                            groupSeed = "deletion-partial",
+                            intentSeed = "document-partial",
+                            deletedAt = DELETED_AT,
+                        )
+                    }
+
+                assertEquals(listOf("23514", "23514"), listOf(deletedByOnly.sqlState, deletedAtOnly.sqlState))
+            }
+
+        @Test
+        fun `should reject a deletion audit from outside the group`() =
+            runTest {
+                seedGroup("deletion-outsider")
+                val outsider = memberEmail("deletion-outsider-member")
+                memberRepository.persist(Member(outsider, CREATED_AT))
+                insertConsumedIntent("deletion-outsider", "document-outsider")
+
+                val error =
+                    assertThrows<SQLException> {
+                        insertRegistry(
+                            groupSeed = "deletion-outsider",
+                            intentSeed = "document-outsider",
+                            deletedBy = outsider.toPrimitive(),
+                            deletedAt = DELETED_AT,
+                        )
+                    }
+
+                assertEquals("23503", error.sqlState)
+            }
+    }
+
     private fun insertConsumedIntent(
         groupSeed: String,
         intentSeed: String,
@@ -318,21 +394,25 @@ class SupportingDocumentAttachmentSchemaIntegrationTest {
     private fun insertRegistry(
         groupSeed: String,
         intentSeed: String,
-    ) {
+        deletedBy: String? = null,
+        deletedAt: Instant? = null,
+    ): Int =
         dataSource.connection.use { connection ->
             connection
                 .prepareStatement(
                     """
-                    INSERT INTO supporting_document_attachments (source_upload_intent, "group", source_status, type)
-                    VALUES (?, ?, 'CONSUMED', 'EXPENSE')
+                    INSERT INTO supporting_document_attachments (
+                        source_upload_intent, "group", source_status, type, deleted_by, deleted_at
+                    ) VALUES (?, ?, 'CONSUMED', 'EXPENSE', ?, ?)
                     """.trimIndent(),
                 ).use { statement ->
                     statement.setObject(1, uploadIntentUuid(intentSeed))
                     statement.setObject(2, groupUuid(groupSeed))
+                    statement.setString(3, deletedBy)
+                    statement.setObject(4, deletedAt?.atOffset(ZoneOffset.UTC))
                     statement.executeUpdate()
                 }
         }
-    }
 
     private fun insertExpenseAttachment(
         groupSeed: String,
@@ -401,6 +481,7 @@ class SupportingDocumentAttachmentSchemaIntegrationTest {
         val CREATED_AT: Instant = Instant.parse("2026-08-16T10:00:00Z")
         val READY_AT: Instant = Instant.parse("2026-08-16T10:01:00Z")
         val CONSUMED_AT: Instant = Instant.parse("2026-08-16T10:02:00Z")
+        val DELETED_AT: Instant = Instant.parse("2026-08-16T10:03:00Z")
         val EXPIRES_AT: Instant = Instant.parse("2026-08-16T10:05:00Z")
     }
 
