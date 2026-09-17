@@ -19,6 +19,7 @@ import tech.justdev.domain.document.valueobject.DocumentSha256
 import tech.justdev.domain.document.valueobject.DocumentSize
 import tech.justdev.domain.document.valueobject.DocumentStorageKey
 import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
+import tech.justdev.domain.document.valueobject.SupportingDocumentAttachmentDeletion
 import tech.justdev.domain.expense.entity.Expense
 import tech.justdev.domain.expense.repository.ExpenseRepository
 import tech.justdev.domain.expense.valueobject.ExpenseId
@@ -41,6 +42,9 @@ import java.util.Base64
 class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
     @Inject
     lateinit var repository: ExpenseSupportingDocumentAttachmentRepository
+
+    @Inject
+    lateinit var r2dbcRepository: R2dbcExpenseSupportingDocumentAttachmentRepository
 
     @Inject
     lateinit var uploadIntentRepository: DocumentUploadIntentRepository
@@ -84,6 +88,69 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
                 repository.persist(attachment)
 
                 assertAttachmentsEqual(listOf(attachment), repository.findCurrentByExpenseAndGroup(expense, group.id))
+            }
+
+        @Test
+        fun `should persist an immutable deletion audit and hide the attachment from current reads`() =
+            runTest {
+                val group = seedGroup("deleted")
+                val expense = seedExpense("deleted", group)
+                val attachment = attachment("deleted", group, expense)
+                val deleted = attachment.delete(group.owner, DELETED_AT)
+
+                repository.persist(attachment)
+                repository.persist(deleted)
+                repository.persist(deleted)
+
+                assertAttachmentsEqual(emptyList(), repository.findCurrentByExpenseAndGroup(expense, group.id))
+                assertNull(
+                    repository.findCurrentBySourceUploadIntentAndExpenseAndGroup(
+                        sourceUploadIntent = attachment.sourceUploadIntent,
+                        expense = expense,
+                        group = group.id,
+                    ),
+                )
+                assertNull(
+                    r2dbcRepository.findCurrentBySourceUploadIntentAndExpenseAndGroupForUpdate(
+                        sourceUploadIntent = attachment.sourceUploadIntent,
+                        expense = expense,
+                        group = group.id,
+                    ),
+                )
+                assertAttachmentsEqual(listOf(deleted), repository.findHistoryByExpenseAndGroup(expense, group.id))
+            }
+
+        @Test
+        fun `should reject a stale attachment after deletion without erasing its audit`() =
+            runTest {
+                val group = seedGroup("stale-deletion")
+                val expense = seedExpense("stale-deletion", group)
+                val attachment = attachment("stale-deletion", group, expense)
+                val deleted = attachment.delete(group.owner, DELETED_AT)
+                repository.persist(attachment)
+                repository.persist(deleted)
+
+                val error = assertThrows<IllegalStateException> { repository.persist(attachment) }
+
+                assertEquals("supporting document attachment deletion audit conflicts with persisted state", error.message)
+                assertAttachmentsEqual(listOf(deleted), repository.findHistoryByExpenseAndGroup(expense, group.id))
+            }
+
+        @Test
+        fun `should reject a conflicting deletion audit without replacing the persisted audit`() =
+            runTest {
+                val group = seedGroup("conflicting-deletion")
+                val expense = seedExpense("conflicting-deletion", group)
+                val attachment = attachment("conflicting-deletion", group, expense)
+                val deleted = attachment.delete(group.owner, DELETED_AT)
+                val conflicting = attachment.delete(group.owner, DELETED_AT.plusSeconds(1))
+                repository.persist(attachment)
+                repository.persist(deleted)
+
+                val error = assertThrows<IllegalStateException> { repository.persist(conflicting) }
+
+                assertEquals("supporting document attachment deletion audit conflicts with persisted state", error.message)
+                assertAttachmentsEqual(listOf(deleted), repository.findHistoryByExpenseAndGroup(expense, group.id))
             }
 
         @Test
@@ -208,6 +275,26 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
             }
 
         @Test
+        fun `should persist a batch of immutable deletion audits`() =
+            runTest {
+                val group = seedGroup("persist-all-deletions")
+                val expense = seedExpense("persist-all-deletions", group)
+                val first = attachment("batch-one-deletion", group, expense)
+                val second = attachment("batch-two-deletion", group, expense, CONSUMED_AT.plusSeconds(1))
+                val deletedFirst = first.delete(group.owner, DELETED_AT)
+                val deletedSecond = second.delete(group.owner, DELETED_AT.plusSeconds(1))
+                repository.persistAll(listOf(first, second))
+
+                repository.persistAll(listOf(deletedFirst, deletedSecond))
+
+                assertAttachmentsEqual(emptyList(), repository.findCurrentByExpenseAndGroup(expense, group.id))
+                assertAttachmentsEqual(
+                    listOf(deletedFirst, deletedSecond),
+                    repository.findHistoryByExpenseAndGroup(expense, group.id),
+                )
+            }
+
+        @Test
         fun `should reject duplicate upload intent identifiers before persisting`() =
             runTest {
                 val duplicate =
@@ -289,6 +376,23 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
                     listOf(unreplaced, successor),
                     repository.findCurrentByExpenseAndGroup(expense, group.id),
                 )
+            }
+
+        @Test
+        fun `should not restore a replaced attachment when its successor is deleted`() =
+            runTest {
+                val group = seedGroup("deleted-successor")
+                val expense = seedExpense("deleted-successor", group)
+                val original = attachment("one-deleted-successor", group, expense)
+                val successorIntent = consumedIntent("two-deleted-successor", group, CONSUMED_AT.plusSeconds(60))
+                uploadIntentRepository.persist(successorIntent)
+                val successor = ExpenseSupportingDocumentAttachment.replace(original, successorIntent)
+                val deletedSuccessor = successor.delete(group.owner, DELETED_AT)
+                repository.persistAll(listOf(original, successor))
+
+                repository.persist(deletedSuccessor)
+
+                assertAttachmentsEqual(emptyList(), repository.findCurrentByExpenseAndGroup(expense, group.id))
             }
     }
 
@@ -473,7 +577,7 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
     }
 
     private fun ExpenseSupportingDocumentAttachment.toProperties(): AttachmentProperties =
-        AttachmentProperties(sourceUploadIntent, group, expense, replacesSourceUploadIntent)
+        AttachmentProperties(sourceUploadIntent, group, expense, replacesSourceUploadIntent, deletion)
 
     private data class SeededGroup(
         val id: GroupId,
@@ -485,12 +589,14 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
         val group: GroupId,
         val expense: ExpenseId,
         val replacesSourceUploadIntent: DocumentUploadIntentId?,
+        val deletion: SupportingDocumentAttachmentDeletion?,
     )
 
     private companion object {
         val CREATED_AT: Instant = Instant.parse("2026-08-30T10:00:00Z")
         val READY_AT: Instant = Instant.parse("2026-08-30T10:01:00Z")
         val CONSUMED_AT: Instant = Instant.parse("2026-08-30T10:02:00Z")
+        val DELETED_AT: Instant = Instant.parse("2026-08-30T10:03:00Z")
         val EXPIRES_AT: Instant = Instant.parse("2026-08-30T10:05:00Z")
         val METADATA =
             DocumentMetadata(
