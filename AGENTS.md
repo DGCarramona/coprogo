@@ -136,6 +136,7 @@ Repository adapters must be designed for expected data volume and query shape. W
 - IDs keep primitive storage private and expose it only through `toPrimitive()`; they expose neither direct `value` nor custom `toString()`.
 - Repository ports and I/O-crossing application use cases are `suspend`; keep domain synchronous and pure, and mark an HTTP endpoint `suspend` only when it invokes a suspendable path.
 - A use case receiving `GroupId` first calls `GroupAccessPolicy.requireMember`. Financial calculations use money-safe representations and deterministic rounding.
+- SHOULD prefer readable chained operations when a value flows linearly through transformations or a terminal action, rather than introducing single-use intermediate variables. Break a chain when named values, distinct error paths, or explicit side effects make the workflow clearer.
 - Do not create a Kotlin extension function used only once unless reuse, a transversal semantic contract, or notable composition is explicitly justified; otherwise use a normal private function or inline/local code.
 - The general quality bar is explicit types, fail-fast validation, small cohesive functions/classes, readable names, immutable domain values, explicit money and audit/event models, and no transport or persistence concern in Domain.
 
