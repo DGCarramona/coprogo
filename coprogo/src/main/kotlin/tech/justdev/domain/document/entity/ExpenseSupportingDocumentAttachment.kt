@@ -59,27 +59,6 @@ class ExpenseSupportingDocumentAttachment private constructor(
                 deletion = null,
             )
         }
-
-        fun replace(
-            replaced: ExpenseSupportingDocumentAttachment,
-            intent: DocumentUploadIntent,
-        ): ExpenseSupportingDocumentAttachment {
-            require(replaced.deletion == null) {
-                "deleted supporting document cannot be replaced"
-            }
-            require(replaced.group == intent.group) {
-                "replaced and replacement documents must belong to the same group"
-            }
-            require(replaced.sourceUploadIntent != intent.id) {
-                "replaced and replacement documents must use distinct upload intents"
-            }
-
-            return attach(
-                expense = replaced.expense,
-                group = replaced.group,
-                intent = intent,
-            ).copyReplacing(replaced.sourceUploadIntent)
-        }
     }
 
     fun delete(
@@ -91,6 +70,24 @@ class ExpenseSupportingDocumentAttachment private constructor(
         }
 
         return copy(deletion = SupportingDocumentAttachmentDeletion(by, at))
+    }
+
+    fun replaceWith(intent: DocumentUploadIntent): ExpenseSupportingDocumentAttachment {
+        require(deletion == null) {
+            "deleted supporting document cannot be replaced"
+        }
+        require(group == intent.group) {
+            "replaced and replacement documents must belong to the same group"
+        }
+        require(sourceUploadIntent != intent.id) {
+            "replaced and replacement documents must use distinct upload intents"
+        }
+
+        return attach(
+            expense = expense,
+            group = group,
+            intent = intent,
+        ).copyReplacing(sourceUploadIntent)
     }
 
     private fun copyReplacing(replaced: DocumentUploadIntentId): ExpenseSupportingDocumentAttachment =

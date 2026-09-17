@@ -7,6 +7,18 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import tech.justdev.domain.document.entity.DocumentMetadata
+import tech.justdev.domain.document.entity.DocumentUploadIntent
+import tech.justdev.domain.document.entity.DocumentUploadIntentStatus
+import tech.justdev.domain.document.entity.ExpenseSupportingDocumentAttachment
+import tech.justdev.domain.document.repository.DocumentUploadIntentRepository
+import tech.justdev.domain.document.repository.ExpenseSupportingDocumentAttachmentRepository
+import tech.justdev.domain.document.valueobject.DocumentFileName
+import tech.justdev.domain.document.valueobject.DocumentMediaType
+import tech.justdev.domain.document.valueobject.DocumentSha256
+import tech.justdev.domain.document.valueobject.DocumentSize
+import tech.justdev.domain.document.valueobject.DocumentStorageKey
+import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
 import tech.justdev.domain.expense.entity.Expense
 import tech.justdev.domain.expense.repository.ExpenseRepository
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
@@ -22,7 +34,9 @@ import tech.justdev.testsupport.PostgresMicronautTest
 import tech.justdev.testsupport.expenseId
 import tech.justdev.testsupport.groupId
 import tech.justdev.testsupport.memberEmail
+import tech.justdev.testsupport.testUuid
 import java.time.Instant
+import java.util.Base64
 
 @PostgresMicronautTest
 class R2dbcExpenseRepositoryIntegrationTest {
@@ -34,6 +48,12 @@ class R2dbcExpenseRepositoryIntegrationTest {
 
     @Inject
     lateinit var groupRepository: GroupRepository
+
+    @Inject
+    lateinit var documentUploadIntentRepository: DocumentUploadIntentRepository
+
+    @Inject
+    lateinit var attachmentRepository: ExpenseSupportingDocumentAttachmentRepository
 
     @Nested
     inner class Persist {
@@ -130,6 +150,22 @@ class R2dbcExpenseRepositoryIntegrationTest {
             }
 
         @Test
+        fun `should hydrate every current supporting document without historical versions`() =
+            runTest {
+                val stored = expenseWithEqualSplit("doc-find-expense")
+                expenseRepository.persist(stored)
+                val original = persistCurrentAttachment(stored, "original")
+                val replacement = persistReplacementAttachment(original, "replacement")
+                val deleted = persistCurrentAttachment(stored, "deleted")
+                attachmentRepository.persist(deleted.delete(stored.createdBy, Instant.parse("2026-06-01T11:00:00Z")))
+
+                val found = requireNotNull(expenseRepository.findByIdAndGroup(stored.id, stored.group))
+
+                assertEquals(stored, found.copy(supportingDocuments = emptyList()))
+                assertEquals(listOf(replacement.snapshot()), found.supportingDocuments.map { attachment -> attachment.snapshot() })
+            }
+
+        @Test
         fun `should return null when no expense exists for the id`() =
             runTest {
                 assertNull(
@@ -205,6 +241,24 @@ class R2dbcExpenseRepositoryIntegrationTest {
             }
 
         @Test
+        fun `should hydrate current supporting documents when still proposed`() =
+            runTest {
+                val stored = expenseWithEqualSplit("doc-proposed-expense")
+                expenseRepository.persist(stored)
+                val attachment = persistCurrentAttachment(stored, "proposed")
+
+                val found = requireNotNull(expenseRepository.findProposedByIdAndGroup(stored.id, stored.group))
+
+                assertEquals(stored, found.copy(supportingDocuments = emptyList()))
+                assertEquals(
+                    listOf(attachment.snapshot()),
+                    found.supportingDocuments.map { currentAttachment ->
+                        currentAttachment.snapshot()
+                    },
+                )
+            }
+
+        @Test
         fun `should return null when the expense id belongs to another group`() =
             runTest {
                 val stored = expenseWithEqualSplit("proposed-expense-other-group")
@@ -272,6 +326,29 @@ class R2dbcExpenseRepositoryIntegrationTest {
                 val result = expenseRepository.findByGroup(emptyGroup)
                 assertTrue(result.isEmpty())
             }
+
+        @Test
+        fun `should hydrate documents for the full group through the aggregate reads`() =
+            runTest {
+                val group = groupId("doc-group")
+                val owner = memberEmail("doc-group-owner")
+                persistMember(owner)
+                persistGroup(group, owner)
+                val first = expenseWithEqualSplit("doc-group-first", groupOverride = group, ownerOverride = owner)
+                val second = expenseWithEqualSplit("doc-group-second", groupOverride = group, ownerOverride = owner)
+                expenseRepository.persist(first)
+                expenseRepository.persist(second)
+                val firstAttachment = persistCurrentAttachment(first, "group-first")
+                val secondAttachment = persistCurrentAttachment(second, "group-second")
+
+                assertEquals(
+                    mapOf(first.id to listOf(firstAttachment.snapshot()), second.id to listOf(secondAttachment.snapshot())),
+                    expenseRepository
+                        .findByGroup(first.group)
+                        .filter { expense -> expense.id in setOf(first.id, second.id) }
+                        .associate { expense -> expense.id to expense.supportingDocuments.map { attachment -> attachment.snapshot() } },
+                )
+            }
     }
 
     private suspend fun expenseWithEqualSplit(
@@ -311,5 +388,68 @@ class R2dbcExpenseRepositoryIntegrationTest {
                 createdAt = Instant.parse("2026-04-13T10:00:00Z"),
             ),
         )
+    }
+
+    private suspend fun persistCurrentAttachment(
+        expense: Expense,
+        seed: String,
+    ): ExpenseSupportingDocumentAttachment {
+        val intent = readyIntent(expense, seed)
+        documentUploadIntentRepository.persist(intent)
+        val consumed = intent.consume(Instant.parse("2026-06-01T10:30:00Z"))
+        documentUploadIntentRepository.persist(consumed)
+        val attachment = ExpenseSupportingDocumentAttachment.attach(expense.id, expense.group, consumed)
+        attachmentRepository.persist(attachment)
+        return attachment
+    }
+
+    private suspend fun persistReplacementAttachment(
+        replaced: ExpenseSupportingDocumentAttachment,
+        seed: String,
+    ): ExpenseSupportingDocumentAttachment {
+        val expense = requireNotNull(expenseRepository.findByIdAndGroup(replaced.expense, replaced.group))
+        val intent = readyIntent(expense, seed)
+        documentUploadIntentRepository.persist(intent)
+        val consumed = intent.consume(Instant.parse("2026-06-01T10:30:00Z"))
+        documentUploadIntentRepository.persist(consumed)
+        val replacement = replaced.replaceWith(consumed)
+        attachmentRepository.persist(replacement)
+        return replacement
+    }
+
+    private fun readyIntent(
+        expense: Expense,
+        seed: String,
+    ): DocumentUploadIntent =
+        DocumentUploadIntent.restore(
+            id = DocumentUploadIntentId(testUuid("erd-$seed")),
+            group = expense.group,
+            uploader = expense.createdBy,
+            storageKey = DocumentStorageKey.of("groups/${expense.group.toPrimitive()}/documents/$seed.pdf"),
+            fileName = DocumentFileName.of("$seed.pdf"),
+            expectedMetadata = DOCUMENT_METADATA,
+            createdAt = Instant.parse("2026-06-01T09:00:00Z"),
+            expiresAt = Instant.parse("2026-06-01T11:00:00Z"),
+            status = DocumentUploadIntentStatus.Ready(Instant.parse("2026-06-01T10:00:00Z")),
+        )
+
+    private fun ExpenseSupportingDocumentAttachment.snapshot() =
+        SupportingDocumentSnapshot(
+            sourceUploadIntent = sourceUploadIntent,
+            replacesSourceUploadIntent = replacesSourceUploadIntent,
+        )
+
+    private data class SupportingDocumentSnapshot(
+        val sourceUploadIntent: DocumentUploadIntentId,
+        val replacesSourceUploadIntent: DocumentUploadIntentId?,
+    )
+
+    private companion object {
+        val DOCUMENT_METADATA =
+            DocumentMetadata(
+                mediaType = DocumentMediaType.of("application/pdf"),
+                size = DocumentSize.ofBytes(128),
+                checksum = DocumentSha256.fromBase64(Base64.getEncoder().encodeToString(ByteArray(32))),
+            )
     }
 }

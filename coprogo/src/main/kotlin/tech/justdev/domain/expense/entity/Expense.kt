@@ -1,5 +1,9 @@
 package tech.justdev.domain.expense.entity
 
+import tech.justdev.domain.document.entity.DocumentUploadIntent
+import tech.justdev.domain.document.entity.ExpenseSupportingDocumentAttachment
+import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
+import tech.justdev.domain.expense.exception.ExpenseSupportingDocumentAttachmentUnavailableException
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.expense.valueobject.ExpenseParticipation
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
@@ -28,6 +32,16 @@ private data class CumulativeTierAllocation(
     val amountsByMember: Map<MemberEmail, MoneyAmount>,
 )
 
+data class ExpenseSupportingDocumentReplacement(
+    val expense: Expense,
+    val replacement: ExpenseSupportingDocumentAttachment,
+)
+
+data class ExpenseSupportingDocumentDeletion(
+    val expense: Expense,
+    val deleted: ExpenseSupportingDocumentAttachment,
+)
+
 data class Expense(
     val id: ExpenseId,
     val group: GroupId,
@@ -36,6 +50,7 @@ data class Expense(
     val totalAmount: MoneyAmount,
     val createdAt: Instant,
     val participations: Set<ExpenseParticipation>,
+    val supportingDocuments: List<ExpenseSupportingDocumentAttachment> = emptyList(),
 ) {
     init {
         require(title.isNotBlank()) { "title must not be blank" }
@@ -48,6 +63,20 @@ data class Expense(
         }
         require(participations.any { it.member == createdBy && it.amount > MoneyAmount.ZERO }) {
             "creator must participate in the expense"
+        }
+        require(supportingDocuments.all { document -> document.group == group }) {
+            "supporting documents must belong to the expense group"
+        }
+        require(supportingDocuments.all { document -> document.expense == id }) {
+            "supporting documents must belong to the expense"
+        }
+        require(supportingDocuments.all { document -> document.deletion == null }) {
+            "supporting documents must be current and active"
+        }
+        require(
+            supportingDocuments.map(ExpenseSupportingDocumentAttachment::sourceUploadIntent).distinct().size == supportingDocuments.size,
+        ) {
+            "supporting documents must use unique upload intents"
         }
     }
 
@@ -110,6 +139,67 @@ data class Expense(
         require(status == ExpenseStatus.PROPOSED) {
             "supporting documents can only be changed while the expense is proposed"
         }
+    }
+
+    fun attachSupportingDocuments(consumedUploadIntents: List<DocumentUploadIntent>): Expense {
+        require(supportingDocuments.isEmpty()) { "supporting documents can only be attached to an expense without documents" }
+
+        return copy(
+            supportingDocuments =
+                consumedUploadIntents.map { intent ->
+                    ExpenseSupportingDocumentAttachment.attach(
+                        expense = id,
+                        group = group,
+                        intent = intent,
+                    )
+                },
+        )
+    }
+
+    fun replaceSupportingDocument(
+        sourceUploadIntent: DocumentUploadIntentId,
+        replacementIntent: DocumentUploadIntent,
+        requestedBy: MemberEmail,
+    ): ExpenseSupportingDocumentReplacement? {
+        requireSupportingDocumentChangeBy(requestedBy)
+
+        return supportingDocuments
+            .find { it.sourceUploadIntent == sourceUploadIntent }
+            .let { it ?: return null }
+            .replaceWith(replacementIntent)
+            .let {
+                ExpenseSupportingDocumentReplacement(
+                    expense =
+                        copy(
+                            supportingDocuments =
+                                supportingDocuments
+                                    .filterNot { document -> document.sourceUploadIntent == sourceUploadIntent }
+                                    .plus(it),
+                        ),
+                    replacement = it,
+                )
+            }
+    }
+
+    fun deleteSupportingDocument(
+        sourceUploadIntent: DocumentUploadIntentId,
+        requestedBy: MemberEmail,
+        deletedAt: Instant,
+    ): ExpenseSupportingDocumentDeletion {
+        requireSupportingDocumentChangeBy(requestedBy)
+
+        return ExpenseSupportingDocumentDeletion(
+            expense =
+                copy(
+                    supportingDocuments =
+                        supportingDocuments.filterNot { it.sourceUploadIntent == sourceUploadIntent },
+                ),
+            deleted =
+                supportingDocuments
+                    .find { it.sourceUploadIntent == sourceUploadIntent }
+                    .let { it ?: throw ExpenseSupportingDocumentAttachmentUnavailableException() }
+                    .delete(by = requestedBy, at = deletedAt),
+        )
     }
 
     companion object {

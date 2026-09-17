@@ -242,7 +242,7 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
                 val original = attachment("replacement-original", group, expense)
                 val replacementIntent = consumedIntent("replacement-successor", group, CONSUMED_AT.plusSeconds(60))
                 uploadIntentRepository.persist(replacementIntent)
-                val replacement = ExpenseSupportingDocumentAttachment.replace(original, replacementIntent)
+                val replacement = original.replaceWith(replacementIntent)
 
                 repository.persistAll(listOf(original, replacement))
                 repository.persistAll(listOf(replacement, original))
@@ -368,7 +368,7 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
                 val successorIntent = consumedIntent("current-successor", group, CONSUMED_AT.plusSeconds(120))
                 val unreplaced = attachment("current-unreplaced", group, expense, CONSUMED_AT.plusSeconds(60))
                 uploadIntentRepository.persist(successorIntent)
-                val successor = ExpenseSupportingDocumentAttachment.replace(original, successorIntent)
+                val successor = original.replaceWith(successorIntent)
 
                 repository.persistAll(listOf(original, successor, unreplaced))
 
@@ -386,7 +386,7 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
                 val original = attachment("one-deleted-successor", group, expense)
                 val successorIntent = consumedIntent("two-deleted-successor", group, CONSUMED_AT.plusSeconds(60))
                 uploadIntentRepository.persist(successorIntent)
-                val successor = ExpenseSupportingDocumentAttachment.replace(original, successorIntent)
+                val successor = original.replaceWith(successorIntent)
                 val deletedSuccessor = successor.delete(group.owner, DELETED_AT)
                 repository.persistAll(listOf(original, successor))
 
@@ -406,7 +406,7 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
                 val original = attachment("qa-cbs-original", group, expense)
                 val replacementIntent = consumedIntent("qa-cbs-successor", group, CONSUMED_AT.plusSeconds(60))
                 uploadIntentRepository.persist(replacementIntent)
-                val replacement = ExpenseSupportingDocumentAttachment.replace(original, replacementIntent)
+                val replacement = original.replaceWith(replacementIntent)
                 repository.persistAll(listOf(original, replacement))
 
                 assertEquals(
@@ -429,7 +429,7 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
                 val original = attachment("qb-rbs-original", group, expense)
                 val replacementIntent = consumedIntent("qb-rbs-successor", group, CONSUMED_AT.plusSeconds(60))
                 uploadIntentRepository.persist(replacementIntent)
-                val replacement = ExpenseSupportingDocumentAttachment.replace(original, replacementIntent)
+                val replacement = original.replaceWith(replacementIntent)
                 repository.persistAll(listOf(original, replacement))
 
                 assertNull(
@@ -489,7 +489,7 @@ class R2dbcExpenseSupportingDocumentAttachmentRepositoryIntegrationTest {
                 val second = attachment("history-second", group, expense, CONSUMED_AT.plusSeconds(60))
                 val replacementIntent = consumedIntent("history-replacement", group, CONSUMED_AT.plusSeconds(120))
                 uploadIntentRepository.persist(replacementIntent)
-                val replacement = ExpenseSupportingDocumentAttachment.replace(first, replacementIntent)
+                val replacement = first.replaceWith(replacementIntent)
 
                 repository.persistAll(listOf(second, replacement, first))
 

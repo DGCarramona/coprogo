@@ -26,7 +26,7 @@ import tech.justdev.domain.group.repository.GroupRepository
 import tech.justdev.domain.group.repository.MemberRepository
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.money.MoneyAmount
-import tech.justdev.infrastructure.persistence.expense.R2dbcExpenseSupportingDocumentDeletion
+import tech.justdev.infrastructure.persistence.expense.R2dbcExpenseSupportingDocumentDeletionPersistence
 import tech.justdev.testsupport.PostgresMicronautTest
 import tech.justdev.testsupport.expenseId
 import tech.justdev.testsupport.groupId
@@ -53,7 +53,7 @@ class DeleteExpenseSupportingDocumentUseCaseIntegrationTest {
     lateinit var attachmentRepository: ExpenseSupportingDocumentAttachmentRepository
 
     @Inject
-    lateinit var deletion: R2dbcExpenseSupportingDocumentDeletion
+    lateinit var deletionPersistence: R2dbcExpenseSupportingDocumentDeletionPersistence
 
     @Nested
     inner class Invoke {
@@ -98,7 +98,7 @@ class DeleteExpenseSupportingDocumentUseCaseIntegrationTest {
     private fun useCase(): DeleteExpenseSupportingDocumentUseCase =
         DeleteExpenseSupportingDocumentUseCaseImpl(
             groupAccessPolicy = GroupAccessPolicy(groupRepository),
-            expenseSupportingDocumentDeletion = deletion,
+            expenseSupportingDocumentDeletionPersistence = deletionPersistence,
         )
 
     private suspend fun persistFixture(seed: String): Fixture {

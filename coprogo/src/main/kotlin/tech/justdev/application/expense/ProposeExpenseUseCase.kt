@@ -3,7 +3,6 @@ package tech.justdev.application.expense
 import jakarta.inject.Singleton
 import tech.justdev.application.group.GroupAccessPolicy
 import tech.justdev.domain.document.entity.DocumentUploadIntent
-import tech.justdev.domain.document.entity.ExpenseSupportingDocumentAttachment
 import tech.justdev.domain.document.repository.DocumentUploadIntentRepository
 import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
 import tech.justdev.domain.expense.entity.CumulativeExpenseTier
@@ -109,17 +108,12 @@ class ProposeExpenseUseCaseImpl(
             )
         }
 
-        val expenseId = expenseIdGenerator.next()
-        val expense = command.toExpense(expenseId)
-        val attachments =
-            consumedUploadIntents.map { intent ->
-                ExpenseSupportingDocumentAttachment.attach(
-                    expense = expense.id,
-                    group = command.group,
-                    intent = intent,
-                )
-            }
-        expenseProposalPersistence.persist(expense, consumedUploadIntents, attachments)
+        expenseProposalPersistence.persist(
+            command
+                .toExpense(expenseIdGenerator.next())
+                .attachSupportingDocuments(consumedUploadIntents),
+            consumedUploadIntents,
+        )
     }
 }
 

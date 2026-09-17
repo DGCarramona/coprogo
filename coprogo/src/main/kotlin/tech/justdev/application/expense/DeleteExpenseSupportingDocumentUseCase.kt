@@ -23,24 +23,19 @@ interface DeleteExpenseSupportingDocumentUseCase {
 @Singleton
 class DeleteExpenseSupportingDocumentUseCaseImpl(
     private val groupAccessPolicy: GroupAccessPolicy,
-    private val expenseSupportingDocumentDeletion: ExpenseSupportingDocumentDeletion,
+    private val expenseSupportingDocumentDeletionPersistence: ExpenseSupportingDocumentDeletionPersistence,
 ) : DeleteExpenseSupportingDocumentUseCase {
     override suspend operator fun invoke(command: DeleteExpenseSupportingDocumentCommand) {
         groupAccessPolicy.requireMember(command.group, command.requestedBy)
-        expenseSupportingDocumentDeletion.inTransaction { scope ->
-            val expense =
-                scope.findExpense(command.expense, command.group)
-                    ?: throw ExpenseNotFoundException(command.expense, command.group)
-            expense.requireSupportingDocumentChangeBy(command.requestedBy)
-
-            val attachment =
-                scope.findCurrentAttachment(
+        expenseSupportingDocumentDeletionPersistence.inTransaction { scope ->
+            scope
+                .findExpense(command.expense, command.group)
+                .let { it ?: throw ExpenseNotFoundException(command.expense, command.group) }
+                .deleteSupportingDocument(
                     sourceUploadIntent = command.sourceUploadIntent,
-                    expense = command.expense,
-                    group = command.group,
-                ) ?: throw ExpenseSupportingDocumentAttachmentUnavailableException()
-
-            scope.persist(attachment.delete(command.requestedBy, command.deletedAt))
+                    requestedBy = command.requestedBy,
+                    deletedAt = command.deletedAt,
+                ).let { scope.persist(it) }
         }
     }
 }

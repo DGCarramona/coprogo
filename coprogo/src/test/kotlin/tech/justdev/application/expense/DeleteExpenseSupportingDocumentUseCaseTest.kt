@@ -17,6 +17,7 @@ import tech.justdev.domain.document.valueobject.DocumentSize
 import tech.justdev.domain.document.valueobject.DocumentStorageKey
 import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
 import tech.justdev.domain.expense.entity.Expense
+import tech.justdev.domain.expense.exception.ExpenseSupportingDocumentAttachmentUnavailableException
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
 import tech.justdev.domain.expense.valueobject.ExpenseShare
 import tech.justdev.domain.group.entity.Group
@@ -41,7 +42,7 @@ class DeleteExpenseSupportingDocumentUseCaseTest {
                     runTest {
                         useCase(
                             groupRepository = RecordingGroupRepository(null),
-                            deletion = FailingExpenseSupportingDocumentDeletion(),
+                            deletionPersistence = FailingExpenseSupportingDocumentDeletionPersistence(),
                         )(command())
                     }
                 }
@@ -53,7 +54,7 @@ class DeleteExpenseSupportingDocumentUseCaseTest {
         fun `should reject an absent expense`() {
             val error =
                 assertThrows<ExpenseNotFoundException> {
-                    runTest { useCase(deletion = recordingDeletion(expense = null))(command()) }
+                    runTest { useCase(deletionPersistence = recordingDeletionPersistence(expense = null))(command()) }
                 }
 
             assertEquals(EXPENSE, error.id)
@@ -71,7 +72,10 @@ class DeleteExpenseSupportingDocumentUseCaseTest {
                     runCatching {
                         runTest {
                             useCase(
-                                deletion = RecordingExpenseSupportingDocumentDeletion(FailingAttachmentScope(expense)),
+                                deletionPersistence =
+                                    RecordingExpenseSupportingDocumentDeletionPersistence(
+                                        FailingAttachmentScope(expense),
+                                    ),
                             )(command(requestedBy = requestedBy))
                         }
                     }.exceptionOrNull()?.let { error -> DeletionGuardOutcome(error.javaClass, error.message) }
@@ -100,7 +104,7 @@ class DeleteExpenseSupportingDocumentUseCaseTest {
         fun `should reject an absent current attachment`() {
             val error =
                 assertThrows<ExpenseSupportingDocumentAttachmentUnavailableException> {
-                    runTest { useCase(deletion = recordingDeletion(attachment = null))(command()) }
+                    runTest { useCase(deletionPersistence = recordingDeletionPersistence(expense = proposedExpense()))(command()) }
                 }
 
             assertEquals("expense supporting document attachment is unavailable", error.message)
@@ -109,12 +113,11 @@ class DeleteExpenseSupportingDocumentUseCaseTest {
         @Test
         fun `should persist the exact audited deletion in the transaction`() =
             runTest {
-                val deletion = recordingDeletion()
+                val deletionPersistence = recordingDeletionPersistence()
 
-                useCase(deletion = deletion)(command())
+                useCase(deletionPersistence = deletionPersistence)(command())
 
-                assertEquals(listOf(ExpenseLookup(EXPENSE, GROUP)), deletion.scope.expenseLookups)
-                assertEquals(listOf(AttachmentLookup(UPLOAD_INTENT, EXPENSE, GROUP)), deletion.scope.attachmentLookups)
+                assertEquals(listOf(ExpenseLookup(EXPENSE, GROUP)), deletionPersistence.scope.expenseLookups)
                 assertEquals(
                     listOf(
                         DeletionPersistenceSnapshot(
@@ -125,24 +128,26 @@ class DeleteExpenseSupportingDocumentUseCaseTest {
                             deletedAt = DELETED_AT,
                         ),
                     ),
-                    deletion.scope.persisted,
+                    deletionPersistence.scope.persisted,
                 )
             }
     }
 
     private fun useCase(
         groupRepository: GroupRepository = RecordingGroupRepository(group()),
-        deletion: ExpenseSupportingDocumentDeletion = recordingDeletion(),
+        deletionPersistence: ExpenseSupportingDocumentDeletionPersistence = recordingDeletionPersistence(),
     ): DeleteExpenseSupportingDocumentUseCase =
         DeleteExpenseSupportingDocumentUseCaseImpl(
             groupAccessPolicy = GroupAccessPolicy(groupRepository),
-            expenseSupportingDocumentDeletion = deletion,
+            expenseSupportingDocumentDeletionPersistence = deletionPersistence,
         )
 
-    private fun recordingDeletion(
-        expense: Expense? = proposedExpense(),
-        attachment: ExpenseSupportingDocumentAttachment? = currentAttachment(),
-    ): RecordingExpenseSupportingDocumentDeletion = RecordingExpenseSupportingDocumentDeletion(RecordingScope(expense, attachment))
+    private fun recordingDeletionPersistence(
+        expense: Expense? = proposedExpense().copy(supportingDocuments = listOf(currentAttachment())),
+    ): RecordingExpenseSupportingDocumentDeletionPersistence =
+        RecordingExpenseSupportingDocumentDeletionPersistence(
+            RecordingScope(expense),
+        )
 
     private fun command(requestedBy: MemberEmail = CREATOR): DeleteExpenseSupportingDocumentCommand =
         DeleteExpenseSupportingDocumentCommand(
@@ -206,24 +211,22 @@ class DeleteExpenseSupportingDocumentUseCaseTest {
         override suspend fun persist(group: Group) = Unit
     }
 
-    private class FailingExpenseSupportingDocumentDeletion : ExpenseSupportingDocumentDeletion {
-        override suspend fun <T> inTransaction(block: suspend (ExpenseSupportingDocumentDeletionScope) -> T): Nothing =
+    private class FailingExpenseSupportingDocumentDeletionPersistence : ExpenseSupportingDocumentDeletionPersistence {
+        override suspend fun <T> inTransaction(block: suspend (ExpenseSupportingDocumentDeletionPersistenceScope) -> T): Nothing =
             error("deletion transaction must not open before membership validation")
     }
 
-    private class RecordingExpenseSupportingDocumentDeletion(
+    private class RecordingExpenseSupportingDocumentDeletionPersistence(
         val scope: RecordingScope,
-    ) : ExpenseSupportingDocumentDeletion {
-        override suspend fun <T> inTransaction(block: suspend (ExpenseSupportingDocumentDeletionScope) -> T): T = block(scope)
+    ) : ExpenseSupportingDocumentDeletionPersistence {
+        override suspend fun <T> inTransaction(block: suspend (ExpenseSupportingDocumentDeletionPersistenceScope) -> T): T = block(scope)
     }
 
     private open class RecordingScope(
         private val expense: Expense?,
-        private val attachment: ExpenseSupportingDocumentAttachment?,
-    ) : ExpenseSupportingDocumentDeletionScope {
+    ) : ExpenseSupportingDocumentDeletionPersistenceScope {
         val persisted = mutableListOf<DeletionPersistenceSnapshot>()
         val expenseLookups = mutableListOf<ExpenseLookup>()
-        val attachmentLookups = mutableListOf<AttachmentLookup>()
 
         override suspend fun findExpense(
             id: tech.justdev.domain.expense.valueobject.ExpenseId,
@@ -233,16 +236,8 @@ class DeleteExpenseSupportingDocumentUseCaseTest {
             return expense
         }
 
-        override suspend fun findCurrentAttachment(
-            sourceUploadIntent: DocumentUploadIntentId,
-            expense: tech.justdev.domain.expense.valueobject.ExpenseId,
-            group: GroupId,
-        ): ExpenseSupportingDocumentAttachment? {
-            attachmentLookups += AttachmentLookup(sourceUploadIntent, expense, group)
-            return attachment
-        }
-
-        override suspend fun persist(deletedAttachment: ExpenseSupportingDocumentAttachment) {
+        override suspend fun persist(deletion: tech.justdev.domain.expense.entity.ExpenseSupportingDocumentDeletion) {
+            val deletedAttachment = deletion.deleted
             val deletion = requireNotNull(deletedAttachment.deletion)
             persisted +=
                 DeletionPersistenceSnapshot(
@@ -257,22 +252,13 @@ class DeleteExpenseSupportingDocumentUseCaseTest {
 
     private class FailingAttachmentScope(
         expense: Expense,
-    ) : RecordingScope(expense, null) {
-        override suspend fun findCurrentAttachment(
-            sourceUploadIntent: DocumentUploadIntentId,
-            expense: tech.justdev.domain.expense.valueobject.ExpenseId,
-            group: GroupId,
-        ): Nothing = error("attachment must not be read before the expense document guard")
+    ) : RecordingScope(expense) {
+        override suspend fun persist(deletion: tech.justdev.domain.expense.entity.ExpenseSupportingDocumentDeletion): Nothing =
+            error("attachment must not be changed before the expense document guard")
     }
 
     private data class ExpenseLookup(
         val id: tech.justdev.domain.expense.valueobject.ExpenseId,
-        val group: GroupId,
-    )
-
-    private data class AttachmentLookup(
-        val sourceUploadIntent: DocumentUploadIntentId,
-        val expense: tech.justdev.domain.expense.valueobject.ExpenseId,
         val group: GroupId,
     )
 

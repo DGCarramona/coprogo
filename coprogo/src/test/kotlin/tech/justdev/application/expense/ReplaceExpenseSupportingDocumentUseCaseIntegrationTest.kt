@@ -26,6 +26,7 @@ import tech.justdev.domain.document.valueobject.DocumentSize
 import tech.justdev.domain.document.valueobject.DocumentStorageKey
 import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
 import tech.justdev.domain.expense.entity.Expense
+import tech.justdev.domain.expense.exception.ExpenseSupportingDocumentAttachmentUnavailableException
 import tech.justdev.domain.expense.repository.ExpenseRepository
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
 import tech.justdev.domain.expense.valueobject.ExpenseShare
@@ -35,7 +36,7 @@ import tech.justdev.domain.group.repository.GroupRepository
 import tech.justdev.domain.group.repository.MemberRepository
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.money.MoneyAmount
-import tech.justdev.infrastructure.persistence.expense.R2dbcExpenseSupportingDocumentReplacement
+import tech.justdev.infrastructure.persistence.expense.R2dbcExpenseSupportingDocumentReplacementPersistence
 import tech.justdev.testsupport.PostgresMicronautTest
 import tech.justdev.testsupport.expenseId
 import tech.justdev.testsupport.groupId
@@ -62,7 +63,7 @@ class ReplaceExpenseSupportingDocumentUseCaseIntegrationTest {
     lateinit var attachmentRepository: ExpenseSupportingDocumentAttachmentRepository
 
     @Inject
-    lateinit var replacement: R2dbcExpenseSupportingDocumentReplacement
+    lateinit var replacementPersistence: R2dbcExpenseSupportingDocumentReplacementPersistence
 
     @Inject
     lateinit var transactionRunner: TransactionRunner
@@ -193,7 +194,7 @@ class ReplaceExpenseSupportingDocumentUseCaseIntegrationTest {
                 val replacementAttempt =
                     async(start = CoroutineStart.UNDISPATCHED) {
                         runCatching {
-                            replacement.inTransaction { scope ->
+                            replacementPersistence.inTransaction { scope ->
                                 val expense = requireNotNull(scope.findExpense(fixture.expense.id, fixture.group.id))
                                 expense.requireSupportingDocumentChangeBy(fixture.creator)
                             }
@@ -225,7 +226,7 @@ class ReplaceExpenseSupportingDocumentUseCaseIntegrationTest {
     private fun useCase(): ReplaceExpenseSupportingDocumentUseCase =
         ReplaceExpenseSupportingDocumentUseCaseImpl(
             groupAccessPolicy = GroupAccessPolicy(groupRepository),
-            expenseSupportingDocumentReplacement = replacement,
+            expenseSupportingDocumentReplacementPersistence = replacementPersistence,
         )
 
     private fun replacementCommand(

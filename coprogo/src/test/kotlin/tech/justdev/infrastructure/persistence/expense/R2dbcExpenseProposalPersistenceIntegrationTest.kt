@@ -73,11 +73,19 @@ class R2dbcExpenseProposalPersistenceIntegrationTest {
                 documentUploadIntentRepository.persist(first)
                 documentUploadIntentRepository.persist(second)
                 val consumed = listOf(first.consume(CREATED_AT), second.consume(CREATED_AT))
-                val attachments = consumed.map { ExpenseSupportingDocumentAttachment.attach(expense.id, fixture.group.id, it) }
+                val documentedExpense = expense.attachSupportingDocuments(consumed)
 
-                persistence.persist(expense, consumed, attachments)
+                persistence.persist(documentedExpense, consumed)
 
-                assertEquals(expense, expenseRepository.findByIdAndGroup(expense.id, fixture.group.id))
+                val foundExpense = requireNotNull(expenseRepository.findByIdAndGroup(expense.id, fixture.group.id))
+                assertEquals(
+                    documentedExpense.copy(supportingDocuments = emptyList()),
+                    foundExpense.copy(supportingDocuments = emptyList()),
+                )
+                assertEquals(
+                    documentedExpense.supportingDocuments.map(ExpenseSupportingDocumentAttachment::sourceUploadIntent),
+                    foundExpense.supportingDocuments.map(ExpenseSupportingDocumentAttachment::sourceUploadIntent),
+                )
                 assertEquals(
                     consumed.map(DocumentUploadIntent::id).sortedBy(DocumentUploadIntentId::toPrimitive),
                     attachmentRepository
@@ -101,7 +109,7 @@ class R2dbcExpenseProposalPersistenceIntegrationTest {
                 val intent = readyIntent("rollback-proposal-document", fixture)
                 documentUploadIntentRepository.persist(intent)
                 val consumed = intent.consume(CREATED_AT)
-                val attachment = ExpenseSupportingDocumentAttachment.attach(expense.id, fixture.group.id, consumed)
+                val documentedExpense = expense.attachSupportingDocuments(listOf(consumed))
                 val failingPersistence =
                     R2dbcExpenseProposalPersistence(
                         transactionRunner = transactionRunner,
@@ -135,7 +143,7 @@ class R2dbcExpenseProposalPersistenceIntegrationTest {
 
                 val error =
                     assertThrows<IllegalStateException> {
-                        failingPersistence.persist(expense, listOf(consumed), listOf(attachment))
+                        failingPersistence.persist(documentedExpense, listOf(consumed))
                     }
 
                 assertEquals("attachment persistence failed", error.message)

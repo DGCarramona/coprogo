@@ -136,14 +136,14 @@ class ExpenseSupportingDocumentAttachmentTest {
     }
 
     @Nested
-    inner class Replace {
+    inner class ReplaceWith {
         @Test
         fun `should create a successor for a consumed upload intent in the same expense`() {
             val previousIntent = pendingIntent("previous").markReady(METADATA, READY_AT).consume(CONSUMED_AT)
             val replacementIntent = pendingIntent("replacement").markReady(METADATA, READY_AT).consume(CONSUMED_AT)
             val previous = ExpenseSupportingDocumentAttachment.attach(expenseId("documented"), previousIntent.group, previousIntent)
 
-            val replacement = ExpenseSupportingDocumentAttachment.replace(previous, replacementIntent)
+            val replacement = previous.replaceWith(replacementIntent)
 
             assertEquals(replacementIntent.id, replacement.sourceUploadIntent)
             assertEquals(previous.group, replacement.group)
@@ -160,7 +160,7 @@ class ExpenseSupportingDocumentAttachmentTest {
 
             val error =
                 assertThrows<IllegalArgumentException> {
-                    ExpenseSupportingDocumentAttachment.replace(previous, replacementIntent)
+                    previous.replaceWith(replacementIntent)
                 }
 
             assertEquals("replaced and replacement documents must belong to the same group", error.message)
@@ -173,7 +173,7 @@ class ExpenseSupportingDocumentAttachmentTest {
 
             val error =
                 assertThrows<IllegalArgumentException> {
-                    ExpenseSupportingDocumentAttachment.replace(previous, intent)
+                    previous.replaceWith(intent)
                 }
 
             assertEquals("replaced and replacement documents must use distinct upload intents", error.message)
@@ -190,7 +190,7 @@ class ExpenseSupportingDocumentAttachmentTest {
 
             val error =
                 assertThrows<IllegalArgumentException> {
-                    ExpenseSupportingDocumentAttachment.replace(deleted, replacementIntent)
+                    deleted.replaceWith(replacementIntent)
                 }
 
             assertEquals("deleted supporting document cannot be replaced", error.message)

@@ -72,7 +72,7 @@ class ProposeExpenseUseCaseTest {
                         createdAt = Instant.parse("2026-04-03T10:00:00Z"),
                         participants = setOf(memberEmail("alice")),
                     ),
-                    persisted.expense,
+                    persisted.expense.copy(supportingDocuments = emptyList()),
                 )
                 assertEquals(
                     listOf(first.id, second.id),
@@ -84,11 +84,11 @@ class ProposeExpenseUseCaseTest {
                 )
                 assertEquals(
                     listOf(first.id, second.id),
-                    persisted.attachments.map(ExpenseSupportingDocumentAttachment::sourceUploadIntent),
+                    persisted.expense.supportingDocuments.map(ExpenseSupportingDocumentAttachment::sourceUploadIntent),
                 )
                 assertEquals(
                     List(2) { expenseId("documented-expense") },
-                    persisted.attachments.map(ExpenseSupportingDocumentAttachment::expense),
+                    persisted.expense.supportingDocuments.map(ExpenseSupportingDocumentAttachment::expense),
                 )
             }
         }
@@ -610,7 +610,6 @@ class ProposeExpenseUseCaseTest {
     private data class PersistedExpenseProposal(
         val expense: Expense,
         val consumedUploadIntents: List<DocumentUploadIntent>,
-        val attachments: List<ExpenseSupportingDocumentAttachment>,
     )
 
     private data class UnavailableIntentOutcome(
@@ -627,9 +626,8 @@ class ProposeExpenseUseCaseTest {
         override suspend fun persist(
             expense: Expense,
             consumedUploadIntents: List<DocumentUploadIntent>,
-            attachments: List<ExpenseSupportingDocumentAttachment>,
         ) {
-            persisted += PersistedExpenseProposal(expense, consumedUploadIntents, attachments)
+            persisted += PersistedExpenseProposal(expense, consumedUploadIntents)
             expenseRepository?.persist(expense)
         }
     }

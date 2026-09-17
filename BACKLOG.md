@@ -131,6 +131,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-17.
 - [x] BE-DOC-006A Modeliser la suppression logique immuable et l'audit contraint d'un justificatif.
 - [x] BE-DOC-006B Persister la suppression logique et exclure les justificatifs supprimes des lectures courantes.
 - [x] BE-DOC-007 Enforcer la regle "seul le createur de l'evenement peut supprimer son justificatif".
+- [x] BE-DOC-007R Faire de `Expense` l'agregat des justificatifs courants, hydrates explicitement sans lazy.
 - [ ] BE-DOC-008 Exposer les endpoints REST d'upload, liste, consultation et suppression de justificatifs.
 - [ ] BE-DOC-009 Ajouter une vue d'historique audit des actions sensibles.
 - [ ] BE-DOC-010 Ajouter des tests d'integration sur la non-destruction de l'historique documentaire.

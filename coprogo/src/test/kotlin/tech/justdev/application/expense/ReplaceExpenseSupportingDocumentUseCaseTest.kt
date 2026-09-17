@@ -18,6 +18,7 @@ import tech.justdev.domain.document.valueobject.DocumentSize
 import tech.justdev.domain.document.valueobject.DocumentStorageKey
 import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
 import tech.justdev.domain.expense.entity.Expense
+import tech.justdev.domain.expense.exception.ExpenseSupportingDocumentAttachmentUnavailableException
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
 import tech.justdev.domain.expense.valueobject.ExpenseShare
 import tech.justdev.domain.group.entity.Group
@@ -42,7 +43,7 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
                     runTest {
                         useCase(
                             groupRepository = RecordingGroupRepository(null),
-                            replacement = FailingExpenseSupportingDocumentReplacement(),
+                            replacementPersistence = FailingExpenseSupportingDocumentReplacementPersistence(),
                         )(command())
                     }
                 }
@@ -55,7 +56,7 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
             val error =
                 assertThrows<ExpenseNotFoundException> {
                     runTest {
-                        useCase(replacement = recordingReplacement(expense = null))(command())
+                        useCase(replacementPersistence = recordingReplacementPersistence(expense = null))(command())
                     }
                 }
 
@@ -75,8 +76,8 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
                         runCatching {
                             runTest {
                                 useCase(
-                                    replacement =
-                                        RecordingExpenseSupportingDocumentReplacement(
+                                    replacementPersistence =
+                                        RecordingExpenseSupportingDocumentReplacementPersistence(
                                             FailingDocumentScope(expense),
                                         ),
                                 )(command(requestedBy = requestedBy))
@@ -110,7 +111,7 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
             val error =
                 assertThrows<ExpenseSupportingDocumentAttachmentUnavailableException> {
                     runTest {
-                        useCase(replacement = recordingReplacement(attachment = null))(command())
+                        useCase(replacementPersistence = recordingReplacementPersistence(expense = proposedExpense()))(command())
                     }
                 }
 
@@ -122,7 +123,7 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
             val error =
                 assertThrows<SupportingDocumentUploadIntentUnavailableException> {
                     runTest {
-                        useCase(replacement = recordingReplacement(intent = null))(command())
+                        useCase(replacementPersistence = recordingReplacementPersistence(intent = null))(command())
                     }
                 }
 
@@ -131,35 +132,31 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
 
         @Test
         fun `should reject consumption outside the replacement upload intent lifetime`() {
-            val replacement = recordingReplacement(intent = readyIntent("invalid-time"))
+            val replacementPersistence = recordingReplacementPersistence(intent = readyIntent("invalid-time"))
 
             val error =
                 assertThrows<SupportingDocumentUploadIntentUnavailableException> {
                     runTest {
-                        useCase(replacement = replacement)(command(replacedAt = CREATED_AT.minusSeconds(31)))
+                        useCase(replacementPersistence = replacementPersistence)(command(replacedAt = CREATED_AT.minusSeconds(31)))
                     }
                 }
 
             assertEquals("supporting document upload intent is unavailable", error.message)
-            assertEquals(emptyList<ReplacementPersistenceSnapshot>(), replacement.scope.persisted)
+            assertEquals(emptyList<ReplacementPersistenceSnapshot>(), replacementPersistence.scope.persisted)
         }
 
         @Test
         fun `should persist the consumed replacement intent and successor attachment in the transaction`() =
             runTest {
                 val replacementIntent = readyIntent("replacement")
-                val replacement = recordingReplacement(intent = replacementIntent)
+                val replacementPersistence = recordingReplacementPersistence(intent = replacementIntent)
 
-                useCase(replacement = replacement)(command())
+                useCase(replacementPersistence = replacementPersistence)(command())
 
-                assertEquals(listOf(ExpenseLookup(EXPENSE, GROUP)), replacement.scope.expenseLookups)
-                assertEquals(
-                    listOf(AttachmentLookup(ORIGINAL_UPLOAD_INTENT, EXPENSE, GROUP)),
-                    replacement.scope.attachmentLookups,
-                )
+                assertEquals(listOf(ExpenseLookup(EXPENSE, GROUP)), replacementPersistence.scope.expenseLookups)
                 assertEquals(
                     listOf(IntentLookup(REPLACEMENT_UPLOAD_INTENT, GROUP, CREATOR)),
-                    replacement.scope.intentLookups,
+                    replacementPersistence.scope.intentLookups,
                 )
                 assertEquals(
                     listOf(
@@ -172,26 +169,25 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
                             group = GROUP,
                         ),
                     ),
-                    replacement.scope.persisted,
+                    replacementPersistence.scope.persisted,
                 )
             }
     }
 
     private fun useCase(
         groupRepository: GroupRepository = RecordingGroupRepository(group()),
-        replacement: ExpenseSupportingDocumentReplacement = recordingReplacement(),
+        replacementPersistence: ExpenseSupportingDocumentReplacementPersistence = recordingReplacementPersistence(),
     ): ReplaceExpenseSupportingDocumentUseCase =
         ReplaceExpenseSupportingDocumentUseCaseImpl(
             groupAccessPolicy = GroupAccessPolicy(groupRepository),
-            expenseSupportingDocumentReplacement = replacement,
+            expenseSupportingDocumentReplacementPersistence = replacementPersistence,
         )
 
-    private fun recordingReplacement(
-        expense: Expense? = proposedExpense(),
-        attachment: ExpenseSupportingDocumentAttachment? = currentAttachment(),
+    private fun recordingReplacementPersistence(
+        expense: Expense? = proposedExpense().copy(supportingDocuments = listOf(currentAttachment())),
         intent: DocumentUploadIntent? = readyIntent("default"),
-    ): RecordingExpenseSupportingDocumentReplacement =
-        RecordingExpenseSupportingDocumentReplacement(RecordingScope(expense, attachment, intent))
+    ): RecordingExpenseSupportingDocumentReplacementPersistence =
+        RecordingExpenseSupportingDocumentReplacementPersistence(RecordingScope(expense, intent))
 
     private fun command(
         requestedBy: MemberEmail = CREATOR,
@@ -264,25 +260,23 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
         override suspend fun persist(group: Group) = Unit
     }
 
-    private class FailingExpenseSupportingDocumentReplacement : ExpenseSupportingDocumentReplacement {
-        override suspend fun <T> inTransaction(block: suspend (ExpenseSupportingDocumentReplacementScope) -> T): Nothing =
+    private class FailingExpenseSupportingDocumentReplacementPersistence : ExpenseSupportingDocumentReplacementPersistence {
+        override suspend fun <T> inTransaction(block: suspend (ExpenseSupportingDocumentReplacementPersistenceScope) -> T): Nothing =
             error("replacement transaction must not open before membership validation")
     }
 
-    private class RecordingExpenseSupportingDocumentReplacement(
+    private class RecordingExpenseSupportingDocumentReplacementPersistence(
         val scope: RecordingScope,
-    ) : ExpenseSupportingDocumentReplacement {
-        override suspend fun <T> inTransaction(block: suspend (ExpenseSupportingDocumentReplacementScope) -> T): T = block(scope)
+    ) : ExpenseSupportingDocumentReplacementPersistence {
+        override suspend fun <T> inTransaction(block: suspend (ExpenseSupportingDocumentReplacementPersistenceScope) -> T): T = block(scope)
     }
 
     private open class RecordingScope(
         private val expense: Expense?,
-        private val attachment: ExpenseSupportingDocumentAttachment?,
         private val intent: DocumentUploadIntent?,
-    ) : ExpenseSupportingDocumentReplacementScope {
+    ) : ExpenseSupportingDocumentReplacementPersistenceScope {
         val persisted = mutableListOf<ReplacementPersistenceSnapshot>()
         val expenseLookups = mutableListOf<ExpenseLookup>()
-        val attachmentLookups = mutableListOf<AttachmentLookup>()
         val intentLookups = mutableListOf<IntentLookup>()
 
         override suspend fun findExpense(
@@ -291,15 +285,6 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
         ): Expense? {
             expenseLookups += ExpenseLookup(id, group)
             return expense
-        }
-
-        override suspend fun findCurrentAttachment(
-            sourceUploadIntent: DocumentUploadIntentId,
-            expense: tech.justdev.domain.expense.valueobject.ExpenseId,
-            group: GroupId,
-        ): ExpenseSupportingDocumentAttachment? {
-            attachmentLookups += AttachmentLookup(sourceUploadIntent, expense, group)
-            return attachment
         }
 
         override suspend fun findReadyReplacementUploadIntent(
@@ -313,8 +298,9 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
 
         override suspend fun persist(
             consumedReplacementUploadIntent: DocumentUploadIntent,
-            replacementAttachment: ExpenseSupportingDocumentAttachment,
+            replacement: tech.justdev.domain.expense.entity.ExpenseSupportingDocumentReplacement,
         ) {
+            val replacementAttachment = replacement.replacement
             persisted +=
                 ReplacementPersistenceSnapshot(
                     consumedIntent = consumedReplacementUploadIntent.id,
@@ -329,21 +315,15 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
 
     private class FailingDocumentScope(
         expense: Expense,
-    ) : RecordingScope(expense, null, null) {
-        override suspend fun findCurrentAttachment(
-            sourceUploadIntent: DocumentUploadIntentId,
-            expense: tech.justdev.domain.expense.valueobject.ExpenseId,
+    ) : RecordingScope(expense, null) {
+        override suspend fun findReadyReplacementUploadIntent(
+            id: DocumentUploadIntentId,
             group: GroupId,
+            uploader: MemberEmail,
         ): Nothing = error("documents must not be read before the replacement guard")
     }
 
     private data class ExpenseLookup(
-        val expense: tech.justdev.domain.expense.valueobject.ExpenseId,
-        val group: GroupId,
-    )
-
-    private data class AttachmentLookup(
-        val sourceUploadIntent: DocumentUploadIntentId,
         val expense: tech.justdev.domain.expense.valueobject.ExpenseId,
         val group: GroupId,
     )

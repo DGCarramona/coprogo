@@ -4,6 +4,17 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import tech.justdev.domain.document.entity.DocumentMetadata
+import tech.justdev.domain.document.entity.DocumentUploadIntent
+import tech.justdev.domain.document.entity.ExpenseSupportingDocumentAttachment
+import tech.justdev.domain.document.valueobject.DocumentFileName
+import tech.justdev.domain.document.valueobject.DocumentMediaType
+import tech.justdev.domain.document.valueobject.DocumentSha256
+import tech.justdev.domain.document.valueobject.DocumentSize
+import tech.justdev.domain.document.valueobject.DocumentStorageKey
+import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
+import tech.justdev.domain.document.valueobject.SupportingDocumentAttachmentDeletion
+import tech.justdev.domain.expense.exception.ExpenseSupportingDocumentAttachmentUnavailableException
 import tech.justdev.domain.expense.valueobject.ExpenseParticipation
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationStatus
@@ -13,7 +24,9 @@ import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.testsupport.expenseId
 import tech.justdev.testsupport.groupId
 import tech.justdev.testsupport.memberEmail
+import tech.justdev.testsupport.testUuid
 import java.time.Instant
+import java.util.Base64
 
 class ExpenseTest {
     @Test
@@ -509,6 +522,147 @@ class ExpenseTest {
         }
     }
 
+    @Nested
+    inner class AttachSupportingDocuments {
+        @Test
+        fun `should attach every consumed upload intent when proposing an expense`() {
+            val expense = proposedExpense()
+            val first = consumedIntent("first")
+            val second = consumedIntent("second")
+
+            assertEquals(
+                listOf(first.id, second.id),
+                expense
+                    .attachSupportingDocuments(listOf(first, second))
+                    .supportingDocuments
+                    .map(ExpenseSupportingDocumentAttachment::sourceUploadIntent),
+            )
+        }
+    }
+
+    @Nested
+    inner class SupportingDocumentCollectionInvariants {
+        @Test
+        fun `should reject a current document from another expense group or a deleted document`() {
+            val expense = proposedExpense()
+            val valid = ExpenseSupportingDocumentAttachment.restore(documentId("valid"), expense.group, expense.id)
+            val invalidCollections =
+                listOf(
+                    listOf(ExpenseSupportingDocumentAttachment.restore(documentId("wrong-group"), groupId("other-group"), expense.id)),
+                    listOf(
+                        ExpenseSupportingDocumentAttachment.restore(documentId("wrong-expense"), expense.group, expenseId("other-expense")),
+                    ),
+                    listOf(
+                        ExpenseSupportingDocumentAttachment.restore(
+                            documentId("deleted"),
+                            expense.group,
+                            expense.id,
+                            deletion =
+                                SupportingDocumentAttachmentDeletion(
+                                    memberEmail("alice"),
+                                    Instant.parse("2026-04-03T10:01:00Z"),
+                                ),
+                        ),
+                    ),
+                    listOf(valid, valid),
+                )
+
+            val messages =
+                invalidCollections.map { supportingDocuments ->
+                    runCatching { expense.copy(supportingDocuments = supportingDocuments) }
+                        .exceptionOrNull()
+                        ?.message
+                }
+
+            assertEquals(
+                listOf(
+                    "supporting documents must belong to the expense group",
+                    "supporting documents must belong to the expense",
+                    "supporting documents must be current and active",
+                    "supporting documents must use unique upload intents",
+                ),
+                messages,
+            )
+        }
+    }
+
+    @Nested
+    inner class ReplaceSupportingDocument {
+        @Test
+        fun `should replace the selected document while retaining other current documents`() {
+            val expense = proposedExpense().attachSupportingDocuments(listOf(consumedIntent("first"), consumedIntent("second")))
+            val replacementIntent = consumedIntent("replacement")
+
+            val replacement =
+                requireNotNull(
+                    expense.replaceSupportingDocument(
+                        sourceUploadIntent = documentId("first"),
+                        replacementIntent = replacementIntent,
+                        requestedBy = memberEmail("alice"),
+                    ),
+                )
+
+            assertEquals(
+                listOf(documentId("second"), documentId("replacement")),
+                replacement.expense.supportingDocuments.map(ExpenseSupportingDocumentAttachment::sourceUploadIntent),
+            )
+            assertEquals(documentId("first"), replacement.replacement.replacesSourceUploadIntent)
+            assertEquals(documentId("replacement"), replacement.replacement.sourceUploadIntent)
+        }
+    }
+
+    @Nested
+    inner class DeleteSupportingDocument {
+        @Test
+        fun `should reject an absent current document`() {
+            val error =
+                assertThrows(ExpenseSupportingDocumentAttachmentUnavailableException::class.java) {
+                    proposedExpense().deleteSupportingDocument(
+                        sourceUploadIntent = documentId("absent"),
+                        requestedBy = memberEmail("alice"),
+                        deletedAt = Instant.parse("2026-04-03T10:01:00Z"),
+                    )
+                }
+
+            assertEquals("expense supporting document attachment is unavailable", error.message)
+        }
+
+        @Test
+        fun `should enforce the document change guard before looking for the selected document`() {
+            val error =
+                assertThrows(IllegalArgumentException::class.java) {
+                    proposedExpense().deleteSupportingDocument(
+                        sourceUploadIntent = documentId("absent"),
+                        requestedBy = memberEmail("bob"),
+                        deletedAt = Instant.parse("2026-04-03T10:01:00Z"),
+                    )
+                }
+
+            assertEquals("only the expense creator can change a supporting document", error.message)
+        }
+
+        @Test
+        fun `should delete only the selected document while retaining other current documents`() {
+            val expense = proposedExpense().attachSupportingDocuments(listOf(consumedIntent("first"), consumedIntent("second")))
+
+            val deletion =
+                requireNotNull(
+                    expense.deleteSupportingDocument(
+                        sourceUploadIntent = documentId("first"),
+                        requestedBy = memberEmail("alice"),
+                        deletedAt = Instant.parse("2026-04-03T10:01:00Z"),
+                    ),
+                )
+
+            assertEquals(
+                listOf(documentId("second")),
+                deletion.expense.supportingDocuments.map(ExpenseSupportingDocumentAttachment::sourceUploadIntent),
+            )
+            assertEquals(documentId("first"), deletion.deleted.sourceUploadIntent)
+            assertEquals(memberEmail("alice"), deletion.deleted.deletion?.deletedBy)
+        }
+    }
+
     private fun proposedExpense(): Expense =
         Expense.propose(
             id = expenseId("expense-1"),
@@ -523,6 +677,22 @@ class ExpenseTest {
                     ExpenseShare(memberEmail("bob"), MoneyAmount.ofCents(60)),
                 ),
         )
+
+    private fun consumedIntent(seed: String): DocumentUploadIntent =
+        DocumentUploadIntent
+            .create(
+                id = documentId(seed),
+                group = groupId("group-1"),
+                uploader = memberEmail("alice"),
+                storageKey = DocumentStorageKey.of("groups/group-1/documents/$seed.pdf"),
+                fileName = DocumentFileName.of("$seed.pdf"),
+                expectedMetadata = DOCUMENT_METADATA,
+                createdAt = Instant.parse("2026-04-03T09:00:00Z"),
+                expiresAt = Instant.parse("2026-04-03T11:00:00Z"),
+            ).markReady(DOCUMENT_METADATA, Instant.parse("2026-04-03T09:30:00Z"))
+            .consume(Instant.parse("2026-04-03T09:45:00Z"))
+
+    private fun documentId(seed: String): DocumentUploadIntentId = DocumentUploadIntentId(testUuid("doc-$seed"))
 
     private fun proposeEqualSplitWithCaps(
         totalAmountInCents: Long,
@@ -555,4 +725,13 @@ class ExpenseTest {
         )
 
     private fun Expense.amountsByMember() = participations.associate { participation -> participation.member to participation.amount }
+
+    private companion object {
+        val DOCUMENT_METADATA =
+            DocumentMetadata(
+                mediaType = DocumentMediaType.of("application/pdf"),
+                size = DocumentSize.ofBytes(128),
+                checksum = DocumentSha256.fromBase64(Base64.getEncoder().encodeToString(ByteArray(32))),
+            )
+    }
 }
