@@ -458,20 +458,20 @@ class ExpenseTest {
     }
 
     @Nested
-    inner class RequireSupportingDocumentReplacementBy {
+    inner class RequireSupportingDocumentChangeBy {
         @Test
         fun `should allow the expense creator while the expense is proposed`() {
-            proposedExpense().requireSupportingDocumentReplacementBy(memberEmail("alice"))
+            proposedExpense().requireSupportingDocumentChangeBy(memberEmail("alice"))
         }
 
         @Test
         fun `should reject a member other than the expense creator`() {
             val error =
                 assertThrows(IllegalArgumentException::class.java) {
-                    proposedExpense().requireSupportingDocumentReplacementBy(memberEmail("bob"))
+                    proposedExpense().requireSupportingDocumentChangeBy(memberEmail("bob"))
                 }
 
-            assertEquals("only the expense creator can replace a supporting document", error.message)
+            assertEquals("only the expense creator can change a supporting document", error.message)
         }
 
         @Test
@@ -485,10 +485,10 @@ class ExpenseTest {
 
             val error =
                 assertThrows(IllegalArgumentException::class.java) {
-                    acceptedExpense.requireSupportingDocumentReplacementBy(memberEmail("alice"))
+                    acceptedExpense.requireSupportingDocumentChangeBy(memberEmail("alice"))
                 }
 
-            assertEquals("supporting documents can only be replaced while the expense is proposed", error.message)
+            assertEquals("supporting documents can only be changed while the expense is proposed", error.message)
         }
 
         @Test
@@ -502,10 +502,10 @@ class ExpenseTest {
 
             val error =
                 assertThrows(IllegalArgumentException::class.java) {
-                    invalidatedExpense.requireSupportingDocumentReplacementBy(memberEmail("alice"))
+                    invalidatedExpense.requireSupportingDocumentChangeBy(memberEmail("alice"))
                 }
 
-            assertEquals("supporting documents can only be replaced while the expense is proposed", error.message)
+            assertEquals("supporting documents can only be changed while the expense is proposed", error.message)
         }
     }
 

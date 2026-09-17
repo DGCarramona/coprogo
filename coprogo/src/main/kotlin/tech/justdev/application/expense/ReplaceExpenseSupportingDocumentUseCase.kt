@@ -36,7 +36,7 @@ class ReplaceExpenseSupportingDocumentUseCaseImpl(
             val expense =
                 scope.findExpense(command.expense, command.group)
                     ?: throw ExpenseNotFoundException(command.expense, command.group)
-            expense.requireSupportingDocumentReplacementBy(command.requestedBy)
+            expense.requireSupportingDocumentChangeBy(command.requestedBy)
 
             val replacedAttachment =
                 scope.findCurrentAttachment(

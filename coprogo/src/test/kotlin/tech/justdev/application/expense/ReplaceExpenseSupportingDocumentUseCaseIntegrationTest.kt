@@ -195,7 +195,7 @@ class ReplaceExpenseSupportingDocumentUseCaseIntegrationTest {
                         runCatching {
                             replacement.inTransaction { scope ->
                                 val expense = requireNotNull(scope.findExpense(fixture.expense.id, fixture.group.id))
-                                expense.requireSupportingDocumentReplacementBy(fixture.creator)
+                                expense.requireSupportingDocumentChangeBy(fixture.creator)
                             }
                         }.exceptionOrNull()
                     }
@@ -208,7 +208,7 @@ class ReplaceExpenseSupportingDocumentUseCaseIntegrationTest {
                 val error = replacementAttempt.await()
 
                 assertEquals(IllegalArgumentException::class.java, error?.javaClass)
-                assertEquals("supporting documents can only be replaced while the expense is proposed", error?.message)
+                assertEquals("supporting documents can only be changed while the expense is proposed", error?.message)
                 assertEquals(
                     DocumentUploadIntentStatus.Ready(CREATED_AT.minusSeconds(30)),
                     requireNotNull(documentUploadIntentRepository.findByIdAndGroup(replacementIntent.id, fixture.group.id)).status,

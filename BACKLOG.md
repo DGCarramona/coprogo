@@ -20,7 +20,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-17.
 
 ## Ordre de travail actuel
 
-1. Implementer BE-DOC-007, puis poursuivre les lots backend BE-DOC suivants.
+1. Implementer BE-DOC-008, puis poursuivre les lots backend BE-DOC suivants.
 2. Raccorder le frontend FE-DOC apres les lots backend.
 
 ## Fondations monorepo et DX
@@ -130,7 +130,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-17.
 - [x] BE-DOC-005C2R Encapsuler les lectures verrouillees et la persistance atomique du remplacement dans un scope transactionnel specialise, sans exposer les repositories ni la commande a l'adaptateur.
 - [x] BE-DOC-006A Modeliser la suppression logique immuable et l'audit contraint d'un justificatif.
 - [x] BE-DOC-006B Persister la suppression logique et exclure les justificatifs supprimes des lectures courantes.
-- [ ] BE-DOC-007 Enforcer la regle "seul le createur de l'evenement peut supprimer son justificatif".
+- [x] BE-DOC-007 Enforcer la regle "seul le createur de l'evenement peut supprimer son justificatif".
 - [ ] BE-DOC-008 Exposer les endpoints REST d'upload, liste, consultation et suppression de justificatifs.
 - [ ] BE-DOC-009 Ajouter une vue d'historique audit des actions sensibles.
 - [ ] BE-DOC-010 Ajouter des tests d'integration sur la non-destruction de l'historique documentaire.

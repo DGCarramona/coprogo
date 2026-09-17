@@ -90,15 +90,15 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
                 listOf(
                     ReplacementGuardOutcome(
                         IllegalArgumentException::class.java,
-                        "only the expense creator can replace a supporting document",
+                        "only the expense creator can change a supporting document",
                     ),
                     ReplacementGuardOutcome(
                         IllegalArgumentException::class.java,
-                        "supporting documents can only be replaced while the expense is proposed",
+                        "supporting documents can only be changed while the expense is proposed",
                     ),
                     ReplacementGuardOutcome(
                         IllegalArgumentException::class.java,
-                        "supporting documents can only be replaced while the expense is proposed",
+                        "supporting documents can only be changed while the expense is proposed",
                     ),
                 ),
                 outcomes,
