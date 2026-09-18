@@ -374,6 +374,62 @@ class R2dbcDocumentUploadIntentRepositoryIntegrationTest {
             }
     }
 
+    @Nested
+    inner class FindPendingByIdAndGroupAndUploader {
+        @Test
+        fun `should only return the pending upload intent belonging to the group and uploader`() =
+            runTest {
+                val sourceGroup = seedGroup("pending-source")
+                val otherGroup = seedGroup("pending-other")
+                val otherUploader = memberEmail("pending-other-uploader")
+                memberRepository.persist(Member(otherUploader, CREATED_AT))
+                groupRepository.persist(
+                    requireNotNull(groupRepository.findById(sourceGroup)).addMember(otherUploader, CREATED_AT),
+                )
+                val pending = pendingIntent("pending-source", documentSeed = "pending")
+                val crossGroup =
+                    pendingIntent(
+                        seed = "pending-other",
+                        id = DocumentUploadIntentId(testUuid("p8b-cross-group!")),
+                        documentSeed = "cross-group",
+                    )
+                val wrongUploader =
+                    pendingIntent(
+                        seed = "pending-source",
+                        id = DocumentUploadIntentId(testUuid("p8b-wrong-upldr!")),
+                        uploader = otherUploader,
+                        documentSeed = "wrong-uploader",
+                    )
+                val ready =
+                    pendingIntent(
+                        seed = "pending-source",
+                        id = DocumentUploadIntentId(testUuid("p8b-ready-intent")),
+                        documentSeed = "ready",
+                    ).markReady(METADATA, READY_AT)
+                val consumed =
+                    pendingIntent(
+                        seed = "pending-source",
+                        id = DocumentUploadIntentId(testUuid("p8b-consumed-int")),
+                        documentSeed = "consumed",
+                    ).markReady(METADATA, READY_AT)
+                        .consume(CONSUMED_AT)
+                for (intent in listOf(pending, crossGroup, wrongUploader, ready, consumed)) {
+                    repository.persist(intent)
+                }
+
+                assertEquals(
+                    listOf(pending.toSnapshot(), null, null, null, null),
+                    listOf(
+                        repository.findPendingByIdAndGroupAndUploader(pending.id, sourceGroup, pending.uploader),
+                        repository.findPendingByIdAndGroupAndUploader(crossGroup.id, sourceGroup, pending.uploader),
+                        repository.findPendingByIdAndGroupAndUploader(wrongUploader.id, sourceGroup, pending.uploader),
+                        repository.findPendingByIdAndGroupAndUploader(ready.id, sourceGroup, pending.uploader),
+                        repository.findPendingByIdAndGroupAndUploader(consumed.id, sourceGroup, pending.uploader),
+                    ).map { it?.toSnapshot() },
+                )
+            }
+    }
+
     private suspend fun seedGroup(seed: String): GroupId {
         val uploader = memberEmail("$seed-uploader")
         val group = groupId(seed)

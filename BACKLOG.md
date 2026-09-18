@@ -20,7 +20,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-17.
 
 ## Ordre de travail actuel
 
-1. Implementer BE-DOC-008B, puis poursuivre les lots backend BE-DOC suivants.
+1. Implementer BE-DOC-008C, puis poursuivre les lots backend BE-DOC suivants.
 2. Raccorder le frontend FE-DOC apres les lots backend.
 
 ## Fondations monorepo et DX
@@ -133,8 +133,8 @@ Backlog derive de l'etat actuel du depot au 2026-09-17.
 - [x] BE-DOC-007 Enforcer la regle "seul le createur de l'evenement peut supprimer son justificatif".
 - [x] BE-DOC-007R Faire de `Expense` l'agregat des justificatifs courants, hydrates explicitement sans lazy.
 - [x] BE-DOC-008A Demarrer un upload de justificatif : presigner le PUT et persister l'upload intent `PENDING`.
-- [ ] BE-DOC-008B Confirmer un upload par inspection HEAD et passer l'upload intent a `READY`.
-- [ ] BE-DOC-008C Lister les justificatifs et leur historique, avec lecture batch des intents et URL GET presignee.
+- [x] BE-DOC-008B Confirmer un upload par inspection HEAD et passer l'upload intent a `READY`.
+- [ ] BE-DOC-008C Lister les justificatifs et leur historique, avec lecture batch des intents et URL GET presignee (prochain lot).
 - [ ] BE-DOC-008D Exposer les endpoints REST/OpenAPI d'upload, liste, telechargement, remplacement et suppression de justificatifs.
 - [ ] BE-DOC-009 Ajouter une vue d'historique audit des actions sensibles.
 - [ ] BE-DOC-010 Ajouter des tests d'integration sur la non-destruction de l'historique documentaire.

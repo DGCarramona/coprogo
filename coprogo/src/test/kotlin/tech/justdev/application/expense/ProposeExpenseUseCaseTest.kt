@@ -148,6 +148,12 @@ class ProposeExpenseUseCaseTest {
 
                     override suspend fun persistAll(intents: List<DocumentUploadIntent>) = Unit
 
+                    override suspend fun findPendingByIdAndGroupAndUploader(
+                        id: DocumentUploadIntentId,
+                        group: GroupId,
+                        uploader: MemberEmail,
+                    ): DocumentUploadIntent? = error("not used")
+
                     override suspend fun findByIdAndGroup(
                         id: DocumentUploadIntentId,
                         group: GroupId,
@@ -590,6 +596,17 @@ class ProposeExpenseUseCaseTest {
             id: DocumentUploadIntentId,
             group: GroupId,
         ): DocumentUploadIntent? = intentsById[id]?.takeIf { it.group == group }
+
+        override suspend fun findPendingByIdAndGroupAndUploader(
+            id: DocumentUploadIntentId,
+            group: GroupId,
+            uploader: MemberEmail,
+        ): DocumentUploadIntent? =
+            intentsById[id]?.takeIf { intent ->
+                intent.group == group &&
+                    intent.uploader == uploader &&
+                    intent.status is tech.justdev.domain.document.entity.DocumentUploadIntentStatus.Pending
+            }
 
         override suspend fun findReadyByIdsAndGroupAndUploader(
             ids: Set<DocumentUploadIntentId>,

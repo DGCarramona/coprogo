@@ -147,6 +147,35 @@ class R2dbcDocumentUploadIntentRepository(
             .awaitFirstOrNull()
             ?.toDomain()
 
+    override suspend fun findPendingByIdAndGroupAndUploader(
+        id: DocumentUploadIntentId,
+        group: GroupId,
+        uploader: MemberEmail,
+    ): DocumentUploadIntent? =
+        connectionFactory
+            .dsl()
+            .select(
+                DOCUMENT_UPLOAD_INTENTS.ID,
+                DOCUMENT_UPLOAD_INTENTS.GROUP,
+                DOCUMENT_UPLOAD_INTENTS.UPLOADER,
+                DOCUMENT_UPLOAD_INTENTS.STORAGE_KEY,
+                DOCUMENT_UPLOAD_INTENTS.FILE_NAME,
+                DOCUMENT_UPLOAD_INTENTS.MEDIA_TYPE,
+                DOCUMENT_UPLOAD_INTENTS.EXPECTED_SIZE,
+                DOCUMENT_UPLOAD_INTENTS.EXPECTED_SHA256,
+                DOCUMENT_UPLOAD_INTENTS.CREATED_AT,
+                DOCUMENT_UPLOAD_INTENTS.EXPIRES_AT,
+                DOCUMENT_UPLOAD_INTENTS.STATUS,
+                DOCUMENT_UPLOAD_INTENTS.READY_AT,
+                DOCUMENT_UPLOAD_INTENTS.CONSUMED_AT,
+            ).from(DOCUMENT_UPLOAD_INTENTS)
+            .where(DOCUMENT_UPLOAD_INTENTS.ID.eq(id.toPrimitive()))
+            .and(DOCUMENT_UPLOAD_INTENTS.GROUP.eq(group.toPrimitive()))
+            .and(DOCUMENT_UPLOAD_INTENTS.UPLOADER.eq(uploader.toPrimitive()))
+            .and(DOCUMENT_UPLOAD_INTENTS.STATUS.eq(PersistenceStatus.PENDING.name))
+            .awaitFirstOrNull()
+            ?.toDomain()
+
     override suspend fun findReadyByIdsAndGroupAndUploader(
         ids: Set<DocumentUploadIntentId>,
         group: GroupId,

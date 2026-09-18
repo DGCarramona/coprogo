@@ -10,6 +10,12 @@ interface DocumentUploadIntentRepository {
 
     suspend fun persistAll(intents: List<DocumentUploadIntent>)
 
+    suspend fun findPendingByIdAndGroupAndUploader(
+        id: DocumentUploadIntentId,
+        group: GroupId,
+        uploader: MemberEmail,
+    ): DocumentUploadIntent?
+
     suspend fun findReadyByIdsAndGroupAndUploader(
         ids: Set<DocumentUploadIntentId>,
         group: GroupId,

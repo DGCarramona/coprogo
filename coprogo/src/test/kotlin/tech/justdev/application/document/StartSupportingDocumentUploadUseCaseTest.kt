@@ -264,6 +264,12 @@ class StartSupportingDocumentUploadUseCaseTest {
 
         override suspend fun persistAll(intents: List<DocumentUploadIntent>) = error("not used")
 
+        override suspend fun findPendingByIdAndGroupAndUploader(
+            id: DocumentUploadIntentId,
+            group: GroupId,
+            uploader: MemberEmail,
+        ): DocumentUploadIntent? = error("not used")
+
         override suspend fun findReadyByIdsAndGroupAndUploader(
             ids: Set<DocumentUploadIntentId>,
             group: GroupId,
