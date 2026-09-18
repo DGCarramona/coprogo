@@ -114,6 +114,7 @@ Keep adapters focused on conversion, delivery, and persistence/integration mecha
 - SHOULD use non-blocking I/O at infrastructure boundaries: R2DBC for databases and non-blocking integration HTTP where relevant. Do not introduce blocking work in reactive paths; isolate unavoidable blocking at the edge.
 - SHOULD use suspendable/reactive composition where it improves correctness and composability, preferring Kotlin coroutines and Flow in project-owned code. Do not add reactive complexity where a pure function is clearer.
 - Prefer pure transformations, immutable/copy-based updates, and side effects at outer layers. Prefer map/filter/fold/grouping/partitioning over manual mutable orchestration when clearer.
+- Across the codebase, SHOULD express a value's linear flow as a readable pipeline of chained operations rather than introducing single-use intermediate variables. When error translation or a technical detail interrupts that flow, prefer extracting it behind a semantically named function so the caller's pipeline remains visible. Break a pipeline when values must coexist, the workflow genuinely branches, or named intermediate state or distinct side effects materially improve understanding; never force chaining when it makes the code harder to read.
 - Prefer set- and aggregate-oriented reasoning for allocations, participant validation, debt computation, revenue distribution, and balance derivation. Prefer batch/set persistence, SQL joins/grouping/bulk operations, bounded aggregate reads, and database-level filters over N+1 or small-data-only convenience methods. Consider indexes, uniqueness, ordering, and filtering.
 - Keep Domain and most Application focused on business semantics rather than framework types. Do not let a framework boundary force reactive complexity into otherwise pure domain behavior.
 
@@ -136,7 +137,6 @@ Repository adapters must be designed for expected data volume and query shape. W
 - IDs keep primitive storage private and expose it only through `toPrimitive()`; they expose neither direct `value` nor custom `toString()`.
 - Repository ports and I/O-crossing application use cases are `suspend`; keep domain synchronous and pure, and mark an HTTP endpoint `suspend` only when it invokes a suspendable path.
 - A use case receiving `GroupId` first calls `GroupAccessPolicy.requireMember`. Financial calculations use money-safe representations and deterministic rounding.
-- SHOULD prefer readable chained operations when a value flows linearly through transformations or a terminal action, rather than introducing single-use intermediate variables. Break a chain when named values, distinct error paths, or explicit side effects make the workflow clearer.
 - Do not create a Kotlin extension function used only once unless reuse, a transversal semantic contract, or notable composition is explicitly justified; otherwise use a normal private function or inline/local code.
 - The general quality bar is explicit types, fail-fast validation, small cohesive functions/classes, readable names, immutable domain values, explicit money and audit/event models, and no transport or persistence concern in Domain.
 
