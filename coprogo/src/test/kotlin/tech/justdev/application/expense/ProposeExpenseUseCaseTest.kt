@@ -164,6 +164,11 @@ class ProposeExpenseUseCaseTest {
                         group: GroupId,
                         uploader: MemberEmail,
                     ): List<DocumentUploadIntent> = error("document upload intent must not be read before membership validation")
+
+                    override suspend fun findConsumedByIdsAndGroup(
+                        ids: Set<DocumentUploadIntentId>,
+                        group: GroupId,
+                    ): List<DocumentUploadIntent> = error("document upload intent must not be read before membership validation")
                 }
 
             assertThrows<GroupAccessDeniedException> {
@@ -620,6 +625,19 @@ class ProposeExpenseUseCaseTest {
                         intent.group == group &&
                         intent.uploader == uploader &&
                         intent.status is tech.justdev.domain.document.entity.DocumentUploadIntentStatus.Ready
+                }.sortedBy { it.id.toPrimitive() }
+                .toList()
+
+        override suspend fun findConsumedByIdsAndGroup(
+            ids: Set<DocumentUploadIntentId>,
+            group: GroupId,
+        ): List<DocumentUploadIntent> =
+            intentsById.values
+                .asSequence()
+                .filter { intent ->
+                    intent.id in ids &&
+                        intent.group == group &&
+                        intent.status is tech.justdev.domain.document.entity.DocumentUploadIntentStatus.Consumed
                 }.sortedBy { it.id.toPrimitive() }
                 .toList()
     }
