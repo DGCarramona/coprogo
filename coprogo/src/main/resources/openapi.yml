@@ -271,6 +271,34 @@ paths:
           description: recordParticipationDecision 204 response
       security:
       - bearerAuth: []
+  /api/groups/{groupId}/expenses/{expenseId}/supporting-documents:
+    get:
+      tags:
+      - Supporting documents
+      summary: List current and historical supporting documents for an expense
+      operationId: listExpenseSupportingDocuments
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: expenseId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: Supporting documents
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseSupportingDocumentsResponse"
+      security:
+      - bearerAuth: []
   /api/groups/{groupId}/invitations:
     post:
       tags:
@@ -709,6 +737,56 @@ components:
           nullable: true
           allOf:
           - $ref: "#/components/schemas/ExpenseRefusalResponse"
+    ExpenseSupportingDocumentResponse:
+      required:
+      - attachedAt
+      - download
+      - fileName
+      - mediaType
+      - sizeBytes
+      - sourceUploadIntent
+      - uploader
+      type: object
+      properties:
+        sourceUploadIntent:
+          type: string
+          format: uuid
+        fileName:
+          type: string
+        mediaType:
+          type: string
+        sizeBytes:
+          type: integer
+          format: int64
+        uploader:
+          type: string
+        attachedAt:
+          type: string
+          format: date-time
+        replacesSourceUploadIntent:
+          type: string
+          format: uuid
+          nullable: true
+        deletion:
+          nullable: true
+          allOf:
+          - $ref: "#/components/schemas/SupportingDocumentDeletionResponse"
+        download:
+          $ref: "#/components/schemas/SupportingDocumentDownloadResponse"
+    ExpenseSupportingDocumentsResponse:
+      required:
+      - current
+      - history
+      type: object
+      properties:
+        current:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExpenseSupportingDocumentResponse"
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExpenseSupportingDocumentResponse"
     GroupBalancesResponse:
       required:
       - balances
@@ -1039,6 +1117,29 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RevenueDistributionAllocation"
+    SupportingDocumentDeletionResponse:
+      required:
+      - deletedAt
+      - deletedBy
+      type: object
+      properties:
+        deletedBy:
+          type: string
+        deletedAt:
+          type: string
+          format: date-time
+    SupportingDocumentDownloadResponse:
+      required:
+      - expiresAt
+      - url
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        expiresAt:
+          type: string
+          format: date-time
     SupportingDocumentUploadRequest:
       required:
       - fileName
