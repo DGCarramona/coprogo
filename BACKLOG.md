@@ -1,12 +1,13 @@
 # Backlog
 
-Backlog derive de l'etat actuel du depot au 2026-09-21.
+Backlog derive de l'etat actuel du depot au 2026-09-23.
 
 ## Etat actuel constate
 
 - Backend: coeur metier deja entame pour `expense`, `revenue` et `ledger`, avec des tests de domaine et d'application.
 - Backend HTTP: les groupes, invitations, quotes-parts, revenus, depenses et lectures financieres du groupe sont exposes avec l'OpenAPI.
 - Backend infra: migrations Flyway et adaptateurs R2DBC presents pour groupes, invitations, quotes-parts, ledger et depenses, validation Google ID token orientee produit, Adobe S3Mock local et adaptateur S3-compatible en place.
+- Architecture documentaire: `Expense` porte l'historique complet de ses justificatifs; `DocumentUploadIntent` reste un agregat distinct jusqu'a sa consommation; les tables d'association de justificatifs sont un detail d'infrastructure, pas des entites du domaine.
 - Frontend: connexion Google, invitations et dashboard de groupe sont en place, avec lecture des soldes, caisse, depenses et proposition selon les quatre modes `Equal`, `EqualWithCaps`, `CumulativeTiers` et `Custom`.
 - Frontend API: client OpenAPI genere pour groupes, depenses, ledger et revenus, avec source reelle de Google ID token.
 - Monorepo: orchestration Gradle racine en place pour piloter ensemble le front et le back.
@@ -20,7 +21,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-21.
 
 ## Ordre de travail actuel
 
-1. Implementer BE-DOC-008C2, puis poursuivre les lots backend BE-DOC suivants.
+1. Implementer BE-DOC-008D, puis poursuivre les lots backend BE-DOC suivants.
 2. Raccorder le frontend FE-DOC apres les lots backend.
 
 ## Fondations monorepo et DX
@@ -82,11 +83,12 @@ Backlog derive de l'etat actuel du depot au 2026-09-21.
 - [x] BE-EXP-013 Ajouter des tests d'integration couvrant acceptation, refus et emission d'evenement ledger.
 - [x] BE-EXP-014 Ajouter la couverture d'integration des quatre modes d'allocation.
 - [x] BE-EXP-015 Corriger et tester le motif latent `@Singleton object RandomExpenseIdGenerator` avant le raccordement REST.
+- [ ] BE-EXP-016 Remplacer l'hydratation d'agregats complets dans la liste des depenses par une projection de synthese group-scoped.
 
 ## Backend - remboursements
 
 - [ ] BE-REB-001 Introduire le modele de domaine pour un remboursement direct.
-- [ ] BE-REB-002 Introduire le modele de domaine pour un remboursement declare par le debiteur avec justificatif contestable.
+- [ ] BE-REB-002 Introduire le modele de domaine pour un remboursement declare par le debiteur avec justificatif contestable, portant ses snapshots documentaires et reutilisant le workflow d'upload intent sans repository generique d'association.
 - [ ] BE-REB-003 Ajouter les migrations Flyway pour les remboursements et leur historique de decision.
 - [ ] BE-REB-004 Creer les repositories et adaptateurs R2DBC des remboursements.
 - [ ] BE-REB-005 Implementer le cas d'usage "Alice enregistre que Bob l'a rembourse" sans confirmation de Bob.
@@ -135,10 +137,15 @@ Backlog derive de l'etat actuel du depot au 2026-09-21.
 - [x] BE-DOC-008A Demarrer un upload de justificatif : presigner le PUT et persister l'upload intent `PENDING`.
 - [x] BE-DOC-008B Confirmer un upload par inspection HEAD et passer l'upload intent a `READY`.
 - [x] BE-DOC-008C1 Ajouter une lecture batch group-scoped des upload intents `CONSUMED`.
-- [ ] BE-DOC-008C2 Lister les justificatifs et leur historique, avec URL GET presignee.
-- [ ] BE-DOC-008D Exposer les endpoints REST/OpenAPI d'upload, liste, telechargement, remplacement et suppression de justificatifs.
+- [x] BE-DOC-008C2 Lister les justificatifs et leur historique, avec URL GET presignee.
+- [x] BE-DOC-008C2R1 Faire porter a `Expense` l'historique complet des justificatifs et deriver les justificatifs courants.
+- [x] BE-DOC-008C2R2 Simplifier l'interactor de lecture des justificatifs a partir de l'agregat `Expense` hydrate.
+- [x] BE-DOC-008C2R3 Hydrater les enfants documentaires complets de `Expense`, avec leurs metadonnees et upload intents `CONSUMED`.
+- [x] BE-DOC-008C2R4 Encapsuler l'historique, la vue courante et les transformations des justificatifs dans une collection metier immuable.
+- [x] BE-DOC-008C2R5 Faire de `ExpenseRepository` le seul repository de l'agregat documentaire : snapshots enfants autoporteurs, persistance atomique de l'historique complet et suppression du pseudo-agregat d'association.
+- [ ] BE-DOC-008D Exposer les endpoints REST/OpenAPI d'upload, liste, telechargement, remplacement et suppression de justificatifs, via des use cases et snapshots applicatifs sans exposer d'entite du domaine.
 - [ ] BE-DOC-009 Ajouter une vue d'historique audit des actions sensibles.
-- [ ] BE-DOC-010 Ajouter des tests d'integration sur la non-destruction de l'historique documentaire.
+- [x] BE-DOC-010 Ajouter des tests d'integration sur la non-destruction de l'historique documentaire, les conflits, le rejeu et les rollbacks transactionnels.
 
 ## Frontend - socle applicatif et authentification
 
@@ -212,22 +219,9 @@ Backlog derive de l'etat actuel du depot au 2026-09-21.
 
 ## Frontend - justificatifs et historique audit
 
-- [ ] FE-DOC-001 Creer un composant reutilisable d'upload de justificatif.
+- [ ] FE-DOC-001 Creer un composant reutilisable d'upload de justificatif via URL PUT signee, confirmer l'upload avant toute creation ou tout remplacement metier.
 - [ ] FE-DOC-002 Creer un composant d'historique des versions d'un justificatif.
-- [ ] FE-DOC-003 Ajouter l'action de telechargement et consultation d'un justificatif.
+- [ ] FE-DOC-003 Ajouter l'action de telechargement et consultation d'un justificatif via URL GET signee directe.
 - [ ] FE-DOC-004 Ajouter l'action de suppression avec message d'audit clair.
 - [ ] FE-DOC-005 Afficher, dans les ecrans depense et remboursement, l'historique des pieces liees.
 - [ ] FE-DOC-006 Ajouter les tests de composants et de mapping pour la gestion documentaire.
-
-## Tranche verticale minimale recommandee
-
-Si on veut avancer avec des PRs simples et visibles rapidement, l'ordre recommande est:
-
-1. `MONO-001` a `MONO-009`
-2. `BE-GROUP-001` a `BE-GROUP-009`
-3. `BE-EXP-001` a `BE-EXP-006`
-4. `BE-LED-001` a `BE-LED-005`
-5. `FE-CORE-001` a `FE-CORE-009`
-6. `FE-DASH-001` a `FE-DASH-007`
-7. `FE-EXP-001` a `FE-EXP-010`
-8. Puis revenus, remboursements et justificatifs
