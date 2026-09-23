@@ -368,6 +368,63 @@ paths:
                 $ref: "#/components/schemas/RevenueDistributionAtDatePreviewResponse"
       security:
       - bearerAuth: []
+  /api/groups/{groupId}/supporting-document-uploads:
+    post:
+      tags:
+      - Supporting document uploads
+      summary: Start a supporting document upload
+      operationId: startUpload
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupportingDocumentUploadRequest"
+        required: true
+      responses:
+        "201":
+          description: Supporting document upload target created
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupportingDocumentUploadResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/supporting-document-uploads/{uploadIntentId}/confirmation:
+    post:
+      tags:
+      - Supporting document uploads
+      summary: Confirm a supporting document upload
+      operationId: confirmUpload
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: uploadIntentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: confirmUpload 204 response
+      security:
+      - bearerAuth: []
   /api/revenue-distribution/preview:
     post:
       tags:
@@ -977,3 +1034,46 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RevenueDistributionAllocation"
+    SupportingDocumentUploadRequest:
+      required:
+      - fileName
+      - mediaType
+      - sha256
+      - sizeBytes
+      type: object
+      properties:
+        fileName:
+          minLength: 1
+          type: string
+        mediaType:
+          minLength: 1
+          type: string
+        sizeBytes:
+          minimum: 0
+          exclusiveMinimum: true
+          type: integer
+          format: int64
+        sha256:
+          minLength: 1
+          type: string
+    SupportingDocumentUploadResponse:
+      required:
+      - expiresAt
+      - intentId
+      - requiredHeaders
+      - uploadUrl
+      type: object
+      properties:
+        intentId:
+          type: string
+          format: uuid
+        uploadUrl:
+          type: string
+          format: uri
+        requiredHeaders:
+          type: object
+          additionalProperties:
+            type: string
+        expiresAt:
+          type: string
+          format: date-time
