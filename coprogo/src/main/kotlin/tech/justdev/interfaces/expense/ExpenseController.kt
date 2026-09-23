@@ -25,6 +25,7 @@ import tech.justdev.application.expense.ProposeExpenseCommand
 import tech.justdev.application.expense.ProposeExpenseUseCase
 import tech.justdev.application.expense.RecordExpenseParticipationDecisionCommand
 import tech.justdev.application.expense.RecordExpenseParticipationDecisionUseCase
+import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationStatus
 import tech.justdev.domain.expense.valueobject.RefusalReason
@@ -86,6 +87,7 @@ class ExpenseController(
                 totalAmountInCents = request.totalAmountInCents,
                 createdAt = Instant.now(),
                 allocation = request.allocation.toCommand(),
+                supportingDocumentUploadIntents = request.supportingDocumentUploadIntents.map(::DocumentUploadIntentId).toSet(),
             ),
         )
     }

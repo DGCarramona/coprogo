@@ -917,6 +917,11 @@ components:
           format: int64
         allocation:
           $ref: "#/components/schemas/ExpenseAllocationRequest"
+        supportingDocumentUploadIntents:
+          type: array
+          items:
+            type: string
+            format: uuid
     RecordCashPoolIncomeRequest:
       required:
       - amountInCents

@@ -144,7 +144,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-23.
 - [x] BE-DOC-008C2R4 Encapsuler l'historique, la vue courante et les transformations des justificatifs dans une collection metier immuable.
 - [x] BE-DOC-008C2R5 Faire de `ExpenseRepository` le seul repository de l'agregat documentaire : snapshots enfants autoporteurs, persistance atomique de l'historique complet et suppression du pseudo-agregat d'association.
 - [x] BE-DOC-008D1 Exposer REST/OpenAPI le demarrage et la confirmation d'un upload de justificatif, avec URL PUT signee et sans exposer d'entite du domaine.
-- [ ] BE-DOC-008D2 Exposer la proposition de depense avec ses upload intents prets a etre attaches.
+- [x] BE-DOC-008D2 Exposer la proposition de depense avec ses upload intents prets a etre attaches.
 - [ ] BE-DOC-008D3 Exposer la liste et l'historique des justificatifs avec des URL GET signees.
 - [ ] BE-DOC-008D4 Exposer le remplacement et la suppression traces des justificatifs.
 - [ ] BE-DOC-009 Ajouter une vue d'historique audit des actions sensibles.
