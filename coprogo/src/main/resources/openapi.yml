@@ -209,6 +209,12 @@ paths:
               $ref: "#/components/schemas/ProposeExpenseRequest"
         required: true
       responses:
+        "409":
+          description: Supporting document upload intent is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
         "204":
           description: proposeExpense 204 response
       security:
@@ -297,6 +303,90 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ExpenseSupportingDocumentsResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/expenses/{expenseId}/supporting-documents/{sourceUploadIntent}:
+    delete:
+      tags:
+      - Supporting documents
+      summary: Delete a supporting document for an expense
+      operationId: deleteExpenseSupportingDocument
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: expenseId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: sourceUploadIntent
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: Supporting document deleted
+        "404":
+          description: Supporting document is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/expenses/{expenseId}/supporting-documents/{sourceUploadIntent}/replacements:
+    post:
+      tags:
+      - Supporting documents
+      summary: Replace a supporting document for an expense
+      operationId: replaceExpenseSupportingDocument
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: expenseId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: sourceUploadIntent
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReplaceExpenseSupportingDocumentRequest"
+        required: true
+      responses:
+        "204":
+          description: Supporting document replaced
+        "404":
+          description: Supporting document is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+        "409":
+          description: Replacement upload intent is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
       security:
       - bearerAuth: []
   /api/groups/{groupId}/invitations:
@@ -476,6 +566,16 @@ paths:
       - bearerAuth: []
 components:
   schemas:
+    ApiErrorResponse:
+      required:
+      - message
+      - path
+      type: object
+      properties:
+        message:
+          type: string
+        path:
+          type: string
     CashPoolBalanceResponse:
       required:
       - availableAmountInCents
@@ -1032,6 +1132,14 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/OwnershipShareInput"
+    ReplaceExpenseSupportingDocumentRequest:
+      required:
+      - replacementUploadIntent
+      type: object
+      properties:
+        replacementUploadIntent:
+          type: string
+          format: uuid
     RevenueDistributionAllocation:
       required:
       - amountInCents

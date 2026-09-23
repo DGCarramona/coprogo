@@ -2,6 +2,7 @@ package tech.justdev.interfaces.document
 
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import tech.justdev.application.auth.AuthenticatedUser
@@ -11,6 +12,10 @@ import tech.justdev.application.document.ExpenseSupportingDocumentSnapshot
 import tech.justdev.application.document.ListExpenseSupportingDocumentsQuery
 import tech.justdev.application.document.ListExpenseSupportingDocumentsResult
 import tech.justdev.application.document.ListExpenseSupportingDocumentsUseCase
+import tech.justdev.application.expense.DeleteExpenseSupportingDocumentCommand
+import tech.justdev.application.expense.DeleteExpenseSupportingDocumentUseCase
+import tech.justdev.application.expense.ReplaceExpenseSupportingDocumentCommand
+import tech.justdev.application.expense.ReplaceExpenseSupportingDocumentUseCase
 import tech.justdev.domain.document.valueobject.DocumentFileName
 import tech.justdev.domain.document.valueobject.DocumentMediaType
 import tech.justdev.domain.document.valueobject.DocumentSize
@@ -27,10 +32,14 @@ import java.util.UUID
 class ExpenseSupportingDocumentControllerTest {
     private val authProvider = FakeAuthenticatedUserProvider()
     private val listSupportingDocumentsUseCase = FakeListExpenseSupportingDocumentsUseCase()
+    private val replaceSupportingDocumentUseCase = FakeReplaceExpenseSupportingDocumentUseCase()
+    private val deleteSupportingDocumentUseCase = FakeDeleteExpenseSupportingDocumentUseCase()
     private val controller =
         ExpenseSupportingDocumentController(
             authenticatedUserProvider = authProvider,
             listExpenseSupportingDocumentsUseCase = listSupportingDocumentsUseCase,
+            replaceExpenseSupportingDocumentUseCase = replaceSupportingDocumentUseCase,
+            deleteExpenseSupportingDocumentUseCase = deleteSupportingDocumentUseCase,
             configuration = SupportingDocumentDownloadConfiguration(),
         )
 
@@ -163,12 +172,75 @@ class ExpenseSupportingDocumentControllerTest {
                     ExpenseSupportingDocumentController(
                         authenticatedUserProvider = authProvider,
                         listExpenseSupportingDocumentsUseCase = listSupportingDocumentsUseCase,
+                        replaceExpenseSupportingDocumentUseCase = replaceSupportingDocumentUseCase,
+                        deleteExpenseSupportingDocumentUseCase = deleteSupportingDocumentUseCase,
                         configuration = SupportingDocumentDownloadConfiguration().apply { validFor = configuredValidity },
                     )
 
                 configuredController.listExpenseSupportingDocuments(UUID.randomUUID(), UUID.randomUUID())
 
                 assertEquals(configuredValidity, requireNotNull(listSupportingDocumentsUseCase.lastQuery).downloadValidFor)
+            }
+    }
+
+    @Nested
+    inner class ReplaceExpenseSupportingDocument {
+        @Test
+        fun `should map source replacement authenticated member and current time to the replacement command`() =
+            runTest {
+                val groupId = UUID.randomUUID()
+                val expenseId = UUID.randomUUID()
+                val sourceUploadIntent = UUID.randomUUID()
+                val replacementUploadIntent = UUID.randomUUID()
+                val before = Instant.now()
+
+                val result =
+                    controller.replaceExpenseSupportingDocument(
+                        groupId = groupId,
+                        expenseId = expenseId,
+                        sourceUploadIntent = sourceUploadIntent,
+                        request = ReplaceExpenseSupportingDocumentRequest(replacementUploadIntent),
+                    )
+
+                val after = Instant.now()
+                val command = requireNotNull(replaceSupportingDocumentUseCase.lastCommand)
+                assertEquals(Unit, result)
+                assertEquals(GroupId(groupId), command.group)
+                assertEquals(ExpenseId(expenseId), command.expense)
+                assertEquals(DocumentUploadIntentId(sourceUploadIntent), command.replacedSourceUploadIntent)
+                assertEquals(DocumentUploadIntentId(replacementUploadIntent), command.replacementUploadIntent)
+                assertEquals(MemberEmail.of("member@example.com"), command.requestedBy)
+                assertTrue(!command.replacedAt.isBefore(before))
+                assertTrue(!command.replacedAt.isAfter(after))
+            }
+    }
+
+    @Nested
+    inner class DeleteExpenseSupportingDocument {
+        @Test
+        fun `should map source authenticated member and current time to the deletion command`() =
+            runTest {
+                val groupId = UUID.randomUUID()
+                val expenseId = UUID.randomUUID()
+                val sourceUploadIntent = UUID.randomUUID()
+                val before = Instant.now()
+
+                val result =
+                    controller.deleteExpenseSupportingDocument(
+                        groupId = groupId,
+                        expenseId = expenseId,
+                        sourceUploadIntent = sourceUploadIntent,
+                    )
+
+                val after = Instant.now()
+                val command = requireNotNull(deleteSupportingDocumentUseCase.lastCommand)
+                assertEquals(Unit, result)
+                assertEquals(GroupId(groupId), command.group)
+                assertEquals(ExpenseId(expenseId), command.expense)
+                assertEquals(DocumentUploadIntentId(sourceUploadIntent), command.sourceUploadIntent)
+                assertEquals(MemberEmail.of("member@example.com"), command.requestedBy)
+                assertTrue(!command.deletedAt.isBefore(before))
+                assertTrue(!command.deletedAt.isAfter(after))
             }
     }
 
@@ -206,6 +278,22 @@ class ExpenseSupportingDocumentControllerTest {
         override suspend fun invoke(query: ListExpenseSupportingDocumentsQuery): ListExpenseSupportingDocumentsResult {
             lastQuery = query
             return result
+        }
+    }
+
+    private class FakeReplaceExpenseSupportingDocumentUseCase : ReplaceExpenseSupportingDocumentUseCase {
+        var lastCommand: ReplaceExpenseSupportingDocumentCommand? = null
+
+        override suspend fun invoke(command: ReplaceExpenseSupportingDocumentCommand) {
+            lastCommand = command
+        }
+    }
+
+    private class FakeDeleteExpenseSupportingDocumentUseCase : DeleteExpenseSupportingDocumentUseCase {
+        var lastCommand: DeleteExpenseSupportingDocumentCommand? = null
+
+        override suspend fun invoke(command: DeleteExpenseSupportingDocumentCommand) {
+            lastCommand = command
         }
     }
 }

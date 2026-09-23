@@ -9,6 +9,9 @@ import io.micronaut.http.annotation.Post
 import io.micronaut.http.annotation.Status
 import io.micronaut.serde.annotation.Serdeable
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import tech.justdev.application.auth.AuthenticatedUserProvider
@@ -30,6 +33,7 @@ import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationStatus
 import tech.justdev.domain.expense.valueobject.RefusalReason
 import tech.justdev.domain.shared.valueobject.GroupId
+import tech.justdev.interfaces.ApiErrorResponse
 import tech.justdev.interfaces.openapi.AuthenticatedApi
 import java.time.Instant
 import java.util.UUID
@@ -73,6 +77,11 @@ class ExpenseController(
     @Post("/groups/{groupId}/expenses")
     @Status(HttpStatus.NO_CONTENT)
     @Operation(summary = "Propose an expense")
+    @ApiResponse(
+        responseCode = "409",
+        description = "Supporting document upload intent is unavailable",
+        content = [Content(schema = Schema(implementation = ApiErrorResponse::class))],
+    )
     suspend fun proposeExpense(
         @PathVariable groupId: UUID,
         @Valid @Body request: ProposeExpenseRequest,

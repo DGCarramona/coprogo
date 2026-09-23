@@ -1,11 +1,18 @@
 package tech.justdev.interfaces.document
 
 import io.micronaut.context.annotation.ConfigurationProperties
+import io.micronaut.http.HttpStatus
+import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
+import io.micronaut.http.annotation.Delete
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.PathVariable
+import io.micronaut.http.annotation.Post
+import io.micronaut.http.annotation.Status
 import io.micronaut.serde.annotation.Serdeable
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.annotation.PostConstruct
@@ -14,8 +21,14 @@ import tech.justdev.application.document.ExpenseSupportingDocumentSnapshot
 import tech.justdev.application.document.ListExpenseSupportingDocumentsQuery
 import tech.justdev.application.document.ListExpenseSupportingDocumentsResult
 import tech.justdev.application.document.ListExpenseSupportingDocumentsUseCase
+import tech.justdev.application.expense.DeleteExpenseSupportingDocumentCommand
+import tech.justdev.application.expense.DeleteExpenseSupportingDocumentUseCase
+import tech.justdev.application.expense.ReplaceExpenseSupportingDocumentCommand
+import tech.justdev.application.expense.ReplaceExpenseSupportingDocumentUseCase
+import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.shared.valueobject.GroupId
+import tech.justdev.interfaces.ApiErrorResponse
 import tech.justdev.interfaces.openapi.AuthenticatedApi
 import java.net.URI
 import java.time.Duration
@@ -42,6 +55,8 @@ class SupportingDocumentDownloadConfiguration {
 class ExpenseSupportingDocumentController(
     private val authenticatedUserProvider: AuthenticatedUserProvider,
     private val listExpenseSupportingDocumentsUseCase: ListExpenseSupportingDocumentsUseCase,
+    private val replaceExpenseSupportingDocumentUseCase: ReplaceExpenseSupportingDocumentUseCase,
+    private val deleteExpenseSupportingDocumentUseCase: DeleteExpenseSupportingDocumentUseCase,
     private val configuration: SupportingDocumentDownloadConfiguration,
 ) {
     @Get("/groups/{groupId}/expenses/{expenseId}/supporting-documents")
@@ -62,7 +77,79 @@ class ExpenseSupportingDocumentController(
                 )
             }.let { query -> listExpenseSupportingDocumentsUseCase(query) }
             .toResponse()
+
+    @Post("/groups/{groupId}/expenses/{expenseId}/supporting-documents/{sourceUploadIntent}/replacements")
+    @Status(HttpStatus.NO_CONTENT)
+    @Operation(
+        operationId = "replaceExpenseSupportingDocument",
+        summary = "Replace a supporting document for an expense",
+    )
+    @ApiResponse(responseCode = "204", description = "Supporting document replaced")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Supporting document is unavailable",
+        content = [Content(schema = Schema(implementation = ApiErrorResponse::class))],
+    )
+    @ApiResponse(
+        responseCode = "409",
+        description = "Replacement upload intent is unavailable",
+        content = [Content(schema = Schema(implementation = ApiErrorResponse::class))],
+    )
+    suspend fun replaceExpenseSupportingDocument(
+        @PathVariable groupId: UUID,
+        @PathVariable expenseId: UUID,
+        @PathVariable sourceUploadIntent: UUID,
+        @Body request: ReplaceExpenseSupportingDocumentRequest,
+    ) {
+        authenticatedUserProvider
+            .currentAuthenticatedUser()
+            .let { authenticatedUser ->
+                ReplaceExpenseSupportingDocumentCommand(
+                    group = GroupId(groupId),
+                    expense = ExpenseId(expenseId),
+                    replacedSourceUploadIntent = DocumentUploadIntentId(sourceUploadIntent),
+                    replacementUploadIntent = DocumentUploadIntentId(request.replacementUploadIntent),
+                    requestedBy = authenticatedUser.email,
+                    replacedAt = Instant.now(),
+                )
+            }.let { command -> replaceExpenseSupportingDocumentUseCase(command) }
+    }
+
+    @Delete("/groups/{groupId}/expenses/{expenseId}/supporting-documents/{sourceUploadIntent}")
+    @Status(HttpStatus.NO_CONTENT)
+    @Operation(
+        operationId = "deleteExpenseSupportingDocument",
+        summary = "Delete a supporting document for an expense",
+    )
+    @ApiResponse(responseCode = "204", description = "Supporting document deleted")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Supporting document is unavailable",
+        content = [Content(schema = Schema(implementation = ApiErrorResponse::class))],
+    )
+    suspend fun deleteExpenseSupportingDocument(
+        @PathVariable groupId: UUID,
+        @PathVariable expenseId: UUID,
+        @PathVariable sourceUploadIntent: UUID,
+    ) {
+        authenticatedUserProvider
+            .currentAuthenticatedUser()
+            .let { authenticatedUser ->
+                DeleteExpenseSupportingDocumentCommand(
+                    group = GroupId(groupId),
+                    expense = ExpenseId(expenseId),
+                    sourceUploadIntent = DocumentUploadIntentId(sourceUploadIntent),
+                    requestedBy = authenticatedUser.email,
+                    deletedAt = Instant.now(),
+                )
+            }.let { command -> deleteExpenseSupportingDocumentUseCase(command) }
+    }
 }
+
+@Serdeable
+data class ReplaceExpenseSupportingDocumentRequest(
+    val replacementUploadIntent: UUID,
+)
 
 @Serdeable
 data class ExpenseSupportingDocumentsResponse(
