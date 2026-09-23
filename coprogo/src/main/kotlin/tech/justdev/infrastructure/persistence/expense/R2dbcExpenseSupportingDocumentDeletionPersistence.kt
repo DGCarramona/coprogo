@@ -8,20 +8,17 @@ import tech.justdev.domain.expense.entity.Expense
 import tech.justdev.domain.expense.entity.ExpenseSupportingDocumentDeletion
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.shared.valueobject.GroupId
-import tech.justdev.infrastructure.persistence.document.R2dbcExpenseSupportingDocumentAttachmentRepository
 
 @Singleton
 class R2dbcExpenseSupportingDocumentDeletionPersistence(
     private val transactionRunner: TransactionRunner,
     private val expenseRepository: R2dbcExpenseRepository,
-    private val attachmentRepository: R2dbcExpenseSupportingDocumentAttachmentRepository,
 ) : ExpenseSupportingDocumentDeletionPersistence {
     override suspend fun <T> inTransaction(block: suspend (ExpenseSupportingDocumentDeletionPersistenceScope) -> T): T =
         transactionRunner.transaction {
             block(
                 R2dbcExpenseSupportingDocumentDeletionPersistenceScope(
                     expenseRepository = expenseRepository,
-                    attachmentRepository = attachmentRepository,
                 ),
             )
         }
@@ -29,7 +26,6 @@ class R2dbcExpenseSupportingDocumentDeletionPersistence(
 
 private class R2dbcExpenseSupportingDocumentDeletionPersistenceScope(
     private val expenseRepository: R2dbcExpenseRepository,
-    private val attachmentRepository: R2dbcExpenseSupportingDocumentAttachmentRepository,
 ) : ExpenseSupportingDocumentDeletionPersistenceScope {
     override suspend fun findExpense(
         id: ExpenseId,
@@ -37,6 +33,6 @@ private class R2dbcExpenseSupportingDocumentDeletionPersistenceScope(
     ): Expense? = expenseRepository.findByIdAndGroupForUpdate(id, group)
 
     override suspend fun persist(deletion: ExpenseSupportingDocumentDeletion) {
-        attachmentRepository.persistAll(listOf(deletion.deleted))
+        expenseRepository.persist(deletion.expense)
     }
 }

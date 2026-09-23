@@ -7,12 +7,14 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import tech.justdev.application.shared.TransactionRunner
 import tech.justdev.domain.document.entity.DocumentMetadata
 import tech.justdev.domain.document.entity.DocumentUploadIntent
 import tech.justdev.domain.document.entity.DocumentUploadIntentStatus
-import tech.justdev.domain.document.entity.ExpenseSupportingDocumentAttachment
+import tech.justdev.domain.document.entity.ExpenseSupportingDocument
+import tech.justdev.domain.document.entity.ExpenseSupportingDocuments
 import tech.justdev.domain.document.repository.DocumentUploadIntentRepository
-import tech.justdev.domain.document.repository.ExpenseSupportingDocumentAttachmentRepository
 import tech.justdev.domain.document.valueobject.DocumentFileName
 import tech.justdev.domain.document.valueobject.DocumentMediaType
 import tech.justdev.domain.document.valueobject.DocumentSha256
@@ -44,6 +46,12 @@ class R2dbcExpenseRepositoryIntegrationTest {
     lateinit var expenseRepository: ExpenseRepository
 
     @Inject
+    lateinit var r2dbcExpenseRepository: R2dbcExpenseRepository
+
+    @Inject
+    lateinit var transactionRunner: TransactionRunner
+
+    @Inject
     lateinit var memberRepository: MemberRepository
 
     @Inject
@@ -51,9 +59,6 @@ class R2dbcExpenseRepositoryIntegrationTest {
 
     @Inject
     lateinit var documentUploadIntentRepository: DocumentUploadIntentRepository
-
-    @Inject
-    lateinit var attachmentRepository: ExpenseSupportingDocumentAttachmentRepository
 
     @Nested
     inner class Persist {
@@ -136,6 +141,161 @@ class R2dbcExpenseRepositoryIntegrationTest {
                 assertEquals(withReason, expenseRepository.findByIdAndGroup(withReason.id, withReason.group))
                 assertEquals(withoutReason, expenseRepository.findByIdAndGroup(withoutReason.id, withoutReason.group))
             }
+
+        @Test
+        fun `should persist and replay several supporting documents and a replacement chain`() =
+            runTest {
+                val expense = expenseWithEqualSplit("persist-replay")
+                val original =
+                    ExpenseSupportingDocument.fromConsumedUploadIntent(
+                        consumedIntent(expense, "replay-orig", Instant.parse("2026-06-01T10:30:00Z")),
+                    )
+                val independent =
+                    ExpenseSupportingDocument.fromConsumedUploadIntent(
+                        consumedIntent(expense, "replay-free", Instant.parse("2026-06-01T10:31:00Z")),
+                    )
+                val replacement = original.replaceWith(consumedIntent(expense, "replay-repl", Instant.parse("2026-06-01T10:32:00Z")))
+                val withSupportingDocuments =
+                    expense.copy(
+                        supportingDocuments =
+                            ExpenseSupportingDocuments.from(
+                                listOf(original, independent, replacement),
+                            ),
+                    )
+
+                expenseRepository.persist(withSupportingDocuments)
+                expenseRepository.persist(withSupportingDocuments)
+
+                assertEquals(
+                    withSupportingDocuments,
+                    expenseRepository.findByIdAndGroup(expense.id, expense.group),
+                )
+            }
+
+        @Test
+        fun `should reject a stale aggregate after a supporting document deletion without erasing its audit`() =
+            runTest {
+                val expense = expenseWithEqualSplit("persist-stale")
+                val document = ExpenseSupportingDocument.fromConsumedUploadIntent(consumedIntent(expense, "stale-doc"))
+                val stale = expense.copy(supportingDocuments = ExpenseSupportingDocuments.from(listOf(document)))
+                val withDeletion =
+                    stale.copy(
+                        supportingDocuments =
+                            ExpenseSupportingDocuments.from(
+                                listOf(document.delete(expense.createdBy, Instant.parse("2026-06-01T10:31:00Z"))),
+                            ),
+                    )
+                expenseRepository.persist(stale)
+                expenseRepository.persist(withDeletion)
+
+                val error = assertThrows<IllegalStateException> { expenseRepository.persist(stale) }
+
+                assertEquals(
+                    "supporting document is already associated with another expense or has conflicting deletion audit data",
+                    error.message,
+                )
+                assertEquals(withDeletion, expenseRepository.findByIdAndGroup(expense.id, expense.group))
+            }
+
+        @Test
+        fun `should reject a conflicting supporting document deletion audit and retain the original audit`() =
+            runTest {
+                val expense = expenseWithEqualSplit("persist-audit")
+                val document = ExpenseSupportingDocument.fromConsumedUploadIntent(consumedIntent(expense, "audit-doc"))
+                val attached = expense.copy(supportingDocuments = ExpenseSupportingDocuments.from(listOf(document)))
+                val withOriginalDeletion =
+                    attached.copy(
+                        supportingDocuments =
+                            ExpenseSupportingDocuments.from(
+                                listOf(document.delete(expense.createdBy, Instant.parse("2026-06-01T10:31:00Z"))),
+                            ),
+                    )
+                val withConflictingDeletion =
+                    attached.copy(
+                        supportingDocuments =
+                            ExpenseSupportingDocuments.from(
+                                listOf(document.delete(expense.createdBy, Instant.parse("2026-06-01T10:32:00Z"))),
+                            ),
+                    )
+                expenseRepository.persist(attached)
+                expenseRepository.persist(withOriginalDeletion)
+
+                val error = assertThrows<IllegalStateException> { expenseRepository.persist(withConflictingDeletion) }
+
+                assertEquals(
+                    "supporting document is already associated with another expense or has conflicting deletion audit data",
+                    error.message,
+                )
+                assertEquals(withOriginalDeletion, expenseRepository.findByIdAndGroup(expense.id, expense.group))
+            }
+
+        @Test
+        fun `should reject an upload intent reused by another expense and retain its original association`() =
+            runTest {
+                val firstExpense = expenseWithEqualSplit("p4-reuse-one")
+                val secondExpense =
+                    expenseWithEqualSplit(
+                        seed = "p5-reuse-two",
+                        groupOverride = firstExpense.group,
+                        ownerOverride = firstExpense.createdBy,
+                    )
+                val document = ExpenseSupportingDocument.fromConsumedUploadIntent(consumedIntent(firstExpense, "reuse-doc"))
+                val firstWithSupportingDocument =
+                    firstExpense.copy(supportingDocuments = ExpenseSupportingDocuments.from(listOf(document)))
+                val secondWithReusedSupportingDocument =
+                    secondExpense.copy(supportingDocuments = ExpenseSupportingDocuments.from(listOf(document)))
+                expenseRepository.persist(firstWithSupportingDocument)
+                expenseRepository.persist(secondExpense)
+
+                val error = assertThrows<IllegalStateException> { expenseRepository.persist(secondWithReusedSupportingDocument) }
+
+                assertEquals(
+                    "supporting document is already associated with another expense or has conflicting deletion audit data",
+                    error.message,
+                )
+                assertEquals(
+                    listOf(firstWithSupportingDocument, secondExpense),
+                    listOf(
+                        expenseRepository.findByIdAndGroup(firstExpense.id, firstExpense.group),
+                        expenseRepository.findByIdAndGroup(secondExpense.id, secondExpense.group),
+                    ),
+                )
+            }
+
+        @Test
+        fun `should reject a supporting document upload intent from another group`() =
+            runTest {
+                val sourceExpense = expenseWithEqualSplit("persist-xgrp-src")
+                val targetExpense = expenseWithEqualSplit("persist-xgrp-dst")
+                val foreignDocument =
+                    ExpenseSupportingDocument.fromConsumedUploadIntent(consumedIntent(sourceExpense, "xgrp-doc"))
+                val targetWithForeignDocument =
+                    targetExpense.copy(supportingDocuments = ExpenseSupportingDocuments.from(listOf(foreignDocument)))
+                expenseRepository.persist(targetExpense)
+
+                assertThrows<RuntimeException> { expenseRepository.persist(targetWithForeignDocument) }
+
+                assertEquals(targetExpense, expenseRepository.findByIdAndGroup(targetExpense.id, targetExpense.group))
+            }
+
+        @Test
+        fun `should roll back every new supporting document when one upload intent belongs to another group`() =
+            runTest {
+                val sourceExpense = expenseWithEqualSplit("persist-roll-src")
+                val targetExpense = expenseWithEqualSplit("persist-roll-dst")
+                val validDocument = ExpenseSupportingDocument.fromConsumedUploadIntent(consumedIntent(targetExpense, "roll-valid"))
+                val foreignDocument =
+                    ExpenseSupportingDocument.fromConsumedUploadIntent(consumedIntent(sourceExpense, "roll-foreign"))
+                val targetWithMixedDocuments =
+                    targetExpense.copy(
+                        supportingDocuments = ExpenseSupportingDocuments.from(listOf(validDocument, foreignDocument)),
+                    )
+                expenseRepository.persist(targetExpense)
+
+                assertThrows<RuntimeException> { expenseRepository.persist(targetWithMixedDocuments) }
+
+                assertEquals(targetExpense, expenseRepository.findByIdAndGroup(targetExpense.id, targetExpense.group))
+            }
     }
 
     @Nested
@@ -150,19 +310,45 @@ class R2dbcExpenseRepositoryIntegrationTest {
             }
 
         @Test
-        fun `should hydrate every current supporting document without historical versions`() =
+        fun `should round trip the complete supporting document history through every aggregate read`() =
             runTest {
                 val stored = expenseWithEqualSplit("doc-find-expense")
                 expenseRepository.persist(stored)
                 val original = persistCurrentAttachment(stored, "original")
-                val replacement = persistReplacementAttachment(original, "replacement")
+                val replacement = persistReplacementAttachment(stored, original, "replacement")
                 val deleted = persistCurrentAttachment(stored, "deleted")
-                attachmentRepository.persist(deleted.delete(stored.createdBy, Instant.parse("2026-06-01T11:00:00Z")))
+                val deletedTombstone = deleted.delete(stored.createdBy, Instant.parse("2026-06-01T11:00:00Z"))
+                expenseRepository.persist(
+                    stored.copy(
+                        supportingDocuments =
+                            ExpenseSupportingDocuments.restore(
+                                listOf(original, replacement, deletedTombstone),
+                            ),
+                    ),
+                )
 
-                val found = requireNotNull(expenseRepository.findByIdAndGroup(stored.id, stored.group))
+                val aggregateReads =
+                    listOf(
+                        requireNotNull(expenseRepository.findByIdAndGroup(stored.id, stored.group)),
+                        requireNotNull(expenseRepository.findProposedByIdAndGroup(stored.id, stored.group)),
+                        requireNotNull(
+                            transactionRunner.transaction {
+                                r2dbcExpenseRepository.findByIdAndGroupForUpdate(stored.id, stored.group)
+                            },
+                        ),
+                        expenseRepository.findByGroup(stored.group).single { it.id == stored.id },
+                    )
+                val expectedHistory = listOf(deletedTombstone.snapshot(), original.snapshot(), replacement.snapshot())
+                val expectedCurrent = listOf(replacement.snapshot())
 
-                assertEquals(stored, found.copy(supportingDocuments = emptyList()))
-                assertEquals(listOf(replacement.snapshot()), found.supportingDocuments.map { attachment -> attachment.snapshot() })
+                assertEquals(
+                    List(aggregateReads.size) { expectedHistory },
+                    aggregateReads.map { expense -> expense.supportingDocuments.all.map { document -> document.snapshot() } },
+                )
+                assertEquals(
+                    List(aggregateReads.size) { expectedCurrent },
+                    aggregateReads.map { expense -> expense.supportingDocuments.current.map { document -> document.snapshot() } },
+                )
             }
 
         @Test
@@ -249,11 +435,11 @@ class R2dbcExpenseRepositoryIntegrationTest {
 
                 val found = requireNotNull(expenseRepository.findProposedByIdAndGroup(stored.id, stored.group))
 
-                assertEquals(stored, found.copy(supportingDocuments = emptyList()))
+                assertEquals(stored, found.copy(supportingDocuments = ExpenseSupportingDocuments.empty()))
                 assertEquals(
                     listOf(attachment.snapshot()),
-                    found.supportingDocuments.map { currentAttachment ->
-                        currentAttachment.snapshot()
+                    found.supportingDocuments.current.map { currentDocument ->
+                        currentDocument.snapshot()
                     },
                 )
             }
@@ -346,7 +532,7 @@ class R2dbcExpenseRepositoryIntegrationTest {
                     expenseRepository
                         .findByGroup(first.group)
                         .filter { expense -> expense.id in setOf(first.id, second.id) }
-                        .associate { expense -> expense.id to expense.supportingDocuments.map { attachment -> attachment.snapshot() } },
+                        .associate { expense -> expense.id to expense.supportingDocuments.current.map { document -> document.snapshot() } },
                 )
             }
     }
@@ -393,28 +579,49 @@ class R2dbcExpenseRepositoryIntegrationTest {
     private suspend fun persistCurrentAttachment(
         expense: Expense,
         seed: String,
-    ): ExpenseSupportingDocumentAttachment {
+    ): ExpenseSupportingDocument {
         val intent = readyIntent(expense, seed)
         documentUploadIntentRepository.persist(intent)
         val consumed = intent.consume(Instant.parse("2026-06-01T10:30:00Z"))
         documentUploadIntentRepository.persist(consumed)
-        val attachment = ExpenseSupportingDocumentAttachment.attach(expense.id, expense.group, consumed)
-        attachmentRepository.persist(attachment)
-        return attachment
+        val document = ExpenseSupportingDocument.fromConsumedUploadIntent(consumed)
+        expenseRepository.persist(
+            expense.copy(
+                supportingDocuments = ExpenseSupportingDocuments.from(expense.supportingDocuments.all + document),
+            ),
+        )
+        return document
     }
 
     private suspend fun persistReplacementAttachment(
-        replaced: ExpenseSupportingDocumentAttachment,
+        root: Expense,
+        replaced: ExpenseSupportingDocument,
         seed: String,
-    ): ExpenseSupportingDocumentAttachment {
-        val expense = requireNotNull(expenseRepository.findByIdAndGroup(replaced.expense, replaced.group))
+    ): ExpenseSupportingDocument {
+        val expense = requireNotNull(expenseRepository.findByIdAndGroup(root.id, root.group))
         val intent = readyIntent(expense, seed)
         documentUploadIntentRepository.persist(intent)
         val consumed = intent.consume(Instant.parse("2026-06-01T10:30:00Z"))
         documentUploadIntentRepository.persist(consumed)
         val replacement = replaced.replaceWith(consumed)
-        attachmentRepository.persist(replacement)
+        expenseRepository.persist(
+            expense.copy(
+                supportingDocuments = ExpenseSupportingDocuments.from(expense.supportingDocuments.all + replacement),
+            ),
+        )
         return replacement
+    }
+
+    private suspend fun consumedIntent(
+        expense: Expense,
+        seed: String,
+        consumedAt: Instant = Instant.parse("2026-06-01T10:30:00Z"),
+    ): DocumentUploadIntent {
+        val readyIntent = readyIntent(expense, seed)
+        documentUploadIntentRepository.persist(readyIntent)
+        val consumedIntent = readyIntent.consume(consumedAt)
+        documentUploadIntentRepository.persist(consumedIntent)
+        return consumedIntent
     }
 
     private fun readyIntent(
@@ -433,15 +640,27 @@ class R2dbcExpenseRepositoryIntegrationTest {
             status = DocumentUploadIntentStatus.Ready(Instant.parse("2026-06-01T10:00:00Z")),
         )
 
-    private fun ExpenseSupportingDocumentAttachment.snapshot() =
+    private fun ExpenseSupportingDocument.snapshot() =
         SupportingDocumentSnapshot(
             sourceUploadIntent = sourceUploadIntent,
+            uploader = uploader,
+            storageKey = storageKey,
+            fileName = fileName,
+            metadata = metadata,
+            attachedAt = attachedAt,
             replacesSourceUploadIntent = replacesSourceUploadIntent,
+            deletion = deletion,
         )
 
     private data class SupportingDocumentSnapshot(
         val sourceUploadIntent: DocumentUploadIntentId,
+        val uploader: tech.justdev.domain.group.valueobject.MemberEmail,
+        val storageKey: DocumentStorageKey,
+        val fileName: DocumentFileName,
+        val metadata: DocumentMetadata,
+        val attachedAt: Instant,
         val replacesSourceUploadIntent: DocumentUploadIntentId?,
+        val deletion: tech.justdev.domain.document.valueobject.SupportingDocumentAttachmentDeletion?,
     )
 
     private companion object {

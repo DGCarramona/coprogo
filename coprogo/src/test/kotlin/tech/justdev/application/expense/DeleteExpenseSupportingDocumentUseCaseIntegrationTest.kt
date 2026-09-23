@@ -8,9 +8,7 @@ import org.junit.jupiter.api.Test
 import tech.justdev.application.group.GroupAccessPolicy
 import tech.justdev.domain.document.entity.DocumentMetadata
 import tech.justdev.domain.document.entity.DocumentUploadIntent
-import tech.justdev.domain.document.entity.ExpenseSupportingDocumentAttachment
 import tech.justdev.domain.document.repository.DocumentUploadIntentRepository
-import tech.justdev.domain.document.repository.ExpenseSupportingDocumentAttachmentRepository
 import tech.justdev.domain.document.valueobject.DocumentFileName
 import tech.justdev.domain.document.valueobject.DocumentMediaType
 import tech.justdev.domain.document.valueobject.DocumentSha256
@@ -50,9 +48,6 @@ class DeleteExpenseSupportingDocumentUseCaseIntegrationTest {
     lateinit var documentUploadIntentRepository: DocumentUploadIntentRepository
 
     @Inject
-    lateinit var attachmentRepository: ExpenseSupportingDocumentAttachmentRepository
-
-    @Inject
     lateinit var deletionPersistence: R2dbcExpenseSupportingDocumentDeletionPersistence
 
     @Nested
@@ -74,23 +69,20 @@ class DeleteExpenseSupportingDocumentUseCaseIntegrationTest {
                     ),
                 )
 
-                assertEquals(
-                    listOf(HistorySnapshot(uploadIntent.id, fixture.creator, DELETED_AT)),
-                    attachmentRepository
-                        .findHistoryByExpenseAndGroup(fixture.expense.id, fixture.group.id)
-                        .map { attachment ->
-                            HistorySnapshot(
-                                sourceUploadIntent = attachment.sourceUploadIntent,
-                                deletedBy = attachment.deletion?.deletedBy,
-                                deletedAt = attachment.deletion?.deletedAt,
-                            )
-                        },
-                )
+                val expense = requireNotNull(expenseRepository.findByIdAndGroup(fixture.expense.id, fixture.group.id))
                 assertEquals(
                     emptyList<DocumentUploadIntentId>(),
-                    attachmentRepository
-                        .findCurrentByExpenseAndGroup(fixture.expense.id, fixture.group.id)
-                        .map(ExpenseSupportingDocumentAttachment::sourceUploadIntent),
+                    expense.supportingDocuments.current.map { document -> document.sourceUploadIntent },
+                )
+                assertEquals(
+                    listOf(HistorySnapshot(uploadIntent.id, fixture.creator, DELETED_AT)),
+                    expense.supportingDocuments.all.map { document ->
+                        HistorySnapshot(
+                            sourceUploadIntent = document.sourceUploadIntent,
+                            deletedBy = document.deletion?.deletedBy,
+                            deletedAt = document.deletion?.deletedAt,
+                        )
+                    },
                 )
             }
     }
@@ -135,9 +127,7 @@ class DeleteExpenseSupportingDocumentUseCaseIntegrationTest {
     ) {
         val consumed = uploadIntent.consume(CREATED_AT.minusSeconds(1))
         documentUploadIntentRepository.persist(consumed)
-        attachmentRepository.persist(
-            ExpenseSupportingDocumentAttachment.attach(fixture.expense.id, fixture.group.id, consumed),
-        )
+        expenseRepository.persist(fixture.expense.attachSupportingDocuments(listOf(consumed)))
     }
 
     private fun readyIntent(

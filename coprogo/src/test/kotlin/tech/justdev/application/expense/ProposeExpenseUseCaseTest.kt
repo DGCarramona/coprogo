@@ -11,7 +11,8 @@ import tech.justdev.application.support.InMemoryExpenseRepository
 import tech.justdev.application.support.InMemoryGroupRepository
 import tech.justdev.domain.document.entity.DocumentMetadata
 import tech.justdev.domain.document.entity.DocumentUploadIntent
-import tech.justdev.domain.document.entity.ExpenseSupportingDocumentAttachment
+import tech.justdev.domain.document.entity.ExpenseSupportingDocument
+import tech.justdev.domain.document.entity.ExpenseSupportingDocuments
 import tech.justdev.domain.document.repository.DocumentUploadIntentRepository
 import tech.justdev.domain.document.valueobject.DocumentFileName
 import tech.justdev.domain.document.valueobject.DocumentMediaType
@@ -39,7 +40,7 @@ class ProposeExpenseUseCaseTest {
     @Nested
     inner class Invoke {
         @Test
-        fun `should submit an expense, its consumed upload intents and attachments to atomic proposal persistence`() {
+        fun `should submit an expense and its consumed upload intents to atomic proposal persistence`() {
             runTest {
                 val first = readyIntent("first")
                 val second = readyIntent("second")
@@ -72,7 +73,7 @@ class ProposeExpenseUseCaseTest {
                         createdAt = Instant.parse("2026-04-03T10:00:00Z"),
                         participants = setOf(memberEmail("alice")),
                     ),
-                    persisted.expense.copy(supportingDocuments = emptyList()),
+                    persisted.expense.copy(supportingDocuments = ExpenseSupportingDocuments.empty()),
                 )
                 assertEquals(
                     listOf(first.id, second.id),
@@ -84,11 +85,8 @@ class ProposeExpenseUseCaseTest {
                 )
                 assertEquals(
                     listOf(first.id, second.id),
-                    persisted.expense.supportingDocuments.map(ExpenseSupportingDocumentAttachment::sourceUploadIntent),
-                )
-                assertEquals(
-                    List(2) { expenseId("documented-expense") },
-                    persisted.expense.supportingDocuments.map(ExpenseSupportingDocumentAttachment::expense),
+                    persisted.expense.supportingDocuments.current
+                        .map(ExpenseSupportingDocument::sourceUploadIntent),
                 )
             }
         }
@@ -163,11 +161,6 @@ class ProposeExpenseUseCaseTest {
                         ids: Set<DocumentUploadIntentId>,
                         group: GroupId,
                         uploader: MemberEmail,
-                    ): List<DocumentUploadIntent> = error("document upload intent must not be read before membership validation")
-
-                    override suspend fun findConsumedByIdsAndGroup(
-                        ids: Set<DocumentUploadIntentId>,
-                        group: GroupId,
                     ): List<DocumentUploadIntent> = error("document upload intent must not be read before membership validation")
                 }
 
@@ -625,19 +618,6 @@ class ProposeExpenseUseCaseTest {
                         intent.group == group &&
                         intent.uploader == uploader &&
                         intent.status is tech.justdev.domain.document.entity.DocumentUploadIntentStatus.Ready
-                }.sortedBy { it.id.toPrimitive() }
-                .toList()
-
-        override suspend fun findConsumedByIdsAndGroup(
-            ids: Set<DocumentUploadIntentId>,
-            group: GroupId,
-        ): List<DocumentUploadIntent> =
-            intentsById.values
-                .asSequence()
-                .filter { intent ->
-                    intent.id in ids &&
-                        intent.group == group &&
-                        intent.status is tech.justdev.domain.document.entity.DocumentUploadIntentStatus.Consumed
                 }.sortedBy { it.id.toPrimitive() }
                 .toList()
     }

@@ -89,6 +89,9 @@ The policy remains deliberately specific where product correctness, security, au
 - **Frontend**: Domain (pure TypeScript business models/rules); Application (use cases, orchestration, application services); Presentation/Interface Adapters (Angular pages, view models, presentational components, forms, mappers); Infrastructure (HTTP clients, Google auth adapters, storage adapters, DTO mapping).
 - Dependencies point inward: Domain depends on no outer layer; Application only on Domain; adapters and infrastructure depend inward through ports. Business logic never lives in Micronaut controllers or Angular components.
 - At transport boundaries convert primitives to domain/application types as early as practical. Do not let raw strings, UUIDs, amounts, or dates pass deeper when a validating type already exists; make conversion explicit and fail fast.
+- Only aggregate roots own repositories, unless an entity has an independently justified lifecycle. For use cases that invoke aggregate behavior, its repository reconstitutes the complete consistency boundary and persists changes through the root rather than exposing repositories for its children. This does not require rewriting unchanged rows or hydrating complete aggregates for collection reads.
+- Do not let SQL table shape, foreign keys, or relational inheritance dictate the domain model. In particular, do not duplicate a parent identity in a child solely to simplify persistence.
+- Coordinate multiple aggregates atomically through an application port; do not turn one aggregate into another aggregate's child to obtain transactionality.
 
 Keep adapters focused on conversion, delivery, and persistence/integration mechanics. A controller, component, mapper, or persistence model is never a convenient substitute for an aggregate, domain policy, or application workflow.
 
@@ -118,7 +121,7 @@ Keep adapters focused on conversion, delivery, and persistence/integration mecha
 - Prefer set- and aggregate-oriented reasoning for allocations, participant validation, debt computation, revenue distribution, and balance derivation. Prefer batch/set persistence, SQL joins/grouping/bulk operations, bounded aggregate reads, and database-level filters over N+1 or small-data-only convenience methods. Consider indexes, uniqueness, ordering, and filtering.
 - Keep Domain and most Application focused on business semantics rather than framework types. Do not let a framework boundary force reactive complexity into otherwise pure domain behavior.
 
-Repository adapters must be designed for expected data volume and query shape. Where an aggregate view needs related data, fetch it through explicit bounded queries; choose a relational or set-based query whenever it is clearer and scalable than one query per row or aggregate.
+Repository adapters must be designed for expected data volume and query shape. Where an aggregate view needs related data, fetch it through explicit bounded queries; choose a relational or set-based query whenever it is clearer and scalable than one query per row or aggregate. List reads use dedicated projections, never incomplete aggregates or unnecessarily hydrated complete aggregates.
 - PostgreSQL is the sole database: use `ENUM` for closed persisted vocabularies and `DOMAIN` for recurring constrained scalars (normalized emails, money cents, positive amounts, signed ledger deltas, ownership basis points). Database constraints are part of the auditability boundary, complementary to application/domain validation.
 - Prefer business-oriented column names where the table context suffices (`event`, `expense`, `type`); retain names such as `member_email` when their qualifier is stable business meaning or prevents ambiguity.
 
@@ -181,6 +184,7 @@ Writing or editing production code without that test is invalid; revert the prod
 - Backend local runtime configuration uses Micronaut environment files, never custom `.env` loading: shared defaults in `application-runtime.properties`, machine overrides in `application-local.properties`, and only `application-local.example.properties` committed.
 - For coroutine error assertions prefer `assertThrows { runTest { ... } }` to manual `try/catch + fail`.
 - Collection assertions compare complete expected and actual collections in one assertion, after stable projections when necessary. Never assert inside `forEach`, `forEachIndexed`, `zip(...).forEach`, or another iteration callback. For independent cases use parameterized/nested tests or collect stable outcomes then compare the complete list; setup iteration without assertions is permitted.
+- When removing or moving an abstraction, inventory its behavioral guarantees and migrate their tests to the new architectural boundary.
 - Prioritize expense validation/refusal, reimbursement recording/contestation, cash-pool income distribution, over-withdrawal balance effects, effective-dated ownership-share history, and attachment traceability/audit history.
 
 Use framework test facilities only at their intended boundary. Do not mock a vendor SDK or framework internal merely to make a unit test convenient; test a project-owned abstraction with a fake or test the real adapter at integration level.

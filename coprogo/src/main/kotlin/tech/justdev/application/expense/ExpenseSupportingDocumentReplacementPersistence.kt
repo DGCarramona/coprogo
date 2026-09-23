@@ -25,7 +25,7 @@ interface ExpenseSupportingDocumentReplacementPersistenceScope {
     ): DocumentUploadIntent?
 
     suspend fun persist(
-        consumedReplacementUploadIntent: DocumentUploadIntent,
         replacement: ExpenseSupportingDocumentReplacement,
+        consumedReplacementIntent: DocumentUploadIntent,
     )
 }

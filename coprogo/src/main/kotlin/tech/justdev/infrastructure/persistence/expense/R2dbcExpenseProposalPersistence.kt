@@ -5,7 +5,6 @@ import tech.justdev.application.expense.ExpenseProposalPersistence
 import tech.justdev.application.shared.TransactionRunner
 import tech.justdev.domain.document.entity.DocumentUploadIntent
 import tech.justdev.domain.document.repository.DocumentUploadIntentRepository
-import tech.justdev.domain.document.repository.ExpenseSupportingDocumentAttachmentRepository
 import tech.justdev.domain.expense.entity.Expense
 import tech.justdev.domain.expense.repository.ExpenseRepository
 
@@ -14,7 +13,6 @@ class R2dbcExpenseProposalPersistence(
     private val transactionRunner: TransactionRunner,
     private val documentUploadIntentRepository: DocumentUploadIntentRepository,
     private val expenseRepository: ExpenseRepository,
-    private val attachmentRepository: ExpenseSupportingDocumentAttachmentRepository,
 ) : ExpenseProposalPersistence {
     override suspend fun persist(
         expense: Expense,
@@ -23,7 +21,6 @@ class R2dbcExpenseProposalPersistence(
         transactionRunner.transaction {
             documentUploadIntentRepository.persistAll(consumedUploadIntents)
             expenseRepository.persist(expense)
-            attachmentRepository.persistAll(expense.supportingDocuments)
         }
     }
 }

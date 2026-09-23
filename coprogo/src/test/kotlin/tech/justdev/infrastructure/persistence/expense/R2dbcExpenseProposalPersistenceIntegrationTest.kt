@@ -11,9 +11,8 @@ import tech.justdev.application.shared.TransactionRunner
 import tech.justdev.domain.document.entity.DocumentMetadata
 import tech.justdev.domain.document.entity.DocumentUploadIntent
 import tech.justdev.domain.document.entity.DocumentUploadIntentStatus
-import tech.justdev.domain.document.entity.ExpenseSupportingDocumentAttachment
+import tech.justdev.domain.document.entity.ExpenseSupportingDocuments
 import tech.justdev.domain.document.repository.DocumentUploadIntentRepository
-import tech.justdev.domain.document.repository.ExpenseSupportingDocumentAttachmentRepository
 import tech.justdev.domain.document.valueobject.DocumentFileName
 import tech.justdev.domain.document.valueobject.DocumentMediaType
 import tech.justdev.domain.document.valueobject.DocumentSha256
@@ -53,9 +52,6 @@ class R2dbcExpenseProposalPersistenceIntegrationTest {
     lateinit var documentUploadIntentRepository: DocumentUploadIntentRepository
 
     @Inject
-    lateinit var attachmentRepository: ExpenseSupportingDocumentAttachmentRepository
-
-    @Inject
     lateinit var groupRepository: GroupRepository
 
     @Inject
@@ -64,7 +60,7 @@ class R2dbcExpenseProposalPersistenceIntegrationTest {
     @Nested
     inner class Persist {
         @Test
-        fun `should persist consumed documents then their expense and attachments atomically`() =
+        fun `should persist consumed documents then their expense aggregate atomically`() =
             runTest {
                 val fixture = persistFixture("proposal-success")
                 val expense = expense("proposal-success", fixture)
@@ -79,18 +75,12 @@ class R2dbcExpenseProposalPersistenceIntegrationTest {
 
                 val foundExpense = requireNotNull(expenseRepository.findByIdAndGroup(expense.id, fixture.group.id))
                 assertEquals(
-                    documentedExpense.copy(supportingDocuments = emptyList()),
-                    foundExpense.copy(supportingDocuments = emptyList()),
+                    documentedExpense.copy(supportingDocuments = ExpenseSupportingDocuments.empty()),
+                    foundExpense.copy(supportingDocuments = ExpenseSupportingDocuments.empty()),
                 )
                 assertEquals(
-                    documentedExpense.supportingDocuments.map(ExpenseSupportingDocumentAttachment::sourceUploadIntent),
-                    foundExpense.supportingDocuments.map(ExpenseSupportingDocumentAttachment::sourceUploadIntent),
-                )
-                assertEquals(
-                    consumed.map(DocumentUploadIntent::id).sortedBy(DocumentUploadIntentId::toPrimitive),
-                    attachmentRepository
-                        .findCurrentByExpenseAndGroup(expense.id, fixture.group.id)
-                        .map(ExpenseSupportingDocumentAttachment::sourceUploadIntent),
+                    documentedExpense.supportingDocuments.current.map { document -> document.sourceUploadIntent },
+                    foundExpense.supportingDocuments.current.map { document -> document.sourceUploadIntent },
                 )
                 assertEquals(
                     consumed.map(DocumentUploadIntent::status),
@@ -102,7 +92,7 @@ class R2dbcExpenseProposalPersistenceIntegrationTest {
             }
 
         @Test
-        fun `should roll back consumed documents and expense when an attachment cannot persist`() =
+        fun `should roll back consumed documents when aggregate persistence fails`() =
             runTest {
                 val fixture = persistFixture("proposal-rollback")
                 val expense = expense("proposal-rollback", fixture)
@@ -114,30 +104,21 @@ class R2dbcExpenseProposalPersistenceIntegrationTest {
                     R2dbcExpenseProposalPersistence(
                         transactionRunner = transactionRunner,
                         documentUploadIntentRepository = documentUploadIntentRepository,
-                        expenseRepository = expenseRepository,
-                        attachmentRepository =
-                            object : ExpenseSupportingDocumentAttachmentRepository {
-                                override suspend fun persist(attachment: ExpenseSupportingDocumentAttachment): Nothing =
-                                    error("attachment persistence failed")
-
-                                override suspend fun persistAll(attachments: List<ExpenseSupportingDocumentAttachment>): Nothing =
-                                    error("attachment persistence failed")
-
-                                override suspend fun findCurrentByExpenseAndGroup(
-                                    expense: ExpenseId,
+                        expenseRepository =
+                            object : ExpenseRepository {
+                                override suspend fun findByIdAndGroup(
+                                    id: ExpenseId,
                                     group: GroupId,
-                                ): List<ExpenseSupportingDocumentAttachment> = emptyList()
+                                ): Expense? = error("not used")
 
-                                override suspend fun findCurrentBySourceUploadIntentAndExpenseAndGroup(
-                                    sourceUploadIntent: DocumentUploadIntentId,
-                                    expense: ExpenseId,
-                                    group: GroupId,
-                                ): ExpenseSupportingDocumentAttachment? = null
+                                override suspend fun findByGroup(group: GroupId): List<Expense> = error("not used")
 
-                                override suspend fun findHistoryByExpenseAndGroup(
-                                    expense: ExpenseId,
+                                override suspend fun findProposedByIdAndGroup(
+                                    id: ExpenseId,
                                     group: GroupId,
-                                ): List<ExpenseSupportingDocumentAttachment> = emptyList()
+                                ): Expense? = error("not used")
+
+                                override suspend fun persist(expense: Expense): Nothing = error("aggregate persistence failed")
                             },
                     )
 
@@ -146,7 +127,7 @@ class R2dbcExpenseProposalPersistenceIntegrationTest {
                         failingPersistence.persist(documentedExpense, listOf(consumed))
                     }
 
-                assertEquals("attachment persistence failed", error.message)
+                assertEquals("aggregate persistence failed", error.message)
                 assertNull(expenseRepository.findByIdAndGroup(expense.id, fixture.group.id))
                 assertEquals(
                     DocumentUploadIntentStatus.Ready(CREATED_AT.minusSeconds(30)),

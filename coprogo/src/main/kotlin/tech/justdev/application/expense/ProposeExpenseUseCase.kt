@@ -108,12 +108,10 @@ class ProposeExpenseUseCaseImpl(
             )
         }
 
-        expenseProposalPersistence.persist(
-            command
-                .toExpense(expenseIdGenerator.next())
-                .attachSupportingDocuments(consumedUploadIntents),
-            consumedUploadIntents,
-        )
+        command
+            .toExpense(expenseIdGenerator.next())
+            .attachSupportingDocuments(consumedUploadIntents)
+            .let { expense -> expenseProposalPersistence.persist(expense, consumedUploadIntents) }
     }
 }
 

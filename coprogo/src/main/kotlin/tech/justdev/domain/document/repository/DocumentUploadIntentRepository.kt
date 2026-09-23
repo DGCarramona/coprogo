@@ -22,11 +22,6 @@ interface DocumentUploadIntentRepository {
         uploader: MemberEmail,
     ): List<DocumentUploadIntent>
 
-    suspend fun findConsumedByIdsAndGroup(
-        ids: Set<DocumentUploadIntentId>,
-        group: GroupId,
-    ): List<DocumentUploadIntent>
-
     suspend fun findByIdAndGroup(
         id: DocumentUploadIntentId,
         group: GroupId,

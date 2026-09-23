@@ -9,9 +9,7 @@ import tech.justdev.application.group.GroupAccessPolicy
 import tech.justdev.domain.document.entity.DocumentMetadata
 import tech.justdev.domain.document.entity.DocumentUploadIntent
 import tech.justdev.domain.document.entity.DocumentUploadIntentStatus
-import tech.justdev.domain.document.entity.ExpenseSupportingDocumentAttachment
 import tech.justdev.domain.document.repository.DocumentUploadIntentRepository
-import tech.justdev.domain.document.repository.ExpenseSupportingDocumentAttachmentRepository
 import tech.justdev.domain.document.valueobject.DocumentFileName
 import tech.justdev.domain.document.valueobject.DocumentMediaType
 import tech.justdev.domain.document.valueobject.DocumentSha256
@@ -51,9 +49,6 @@ class ProposeExpenseUseCaseIntegrationTest {
 
     @Inject
     lateinit var documentUploadIntentRepository: DocumentUploadIntentRepository
-
-    @Inject
-    lateinit var attachmentRepository: ExpenseSupportingDocumentAttachmentRepository
 
     @Inject
     lateinit var expenseProposalPersistence: ExpenseProposalPersistence
@@ -227,12 +222,11 @@ class ProposeExpenseUseCaseIntegrationTest {
                     ),
                 )
 
-                assertEquals(ExpenseStatus.ACCEPTED, requireNotNull(expenseRepository.findByIdAndGroup(id, fixture.group.id)).status)
+                val expense = requireNotNull(expenseRepository.findByIdAndGroup(id, fixture.group.id))
+                assertEquals(ExpenseStatus.ACCEPTED, expense.status)
                 assertEquals(
                     listOf(first.id, second.id).sortedBy(DocumentUploadIntentId::toPrimitive),
-                    attachmentRepository
-                        .findCurrentByExpenseAndGroup(id, fixture.group.id)
-                        .map(ExpenseSupportingDocumentAttachment::sourceUploadIntent),
+                    expense.supportingDocuments.current.map { document -> document.sourceUploadIntent },
                 )
                 assertEquals(
                     listOf<DocumentUploadIntentStatus>(

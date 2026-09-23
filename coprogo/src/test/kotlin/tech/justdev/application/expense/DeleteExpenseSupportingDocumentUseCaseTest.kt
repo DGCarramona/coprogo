@@ -9,7 +9,8 @@ import tech.justdev.application.group.GroupAccessPolicy
 import tech.justdev.application.group.GroupNotFoundException
 import tech.justdev.domain.document.entity.DocumentMetadata
 import tech.justdev.domain.document.entity.DocumentUploadIntent
-import tech.justdev.domain.document.entity.ExpenseSupportingDocumentAttachment
+import tech.justdev.domain.document.entity.ExpenseSupportingDocument
+import tech.justdev.domain.document.entity.ExpenseSupportingDocuments
 import tech.justdev.domain.document.valueobject.DocumentFileName
 import tech.justdev.domain.document.valueobject.DocumentMediaType
 import tech.justdev.domain.document.valueobject.DocumentSha256
@@ -17,7 +18,7 @@ import tech.justdev.domain.document.valueobject.DocumentSize
 import tech.justdev.domain.document.valueobject.DocumentStorageKey
 import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
 import tech.justdev.domain.expense.entity.Expense
-import tech.justdev.domain.expense.exception.ExpenseSupportingDocumentAttachmentUnavailableException
+import tech.justdev.domain.expense.exception.ExpenseSupportingDocumentUnavailableException
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
 import tech.justdev.domain.expense.valueobject.ExpenseShare
 import tech.justdev.domain.group.entity.Group
@@ -62,7 +63,7 @@ class DeleteExpenseSupportingDocumentUseCaseTest {
         }
 
         @Test
-        fun `should enforce creator and proposed status before reading the attachment`() {
+        fun `should enforce creator and proposed status before reading the supporting document`() {
             val outcomes =
                 listOf(
                     proposedExpense() to memberEmail("bob"),
@@ -101,13 +102,13 @@ class DeleteExpenseSupportingDocumentUseCaseTest {
         }
 
         @Test
-        fun `should reject an absent current attachment`() {
+        fun `should reject an absent current supporting document`() {
             val error =
-                assertThrows<ExpenseSupportingDocumentAttachmentUnavailableException> {
+                assertThrows<ExpenseSupportingDocumentUnavailableException> {
                     runTest { useCase(deletionPersistence = recordingDeletionPersistence(expense = proposedExpense()))(command()) }
                 }
 
-            assertEquals("expense supporting document attachment is unavailable", error.message)
+            assertEquals("expense supporting document is unavailable", error.message)
         }
 
         @Test
@@ -143,7 +144,7 @@ class DeleteExpenseSupportingDocumentUseCaseTest {
         )
 
     private fun recordingDeletionPersistence(
-        expense: Expense? = proposedExpense().copy(supportingDocuments = listOf(currentAttachment())),
+        expense: Expense? = proposedExpense().copy(supportingDocuments = ExpenseSupportingDocuments.restore(listOf(currentDocument()))),
     ): RecordingExpenseSupportingDocumentDeletionPersistence =
         RecordingExpenseSupportingDocumentDeletionPersistence(
             RecordingScope(expense),
@@ -184,24 +185,20 @@ class DeleteExpenseSupportingDocumentUseCaseTest {
     private fun invalidatedExpense(): Expense =
         proposedExpense().recordParticipationDecision(memberEmail("bob"), ExpenseParticipationDecision.REFUSE, DELETED_AT)
 
-    private fun currentAttachment(): ExpenseSupportingDocumentAttachment =
-        ExpenseSupportingDocumentAttachment.attach(
-            expense = EXPENSE,
-            group = GROUP,
-            intent =
-                DocumentUploadIntent
-                    .create(
-                        id = UPLOAD_INTENT,
-                        group = GROUP,
-                        uploader = CREATOR,
-                        storageKey = DocumentStorageKey.of("groups/${GROUP.toPrimitive()}/documents/original.pdf"),
-                        fileName = DocumentFileName.of("original.pdf"),
-                        expectedMetadata = METADATA,
-                        createdAt = CREATED_AT.minusSeconds(60),
-                        expiresAt = CREATED_AT.plusSeconds(60),
-                    ).markReady(METADATA, CREATED_AT.minusSeconds(30))
-                    .consume(CREATED_AT.minusSeconds(1)),
-        )
+    private fun currentDocument(): ExpenseSupportingDocument =
+        DocumentUploadIntent
+            .create(
+                id = UPLOAD_INTENT,
+                group = GROUP,
+                uploader = CREATOR,
+                storageKey = DocumentStorageKey.of("groups/${GROUP.toPrimitive()}/documents/original.pdf"),
+                fileName = DocumentFileName.of("original.pdf"),
+                expectedMetadata = METADATA,
+                createdAt = CREATED_AT.minusSeconds(60),
+                expiresAt = CREATED_AT.plusSeconds(60),
+            ).markReady(METADATA, CREATED_AT.minusSeconds(30))
+            .consume(CREATED_AT.minusSeconds(1))
+            .let(ExpenseSupportingDocument::fromConsumedUploadIntent)
 
     private class RecordingGroupRepository(
         private val group: Group?,
@@ -236,14 +233,14 @@ class DeleteExpenseSupportingDocumentUseCaseTest {
             return expense
         }
 
-        override suspend fun persist(deletion: tech.justdev.domain.expense.entity.ExpenseSupportingDocumentDeletion) {
-            val deletedAttachment = deletion.deleted
-            val deletion = requireNotNull(deletedAttachment.deletion)
+        override suspend fun persist(documentDeletion: tech.justdev.domain.expense.entity.ExpenseSupportingDocumentDeletion) {
+            val deletedDocument = documentDeletion.deleted
+            val deletion = requireNotNull(deletedDocument.deletion)
             persisted +=
                 DeletionPersistenceSnapshot(
-                    sourceUploadIntent = deletedAttachment.sourceUploadIntent,
-                    expense = deletedAttachment.expense,
-                    group = deletedAttachment.group,
+                    sourceUploadIntent = deletedDocument.sourceUploadIntent,
+                    expense = documentDeletion.expense.id,
+                    group = documentDeletion.expense.group,
                     deletedBy = deletion.deletedBy,
                     deletedAt = deletion.deletedAt,
                 )

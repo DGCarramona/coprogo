@@ -16,9 +16,7 @@ import tech.justdev.application.shared.TransactionRunner
 import tech.justdev.domain.document.entity.DocumentMetadata
 import tech.justdev.domain.document.entity.DocumentUploadIntent
 import tech.justdev.domain.document.entity.DocumentUploadIntentStatus
-import tech.justdev.domain.document.entity.ExpenseSupportingDocumentAttachment
 import tech.justdev.domain.document.repository.DocumentUploadIntentRepository
-import tech.justdev.domain.document.repository.ExpenseSupportingDocumentAttachmentRepository
 import tech.justdev.domain.document.valueobject.DocumentFileName
 import tech.justdev.domain.document.valueobject.DocumentMediaType
 import tech.justdev.domain.document.valueobject.DocumentSha256
@@ -26,7 +24,7 @@ import tech.justdev.domain.document.valueobject.DocumentSize
 import tech.justdev.domain.document.valueobject.DocumentStorageKey
 import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
 import tech.justdev.domain.expense.entity.Expense
-import tech.justdev.domain.expense.exception.ExpenseSupportingDocumentAttachmentUnavailableException
+import tech.justdev.domain.expense.exception.ExpenseSupportingDocumentUnavailableException
 import tech.justdev.domain.expense.repository.ExpenseRepository
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
 import tech.justdev.domain.expense.valueobject.ExpenseShare
@@ -58,9 +56,6 @@ class ReplaceExpenseSupportingDocumentUseCaseIntegrationTest {
 
     @Inject
     lateinit var documentUploadIntentRepository: DocumentUploadIntentRepository
-
-    @Inject
-    lateinit var attachmentRepository: ExpenseSupportingDocumentAttachmentRepository
 
     @Inject
     lateinit var replacementPersistence: R2dbcExpenseSupportingDocumentReplacementPersistence
@@ -95,15 +90,15 @@ class ReplaceExpenseSupportingDocumentUseCaseIntegrationTest {
                         AttachmentSnapshot(original.id, null),
                         AttachmentSnapshot(replacement.id, original.id),
                     ),
-                    attachmentRepository
-                        .findHistoryByExpenseAndGroup(fixture.expense.id, fixture.group.id)
-                        .map { attachment -> AttachmentSnapshot(attachment.sourceUploadIntent, attachment.replacesSourceUploadIntent) },
+                    requireNotNull(expenseRepository.findByIdAndGroup(fixture.expense.id, fixture.group.id))
+                        .supportingDocuments.all
+                        .map { document -> AttachmentSnapshot(document.sourceUploadIntent, document.replacesSourceUploadIntent) },
                 )
                 assertEquals(
                     listOf(replacement.id),
-                    attachmentRepository
-                        .findCurrentByExpenseAndGroup(fixture.expense.id, fixture.group.id)
-                        .map(ExpenseSupportingDocumentAttachment::sourceUploadIntent),
+                    requireNotNull(expenseRepository.findByIdAndGroup(fixture.expense.id, fixture.group.id))
+                        .supportingDocuments.current
+                        .map { document -> document.sourceUploadIntent },
                 )
                 assertEquals(
                     DocumentUploadIntentStatus.Consumed(
@@ -133,7 +128,7 @@ class ReplaceExpenseSupportingDocumentUseCaseIntegrationTest {
                 )
 
                 val error =
-                    assertThrows<ExpenseSupportingDocumentAttachmentUnavailableException> {
+                    assertThrows<ExpenseSupportingDocumentUnavailableException> {
                         useCase()(
                             replacementCommand(
                                 fixture = fixture,
@@ -144,7 +139,7 @@ class ReplaceExpenseSupportingDocumentUseCaseIntegrationTest {
                     }
 
                 assertEquals(
-                    "expense supporting document attachment is unavailable",
+                    "expense supporting document is unavailable",
                     error.message,
                 )
                 assertEquals(
@@ -156,9 +151,9 @@ class ReplaceExpenseSupportingDocumentUseCaseIntegrationTest {
                         AttachmentSnapshot(original.id, null),
                         AttachmentSnapshot(firstSuccessor.id, original.id),
                     ),
-                    attachmentRepository
-                        .findHistoryByExpenseAndGroup(fixture.expense.id, fixture.group.id)
-                        .map { attachment -> AttachmentSnapshot(attachment.sourceUploadIntent, attachment.replacesSourceUploadIntent) },
+                    requireNotNull(expenseRepository.findByIdAndGroup(fixture.expense.id, fixture.group.id))
+                        .supportingDocuments.all
+                        .map { document -> AttachmentSnapshot(document.sourceUploadIntent, document.replacesSourceUploadIntent) },
                 )
             }
     }
@@ -216,9 +211,9 @@ class ReplaceExpenseSupportingDocumentUseCaseIntegrationTest {
                 )
                 assertEquals(
                     listOf(AttachmentSnapshot(original.id, null)),
-                    attachmentRepository
-                        .findHistoryByExpenseAndGroup(fixture.expense.id, fixture.group.id)
-                        .map { attachment -> AttachmentSnapshot(attachment.sourceUploadIntent, attachment.replacesSourceUploadIntent) },
+                    requireNotNull(expenseRepository.findByIdAndGroup(fixture.expense.id, fixture.group.id))
+                        .supportingDocuments.all
+                        .map { document -> AttachmentSnapshot(document.sourceUploadIntent, document.replacesSourceUploadIntent) },
                 )
             }
     }
@@ -277,9 +272,7 @@ class ReplaceExpenseSupportingDocumentUseCaseIntegrationTest {
     ) {
         val consumed = original.consume(REPLACED_AT.minusSeconds(1))
         documentUploadIntentRepository.persist(consumed)
-        attachmentRepository.persist(
-            ExpenseSupportingDocumentAttachment.attach(fixture.expense.id, fixture.group.id, consumed),
-        )
+        expenseRepository.persist(fixture.expense.attachSupportingDocuments(listOf(consumed)))
     }
 
     private fun readyIntent(

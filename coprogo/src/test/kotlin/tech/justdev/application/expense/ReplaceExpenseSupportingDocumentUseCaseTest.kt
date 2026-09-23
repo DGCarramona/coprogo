@@ -10,7 +10,8 @@ import tech.justdev.application.group.GroupNotFoundException
 import tech.justdev.domain.document.entity.DocumentMetadata
 import tech.justdev.domain.document.entity.DocumentUploadIntent
 import tech.justdev.domain.document.entity.DocumentUploadIntentStatus
-import tech.justdev.domain.document.entity.ExpenseSupportingDocumentAttachment
+import tech.justdev.domain.document.entity.ExpenseSupportingDocument
+import tech.justdev.domain.document.entity.ExpenseSupportingDocuments
 import tech.justdev.domain.document.valueobject.DocumentFileName
 import tech.justdev.domain.document.valueobject.DocumentMediaType
 import tech.justdev.domain.document.valueobject.DocumentSha256
@@ -18,7 +19,7 @@ import tech.justdev.domain.document.valueobject.DocumentSize
 import tech.justdev.domain.document.valueobject.DocumentStorageKey
 import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
 import tech.justdev.domain.expense.entity.Expense
-import tech.justdev.domain.expense.exception.ExpenseSupportingDocumentAttachmentUnavailableException
+import tech.justdev.domain.expense.exception.ExpenseSupportingDocumentUnavailableException
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
 import tech.justdev.domain.expense.valueobject.ExpenseShare
 import tech.justdev.domain.group.entity.Group
@@ -107,15 +108,15 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
         }
 
         @Test
-        fun `should reject an absent current attachment`() {
+        fun `should reject an absent current supporting document`() {
             val error =
-                assertThrows<ExpenseSupportingDocumentAttachmentUnavailableException> {
+                assertThrows<ExpenseSupportingDocumentUnavailableException> {
                     runTest {
                         useCase(replacementPersistence = recordingReplacementPersistence(expense = proposedExpense()))(command())
                     }
                 }
 
-            assertEquals("expense supporting document attachment is unavailable", error.message)
+            assertEquals("expense supporting document is unavailable", error.message)
         }
 
         @Test
@@ -146,7 +147,7 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
         }
 
         @Test
-        fun `should persist the consumed replacement intent and successor attachment in the transaction`() =
+        fun `should persist the consumed replacement intent and successor document in the transaction`() =
             runTest {
                 val replacementIntent = readyIntent("replacement")
                 val replacementPersistence = recordingReplacementPersistence(intent = replacementIntent)
@@ -184,7 +185,7 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
         )
 
     private fun recordingReplacementPersistence(
-        expense: Expense? = proposedExpense().copy(supportingDocuments = listOf(currentAttachment())),
+        expense: Expense? = proposedExpense().copy(supportingDocuments = ExpenseSupportingDocuments.restore(listOf(currentDocument()))),
         intent: DocumentUploadIntent? = readyIntent("default"),
     ): RecordingExpenseSupportingDocumentReplacementPersistence =
         RecordingExpenseSupportingDocumentReplacementPersistence(RecordingScope(expense, intent))
@@ -236,12 +237,17 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
             decidedAt = REPLACED_AT,
         )
 
-    private fun currentAttachment(): ExpenseSupportingDocumentAttachment =
-        ExpenseSupportingDocumentAttachment.restore(ORIGINAL_UPLOAD_INTENT, GROUP, EXPENSE)
+    private fun currentDocument(): ExpenseSupportingDocument =
+        ExpenseSupportingDocument.fromConsumedUploadIntent(readyIntent("original").consume(REPLACED_AT))
 
     private fun readyIntent(seed: String): DocumentUploadIntent =
         DocumentUploadIntent.restore(
-            id = if (seed == "replacement") REPLACEMENT_UPLOAD_INTENT else DocumentUploadIntentId(testUuid("$seed:replace-document")),
+            id =
+                when (seed) {
+                    "original" -> ORIGINAL_UPLOAD_INTENT
+                    "replacement" -> REPLACEMENT_UPLOAD_INTENT
+                    else -> DocumentUploadIntentId(testUuid("$seed:replace-document"))
+                },
             group = GROUP,
             uploader = CREATOR,
             storageKey = DocumentStorageKey.of("groups/${GROUP.toPrimitive()}/documents/$seed.pdf"),
@@ -297,18 +303,18 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
         }
 
         override suspend fun persist(
-            consumedReplacementUploadIntent: DocumentUploadIntent,
             replacement: tech.justdev.domain.expense.entity.ExpenseSupportingDocumentReplacement,
+            consumedReplacementIntent: DocumentUploadIntent,
         ) {
-            val replacementAttachment = replacement.replacement
+            val replacementDocument = replacement.replacement
             persisted +=
                 ReplacementPersistenceSnapshot(
-                    consumedIntent = consumedReplacementUploadIntent.id,
-                    consumedStatus = consumedReplacementUploadIntent.status,
-                    sourceUploadIntent = replacementAttachment.sourceUploadIntent,
-                    replacesSourceUploadIntent = replacementAttachment.replacesSourceUploadIntent,
-                    expense = replacementAttachment.expense,
-                    group = replacementAttachment.group,
+                    consumedIntent = consumedReplacementIntent.id,
+                    consumedStatus = consumedReplacementIntent.status,
+                    sourceUploadIntent = replacementDocument.sourceUploadIntent,
+                    replacesSourceUploadIntent = replacementDocument.replacesSourceUploadIntent,
+                    expense = replacement.expense.id,
+                    group = replacement.expense.group,
                 )
         }
     }

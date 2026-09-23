@@ -3,7 +3,6 @@ package tech.justdev.application.expense
 import jakarta.inject.Singleton
 import tech.justdev.application.group.GroupAccessPolicy
 import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
-import tech.justdev.domain.expense.exception.ExpenseSupportingDocumentAttachmentUnavailableException
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.valueobject.GroupId
@@ -51,12 +50,13 @@ class ReplaceExpenseSupportingDocumentUseCaseImpl(
                 }
 
             scope.persist(
-                consumedReplacementIntent,
-                expense.replaceSupportingDocument(
-                    sourceUploadIntent = command.replacedSourceUploadIntent,
-                    replacementIntent = consumedReplacementIntent,
-                    requestedBy = command.requestedBy,
-                ) ?: throw ExpenseSupportingDocumentAttachmentUnavailableException(),
+                replacement =
+                    expense.replaceSupportingDocument(
+                        sourceUploadIntent = command.replacedSourceUploadIntent,
+                        replacementIntent = consumedReplacementIntent,
+                        requestedBy = command.requestedBy,
+                    ),
+                consumedReplacementIntent = consumedReplacementIntent,
             )
         }
     }

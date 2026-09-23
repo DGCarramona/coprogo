@@ -12,14 +12,12 @@ import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.valueobject.GroupId
 import tech.justdev.infrastructure.persistence.document.R2dbcDocumentUploadIntentRepository
-import tech.justdev.infrastructure.persistence.document.R2dbcExpenseSupportingDocumentAttachmentRepository
 
 @Singleton
 class R2dbcExpenseSupportingDocumentReplacementPersistence(
     private val transactionRunner: TransactionRunner,
     private val expenseRepository: R2dbcExpenseRepository,
     private val documentUploadIntentRepository: R2dbcDocumentUploadIntentRepository,
-    private val attachmentRepository: R2dbcExpenseSupportingDocumentAttachmentRepository,
 ) : ExpenseSupportingDocumentReplacementPersistence {
     override suspend fun <T> inTransaction(block: suspend (ExpenseSupportingDocumentReplacementPersistenceScope) -> T): T =
         transactionRunner.transaction {
@@ -27,7 +25,6 @@ class R2dbcExpenseSupportingDocumentReplacementPersistence(
                 R2dbcExpenseSupportingDocumentReplacementPersistenceScope(
                     expenseRepository = expenseRepository,
                     documentUploadIntentRepository = documentUploadIntentRepository,
-                    attachmentRepository = attachmentRepository,
                 ),
             )
         }
@@ -36,7 +33,6 @@ class R2dbcExpenseSupportingDocumentReplacementPersistence(
 private class R2dbcExpenseSupportingDocumentReplacementPersistenceScope(
     private val expenseRepository: R2dbcExpenseRepository,
     private val documentUploadIntentRepository: R2dbcDocumentUploadIntentRepository,
-    private val attachmentRepository: R2dbcExpenseSupportingDocumentAttachmentRepository,
 ) : ExpenseSupportingDocumentReplacementPersistenceScope {
     override suspend fun findExpense(
         id: ExpenseId,
@@ -57,10 +53,10 @@ private class R2dbcExpenseSupportingDocumentReplacementPersistenceScope(
             ?.takeIf { intent -> intent.id == id }
 
     override suspend fun persist(
-        consumedReplacementUploadIntent: DocumentUploadIntent,
         replacement: ExpenseSupportingDocumentReplacement,
+        consumedReplacementIntent: DocumentUploadIntent,
     ) {
-        documentUploadIntentRepository.persistAll(listOf(consumedReplacementUploadIntent))
-        attachmentRepository.persistAll(listOf(replacement.replacement))
+        documentUploadIntentRepository.persistAll(listOf(consumedReplacementIntent))
+        expenseRepository.persist(replacement.expense)
     }
 }

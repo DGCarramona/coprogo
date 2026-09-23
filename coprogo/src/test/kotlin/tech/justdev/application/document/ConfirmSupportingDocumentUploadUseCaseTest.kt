@@ -264,11 +264,6 @@ class ConfirmSupportingDocumentUploadUseCaseTest {
             uploader: MemberEmail,
         ): List<DocumentUploadIntent> = error("not used")
 
-        override suspend fun findConsumedByIdsAndGroup(
-            ids: Set<DocumentUploadIntentId>,
-            group: GroupId,
-        ): List<DocumentUploadIntent> = error("not used")
-
         override suspend fun findByIdAndGroup(
             id: DocumentUploadIntentId,
             group: GroupId,
