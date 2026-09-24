@@ -277,6 +277,42 @@ paths:
           description: recordParticipationDecision 204 response
       security:
       - bearerAuth: []
+  /api/groups/{groupId}/expenses/{expenseId}/supporting-document-audit-entries:
+    get:
+      tags:
+      - Supporting documents
+      summary: List supporting document audit entries for an expense
+      operationId: listExpenseSupportingDocumentAuditTrail
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: expenseId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: Supporting document audit entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExpenseSupportingDocumentAuditEntryResponse"
+        "404":
+          description: Expense is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+      security:
+      - bearerAuth: []
   /api/groups/{groupId}/expenses/{expenseId}/supporting-documents:
     get:
       tags:
@@ -837,6 +873,37 @@ components:
           nullable: true
           allOf:
           - $ref: "#/components/schemas/ExpenseRefusalResponse"
+    ExpenseSupportingDocumentAuditActionResponse:
+      type: string
+      enum:
+      - ATTACHED
+      - REPLACED
+      - DELETED
+    ExpenseSupportingDocumentAuditEntryResponse:
+      required:
+      - action
+      - documentUploadIntent
+      - fileName
+      - occurredAt
+      - performedBy
+      type: object
+      properties:
+        action:
+          $ref: "#/components/schemas/ExpenseSupportingDocumentAuditActionResponse"
+        occurredAt:
+          type: string
+          format: date-time
+        performedBy:
+          type: string
+        documentUploadIntent:
+          type: string
+          format: uuid
+        replacedDocumentUploadIntent:
+          type: string
+          format: uuid
+          nullable: true
+        fileName:
+          type: string
     ExpenseSupportingDocumentResponse:
       required:
       - attachedAt

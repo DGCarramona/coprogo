@@ -21,8 +21,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-23.
 
 ## Ordre de travail actuel
 
-1. Implementer BE-DOC-009B apres le GREEN de BE-DOC-009A.
-2. Raccorder le frontend FE-DOC apres ce dernier lot backend documentaire.
+1. Raccorder le frontend FE-DOC apres le dernier lot backend documentaire.
 
 ## Fondations monorepo et DX
 
@@ -148,7 +147,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-23.
 - [x] BE-DOC-008D3 Exposer la liste et l'historique des justificatifs avec des URL GET signees.
 - [x] BE-DOC-008D4 Exposer le remplacement et la suppression traces des justificatifs.
 - [x] BE-DOC-009A Deriver une chronologie d'audit des justificatifs depuis l'agregat `Expense` hydrate.
-- [ ] BE-DOC-009B Exposer la chronologie d'audit des justificatifs.
+- [x] BE-DOC-009B Exposer la chronologie d'audit des justificatifs.
 - [x] BE-DOC-010 Ajouter des tests d'integration sur la non-destruction de l'historique documentaire, les conflits, le rejeu et les rollbacks transactionnels.
 
 ## Frontend - socle applicatif et authentification

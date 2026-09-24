@@ -17,7 +17,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.annotation.PostConstruct
 import tech.justdev.application.auth.AuthenticatedUserProvider
+import tech.justdev.application.document.ExpenseSupportingDocumentAuditAction
+import tech.justdev.application.document.ExpenseSupportingDocumentAuditEntrySnapshot
 import tech.justdev.application.document.ExpenseSupportingDocumentSnapshot
+import tech.justdev.application.document.ListExpenseSupportingDocumentAuditTrailQuery
+import tech.justdev.application.document.ListExpenseSupportingDocumentAuditTrailUseCase
 import tech.justdev.application.document.ListExpenseSupportingDocumentsQuery
 import tech.justdev.application.document.ListExpenseSupportingDocumentsResult
 import tech.justdev.application.document.ListExpenseSupportingDocumentsUseCase
@@ -55,6 +59,7 @@ class SupportingDocumentDownloadConfiguration {
 class ExpenseSupportingDocumentController(
     private val authenticatedUserProvider: AuthenticatedUserProvider,
     private val listExpenseSupportingDocumentsUseCase: ListExpenseSupportingDocumentsUseCase,
+    private val listExpenseSupportingDocumentAuditTrailUseCase: ListExpenseSupportingDocumentAuditTrailUseCase,
     private val replaceExpenseSupportingDocumentUseCase: ReplaceExpenseSupportingDocumentUseCase,
     private val deleteExpenseSupportingDocumentUseCase: DeleteExpenseSupportingDocumentUseCase,
     private val configuration: SupportingDocumentDownloadConfiguration,
@@ -77,6 +82,32 @@ class ExpenseSupportingDocumentController(
                 )
             }.let { query -> listExpenseSupportingDocumentsUseCase(query) }
             .toResponse()
+
+    @Get("/groups/{groupId}/expenses/{expenseId}/supporting-document-audit-entries")
+    @Operation(
+        operationId = "listExpenseSupportingDocumentAuditTrail",
+        summary = "List supporting document audit entries for an expense",
+    )
+    @ApiResponse(responseCode = "200", description = "Supporting document audit entries")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Expense is unavailable",
+        content = [Content(schema = Schema(implementation = ApiErrorResponse::class))],
+    )
+    suspend fun listExpenseSupportingDocumentAuditTrail(
+        @PathVariable groupId: UUID,
+        @PathVariable expenseId: UUID,
+    ): List<ExpenseSupportingDocumentAuditEntryResponse> =
+        authenticatedUserProvider
+            .currentAuthenticatedUser()
+            .let { authenticatedUser ->
+                ListExpenseSupportingDocumentAuditTrailQuery(
+                    group = GroupId(groupId),
+                    expense = ExpenseId(expenseId),
+                    requestedBy = authenticatedUser.email,
+                )
+            }.let { query -> listExpenseSupportingDocumentAuditTrailUseCase(query) }
+            .map(ExpenseSupportingDocumentAuditEntrySnapshot::toResponse)
 
     @Post("/groups/{groupId}/expenses/{expenseId}/supporting-documents/{sourceUploadIntent}/replacements")
     @Status(HttpStatus.NO_CONTENT)
@@ -158,6 +189,23 @@ data class ExpenseSupportingDocumentsResponse(
 )
 
 @Serdeable
+enum class ExpenseSupportingDocumentAuditActionResponse {
+    ATTACHED,
+    REPLACED,
+    DELETED,
+}
+
+@Serdeable
+data class ExpenseSupportingDocumentAuditEntryResponse(
+    val action: ExpenseSupportingDocumentAuditActionResponse,
+    val occurredAt: Instant,
+    val performedBy: String,
+    val documentUploadIntent: UUID,
+    val replacedDocumentUploadIntent: UUID?,
+    val fileName: String,
+)
+
+@Serdeable
 data class ExpenseSupportingDocumentResponse(
     val sourceUploadIntent: UUID,
     val fileName: String,
@@ -200,3 +248,20 @@ private fun ExpenseSupportingDocumentSnapshot.toResponse(): ExpenseSupportingDoc
         deletion = deletion?.let { SupportingDocumentDeletionResponse(it.deletedBy.toPrimitive(), it.deletedAt) },
         download = SupportingDocumentDownloadResponse(download.uri, download.expiresAt),
     )
+
+private fun ExpenseSupportingDocumentAuditEntrySnapshot.toResponse(): ExpenseSupportingDocumentAuditEntryResponse =
+    ExpenseSupportingDocumentAuditEntryResponse(
+        action = action.toResponse(),
+        occurredAt = occurredAt,
+        performedBy = performedBy.toPrimitive(),
+        documentUploadIntent = documentUploadIntent.toPrimitive(),
+        replacedDocumentUploadIntent = replacedDocumentUploadIntent?.toPrimitive(),
+        fileName = fileName.toPrimitive(),
+    )
+
+private fun ExpenseSupportingDocumentAuditAction.toResponse(): ExpenseSupportingDocumentAuditActionResponse =
+    when (this) {
+        ExpenseSupportingDocumentAuditAction.ATTACHED -> ExpenseSupportingDocumentAuditActionResponse.ATTACHED
+        ExpenseSupportingDocumentAuditAction.REPLACED -> ExpenseSupportingDocumentAuditActionResponse.REPLACED
+        ExpenseSupportingDocumentAuditAction.DELETED -> ExpenseSupportingDocumentAuditActionResponse.DELETED
+    }

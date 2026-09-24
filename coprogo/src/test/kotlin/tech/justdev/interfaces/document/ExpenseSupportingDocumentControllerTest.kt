@@ -8,7 +8,11 @@ import org.junit.jupiter.api.Test
 import tech.justdev.application.auth.AuthenticatedUser
 import tech.justdev.application.auth.AuthenticatedUserProvider
 import tech.justdev.application.document.DocumentDownloadTarget
+import tech.justdev.application.document.ExpenseSupportingDocumentAuditAction
+import tech.justdev.application.document.ExpenseSupportingDocumentAuditEntrySnapshot
 import tech.justdev.application.document.ExpenseSupportingDocumentSnapshot
+import tech.justdev.application.document.ListExpenseSupportingDocumentAuditTrailQuery
+import tech.justdev.application.document.ListExpenseSupportingDocumentAuditTrailUseCase
 import tech.justdev.application.document.ListExpenseSupportingDocumentsQuery
 import tech.justdev.application.document.ListExpenseSupportingDocumentsResult
 import tech.justdev.application.document.ListExpenseSupportingDocumentsUseCase
@@ -32,12 +36,14 @@ import java.util.UUID
 class ExpenseSupportingDocumentControllerTest {
     private val authProvider = FakeAuthenticatedUserProvider()
     private val listSupportingDocumentsUseCase = FakeListExpenseSupportingDocumentsUseCase()
+    private val listSupportingDocumentAuditTrailUseCase = FakeListExpenseSupportingDocumentAuditTrailUseCase()
     private val replaceSupportingDocumentUseCase = FakeReplaceExpenseSupportingDocumentUseCase()
     private val deleteSupportingDocumentUseCase = FakeDeleteExpenseSupportingDocumentUseCase()
     private val controller =
         ExpenseSupportingDocumentController(
             authenticatedUserProvider = authProvider,
             listExpenseSupportingDocumentsUseCase = listSupportingDocumentsUseCase,
+            listExpenseSupportingDocumentAuditTrailUseCase = listSupportingDocumentAuditTrailUseCase,
             replaceExpenseSupportingDocumentUseCase = replaceSupportingDocumentUseCase,
             deleteExpenseSupportingDocumentUseCase = deleteSupportingDocumentUseCase,
             configuration = SupportingDocumentDownloadConfiguration(),
@@ -172,6 +178,7 @@ class ExpenseSupportingDocumentControllerTest {
                     ExpenseSupportingDocumentController(
                         authenticatedUserProvider = authProvider,
                         listExpenseSupportingDocumentsUseCase = listSupportingDocumentsUseCase,
+                        listExpenseSupportingDocumentAuditTrailUseCase = listSupportingDocumentAuditTrailUseCase,
                         replaceExpenseSupportingDocumentUseCase = replaceSupportingDocumentUseCase,
                         deleteExpenseSupportingDocumentUseCase = deleteSupportingDocumentUseCase,
                         configuration = SupportingDocumentDownloadConfiguration().apply { validFor = configuredValidity },
@@ -180,6 +187,92 @@ class ExpenseSupportingDocumentControllerTest {
                 configuredController.listExpenseSupportingDocuments(UUID.randomUUID(), UUID.randomUUID())
 
                 assertEquals(configuredValidity, requireNotNull(listSupportingDocumentsUseCase.lastQuery).downloadValidFor)
+            }
+    }
+
+    @Nested
+    inner class ListExpenseSupportingDocumentAuditTrail {
+        @Test
+        fun `should map every audit action`() =
+            runTest {
+                val attachedUploadIntent = UUID.randomUUID()
+                val replacedUploadIntent = UUID.randomUUID()
+                val replacementUploadIntent = UUID.randomUUID()
+                val deletedUploadIntent = UUID.randomUUID()
+                val attachedAt = Instant.parse("2026-09-23T10:00:00Z")
+                val replacedAt = Instant.parse("2026-09-23T11:00:00Z")
+                val deletedAt = Instant.parse("2026-09-23T12:00:00Z")
+                listSupportingDocumentAuditTrailUseCase.result =
+                    listOf(
+                        auditEntry(ExpenseSupportingDocumentAuditAction.ATTACHED, attachedAt, attachedUploadIntent),
+                        auditEntry(
+                            action = ExpenseSupportingDocumentAuditAction.REPLACED,
+                            occurredAt = replacedAt,
+                            documentUploadIntent = replacementUploadIntent,
+                            replacedDocumentUploadIntent = replacedUploadIntent,
+                        ),
+                        auditEntry(ExpenseSupportingDocumentAuditAction.DELETED, deletedAt, deletedUploadIntent),
+                    )
+
+                val response = controller.listExpenseSupportingDocumentAuditTrail(UUID.randomUUID(), UUID.randomUUID())
+
+                assertEquals(
+                    listOf(
+                        ExpenseSupportingDocumentAuditEntryResponse(
+                            action = ExpenseSupportingDocumentAuditActionResponse.ATTACHED,
+                            occurredAt = attachedAt,
+                            performedBy = "uploader@example.com",
+                            documentUploadIntent = attachedUploadIntent,
+                            replacedDocumentUploadIntent = null,
+                            fileName = "invoice.pdf",
+                        ),
+                        ExpenseSupportingDocumentAuditEntryResponse(
+                            action = ExpenseSupportingDocumentAuditActionResponse.REPLACED,
+                            occurredAt = replacedAt,
+                            performedBy = "uploader@example.com",
+                            documentUploadIntent = replacementUploadIntent,
+                            replacedDocumentUploadIntent = replacedUploadIntent,
+                            fileName = "invoice.pdf",
+                        ),
+                        ExpenseSupportingDocumentAuditEntryResponse(
+                            action = ExpenseSupportingDocumentAuditActionResponse.DELETED,
+                            occurredAt = deletedAt,
+                            performedBy = "uploader@example.com",
+                            documentUploadIntent = deletedUploadIntent,
+                            replacedDocumentUploadIntent = null,
+                            fileName = "invoice.pdf",
+                        ),
+                    ),
+                    response,
+                )
+            }
+
+        @Test
+        fun `should pass group expense and authenticated member to the use case`() =
+            runTest {
+                val groupId = UUID.randomUUID()
+                val expenseId = UUID.randomUUID()
+
+                controller.listExpenseSupportingDocumentAuditTrail(groupId, expenseId)
+
+                assertEquals(
+                    ListExpenseSupportingDocumentAuditTrailQuery(
+                        group = GroupId(groupId),
+                        expense = ExpenseId(expenseId),
+                        requestedBy = MemberEmail.of("member@example.com"),
+                    ),
+                    listSupportingDocumentAuditTrailUseCase.lastQuery,
+                )
+            }
+
+        @Test
+        fun `should return an empty audit trail`() =
+            runTest {
+                listSupportingDocumentAuditTrailUseCase.result = emptyList()
+
+                val response = controller.listExpenseSupportingDocumentAuditTrail(UUID.randomUUID(), UUID.randomUUID())
+
+                assertEquals(emptyList<ExpenseSupportingDocumentAuditEntryResponse>(), response)
             }
     }
 
@@ -267,6 +360,21 @@ class ExpenseSupportingDocumentControllerTest {
                 ),
         )
 
+    private fun auditEntry(
+        action: ExpenseSupportingDocumentAuditAction,
+        occurredAt: Instant,
+        documentUploadIntent: UUID,
+        replacedDocumentUploadIntent: UUID? = null,
+    ): ExpenseSupportingDocumentAuditEntrySnapshot =
+        ExpenseSupportingDocumentAuditEntrySnapshot(
+            action = action,
+            occurredAt = occurredAt,
+            performedBy = MemberEmail.of("uploader@example.com"),
+            documentUploadIntent = DocumentUploadIntentId(documentUploadIntent),
+            replacedDocumentUploadIntent = replacedDocumentUploadIntent?.let(::DocumentUploadIntentId),
+            fileName = DocumentFileName.of("invoice.pdf"),
+        )
+
     private class FakeAuthenticatedUserProvider : AuthenticatedUserProvider {
         override suspend fun currentAuthenticatedUser(): AuthenticatedUser = AuthenticatedUser(MemberEmail.of("member@example.com"))
     }
@@ -276,6 +384,18 @@ class ExpenseSupportingDocumentControllerTest {
         var result = ListExpenseSupportingDocumentsResult(emptyList(), emptyList())
 
         override suspend fun invoke(query: ListExpenseSupportingDocumentsQuery): ListExpenseSupportingDocumentsResult {
+            lastQuery = query
+            return result
+        }
+    }
+
+    private class FakeListExpenseSupportingDocumentAuditTrailUseCase : ListExpenseSupportingDocumentAuditTrailUseCase {
+        var lastQuery: ListExpenseSupportingDocumentAuditTrailQuery? = null
+        var result: List<ExpenseSupportingDocumentAuditEntrySnapshot> = emptyList()
+
+        override suspend fun invoke(
+            query: ListExpenseSupportingDocumentAuditTrailQuery,
+        ): List<ExpenseSupportingDocumentAuditEntrySnapshot> {
             lastQuery = query
             return result
         }
