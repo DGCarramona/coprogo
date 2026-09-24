@@ -25,6 +25,7 @@ export interface ExpenseProposalCommand {
   readonly title: string;
   readonly totalAmountInCents: number;
   readonly allocation: ExpenseAllocation;
+  readonly supportingDocumentUploadIntents: ReadonlySet<string>;
 }
 
 export abstract class ExpenseProposalPort {

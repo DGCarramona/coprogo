@@ -139,6 +139,7 @@ describe('ExpenseProposalWidgetViewModel', () => {
             type: 'EQUAL',
             participants: new Set(['alice@example.com', 'bob@example.com']),
           },
+          supportingDocumentUploadIntents: new Set(),
         },
       ]);
     });
@@ -292,6 +293,7 @@ describe('ExpenseProposalWidgetViewModel', () => {
             type: 'EQUAL',
             participants: new Set(['alice@example.com']),
           },
+          supportingDocumentUploadIntents: new Set(),
         },
       ]);
     });
@@ -319,6 +321,7 @@ describe('ExpenseProposalWidgetViewModel', () => {
             participants: new Set(['alice@example.com', 'bob@example.com']),
             capsInCentsByMember: new Map([['bob@example.com', 2550]]),
           },
+          supportingDocumentUploadIntents: new Set(),
         },
       ]);
     });
@@ -417,6 +420,7 @@ describe('ExpenseProposalWidgetViewModel', () => {
               },
             ],
           },
+          supportingDocumentUploadIntents: new Set(),
         },
       ]);
     });
@@ -499,6 +503,7 @@ describe('ExpenseProposalWidgetViewModel', () => {
               ['bob@example.com', 500],
             ]),
           },
+          supportingDocumentUploadIntents: new Set(),
         },
       ]);
     });
@@ -532,6 +537,7 @@ describe('ExpenseProposalWidgetViewModel', () => {
             type: 'EQUAL',
             participants: new Set(['alice@example.com']),
           },
+          supportingDocumentUploadIntents: new Set(),
         },
       ]);
     });

@@ -109,6 +109,7 @@ describe('ExpenseProposalWidgetComponent', () => {
             type: 'CUSTOM',
             amountsInCentsByMember: new Map([['a@b.c', 1250]]),
           },
+          supportingDocumentUploadIntents: new Set(),
         },
       ]);
     });
@@ -172,6 +173,7 @@ describe('ExpenseProposalWidgetComponent', () => {
             participants: new Set(['a@b.c', 'b@c.d']),
             capsInCentsByMember: new Map([['b@c.d', 2550]]),
           },
+          supportingDocumentUploadIntents: new Set(),
         },
       ]);
     });
@@ -279,6 +281,7 @@ describe('ExpenseProposalWidgetComponent', () => {
               },
             ],
           },
+          supportingDocumentUploadIntents: new Set(),
         },
       ]);
     });
@@ -347,6 +350,7 @@ describe('ExpenseProposalWidgetComponent', () => {
             type: 'EQUAL',
             participants: new Set(['a@b.c']),
           },
+          supportingDocumentUploadIntents: new Set(),
         },
       ]);
       expect(host.textContent).toContain('La dépense a été proposée.');

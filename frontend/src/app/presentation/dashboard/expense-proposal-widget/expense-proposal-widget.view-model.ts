@@ -274,6 +274,7 @@ export class ExpenseProposalWidgetViewModel {
       title: input.title,
       totalAmountInCents: input.totalAmountInCents,
       allocation: input.allocation,
+      supportingDocumentUploadIntents: new Set(),
     };
   }
 
