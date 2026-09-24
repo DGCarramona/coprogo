@@ -1,10 +1,8 @@
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 
-import { StubGoogleIdTokenPort } from '../../../../__test__/app/application/auth/stub-google-id-token.port';
-import { GoogleIdTokenPort } from '../../application/auth/google-id-token.port';
 import { GroupsService } from './generated';
 import { provideApiClient, resolveApiBasePath } from './provide-api-client';
 
@@ -28,21 +26,16 @@ describe('API client providers', () => {
   });
 
   describe('provideApiClient', () => {
-    it('provides the base path to generated services and adds auth interceptor', async () => {
+    it('provides the base path to generated services', async () => {
       TestBed.configureTestingModule({
         providers: [
-          provideHttpClient(withInterceptorsFromDi()),
+          provideHttpClient(),
           provideHttpClientTesting(),
-          {
-            provide: GoogleIdTokenPort,
-            useClass: StubGoogleIdTokenPort,
-          },
           provideApiClient({
             basePath: 'http://localhost:8080',
           }),
         ],
       });
-      TestBed.inject(GoogleIdTokenPort).store('google-id-token');
 
       const responsePromise = firstValueFrom(TestBed.inject(GroupsService).listPending());
 
@@ -51,7 +44,6 @@ describe('API client providers', () => {
       );
 
       expect(request.request.method).toBe('GET');
-      expect(request.request.headers.get('Authorization')).toBe('Bearer google-id-token');
 
       request.flush([]);
 

@@ -222,7 +222,8 @@ Backlog derive de l'etat actuel du depot au 2026-09-23.
 
 ## Frontend - justificatifs et historique audit
 
-- [ ] FE-DOC-001 Creer un composant reutilisable d'upload de justificatif via URL PUT signee, confirmer l'upload avant toute creation ou tout remplacement metier.
+- [x] FE-DOC-001A Mettre en place le workflow reutilisable d'upload signe : checksum SHA-256, intention, PUT direct sans jeton applicatif et confirmation.
+- [ ] FE-DOC-001B Creer le composant reutilisable d'upload de justificatif et l'integrer aux formulaires apres confirmation, avant toute creation ou tout remplacement metier.
 - [ ] FE-DOC-002 Creer un composant d'historique des versions d'un justificatif.
 - [ ] FE-DOC-003 Ajouter l'action de telechargement et consultation d'un justificatif via URL GET signee directe.
 - [ ] FE-DOC-004 Ajouter l'action de suppression avec message d'audit clair.

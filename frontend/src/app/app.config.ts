@@ -1,4 +1,3 @@
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
@@ -12,6 +11,11 @@ import { GroupCreationPort } from './application/group/group-creation.port';
 import { GroupMembersPort } from './application/group/group-members.port';
 import { PendingGroupInvitationsPort } from './application/group/pending-group-invitations.port';
 import { GroupFinancialDashboardPort } from './application/ledger/group-financial-dashboard.port';
+import {
+  Sha256ChecksumPort,
+  SignedSupportingDocumentUploaderPort,
+  SupportingDocumentUploadControlPlanePort,
+} from './application/supporting-document/supporting-document-upload.port';
 import { provideApiClient } from './infrastructure/api/provide-api-client';
 import { RouterNavigationAdapter } from './infrastructure/router/router-navigation.adapter';
 import { BrowserGoogleIdTokenStore } from './infrastructure/auth/google/browser-google-id-token.store';
@@ -22,12 +26,16 @@ import { HttpGroupCreationGateway } from './infrastructure/group/http-group-crea
 import { HttpGroupInvitationsGateway } from './infrastructure/group/http-group-invitations.gateway';
 import { HttpGroupMembersGateway } from './infrastructure/group/http-group-members.gateway';
 import { HttpGroupFinancialDashboardGateway } from './infrastructure/ledger/http-group-financial-dashboard.gateway';
+import { HttpSignedSupportingDocumentUploaderGateway } from './infrastructure/supporting-document/http-signed-supporting-document-uploader.gateway';
+import { HttpSupportingDocumentUploadControlPlaneGateway } from './infrastructure/supporting-document/http-supporting-document-upload-control-plane.gateway';
+import { WebCryptoSha256ChecksumGateway } from './infrastructure/supporting-document/web-crypto-sha256-checksum.gateway';
+import { provideCoprogoHttpClients } from './infrastructure/http/named-http-clients';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideHttpClient(withInterceptorsFromDi()),
+    provideCoprogoHttpClients(),
     provideRouter(routes),
     provideTanStackQuery(new QueryClient()),
     provideApiClient(),
@@ -66,6 +74,18 @@ export const appConfig: ApplicationConfig = {
     {
       provide: ExpenseProposalPort,
       useExisting: HttpExpenseProposalGateway,
+    },
+    {
+      provide: Sha256ChecksumPort,
+      useExisting: WebCryptoSha256ChecksumGateway,
+    },
+    {
+      provide: SupportingDocumentUploadControlPlanePort,
+      useExisting: HttpSupportingDocumentUploadControlPlaneGateway,
+    },
+    {
+      provide: SignedSupportingDocumentUploaderPort,
+      useExisting: HttpSignedSupportingDocumentUploaderGateway,
     },
   ],
 };

@@ -24,13 +24,11 @@ import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 // @ts-ignore
 import { ApiErrorResponseDto } from '../model/api-error-response';
 // @ts-ignore
-import { ExpenseDetailResponseDto } from '../model/expense-detail-response';
+import { ExpenseSupportingDocumentAuditEntryResponseDto } from '../model/expense-supporting-document-audit-entry-response';
 // @ts-ignore
-import { ExpenseParticipationDecisionRequestDto } from '../model/expense-participation-decision-request';
+import { ExpenseSupportingDocumentsResponseDto } from '../model/expense-supporting-documents-response';
 // @ts-ignore
-import { ExpenseResponseDto } from '../model/expense-response';
-// @ts-ignore
-import { ProposeExpenseRequestDto } from '../model/propose-expense-request';
+import { ReplaceExpenseSupportingDocumentRequestDto } from '../model/replace-expense-supporting-document-request';
 
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS } from '../variables';
@@ -40,7 +38,7 @@ import { BaseService } from '../api.base.service';
 @Injectable({
   providedIn: 'root',
 })
-export class ExpensesService extends BaseService {
+export class SupportingDocumentsService extends BaseService {
   constructor(
     protected httpClient: HttpClient,
     @Optional() @Inject(BASE_PATH) basePath: string | string[],
@@ -50,207 +48,19 @@ export class ExpensesService extends BaseService {
   }
 
   /**
-   * Get expense details
-   * @endpoint get /api/groups/{groupId}/expenses/{expenseId}
+   * Delete a supporting document for an expense
+   * @endpoint delete /api/groups/{groupId}/expenses/{expenseId}/supporting-documents/{sourceUploadIntent}
    * @param groupId
    * @param expenseId
+   * @param sourceUploadIntent
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public getExpenseDetail(
+  public deleteExpenseSupportingDocument(
     groupId: string,
     expenseId: string,
-    observe?: 'body',
-    reportProgress?: boolean,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<ExpenseDetailResponseDto>;
-  public getExpenseDetail(
-    groupId: string,
-    expenseId: string,
-    observe?: 'response',
-    reportProgress?: boolean,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<HttpResponse<ExpenseDetailResponseDto>>;
-  public getExpenseDetail(
-    groupId: string,
-    expenseId: string,
-    observe?: 'events',
-    reportProgress?: boolean,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<HttpEvent<ExpenseDetailResponseDto>>;
-  public getExpenseDetail(
-    groupId: string,
-    expenseId: string,
-    observe: any = 'body',
-    reportProgress: boolean = false,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<any> {
-    if (groupId === null || groupId === undefined) {
-      throw new Error(
-        'Required parameter groupId was null or undefined when calling getExpenseDetail.',
-      );
-    }
-    if (expenseId === null || expenseId === undefined) {
-      throw new Error(
-        'Required parameter expenseId was null or undefined when calling getExpenseDetail.',
-      );
-    }
-
-    let localVarHeaders = this.defaultHeaders;
-
-    const localVarHttpHeaderAcceptSelected: string | undefined =
-      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
-    if (localVarHttpHeaderAcceptSelected !== undefined) {
-      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-    }
-
-    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-    const localVarTransferCache: boolean = options?.transferCache ?? true;
-
-    let responseType_: 'text' | 'json' | 'blob' = 'json';
-    if (localVarHttpHeaderAcceptSelected) {
-      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-        responseType_ = 'text';
-      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-        responseType_ = 'json';
-      } else {
-        responseType_ = 'blob';
-      }
-    }
-
-    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/expenses/${this.configuration.encodeParam({ name: 'expenseId', value: expenseId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}`;
-    const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<ExpenseDetailResponseDto>('get', `${basePath}${localVarPath}`, {
-      context: localVarHttpContext,
-      responseType: <any>responseType_,
-      ...(withCredentials ? { withCredentials } : {}),
-      headers: localVarHeaders,
-      observe: observe,
-      ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
-      reportProgress: reportProgress,
-    });
-  }
-
-  /**
-   * List expenses for a group
-   * @endpoint get /api/groups/{groupId}/expenses
-   * @param groupId
-   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-   * @param reportProgress flag to report request and response progress.
-   * @param options additional options
-   */
-  public listGroupExpenses(
-    groupId: string,
-    observe?: 'body',
-    reportProgress?: boolean,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<Array<ExpenseResponseDto>>;
-  public listGroupExpenses(
-    groupId: string,
-    observe?: 'response',
-    reportProgress?: boolean,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<HttpResponse<Array<ExpenseResponseDto>>>;
-  public listGroupExpenses(
-    groupId: string,
-    observe?: 'events',
-    reportProgress?: boolean,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<HttpEvent<Array<ExpenseResponseDto>>>;
-  public listGroupExpenses(
-    groupId: string,
-    observe: any = 'body',
-    reportProgress: boolean = false,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<any> {
-    if (groupId === null || groupId === undefined) {
-      throw new Error(
-        'Required parameter groupId was null or undefined when calling listGroupExpenses.',
-      );
-    }
-
-    let localVarHeaders = this.defaultHeaders;
-
-    const localVarHttpHeaderAcceptSelected: string | undefined =
-      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
-    if (localVarHttpHeaderAcceptSelected !== undefined) {
-      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-    }
-
-    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-    const localVarTransferCache: boolean = options?.transferCache ?? true;
-
-    let responseType_: 'text' | 'json' | 'blob' = 'json';
-    if (localVarHttpHeaderAcceptSelected) {
-      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-        responseType_ = 'text';
-      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-        responseType_ = 'json';
-      } else {
-        responseType_ = 'blob';
-      }
-    }
-
-    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/expenses`;
-    const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<Array<ExpenseResponseDto>>('get', `${basePath}${localVarPath}`, {
-      context: localVarHttpContext,
-      responseType: <any>responseType_,
-      ...(withCredentials ? { withCredentials } : {}),
-      headers: localVarHeaders,
-      observe: observe,
-      ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
-      reportProgress: reportProgress,
-    });
-  }
-
-  /**
-   * Propose an expense
-   * @endpoint post /api/groups/{groupId}/expenses
-   * @param groupId
-   * @param proposeExpenseRequestDto
-   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-   * @param reportProgress flag to report request and response progress.
-   * @param options additional options
-   */
-  public proposeExpense(
-    groupId: string,
-    proposeExpenseRequestDto: ProposeExpenseRequestDto,
+    sourceUploadIntent: string,
     observe?: 'body',
     reportProgress?: boolean,
     options?: {
@@ -259,9 +69,10 @@ export class ExpensesService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<any>;
-  public proposeExpense(
+  public deleteExpenseSupportingDocument(
     groupId: string,
-    proposeExpenseRequestDto: ProposeExpenseRequestDto,
+    expenseId: string,
+    sourceUploadIntent: string,
     observe?: 'response',
     reportProgress?: boolean,
     options?: {
@@ -270,9 +81,10 @@ export class ExpensesService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<HttpResponse<any>>;
-  public proposeExpense(
+  public deleteExpenseSupportingDocument(
     groupId: string,
-    proposeExpenseRequestDto: ProposeExpenseRequestDto,
+    expenseId: string,
+    sourceUploadIntent: string,
     observe?: 'events',
     reportProgress?: boolean,
     options?: {
@@ -281,9 +93,10 @@ export class ExpensesService extends BaseService {
       transferCache?: boolean;
     },
   ): Observable<HttpEvent<any>>;
-  public proposeExpense(
+  public deleteExpenseSupportingDocument(
     groupId: string,
-    proposeExpenseRequestDto: ProposeExpenseRequestDto,
+    expenseId: string,
+    sourceUploadIntent: string,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: {
@@ -294,12 +107,17 @@ export class ExpensesService extends BaseService {
   ): Observable<any> {
     if (groupId === null || groupId === undefined) {
       throw new Error(
-        'Required parameter groupId was null or undefined when calling proposeExpense.',
+        'Required parameter groupId was null or undefined when calling deleteExpenseSupportingDocument.',
       );
     }
-    if (proposeExpenseRequestDto === null || proposeExpenseRequestDto === undefined) {
+    if (expenseId === null || expenseId === undefined) {
       throw new Error(
-        'Required parameter proposeExpenseRequestDto was null or undefined when calling proposeExpense.',
+        'Required parameter expenseId was null or undefined when calling deleteExpenseSupportingDocument.',
+      );
+    }
+    if (sourceUploadIntent === null || sourceUploadIntent === undefined) {
+      throw new Error(
+        'Required parameter sourceUploadIntent was null or undefined when calling deleteExpenseSupportingDocument.',
       );
     }
 
@@ -315,13 +133,105 @@ export class ExpensesService extends BaseService {
 
     const localVarTransferCache: boolean = options?.transferCache ?? true;
 
-    // to determine the Content-Type header
-    const consumes: string[] = ['application/json'];
-    const httpContentTypeSelected: string | undefined =
-      this.configuration.selectHeaderContentType(consumes);
-    if (httpContentTypeSelected !== undefined) {
-      localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+    let responseType_: 'text' | 'json' | 'blob' = 'json';
+    if (localVarHttpHeaderAcceptSelected) {
+      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+        responseType_ = 'text';
+      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+        responseType_ = 'json';
+      } else {
+        responseType_ = 'blob';
+      }
     }
+
+    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/expenses/${this.configuration.encodeParam({ name: 'expenseId', value: expenseId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/supporting-documents/${this.configuration.encodeParam({ name: 'sourceUploadIntent', value: sourceUploadIntent, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}`;
+    const { basePath, withCredentials } = this.configuration;
+    return this.httpClient.request<any>('delete', `${basePath}${localVarPath}`, {
+      context: localVarHttpContext,
+      responseType: <any>responseType_,
+      ...(withCredentials ? { withCredentials } : {}),
+      headers: localVarHeaders,
+      observe: observe,
+      ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+      reportProgress: reportProgress,
+    });
+  }
+
+  /**
+   * List supporting document audit entries for an expense
+   * @endpoint get /api/groups/{groupId}/expenses/{expenseId}/supporting-document-audit-entries
+   * @param groupId
+   * @param expenseId
+   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+   * @param reportProgress flag to report request and response progress.
+   * @param options additional options
+   */
+  public listExpenseSupportingDocumentAuditTrail(
+    groupId: string,
+    expenseId: string,
+    observe?: 'body',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<Array<ExpenseSupportingDocumentAuditEntryResponseDto>>;
+  public listExpenseSupportingDocumentAuditTrail(
+    groupId: string,
+    expenseId: string,
+    observe?: 'response',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpResponse<Array<ExpenseSupportingDocumentAuditEntryResponseDto>>>;
+  public listExpenseSupportingDocumentAuditTrail(
+    groupId: string,
+    expenseId: string,
+    observe?: 'events',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpEvent<Array<ExpenseSupportingDocumentAuditEntryResponseDto>>>;
+  public listExpenseSupportingDocumentAuditTrail(
+    groupId: string,
+    expenseId: string,
+    observe: any = 'body',
+    reportProgress: boolean = false,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<any> {
+    if (groupId === null || groupId === undefined) {
+      throw new Error(
+        'Required parameter groupId was null or undefined when calling listExpenseSupportingDocumentAuditTrail.',
+      );
+    }
+    if (expenseId === null || expenseId === undefined) {
+      throw new Error(
+        'Required parameter expenseId was null or undefined when calling listExpenseSupportingDocumentAuditTrail.',
+      );
+    }
+
+    let localVarHeaders = this.defaultHeaders;
+
+    const localVarHttpHeaderAcceptSelected: string | undefined =
+      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
+    if (localVarHttpHeaderAcceptSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+    }
+
+    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+    const localVarTransferCache: boolean = options?.transferCache ?? true;
 
     let responseType_: 'text' | 'json' | 'blob' = 'json';
     if (localVarHttpHeaderAcceptSelected) {
@@ -334,85 +244,218 @@ export class ExpensesService extends BaseService {
       }
     }
 
-    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/expenses`;
+    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/expenses/${this.configuration.encodeParam({ name: 'expenseId', value: expenseId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/supporting-document-audit-entries`;
     const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<any>('post', `${basePath}${localVarPath}`, {
-      context: localVarHttpContext,
-      body: proposeExpenseRequestDto,
-      responseType: <any>responseType_,
-      ...(withCredentials ? { withCredentials } : {}),
-      headers: localVarHeaders,
-      observe: observe,
-      ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
-      reportProgress: reportProgress,
-    });
+    return this.httpClient.request<Array<ExpenseSupportingDocumentAuditEntryResponseDto>>(
+      'get',
+      `${basePath}${localVarPath}`,
+      {
+        context: localVarHttpContext,
+        responseType: <any>responseType_,
+        ...(withCredentials ? { withCredentials } : {}),
+        headers: localVarHeaders,
+        observe: observe,
+        ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+        reportProgress: reportProgress,
+      },
+    );
   }
 
   /**
-   * Record a participation decision for an expense
-   * @endpoint post /api/groups/{groupId}/expenses/{expenseId}/participation-decisions
+   * List current and historical supporting documents for an expense
+   * @endpoint get /api/groups/{groupId}/expenses/{expenseId}/supporting-documents
    * @param groupId
    * @param expenseId
-   * @param expenseParticipationDecisionRequestDto
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public recordParticipationDecision(
+  public listExpenseSupportingDocuments(
     groupId: string,
     expenseId: string,
-    expenseParticipationDecisionRequestDto: ExpenseParticipationDecisionRequestDto,
     observe?: 'body',
     reportProgress?: boolean,
-    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
-  ): Observable<any>;
-  public recordParticipationDecision(
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<ExpenseSupportingDocumentsResponseDto>;
+  public listExpenseSupportingDocuments(
     groupId: string,
     expenseId: string,
-    expenseParticipationDecisionRequestDto: ExpenseParticipationDecisionRequestDto,
     observe?: 'response',
     reportProgress?: boolean,
-    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
-  ): Observable<HttpResponse<any>>;
-  public recordParticipationDecision(
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpResponse<ExpenseSupportingDocumentsResponseDto>>;
+  public listExpenseSupportingDocuments(
     groupId: string,
     expenseId: string,
-    expenseParticipationDecisionRequestDto: ExpenseParticipationDecisionRequestDto,
     observe?: 'events',
     reportProgress?: boolean,
-    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
-  ): Observable<HttpEvent<any>>;
-  public recordParticipationDecision(
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpEvent<ExpenseSupportingDocumentsResponseDto>>;
+  public listExpenseSupportingDocuments(
     groupId: string,
     expenseId: string,
-    expenseParticipationDecisionRequestDto: ExpenseParticipationDecisionRequestDto,
     observe: any = 'body',
     reportProgress: boolean = false,
-    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
   ): Observable<any> {
     if (groupId === null || groupId === undefined) {
       throw new Error(
-        'Required parameter groupId was null or undefined when calling recordParticipationDecision.',
+        'Required parameter groupId was null or undefined when calling listExpenseSupportingDocuments.',
       );
     }
     if (expenseId === null || expenseId === undefined) {
       throw new Error(
-        'Required parameter expenseId was null or undefined when calling recordParticipationDecision.',
+        'Required parameter expenseId was null or undefined when calling listExpenseSupportingDocuments.',
+      );
+    }
+
+    let localVarHeaders = this.defaultHeaders;
+
+    const localVarHttpHeaderAcceptSelected: string | undefined =
+      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
+    if (localVarHttpHeaderAcceptSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+    }
+
+    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+    const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+    let responseType_: 'text' | 'json' | 'blob' = 'json';
+    if (localVarHttpHeaderAcceptSelected) {
+      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+        responseType_ = 'text';
+      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+        responseType_ = 'json';
+      } else {
+        responseType_ = 'blob';
+      }
+    }
+
+    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/expenses/${this.configuration.encodeParam({ name: 'expenseId', value: expenseId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/supporting-documents`;
+    const { basePath, withCredentials } = this.configuration;
+    return this.httpClient.request<ExpenseSupportingDocumentsResponseDto>(
+      'get',
+      `${basePath}${localVarPath}`,
+      {
+        context: localVarHttpContext,
+        responseType: <any>responseType_,
+        ...(withCredentials ? { withCredentials } : {}),
+        headers: localVarHeaders,
+        observe: observe,
+        ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+        reportProgress: reportProgress,
+      },
+    );
+  }
+
+  /**
+   * Replace a supporting document for an expense
+   * @endpoint post /api/groups/{groupId}/expenses/{expenseId}/supporting-documents/{sourceUploadIntent}/replacements
+   * @param groupId
+   * @param expenseId
+   * @param sourceUploadIntent
+   * @param replaceExpenseSupportingDocumentRequestDto
+   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+   * @param reportProgress flag to report request and response progress.
+   * @param options additional options
+   */
+  public replaceExpenseSupportingDocument(
+    groupId: string,
+    expenseId: string,
+    sourceUploadIntent: string,
+    replaceExpenseSupportingDocumentRequestDto: ReplaceExpenseSupportingDocumentRequestDto,
+    observe?: 'body',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<any>;
+  public replaceExpenseSupportingDocument(
+    groupId: string,
+    expenseId: string,
+    sourceUploadIntent: string,
+    replaceExpenseSupportingDocumentRequestDto: ReplaceExpenseSupportingDocumentRequestDto,
+    observe?: 'response',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpResponse<any>>;
+  public replaceExpenseSupportingDocument(
+    groupId: string,
+    expenseId: string,
+    sourceUploadIntent: string,
+    replaceExpenseSupportingDocumentRequestDto: ReplaceExpenseSupportingDocumentRequestDto,
+    observe?: 'events',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpEvent<any>>;
+  public replaceExpenseSupportingDocument(
+    groupId: string,
+    expenseId: string,
+    sourceUploadIntent: string,
+    replaceExpenseSupportingDocumentRequestDto: ReplaceExpenseSupportingDocumentRequestDto,
+    observe: any = 'body',
+    reportProgress: boolean = false,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<any> {
+    if (groupId === null || groupId === undefined) {
+      throw new Error(
+        'Required parameter groupId was null or undefined when calling replaceExpenseSupportingDocument.',
+      );
+    }
+    if (expenseId === null || expenseId === undefined) {
+      throw new Error(
+        'Required parameter expenseId was null or undefined when calling replaceExpenseSupportingDocument.',
+      );
+    }
+    if (sourceUploadIntent === null || sourceUploadIntent === undefined) {
+      throw new Error(
+        'Required parameter sourceUploadIntent was null or undefined when calling replaceExpenseSupportingDocument.',
       );
     }
     if (
-      expenseParticipationDecisionRequestDto === null ||
-      expenseParticipationDecisionRequestDto === undefined
+      replaceExpenseSupportingDocumentRequestDto === null ||
+      replaceExpenseSupportingDocumentRequestDto === undefined
     ) {
       throw new Error(
-        'Required parameter expenseParticipationDecisionRequestDto was null or undefined when calling recordParticipationDecision.',
+        'Required parameter replaceExpenseSupportingDocumentRequestDto was null or undefined when calling replaceExpenseSupportingDocument.',
       );
     }
 
     let localVarHeaders = this.defaultHeaders;
 
     const localVarHttpHeaderAcceptSelected: string | undefined =
-      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([]);
+      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
     if (localVarHttpHeaderAcceptSelected !== undefined) {
       localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
     }
@@ -440,11 +483,11 @@ export class ExpensesService extends BaseService {
       }
     }
 
-    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/expenses/${this.configuration.encodeParam({ name: 'expenseId', value: expenseId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/participation-decisions`;
+    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/expenses/${this.configuration.encodeParam({ name: 'expenseId', value: expenseId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/supporting-documents/${this.configuration.encodeParam({ name: 'sourceUploadIntent', value: sourceUploadIntent, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/replacements`;
     const { basePath, withCredentials } = this.configuration;
     return this.httpClient.request<any>('post', `${basePath}${localVarPath}`, {
       context: localVarHttpContext,
-      body: expenseParticipationDecisionRequestDto,
+      body: replaceExpenseSupportingDocumentRequestDto,
       responseType: <any>responseType_,
       ...(withCredentials ? { withCredentials } : {}),
       headers: localVarHeaders,

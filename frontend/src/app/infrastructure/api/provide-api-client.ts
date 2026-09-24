@@ -1,8 +1,6 @@
-import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { makeEnvironmentProviders } from '@angular/core';
 
 import { provideApi } from './generated';
-import { ApiAuthInterceptor } from './api-auth.interceptor';
 
 export interface ApiClientOptions {
   basePath?: string;
@@ -20,12 +18,5 @@ export const resolveApiBasePath = (
 export function provideApiClient(options: ApiClientOptions = {}) {
   const basePath = resolveApiBasePath(options);
 
-  return makeEnvironmentProviders([
-    provideApi(basePath),
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: ApiAuthInterceptor,
-      multi: true,
-    },
-  ]);
+  return makeEnvironmentProviders([provideApi(basePath)]);
 }

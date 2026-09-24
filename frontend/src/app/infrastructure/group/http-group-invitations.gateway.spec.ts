@@ -1,10 +1,11 @@
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { StubGoogleIdTokenPort } from '../../../../__test__/app/application/auth/stub-google-id-token.port';
 import { GoogleIdTokenPort } from '../../application/auth/google-id-token.port';
 import { ApiClientError } from '../api/api-client.error';
+import { apiAuthInterceptor } from '../api/api-auth.interceptor';
 import { provideApiClient } from '../api/provide-api-client';
 import { HttpGroupInvitationsGateway } from './http-group-invitations.gateway';
 
@@ -15,7 +16,7 @@ describe('HttpGroupInvitationsGateway', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withInterceptors([apiAuthInterceptor])),
         provideHttpClientTesting(),
         {
           provide: GoogleIdTokenPort,
