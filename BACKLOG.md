@@ -226,7 +226,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-25.
 - [x] FE-DOC-001B1 Faire accepter et transmettre les identifiants d'intentions d'upload confirmees dans la proposition de depense.
 - [x] FE-DOC-001B2 Creer le composant reutilisable d'upload de justificatif et l'integrer a la proposition de depense apres confirmation, avant toute creation metier. Les futurs formulaires reutiliseront ce composant.
 - [x] FE-DOC-002 Creer un composant d'historique des versions d'un justificatif.
-- [ ] FE-DOC-003 Ajouter l'action de telechargement et consultation d'un justificatif via URL GET signee directe.
+- [x] FE-DOC-003 Ajouter l'action de telechargement et consultation d'un justificatif via URL GET signee directe.
 - [ ] FE-DOC-004 Ajouter l'action de suppression avec message d'audit clair.
 - [ ] FE-DOC-005 Afficher, dans les ecrans depense et remboursement, l'historique des pieces liees.
 - [ ] FE-DOC-006 Ajouter les tests de composants et de mapping pour la gestion documentaire.

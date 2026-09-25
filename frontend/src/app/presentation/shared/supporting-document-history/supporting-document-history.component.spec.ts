@@ -14,6 +14,10 @@ describe('SupportingDocumentHistoryComponent', () => {
           fileName: 'facture-initiale.pdf',
           uploader: 'alice@example.com',
           attachedAt: new Date('2026-09-20T09:15:00Z'),
+          downloadTarget: {
+            url: 'https://documents.example.test/signed/original?signature=do-not-display',
+            expiresAt: new Date('2026-09-20T10:15:00Z'),
+          },
         }),
         version({
           sourceUploadIntent: 'intent-replacement',
@@ -24,6 +28,10 @@ describe('SupportingDocumentHistoryComponent', () => {
           deletion: {
             deletedBy: 'bob@example.com',
             deletedAt: new Date('2026-09-23T11:45:00Z'),
+          },
+          downloadTarget: {
+            url: 'https://documents.example.test/signed/replacement?signature=do-not-display',
+            expiresAt: new Date('2026-09-22T11:30:00Z'),
           },
         }),
       ]);
@@ -45,6 +53,32 @@ describe('SupportingDocumentHistoryComponent', () => {
       ]);
       expect(host.textContent).not.toContain('intent-original');
       expect(host.textContent).not.toContain('intent-replacement');
+      expect(
+        [...host.querySelectorAll('a')].map((link) => ({
+          text: link.textContent?.replace(/\s+/g, ' ').trim(),
+          href: link.getAttribute('href'),
+          target: link.getAttribute('target'),
+          rel: link.getAttribute('rel'),
+          referrerPolicy: link.getAttribute('referrerpolicy'),
+        })),
+      ).toEqual([
+        {
+          text: 'Consulter ou télécharger facture-initiale.pdf',
+          href: 'https://documents.example.test/signed/original?signature=do-not-display',
+          target: '_blank',
+          rel: 'noopener noreferrer',
+          referrerPolicy: 'no-referrer',
+        },
+        {
+          text: 'Consulter ou télécharger facture-corrigee.pdf',
+          href: 'https://documents.example.test/signed/replacement?signature=do-not-display',
+          target: '_blank',
+          rel: 'noopener noreferrer',
+          referrerPolicy: 'no-referrer',
+        },
+      ]);
+      expect(host.textContent).not.toContain('https://documents.example.test/signed/original');
+      expect(host.textContent).not.toContain('https://documents.example.test/signed/replacement');
       expect(host.querySelectorAll('button')).toHaveLength(0);
     });
 
@@ -78,6 +112,10 @@ const version = (overrides: Partial<SupportingDocumentVersion>): SupportingDocum
   fileName: 'facture.pdf',
   uploader: 'alice@example.com',
   attachedAt: new Date('2026-09-20T09:15:00Z'),
+  downloadTarget: {
+    url: 'https://documents.example.test/signed/document?signature=do-not-display',
+    expiresAt: new Date('2026-09-20T10:15:00Z'),
+  },
   replacesSourceUploadIntent: null,
   deletion: null,
   ...overrides,

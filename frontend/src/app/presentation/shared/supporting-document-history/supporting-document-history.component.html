@@ -17,6 +17,16 @@
             }}</time
             >.
           </p>
+          <p>
+            <a
+              [href]="version.downloadTarget.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              referrerpolicy="no-referrer"
+            >
+              Consulter ou télécharger {{ version.fileName }}
+            </a>
+          </p>
 
           @if (version.replacesSourceUploadIntent !== null) {
             <p>Remplace une version précédente.</p>
