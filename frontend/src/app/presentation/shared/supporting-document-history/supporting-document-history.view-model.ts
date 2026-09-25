@@ -6,6 +6,7 @@ import {
   ExpenseSupportingDocumentDeletionPort,
   type DeleteExpenseSupportingDocumentCommand,
 } from '../../../application/supporting-document/expense-supporting-document-deletion.port';
+import { expenseSupportingDocumentsQueryKey } from '../supporting-document/expense-supporting-documents-query-key';
 
 @Injectable()
 export class SupportingDocumentHistoryViewModel {
@@ -33,13 +34,7 @@ export class SupportingDocumentHistoryViewModel {
         mutationFn: (command) => this.deletionPort.delete(command),
         onSuccess: (_, command) =>
           this.queryClient.invalidateQueries({
-            queryKey: [
-              'groups',
-              command.groupId,
-              'expenses',
-              command.expenseId,
-              'supporting-documents',
-            ],
+            queryKey: expenseSupportingDocumentsQueryKey(command.groupId, command.expenseId),
           }),
       }),
       { injector },

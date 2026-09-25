@@ -1,0 +1,20 @@
+<section aria-label="Justificatifs de la dépense">
+  <h3>Justificatifs</h3>
+
+  @if (viewModel.isLoading()) {
+    <p role="status">Chargement des justificatifs…</p>
+  } @else if (viewModel.hasLoadError()) {
+    <p role="alert">{{ viewModel.errorMessage() }}</p>
+    <button type="button" (click)="viewModel.retry()">Réessayer</button>
+  } @else if (viewModel.histories().length === 0) {
+    <p>Aucun justificatif n’a été ajouté.</p>
+  } @else {
+    @for (history of viewModel.histories(); track history.rootSourceUploadIntent) {
+      <app-supporting-document-history
+        [versions]="history.versions"
+        [groupId]="groupId()"
+        [expenseId]="expenseId()"
+      />
+    }
+  }
+</section>

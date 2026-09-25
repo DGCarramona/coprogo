@@ -228,18 +228,19 @@ const versionItems = (host: HTMLElement): string[] =>
   );
 
 const version = (overrides: Partial<SupportingDocumentVersion>): SupportingDocumentVersion => ({
-  sourceUploadIntent: 'intent-1',
-  fileName: 'facture.pdf',
-  uploader: 'alice@example.com',
-  attachedAt: new Date('2026-09-20T09:15:00Z'),
-  downloadTarget: {
+  sourceUploadIntent: overrides.sourceUploadIntent ?? 'intent-1',
+  fileName: overrides.fileName ?? 'facture.pdf',
+  mediaType: overrides.mediaType ?? 'application/pdf',
+  sizeBytes: overrides.sizeBytes ?? 1234,
+  uploader: overrides.uploader ?? 'alice@example.com',
+  attachedAt: overrides.attachedAt ?? new Date('2026-09-20T09:15:00Z'),
+  downloadTarget: overrides.downloadTarget ?? {
     url: 'https://documents.example.test/signed/document?signature=do-not-display',
     expiresAt: new Date('2026-09-20T10:15:00Z'),
   },
-  replacesSourceUploadIntent: null,
-  deletion: null,
-  canDelete: false,
-  ...overrides,
+  replacesSourceUploadIntent: overrides.replacesSourceUploadIntent ?? null,
+  deletion: overrides.deletion ?? null,
+  canDelete: overrides.canDelete ?? false,
 });
 
 class StubExpenseSupportingDocumentDeletionPort extends ExpenseSupportingDocumentDeletionPort {

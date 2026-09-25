@@ -37,7 +37,7 @@ describe('ExpenseListWidgetViewModel', () => {
       );
 
       expect(vm.expenses()).toEqual([
-        { title: 'Toiture', amount: '12,50\u00a0€', createdBy: 'alice@example.com' },
+        { id: 'e2', title: 'Toiture', amount: '12,50\u00a0€', createdBy: 'alice@example.com' },
       ]);
     });
 
@@ -48,7 +48,7 @@ describe('ExpenseListWidgetViewModel', () => {
       await waitFor(() => vm.isReady());
 
       expect(vm.expenses()).toEqual([
-        { title: 'Courses', amount: '15,00\u00a0€', createdBy: 'alice@example.com' },
+        { id: 'e1', title: 'Courses', amount: '15,00\u00a0€', createdBy: 'alice@example.com' },
       ]);
       expect(port.requestedGroupIds).toEqual(['group-1']);
     });
@@ -109,6 +109,21 @@ describe('ExpenseListWidgetViewModel', () => {
 
       expect(vm.isReady()).toBe(true);
       expect(port.requestedGroupIds).toEqual(['group-1', 'group-1']);
+    });
+  });
+
+  describe('setSupportingDocumentsOpen', () => {
+    it('tracks only the expense sections currently opened by the user', () => {
+      const vm = createViewModel();
+
+      vm.setSupportingDocumentsOpen('expense-1', true);
+      vm.setSupportingDocumentsOpen('expense-2', true);
+      vm.setSupportingDocumentsOpen('expense-1', false);
+
+      expect([
+        vm.isSupportingDocumentsOpen('expense-1'),
+        vm.isSupportingDocumentsOpen('expense-2'),
+      ]).toEqual([false, true]);
     });
   });
 

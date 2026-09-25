@@ -6,6 +6,7 @@ import {
   ExpenseSupportingDocumentDeletionPort,
   type DeleteExpenseSupportingDocumentCommand,
 } from '../../../application/supporting-document/expense-supporting-document-deletion.port';
+import { expenseSupportingDocumentsQueryKey } from '../supporting-document/expense-supporting-documents-query-key';
 import { SupportingDocumentHistoryViewModel } from './supporting-document-history.view-model';
 
 describe('SupportingDocumentHistoryViewModel', () => {
@@ -26,10 +27,9 @@ describe('SupportingDocumentHistoryViewModel', () => {
 
   describe('delete', () => {
     it('deletes the selected document and invalidates only its supporting documents query', async () => {
-      queryClient.setQueryData(
-        ['groups', 'group-1', 'expenses', 'expense-1', 'supporting-documents'],
-        ['cached-document'],
-      );
+      queryClient.setQueryData(expenseSupportingDocumentsQueryKey('group-1', 'expense-1'), [
+        'cached-document',
+      ]);
       queryClient.setQueryData(['groups', 'group-1', 'expenses'], ['cached-expense']);
 
       await expect(
@@ -49,13 +49,8 @@ describe('SupportingDocumentHistoryViewModel', () => {
       ]);
       await waitFor(() => viewModel.isDeleted());
       expect(
-        queryClient.getQueryState([
-          'groups',
-          'group-1',
-          'expenses',
-          'expense-1',
-          'supporting-documents',
-        ])?.isInvalidated,
+        queryClient.getQueryState(expenseSupportingDocumentsQueryKey('group-1', 'expense-1'))
+          ?.isInvalidated,
       ).toBe(true);
       expect(queryClient.getQueryState(['groups', 'group-1', 'expenses'])?.isInvalidated).toBe(
         false,
@@ -81,10 +76,9 @@ describe('SupportingDocumentHistoryViewModel', () => {
 
     it('exposes a plain error and does not invalidate the query when deletion fails', async () => {
       deletionPort.failure = new Error('Retrait indisponible');
-      queryClient.setQueryData(
-        ['groups', 'group-1', 'expenses', 'expense-1', 'supporting-documents'],
-        ['cached-document'],
-      );
+      queryClient.setQueryData(expenseSupportingDocumentsQueryKey('group-1', 'expense-1'), [
+        'cached-document',
+      ]);
 
       await expect(
         viewModel.delete({
@@ -97,13 +91,8 @@ describe('SupportingDocumentHistoryViewModel', () => {
       await waitFor(() => viewModel.hasDeletionError());
       expect(viewModel.deletionErrorMessage()).toBe('Retrait indisponible');
       expect(
-        queryClient.getQueryState([
-          'groups',
-          'group-1',
-          'expenses',
-          'expense-1',
-          'supporting-documents',
-        ])?.isInvalidated,
+        queryClient.getQueryState(expenseSupportingDocumentsQueryKey('group-1', 'expense-1'))
+          ?.isInvalidated,
       ).toBe(false);
     });
   });

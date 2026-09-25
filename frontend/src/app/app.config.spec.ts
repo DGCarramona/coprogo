@@ -5,6 +5,7 @@ import { ExpenseProposalPort } from './application/expense/expense-proposal.port
 import { GroupMembersPort } from './application/group/group-members.port';
 import { NavigationPort } from './application/shared/navigation.port';
 import { ExpenseSupportingDocumentDeletionPort } from './application/supporting-document/expense-supporting-document-deletion.port';
+import { ExpenseSupportingDocumentsPort } from './application/supporting-document/expense-supporting-documents.port';
 import {
   Sha256ChecksumPort,
   SignedSupportingDocumentUploaderPort,
@@ -17,6 +18,7 @@ import { RouterNavigationAdapter } from './infrastructure/router/router-navigati
 import { HttpSignedSupportingDocumentUploaderGateway } from './infrastructure/supporting-document/http-signed-supporting-document-uploader.gateway';
 import { HttpSupportingDocumentUploadControlPlaneGateway } from './infrastructure/supporting-document/http-supporting-document-upload-control-plane.gateway';
 import { HttpExpenseSupportingDocumentDeletionGateway } from './infrastructure/supporting-document/http-expense-supporting-document-deletion.gateway';
+import { HttpExpenseSupportingDocumentsGateway } from './infrastructure/supporting-document/http-expense-supporting-documents.gateway';
 import { WebCryptoSha256ChecksumGateway } from './infrastructure/supporting-document/web-crypto-sha256-checksum.gateway';
 import { appConfig } from './app.config';
 
@@ -72,6 +74,14 @@ describe('appConfig', () => {
 
     expect(TestBed.inject(ExpenseSupportingDocumentDeletionPort)).toBe(
       TestBed.inject(HttpExpenseSupportingDocumentDeletionGateway),
+    );
+  });
+
+  it('binds the supporting documents read port to the existing HTTP gateway instance', () => {
+    TestBed.configureTestingModule({ providers: appConfig.providers });
+
+    expect(TestBed.inject(ExpenseSupportingDocumentsPort)).toBe(
+      TestBed.inject(HttpExpenseSupportingDocumentsGateway),
     );
   });
 });

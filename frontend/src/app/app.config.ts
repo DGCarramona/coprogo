@@ -17,6 +17,7 @@ import {
   SupportingDocumentUploadControlPlanePort,
 } from './application/supporting-document/supporting-document-upload.port';
 import { ExpenseSupportingDocumentDeletionPort } from './application/supporting-document/expense-supporting-document-deletion.port';
+import { ExpenseSupportingDocumentsPort } from './application/supporting-document/expense-supporting-documents.port';
 import { provideApiClient } from './infrastructure/api/provide-api-client';
 import { RouterNavigationAdapter } from './infrastructure/router/router-navigation.adapter';
 import { BrowserGoogleIdTokenStore } from './infrastructure/auth/google/browser-google-id-token.store';
@@ -30,6 +31,7 @@ import { HttpGroupFinancialDashboardGateway } from './infrastructure/ledger/http
 import { HttpSignedSupportingDocumentUploaderGateway } from './infrastructure/supporting-document/http-signed-supporting-document-uploader.gateway';
 import { HttpSupportingDocumentUploadControlPlaneGateway } from './infrastructure/supporting-document/http-supporting-document-upload-control-plane.gateway';
 import { HttpExpenseSupportingDocumentDeletionGateway } from './infrastructure/supporting-document/http-expense-supporting-document-deletion.gateway';
+import { HttpExpenseSupportingDocumentsGateway } from './infrastructure/supporting-document/http-expense-supporting-documents.gateway';
 import { WebCryptoSha256ChecksumGateway } from './infrastructure/supporting-document/web-crypto-sha256-checksum.gateway';
 import { provideCoprogoHttpClients } from './infrastructure/http/named-http-clients';
 import { routes } from './app.routes';
@@ -92,6 +94,10 @@ export const appConfig: ApplicationConfig = {
     {
       provide: ExpenseSupportingDocumentDeletionPort,
       useExisting: HttpExpenseSupportingDocumentDeletionGateway,
+    },
+    {
+      provide: ExpenseSupportingDocumentsPort,
+      useExisting: HttpExpenseSupportingDocumentsGateway,
     },
   ],
 };
