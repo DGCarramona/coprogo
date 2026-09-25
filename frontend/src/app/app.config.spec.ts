@@ -4,6 +4,7 @@ import { QueryClient } from '@tanstack/angular-query-experimental';
 import { ExpenseProposalPort } from './application/expense/expense-proposal.port';
 import { GroupMembersPort } from './application/group/group-members.port';
 import { NavigationPort } from './application/shared/navigation.port';
+import { ExpenseSupportingDocumentDeletionPort } from './application/supporting-document/expense-supporting-document-deletion.port';
 import {
   Sha256ChecksumPort,
   SignedSupportingDocumentUploaderPort,
@@ -15,6 +16,7 @@ import { HttpGroupMembersGateway } from './infrastructure/group/http-group-membe
 import { RouterNavigationAdapter } from './infrastructure/router/router-navigation.adapter';
 import { HttpSignedSupportingDocumentUploaderGateway } from './infrastructure/supporting-document/http-signed-supporting-document-uploader.gateway';
 import { HttpSupportingDocumentUploadControlPlaneGateway } from './infrastructure/supporting-document/http-supporting-document-upload-control-plane.gateway';
+import { HttpExpenseSupportingDocumentDeletionGateway } from './infrastructure/supporting-document/http-expense-supporting-document-deletion.gateway';
 import { WebCryptoSha256ChecksumGateway } from './infrastructure/supporting-document/web-crypto-sha256-checksum.gateway';
 import { appConfig } from './app.config';
 
@@ -63,5 +65,13 @@ describe('appConfig', () => {
       TestBed.inject(HttpSupportingDocumentUploadControlPlaneGateway),
     );
     expect(TestBed.inject(UploadSupportingDocument)).toBeInstanceOf(UploadSupportingDocument);
+  });
+
+  it('binds the supporting document deletion port to the existing HTTP gateway instance', () => {
+    TestBed.configureTestingModule({ providers: appConfig.providers });
+
+    expect(TestBed.inject(ExpenseSupportingDocumentDeletionPort)).toBe(
+      TestBed.inject(HttpExpenseSupportingDocumentDeletionGateway),
+    );
   });
 });

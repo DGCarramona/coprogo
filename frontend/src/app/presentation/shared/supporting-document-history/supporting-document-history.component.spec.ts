@@ -1,11 +1,28 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 
+import {
+  ExpenseSupportingDocumentDeletionPort,
+  type DeleteExpenseSupportingDocumentCommand,
+} from '../../../application/supporting-document/expense-supporting-document-deletion.port';
 import {
   SupportingDocumentHistoryComponent,
   type SupportingDocumentVersion,
 } from './supporting-document-history.component';
 
 describe('SupportingDocumentHistoryComponent', () => {
+  let deletionPort: StubExpenseSupportingDocumentDeletionPort;
+
+  beforeEach(() => {
+    deletionPort = new StubExpenseSupportingDocumentDeletionPort();
+    TestBed.configureTestingModule({
+      providers: [
+        provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
+        { provide: ExpenseSupportingDocumentDeletionPort, useValue: deletionPort },
+      ],
+    });
+  });
+
   describe('versions', () => {
     it('renders the supplied chronological history with its attachment audit', () => {
       const { fixture, host } = createFixture([
@@ -91,6 +108,107 @@ describe('SupportingDocumentHistoryComponent', () => {
       expect(host.textContent).toContain('Aucun justificatif n’a été ajouté.');
     });
   });
+
+  describe('retirer le justificatif', () => {
+    it('proposes removal only for the latest non-deleted version when permitted', () => {
+      const { fixture, host } = createFixture([
+        version({
+          sourceUploadIntent: 'intent-original',
+          fileName: 'facture-initiale.pdf',
+          canDelete: true,
+        }),
+        version({
+          sourceUploadIntent: 'intent-current',
+          fileName: 'facture-courante.pdf',
+          replacesSourceUploadIntent: 'intent-original',
+          canDelete: true,
+        }),
+      ]);
+
+      fixture.detectChanges();
+
+      expect(
+        [...host.querySelectorAll('button')].map((button) => ({
+          text: button.textContent?.trim(),
+          accessibleName: button.getAttribute('aria-label'),
+          disabled: button.hasAttribute('disabled'),
+        })),
+      ).toEqual([
+        {
+          text: 'Retirer',
+          accessibleName: 'Retirer le justificatif facture-courante.pdf',
+          disabled: false,
+        },
+      ]);
+    });
+
+    it.each([
+      ['the latest version cannot be removed', version({ canDelete: false })],
+      [
+        'the latest version was already removed',
+        version({
+          canDelete: true,
+          deletion: { deletedBy: 'alice@example.com', deletedAt: new Date('2026-09-24T12:00:00Z') },
+        }),
+      ],
+    ])('does not propose removal when %s', (_description, latestVersion) => {
+      const { fixture, host } = createFixture([latestVersion]);
+
+      fixture.detectChanges();
+
+      expect(host.querySelector('button')).toBeNull();
+    });
+
+    it('shows pending state, delegates the exact document, and keeps it visible after success', async () => {
+      deletionPort.defer();
+      const currentVersion = version({
+        sourceUploadIntent: 'intent-current',
+        fileName: 'facture-courante.pdf',
+        canDelete: true,
+      });
+      const { fixture, host } = createFixture([currentVersion]);
+      fixture.detectChanges();
+
+      host.querySelector<HTMLButtonElement>('button')?.click();
+      fixture.detectChanges();
+
+      await waitFor(() => deletionPort.commands.length === 1);
+      expect(deletionPort.commands).toEqual([
+        { groupId: 'group-1', expenseId: 'expense-1', sourceUploadIntent: 'intent-current' },
+      ]);
+      expect(host.querySelector<HTMLButtonElement>('button')?.disabled).toBe(true);
+      expect(host.querySelector('[role="status"]')?.textContent?.trim()).toBe(
+        'Retrait du justificatif en cours…',
+      );
+
+      deletionPort.resolve();
+      await waitFor(() => host.querySelector('[role="status"]')?.textContent?.includes('retiré'));
+      fixture.detectChanges();
+
+      expect(host.querySelector('[role="status"]')?.textContent?.trim()).toBe(
+        'Le justificatif a été retiré. Il reste visible dans l’historique.',
+      );
+      expect(versionItems(host)).toEqual([expect.stringContaining('facture-courante.pdf')]);
+      expect(host.querySelector('button')).toBeNull();
+    });
+
+    it('shows the deletion error without removing the version from the displayed history', async () => {
+      deletionPort.failure = new Error('Le retrait est indisponible.');
+      const { fixture, host } = createFixture([
+        version({ fileName: 'facture-courante.pdf', canDelete: true }),
+      ]);
+      fixture.detectChanges();
+
+      host.querySelector<HTMLButtonElement>('button')?.click();
+      await waitFor(() => host.querySelector('[role="alert"]') !== null);
+      fixture.detectChanges();
+
+      expect(host.querySelector('[role="alert"]')?.textContent?.trim()).toBe(
+        'Le retrait est indisponible.',
+      );
+      expect(versionItems(host)).toEqual([expect.stringContaining('facture-courante.pdf')]);
+    });
+  });
 });
 
 const createFixture = (
@@ -98,6 +216,8 @@ const createFixture = (
 ): { fixture: ComponentFixture<SupportingDocumentHistoryComponent>; host: HTMLElement } => {
   const fixture = TestBed.createComponent(SupportingDocumentHistoryComponent);
   fixture.componentRef.setInput('versions', versions);
+  fixture.componentRef.setInput('groupId', 'group-1');
+  fixture.componentRef.setInput('expenseId', 'expense-1');
 
   return { fixture, host: fixture.nativeElement };
 };
@@ -118,5 +238,39 @@ const version = (overrides: Partial<SupportingDocumentVersion>): SupportingDocum
   },
   replacesSourceUploadIntent: null,
   deletion: null,
+  canDelete: false,
   ...overrides,
 });
+
+class StubExpenseSupportingDocumentDeletionPort extends ExpenseSupportingDocumentDeletionPort {
+  readonly commands: DeleteExpenseSupportingDocumentCommand[] = [];
+  failure: Error | null = null;
+  private deferred: Promise<void> | null = null;
+  private resolveDeferred: (() => void) | null = null;
+
+  override delete(command: DeleteExpenseSupportingDocumentCommand): Promise<void> {
+    this.commands.push(command);
+    if (this.failure !== null) return Promise.reject(this.failure);
+    return this.deferred ?? Promise.resolve();
+  }
+
+  defer(): void {
+    this.deferred = new Promise((resolve) => {
+      this.resolveDeferred = resolve;
+    });
+  }
+
+  resolve(): void {
+    this.resolveDeferred?.();
+  }
+}
+
+const waitFor = async (condition: () => boolean | undefined): Promise<void> => {
+  for (let attempt = 0; attempt < 50; attempt += 1) {
+    TestBed.tick();
+    if (condition()) return;
+    await new Promise((resolve) => setTimeout(resolve));
+  }
+
+  throw new Error('La condition attendue n a pas ete atteinte.');
+};
