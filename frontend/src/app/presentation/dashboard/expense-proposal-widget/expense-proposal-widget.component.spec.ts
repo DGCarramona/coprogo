@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 import { NEVER, Observable, of, throwError } from 'rxjs';
 import {
@@ -6,10 +7,98 @@ import {
   ExpenseProposalCommand,
 } from '../../../application/expense/expense-proposal.port';
 import { GroupMembersPort } from '../../../application/group/group-members.port';
+import { UploadSupportingDocument } from '../../../application/supporting-document/upload-supporting-document.use-case';
+import { SupportingDocumentUploadWidgetComponent } from '../../shared/supporting-document-upload/supporting-document-upload-widget.component';
 import { GroupMember } from '../../../domain/group/group-member';
 import { ExpenseProposalWidgetComponent } from './expense-proposal-widget.component';
 
 describe('ExpenseProposalWidgetComponent', () => {
+  describe('supporting documents', () => {
+    it('includes only confirmed document intents in the proposed expense', async () => {
+      const proposals = new StubExpenseProposalPort();
+      const { fixture, host } = createFixture(new Members(), proposals);
+
+      await waitFor(() => {
+        fixture.detectChanges();
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
+      supportingDocumentUploadWidget(fixture).confirmed.emit({
+        intentId: 'intent-1',
+        fileName: 'facture.pdf',
+      });
+      fixture.detectChanges();
+      fillProposal(host, fixture);
+
+      requiredButton(host, 'button[type="submit"]').click();
+
+      await waitFor(() => proposals.commands.length === 1);
+      expect(proposals.commands).toEqual([
+        {
+          groupId: 'group-1',
+          title: 'Toiture',
+          totalAmountInCents: 1250,
+          allocation: {
+            type: 'EQUAL',
+            participants: new Set(['a@b.c']),
+          },
+          supportingDocumentUploadIntents: new Set(['intent-1']),
+        },
+      ]);
+      expect(host.textContent).toContain('facture.pdf');
+    });
+
+    it('blocks proposal submission while a document is still being sent', async () => {
+      const proposals = new StubExpenseProposalPort();
+      const { fixture, host } = createFixture(new Members(), proposals);
+
+      await waitFor(() => {
+        fixture.detectChanges();
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
+      fixture.componentInstance.viewModel.setSupportingDocumentUploadPending(true);
+      fillProposal(host, fixture);
+      fixture.detectChanges();
+
+      expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
+      requiredForm(host).dispatchEvent(new Event('submit', { cancelable: true }));
+      await new Promise((resolve) => setTimeout(resolve));
+      expect(proposals.commands).toEqual([]);
+    });
+
+    it('excludes a document removed from the draft', async () => {
+      const proposals = new StubExpenseProposalPort();
+      const { fixture, host } = createFixture(new Members(), proposals);
+
+      await waitFor(() => {
+        fixture.detectChanges();
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
+      fixture.componentInstance.viewModel.addSupportingDocument({
+        intentId: 'intent-1',
+        fileName: 'facture.pdf',
+      });
+      fixture.detectChanges();
+      requiredButton(host, 'button[aria-label="Retirer facture.pdf"]').click();
+      fillProposal(host, fixture);
+
+      requiredButton(host, 'button[type="submit"]').click();
+
+      await waitFor(() => proposals.commands.length === 1);
+      expect(proposals.commands).toEqual([
+        {
+          groupId: 'group-1',
+          title: 'Toiture',
+          totalAmountInCents: 1250,
+          allocation: {
+            type: 'EQUAL',
+            participants: new Set(['a@b.c']),
+          },
+          supportingDocumentUploadIntents: new Set(),
+        },
+      ]);
+    });
+  });
+
   describe('allocation mode selection', () => {
     it('offers the four allocation modes with equal selected by default', async () => {
       const { fixture, host } = createFixture(new Members());
@@ -449,6 +538,7 @@ describe('ExpenseProposalWidgetComponent', () => {
 const createFixture = (
   members: Members,
   proposals = new StubExpenseProposalPort(),
+  uploadSupportingDocument = new StubUploadSupportingDocument(),
 ): { fixture: ComponentFixture<ExpenseProposalWidgetComponent>; host: HTMLElement } => {
   TestBed.configureTestingModule({
     providers: [
@@ -461,6 +551,7 @@ const createFixture = (
       ),
       { provide: GroupMembersPort, useValue: members },
       { provide: ExpenseProposalPort, useValue: proposals },
+      { provide: UploadSupportingDocument, useValue: uploadSupportingDocument },
     ],
   });
   const fixture = TestBed.createComponent(ExpenseProposalWidgetComponent);
@@ -510,6 +601,14 @@ const requiredForm = (host: HTMLElement): HTMLFormElement => {
   const form = host.querySelector('form');
   if (!(form instanceof HTMLFormElement)) throw new Error('Formulaire absent.');
   return form;
+};
+
+const supportingDocumentUploadWidget = (
+  fixture: ComponentFixture<ExpenseProposalWidgetComponent>,
+): SupportingDocumentUploadWidgetComponent => {
+  const widget = fixture.debugElement.query(By.directive(SupportingDocumentUploadWidgetComponent));
+  if (widget === null) throw new Error('Widget de justificatif absent.');
+  return widget.componentInstance;
 };
 
 const requiredInput = (host: HTMLElement, selector: string): HTMLInputElement => {
@@ -580,5 +679,11 @@ class StubExpenseProposalPort extends ExpenseProposalPort {
 
   resolveDeferred(): void {
     this.resolveDeferredPromise?.();
+  }
+}
+
+class StubUploadSupportingDocument {
+  upload(): Promise<string> {
+    return Promise.resolve('intent-1');
   }
 }

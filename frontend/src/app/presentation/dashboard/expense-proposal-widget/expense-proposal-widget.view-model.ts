@@ -38,6 +38,7 @@ import {
   validateEqualWithCapsForm,
 } from './equal-with-caps-allocation-form';
 import { parseAmountInCents, toggleMember } from './expense-proposal-form';
+import type { SupportingDocumentUploadResult } from '../../shared/supporting-document-upload/supporting-document-upload-result';
 
 export interface EqualSplitExpenseProposalInput {
   title: string;
@@ -67,7 +68,12 @@ interface ExpenseProposalFormModel {
 export class ExpenseProposalWidgetViewModel {
   private readonly groupIdState = signal<string | null>(null);
   private readonly proposalModel = signal<ExpenseProposalFormModel>(emptyProposalFormModel());
+  private readonly supportingDocumentsState = signal<readonly SupportingDocumentUploadResult[]>([]);
+  private readonly supportingDocumentUploadPendingState = signal(false);
   readonly proposalForm: FieldTree<ExpenseProposalFormModel>;
+  readonly supportingDocuments = this.supportingDocumentsState.asReadonly();
+  readonly isSupportingDocumentUploadPending =
+    this.supportingDocumentUploadPendingState.asReadonly();
 
   private readonly membersQuery;
   readonly members = computed<readonly string[]>(() => this.membersQuery.data() ?? []);
@@ -175,6 +181,13 @@ export class ExpenseProposalWidgetViewModel {
         injector,
         submission: {
           action: async (form): Promise<TreeValidationResult> => {
+            if (this.isSupportingDocumentUploadPending()) {
+              return {
+                kind: 'supporting-document-upload',
+                message: 'Attendez la fin de l envoi du justificatif avant de proposer la depense.',
+              };
+            }
+
             const proposal = form().value();
             const totalAmountInCents = parseAmountInCents(proposal.amountInEuros);
 
@@ -244,6 +257,8 @@ export class ExpenseProposalWidgetViewModel {
   initialize(groupId: string): void {
     this.groupIdState.set(groupId);
     this.proposalForm().reset(emptyProposalFormModel());
+    this.supportingDocumentsState.set([]);
+    this.supportingDocumentUploadPendingState.set(false);
   }
 
   retry(): void {
@@ -274,7 +289,9 @@ export class ExpenseProposalWidgetViewModel {
       title: input.title,
       totalAmountInCents: input.totalAmountInCents,
       allocation: input.allocation,
-      supportingDocumentUploadIntents: new Set(),
+      supportingDocumentUploadIntents: new Set(
+        this.supportingDocumentsState().map((document) => document.intentId),
+      ),
     };
   }
 
@@ -355,6 +372,24 @@ export class ExpenseProposalWidgetViewModel {
       const custom = setCustomAmount(proposal.custom, member, amountInEuros);
       return custom === proposal.custom ? proposal : { ...proposal, custom };
     });
+  }
+
+  addSupportingDocument(document: SupportingDocumentUploadResult): void {
+    this.supportingDocumentsState.update((documents) => [...documents, document]);
+  }
+
+  removeSupportingDocument(intentId: string): void {
+    this.supportingDocumentsState.update((documents) =>
+      documents.filter((document) => document.intentId !== intentId),
+    );
+  }
+
+  clearSupportingDocuments(): void {
+    this.supportingDocumentsState.set([]);
+  }
+
+  setSupportingDocumentUploadPending(isPending: boolean): void {
+    this.supportingDocumentUploadPendingState.set(isPending);
   }
 }
 
