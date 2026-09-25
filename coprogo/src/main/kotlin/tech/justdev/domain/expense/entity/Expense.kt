@@ -123,10 +123,12 @@ data class Expense(
 
     fun requireSupportingDocumentChangeBy(member: MemberEmail) {
         require(member == createdBy) { "only the expense creator can change a supporting document" }
-        require(status == ExpenseStatus.PROPOSED) {
+        require(canChangeSupportingDocumentsBy(member)) {
             "supporting documents can only be changed while the expense is proposed"
         }
     }
+
+    fun canChangeSupportingDocumentsBy(member: MemberEmail): Boolean = member == createdBy && status == ExpenseStatus.PROPOSED
 
     fun attachSupportingDocuments(consumedUploadIntents: List<DocumentUploadIntent>): Expense {
         require(supportingDocuments.isEmpty) { "supporting documents can only be attached to an expense without documents" }

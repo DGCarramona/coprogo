@@ -32,6 +32,7 @@ data class ExpenseSupportingDocumentSnapshot(
     val attachedAt: Instant,
     val replacesSourceUploadIntent: DocumentUploadIntentId?,
     val deletion: SupportingDocumentAttachmentDeletion?,
+    val canDelete: Boolean,
     val download: DocumentDownloadTarget,
 )
 
@@ -77,6 +78,9 @@ class ListExpenseSupportingDocumentsUseCaseImpl(
                             validFor = query.downloadValidFor,
                         ),
                     ),
+                    canDelete =
+                        expense.canChangeSupportingDocumentsBy(query.requestedBy) &&
+                            document.sourceUploadIntent in currentIntentIds,
                 )
             }
 
@@ -89,6 +93,7 @@ class ListExpenseSupportingDocumentsUseCaseImpl(
     private fun toSnapshot(
         document: ExpenseSupportingDocument,
         download: DocumentDownloadTarget,
+        canDelete: Boolean,
     ): ExpenseSupportingDocumentSnapshot =
         ExpenseSupportingDocumentSnapshot(
             sourceUploadIntent = document.sourceUploadIntent,
@@ -99,6 +104,7 @@ class ListExpenseSupportingDocumentsUseCaseImpl(
             attachedAt = document.attachedAt,
             replacesSourceUploadIntent = document.replacesSourceUploadIntent,
             deletion = document.deletion,
+            canDelete = canDelete,
             download = download,
         )
 }

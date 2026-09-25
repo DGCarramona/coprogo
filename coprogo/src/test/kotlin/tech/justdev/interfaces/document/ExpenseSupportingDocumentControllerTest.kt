@@ -66,6 +66,7 @@ class ExpenseSupportingDocumentControllerTest {
                         sourceUploadIntent = sourceUploadIntent,
                         attachedAt = attachedAt,
                         downloadExpiresAt = expiresAt,
+                        canDelete = true,
                     )
                 val historical =
                     snapshot(
@@ -96,6 +97,7 @@ class ExpenseSupportingDocumentControllerTest {
                                     attachedAt = attachedAt,
                                     replacesSourceUploadIntent = null,
                                     deletion = null,
+                                    canDelete = true,
                                     download =
                                         SupportingDocumentDownloadResponse(
                                             url = URI("https://storage.example.test/$sourceUploadIntent"),
@@ -114,6 +116,7 @@ class ExpenseSupportingDocumentControllerTest {
                                     attachedAt = attachedAt.minusSeconds(60),
                                     replacesSourceUploadIntent = sourceUploadIntent,
                                     deletion = SupportingDocumentDeletionResponse("deleter@example.com", deletedAt),
+                                    canDelete = false,
                                     download =
                                         SupportingDocumentDownloadResponse(
                                             url = URI("https://storage.example.test/$replacementSourceUploadIntent"),
@@ -129,6 +132,7 @@ class ExpenseSupportingDocumentControllerTest {
                                     attachedAt = attachedAt,
                                     replacesSourceUploadIntent = null,
                                     deletion = null,
+                                    canDelete = true,
                                     download =
                                         SupportingDocumentDownloadResponse(
                                             url = URI("https://storage.example.test/$sourceUploadIntent"),
@@ -342,6 +346,7 @@ class ExpenseSupportingDocumentControllerTest {
         attachedAt: Instant,
         replacesSourceUploadIntent: UUID? = null,
         deletion: SupportingDocumentAttachmentDeletion? = null,
+        canDelete: Boolean = false,
         downloadExpiresAt: Instant,
     ): ExpenseSupportingDocumentSnapshot =
         ExpenseSupportingDocumentSnapshot(
@@ -353,6 +358,7 @@ class ExpenseSupportingDocumentControllerTest {
             attachedAt = attachedAt,
             replacesSourceUploadIntent = replacesSourceUploadIntent?.let(::DocumentUploadIntentId),
             deletion = deletion,
+            canDelete = canDelete,
             download =
                 DocumentDownloadTarget(
                     uri = URI("https://storage.example.test/$sourceUploadIntent"),

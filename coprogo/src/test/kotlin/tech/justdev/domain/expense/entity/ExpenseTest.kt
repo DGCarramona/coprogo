@@ -2,6 +2,7 @@ package tech.justdev.domain.expense.entity
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import tech.justdev.domain.document.entity.DocumentMetadata
@@ -519,6 +520,39 @@ class ExpenseTest {
                 }
 
             assertEquals("supporting documents can only be changed while the expense is proposed", error.message)
+        }
+    }
+
+    @Nested
+    inner class CanChangeSupportingDocumentsBy {
+        @Test
+        fun `should report that the creator can change supporting documents while the expense is proposed`() {
+            assertTrue(proposedExpense().canChangeSupportingDocumentsBy(memberEmail("alice")))
+        }
+
+        @Test
+        fun `should report that another member or a terminal expense cannot change supporting documents`() {
+            val acceptedExpense =
+                proposedExpense().recordParticipationDecision(
+                    member = memberEmail("bob"),
+                    decision = ExpenseParticipationDecision.APPROVE,
+                    decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
+                )
+            val invalidatedExpense =
+                proposedExpense().recordParticipationDecision(
+                    member = memberEmail("bob"),
+                    decision = ExpenseParticipationDecision.REFUSE,
+                    decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
+                )
+
+            assertEquals(
+                listOf(false, false, false),
+                listOf(
+                    proposedExpense().canChangeSupportingDocumentsBy(memberEmail("bob")),
+                    acceptedExpense.canChangeSupportingDocumentsBy(memberEmail("alice")),
+                    invalidatedExpense.canChangeSupportingDocumentsBy(memberEmail("alice")),
+                ),
+            )
         }
     }
 

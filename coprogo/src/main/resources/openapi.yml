@@ -907,6 +907,7 @@ components:
     ExpenseSupportingDocumentResponse:
       required:
       - attachedAt
+      - canDelete
       - download
       - fileName
       - mediaType
@@ -938,6 +939,8 @@ components:
           nullable: true
           allOf:
           - $ref: "#/components/schemas/SupportingDocumentDeletionResponse"
+        canDelete:
+          type: boolean
         download:
           $ref: "#/components/schemas/SupportingDocumentDownloadResponse"
     ExpenseSupportingDocumentsResponse:

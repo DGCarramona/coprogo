@@ -21,7 +21,9 @@ Backlog derive de l'etat actuel du depot au 2026-09-25.
 
 ## Ordre de travail actuel
 
-1. Raccorder le frontend FE-DOC apres le dernier lot backend documentaire.
+1. FE-DOC-005A : raccorder l'historique documentaire a l'ecran depense actuel.
+2. FE-DOC-006 : completer les tests de composants et de mapping documentaires.
+3. FE-DOC-005B : raccorder l'historique documentaire aux remboursements apres la creation de leur ecran.
 
 ## Fondations monorepo et DX
 
@@ -149,6 +151,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-25.
 - [x] BE-DOC-009A Deriver une chronologie d'audit des justificatifs depuis l'agregat `Expense` hydrate.
 - [x] BE-DOC-009B Exposer la chronologie d'audit des justificatifs.
 - [x] BE-DOC-010 Ajouter des tests d'integration sur la non-destruction de l'historique documentaire, les conflits, le rejeu et les rollbacks transactionnels.
+- [x] BE-DOC-011 Exposer dans la lecture documentaire une capacite serveur `canDelete`, vraie uniquement pour un justificatif courant non supprime, demande par le createur tant que la depense est proposee.
 
 ## Frontend - socle applicatif et authentification
 
@@ -228,5 +231,6 @@ Backlog derive de l'etat actuel du depot au 2026-09-25.
 - [x] FE-DOC-002 Creer un composant d'historique des versions d'un justificatif.
 - [x] FE-DOC-003 Ajouter l'action de telechargement et consultation d'un justificatif via URL GET signee directe.
 - [x] FE-DOC-004 Ajouter l'action de suppression avec message d'audit clair.
-- [ ] FE-DOC-005 Afficher, dans les ecrans depense et remboursement, l'historique des pieces liees.
+- [ ] FE-DOC-005A Afficher dans l'ecran depense actuel l'historique des justificatifs lies et l'action de suppression seulement lorsque la capacite serveur l'autorise.
 - [ ] FE-DOC-006 Ajouter les tests de composants et de mapping pour la gestion documentaire.
+- [ ] FE-DOC-005B Afficher l'historique des justificatifs lies dans l'ecran de remboursement, apres la creation de cet ecran.

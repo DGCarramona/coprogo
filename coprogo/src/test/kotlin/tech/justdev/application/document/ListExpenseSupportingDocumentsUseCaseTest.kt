@@ -23,6 +23,7 @@ import tech.justdev.domain.document.valueobject.SupportingDocumentAttachmentDele
 import tech.justdev.domain.expense.entity.Expense
 import tech.justdev.domain.expense.repository.ExpenseRepository
 import tech.justdev.domain.expense.valueobject.ExpenseId
+import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
 import tech.justdev.domain.expense.valueobject.ExpenseShare
 import tech.justdev.domain.group.entity.Group
 import tech.justdev.domain.group.repository.GroupRepository
@@ -128,14 +129,80 @@ class ListExpenseSupportingDocumentsUseCaseTest {
                                 snapshot(
                                     document = original,
                                     download = downloadTarget(ORIGINAL),
+                                    canDelete = false,
                                 ),
                                 snapshot(
                                     document = replacement,
                                     download = downloadTarget(REPLACEMENT),
+                                    canDelete = false,
                                 ),
                             ),
                     ),
                     result,
+                )
+            }
+
+        @Test
+        fun `should expose deletion capability only for current documents requested by the creator on a proposed expense`() =
+            runTest {
+                val original = document(consumedIntent(ORIGINAL, "original.pdf", "application/pdf", 512, ORIGINAL_ATTACHED_AT))
+                val current =
+                    document(
+                        consumedIntent(CURRENT, "current.pdf", "application/pdf", 1_024, CURRENT_ATTACHED_AT),
+                        replaces = ORIGINAL,
+                    )
+                val expense = expense(listOf(original, current))
+                val documentStorage = RecordingDocumentStorage(mutableListOf())
+
+                val creatorResult =
+                    useCase(
+                        groupRepository = RecordingGroupRepository(mutableListOf(), group()),
+                        expenseRepository = RecordingExpenseRepository(mutableListOf(), expense),
+                        documentStorage = documentStorage,
+                    )(query())
+                val otherMemberResult =
+                    useCase(
+                        groupRepository = RecordingGroupRepository(mutableListOf(), group()),
+                        expenseRepository = RecordingExpenseRepository(mutableListOf(), expense),
+                        documentStorage = RecordingDocumentStorage(mutableListOf()),
+                    )(query(requestedBy = OUTSIDER_MEMBER))
+
+                assertEquals(listOf(true), creatorResult.current.map(ExpenseSupportingDocumentSnapshot::canDelete))
+                assertEquals(listOf(false, true), creatorResult.history.map(ExpenseSupportingDocumentSnapshot::canDelete))
+                assertEquals(listOf(false), otherMemberResult.current.map(ExpenseSupportingDocumentSnapshot::canDelete))
+                assertEquals(listOf(false, false), otherMemberResult.history.map(ExpenseSupportingDocumentSnapshot::canDelete))
+            }
+
+        @Test
+        fun `should not expose deletion capability after the expense is accepted or invalidated`() =
+            runTest {
+                val document = document(consumedIntent(CURRENT, "current.pdf", "application/pdf", 512, CURRENT_ATTACHED_AT))
+                val proposed = expense(listOf(document))
+                val accepted =
+                    proposed.recordParticipationDecision(
+                        member = OUTSIDER_MEMBER,
+                        decision = ExpenseParticipationDecision.APPROVE,
+                        decidedAt = CURRENT_ATTACHED_AT.plusSeconds(1),
+                    )
+                val invalidated =
+                    proposed.recordParticipationDecision(
+                        member = OUTSIDER_MEMBER,
+                        decision = ExpenseParticipationDecision.REFUSE,
+                        decidedAt = CURRENT_ATTACHED_AT.plusSeconds(1),
+                    )
+
+                val results =
+                    listOf(accepted, invalidated).map { terminalExpense ->
+                        useCase(
+                            groupRepository = RecordingGroupRepository(mutableListOf(), group()),
+                            expenseRepository = RecordingExpenseRepository(mutableListOf(), terminalExpense),
+                            documentStorage = RecordingDocumentStorage(mutableListOf()),
+                        )(query())
+                    }
+
+                assertEquals(
+                    listOf(listOf(false), listOf(false)),
+                    results.map { result -> result.current.map(ExpenseSupportingDocumentSnapshot::canDelete) },
                 )
             }
 
@@ -257,6 +324,7 @@ class ListExpenseSupportingDocumentsUseCaseTest {
     private fun snapshot(
         document: ExpenseSupportingDocument,
         download: DocumentDownloadTarget,
+        canDelete: Boolean,
     ): ExpenseSupportingDocumentSnapshot =
         ExpenseSupportingDocumentSnapshot(
             sourceUploadIntent = document.sourceUploadIntent,
@@ -268,6 +336,7 @@ class ListExpenseSupportingDocumentsUseCaseTest {
             replacesSourceUploadIntent = document.replacesSourceUploadIntent,
             deletion = document.deletion,
             download = download,
+            canDelete = canDelete,
         )
 
     private fun downloadTarget(id: DocumentUploadIntentId): DocumentDownloadTarget =

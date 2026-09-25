@@ -215,6 +215,7 @@ data class ExpenseSupportingDocumentResponse(
     val attachedAt: Instant,
     val replacesSourceUploadIntent: UUID?,
     val deletion: SupportingDocumentDeletionResponse?,
+    val canDelete: Boolean,
     val download: SupportingDocumentDownloadResponse,
 )
 
@@ -246,6 +247,7 @@ private fun ExpenseSupportingDocumentSnapshot.toResponse(): ExpenseSupportingDoc
         attachedAt = attachedAt,
         replacesSourceUploadIntent = replacesSourceUploadIntent?.toPrimitive(),
         deletion = deletion?.let { SupportingDocumentDeletionResponse(it.deletedBy.toPrimitive(), it.deletedAt) },
+        canDelete = canDelete,
         download = SupportingDocumentDownloadResponse(download.uri, download.expiresAt),
     )
 

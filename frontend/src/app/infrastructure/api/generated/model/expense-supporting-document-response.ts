@@ -19,5 +19,6 @@ export interface ExpenseSupportingDocumentResponseDto {
   attachedAt: string;
   replacesSourceUploadIntent?: string | null;
   deletion?: SupportingDocumentDeletionResponseDto | null;
+  canDelete: boolean;
   download: SupportingDocumentDownloadResponseDto;
 }
