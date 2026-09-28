@@ -92,14 +92,78 @@ describe('HttpExpenseSupportingDocumentsGateway', () => {
       });
     });
 
-    it('fails fast when a document date is invalid', async () => {
+    it('maps the deletion audit without leaking the generated DTO', async () => {
       const documents = gateway.listByExpense(GROUP_ID, EXPENSE_ID);
 
       expectListRequest().flush(
-        response({ history: [documentResponse({ attachedAt: 'not-a-date' })] }),
+        response({
+          current: [],
+          history: [
+            documentResponse({
+              deletion: {
+                deletedBy: 'bob@example.com',
+                deletedAt: '2026-09-21T11:30:00.000Z',
+              },
+              canDelete: false,
+            }),
+          ],
+        }),
       );
 
-      await expect(documents).rejects.toThrow('Date d ajout du justificatif invalide: not-a-date.');
+      await expect(documents).resolves.toEqual({
+        current: [],
+        history: [
+          {
+            sourceUploadIntent: 'intent-current',
+            fileName: 'facture.pdf',
+            mediaType: 'application/pdf',
+            sizeBytes: 1234,
+            uploader: 'alice@example.com',
+            attachedAt: new Date('2026-09-20T09:15:00.000Z'),
+            replacesSourceUploadIntent: 'intent-original',
+            deletion: {
+              deletedBy: 'bob@example.com',
+              deletedAt: new Date('2026-09-21T11:30:00.000Z'),
+            },
+            canDelete: false,
+            downloadTarget: {
+              url: 'https://storage.example.test/current?signature=secret',
+              expiresAt: new Date('2026-09-20T10:15:00.000Z'),
+            },
+          },
+        ],
+      });
+    });
+
+    it.each([
+      [
+        'attachment date',
+        documentResponse({ attachedAt: 'not-an-attachment-date' }),
+        'Date d ajout du justificatif invalide: not-an-attachment-date.',
+      ],
+      [
+        'deletion date',
+        documentResponse({
+          deletion: { deletedBy: 'bob@example.com', deletedAt: 'not-a-deletion-date' },
+        }),
+        'Date de retrait du justificatif invalide: not-a-deletion-date.',
+      ],
+      [
+        'download expiration date',
+        documentResponse({
+          download: {
+            url: 'https://storage.example.test/document?signature=secret',
+            expiresAt: 'not-an-expiration-date',
+          },
+        }),
+        'Date d expiration du lien invalide: not-an-expiration-date.',
+      ],
+    ])('fails fast when the %s is invalid', async (_description, document, message) => {
+      const documents = gateway.listByExpense(GROUP_ID, EXPENSE_ID);
+
+      expectListRequest().flush(response({ current: [], history: [document] }));
+
+      await expect(documents).rejects.toThrow(message);
     });
 
     it('maps API errors to a French ApiClientError', async () => {

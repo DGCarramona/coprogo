@@ -1,6 +1,6 @@
 # Backlog
 
-Backlog derive de l'etat actuel du depot au 2026-09-25.
+Backlog derive de l'etat actuel du depot au 2026-09-28.
 
 ## Etat actuel constate
 
@@ -21,8 +21,9 @@ Backlog derive de l'etat actuel du depot au 2026-09-25.
 
 ## Ordre de travail actuel
 
-1. FE-DOC-006 : completer les tests de composants et de mapping documentaires.
-2. FE-DOC-005B : raccorder l'historique documentaire aux remboursements apres la creation de leur ecran.
+1. BE-REB-001 : introduire le modele de domaine pour un remboursement direct.
+2. BE-REB-002 : introduire le remboursement declare par le debiteur avec justificatif contestable.
+3. FE-DOC-005B : raccorder l'historique documentaire aux remboursements pendant la construction de leur ecran.
 
 ## Fondations monorepo et DX
 
@@ -231,5 +232,5 @@ Backlog derive de l'etat actuel du depot au 2026-09-25.
 - [x] FE-DOC-003 Ajouter l'action de telechargement et consultation d'un justificatif via URL GET signee directe.
 - [x] FE-DOC-004 Ajouter l'action de suppression avec message d'audit clair.
 - [x] FE-DOC-005A Afficher dans l'ecran depense actuel l'historique des justificatifs lies et l'action de suppression seulement lorsque la capacite serveur l'autorise.
-- [ ] FE-DOC-006 Ajouter les tests de composants et de mapping pour la gestion documentaire.
+- [x] FE-DOC-006 Completer les tests de composants et de mapping documentaires, notamment l'audit de retrait et les dates issues du transport.
 - [ ] FE-DOC-005B Afficher l'historique des justificatifs lies dans l'ecran de remboursement, apres la creation de cet ecran.
