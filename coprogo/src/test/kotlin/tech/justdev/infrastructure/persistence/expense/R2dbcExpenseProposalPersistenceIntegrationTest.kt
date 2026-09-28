@@ -36,6 +36,7 @@ import tech.justdev.testsupport.memberEmail
 import tech.justdev.testsupport.testUuid
 import java.time.Instant
 import java.util.Base64
+import java.util.UUID
 
 @PostgresMicronautTest
 class R2dbcExpenseProposalPersistenceIntegrationTest {
@@ -63,9 +64,9 @@ class R2dbcExpenseProposalPersistenceIntegrationTest {
         fun `should persist consumed documents then their expense aggregate atomically`() =
             runTest {
                 val fixture = persistFixture("proposal-success")
-                val expense = expense("proposal-success", fixture)
-                val first = readyIntent("first-proposal-success", fixture)
-                val second = readyIntent("second-proposal-success", fixture)
+                val expense = expense(fixture)
+                val first = readyIntent("first", fixture)
+                val second = readyIntent("second", fixture)
                 documentUploadIntentRepository.persist(first)
                 documentUploadIntentRepository.persist(second)
                 val consumed = listOf(first.consume(CREATED_AT), second.consume(CREATED_AT))
@@ -95,8 +96,8 @@ class R2dbcExpenseProposalPersistenceIntegrationTest {
         fun `should roll back consumed documents when aggregate persistence fails`() =
             runTest {
                 val fixture = persistFixture("proposal-rollback")
-                val expense = expense("proposal-rollback", fixture)
-                val intent = readyIntent("rollback-proposal-document", fixture)
+                val expense = expense(fixture)
+                val intent = readyIntent("rollback", fixture)
                 documentUploadIntentRepository.persist(intent)
                 val consumed = intent.consume(CREATED_AT)
                 val documentedExpense = expense.attachSupportingDocuments(listOf(consumed))
@@ -137,19 +138,17 @@ class R2dbcExpenseProposalPersistenceIntegrationTest {
     }
 
     private suspend fun persistFixture(seed: String): Fixture {
-        val creator = memberEmail("$seed-alice")
+        val uniqueSeed = "${UUID.randomUUID()}-$seed"
+        val creator = memberEmail("$uniqueSeed-alice")
         memberRepository.persist(Member(creator, CREATED_AT.minusSeconds(120)))
-        val group = Group.create(groupId("$seed-group"), creator, CREATED_AT.minusSeconds(90))
+        val group = Group.create(groupId("$uniqueSeed-group"), creator, CREATED_AT.minusSeconds(90))
         groupRepository.persist(group)
-        return Fixture(group, creator)
+        return Fixture(uniqueSeed, group, creator)
     }
 
-    private fun expense(
-        seed: String,
-        fixture: Fixture,
-    ): Expense =
+    private fun expense(fixture: Fixture): Expense =
         Expense.proposeEqualSplit(
-            id = expenseId("$seed-expense"),
+            id = expenseId("${fixture.seed}-expense"),
             group = fixture.group.id,
             title = "Documented repair",
             createdBy = fixture.creator,
@@ -159,12 +158,13 @@ class R2dbcExpenseProposalPersistenceIntegrationTest {
         )
 
     private fun readyIntent(
-        seed: String,
+        documentSeed: String,
         fixture: Fixture,
-    ): DocumentUploadIntent =
-        DocumentUploadIntent
+    ): DocumentUploadIntent {
+        val seed = "${fixture.seed}-$documentSeed"
+        return DocumentUploadIntent
             .create(
-                id = DocumentUploadIntentId(testUuid("$seed:expense-proposal")),
+                id = DocumentUploadIntentId(testUuid("$documentSeed:$seed")),
                 group = fixture.group.id,
                 uploader = fixture.creator,
                 storageKey = DocumentStorageKey.of("groups/${fixture.group.id.toPrimitive()}/documents/$seed.pdf"),
@@ -173,8 +173,10 @@ class R2dbcExpenseProposalPersistenceIntegrationTest {
                 createdAt = CREATED_AT.minusSeconds(60),
                 expiresAt = CREATED_AT.plusSeconds(60),
             ).markReady(METADATA, CREATED_AT.minusSeconds(30))
+    }
 
     private data class Fixture(
+        val seed: String,
         val group: Group,
         val creator: MemberEmail,
     )

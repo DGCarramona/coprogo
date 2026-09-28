@@ -10,6 +10,7 @@ import tech.justdev.domain.group.repository.MemberRepository
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.testsupport.PostgresMicronautTest
 import java.time.Instant
+import java.util.UUID
 
 @PostgresMicronautTest
 class R2dbcMemberRepositoryIntegrationTest {
@@ -34,7 +35,7 @@ class R2dbcMemberRepositoryIntegrationTest {
                 val initialMember = member("upsert-member-repo")
                 val conflictingMember =
                     Member(
-                        email = MemberEmail.of("UPSERT-MEMBER-REPO@example.com"),
+                        email = MemberEmail.of(initialMember.email.toPrimitive().uppercase()),
                         createdAt = Instant.parse("2026-04-14T09:00:00Z"),
                     )
 
@@ -53,7 +54,7 @@ class R2dbcMemberRepositoryIntegrationTest {
                 val member = member("find-member-repo")
                 memberRepository.persist(member)
 
-                assertEquals(member, memberRepository.findByEmail(MemberEmail.of("FIND-MEMBER-REPO@example.com")))
+                assertEquals(member, memberRepository.findByEmail(MemberEmail.of(member.email.toPrimitive().uppercase())))
             }
 
         @Test
@@ -65,7 +66,7 @@ class R2dbcMemberRepositoryIntegrationTest {
 
     private fun member(seed: String): Member =
         Member(
-            email = MemberEmail.of("$seed@example.com"),
+            email = MemberEmail.of("$seed-${UUID.randomUUID()}@example.com"),
             createdAt = Instant.parse("2026-04-13T10:15:30Z"),
         )
 }

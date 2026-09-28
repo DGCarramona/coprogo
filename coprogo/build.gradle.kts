@@ -123,11 +123,19 @@ pitest {
         ),
     )
     excludedClasses.set(setOf("tech.justdev.infrastructure.persistence.jooq.*"))
-    excludedTestClasses.set(setOf("tech.justdev.*IntegrationTest"))
+    excludedTestClasses.set(
+        setOf(
+            "tech.justdev.application.*IntegrationTest",
+            "tech.justdev.infrastructure.auth.*IntegrationTest",
+            "tech.justdev.infrastructure.document.*IntegrationTest",
+            "tech.justdev.infrastructure.persistence.*SchemaIntegrationTest",
+            "tech.justdev.interfaces.*IntegrationTest",
+        ),
+    )
     mutators.set(setOf("DEFAULTS"))
-    mutationThreshold.set(30)
-    testStrengthThreshold.set(60)
-    coverageThreshold.set(60)
+    mutationThreshold.set(60)
+    testStrengthThreshold.set(80)
+    coverageThreshold.set(90)
     outputFormats.set(setOf("HTML", "XML"))
     timestampedReports.set(false)
     threads.set(

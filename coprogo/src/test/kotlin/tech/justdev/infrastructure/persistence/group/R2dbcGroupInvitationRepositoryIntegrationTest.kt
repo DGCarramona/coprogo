@@ -16,6 +16,7 @@ import tech.justdev.testsupport.groupId
 import tech.justdev.testsupport.groupInvitationId
 import tech.justdev.testsupport.memberEmail
 import java.time.Instant
+import java.util.UUID
 
 @PostgresMicronautTest
 class R2dbcGroupInvitationRepositoryIntegrationTest {
@@ -119,8 +120,9 @@ class R2dbcGroupInvitationRepositoryIntegrationTest {
         seed: String,
         persistInvitedMember: Boolean = false,
     ): GroupInvitationFixture {
-        val owner = memberEmail("$seed-owner")
-        val invitedMember = memberEmail("$seed-invited")
+        val uniqueSeed = "${UUID.randomUUID()}-$seed"
+        val owner = memberEmail("$uniqueSeed-owner")
+        val invitedMember = memberEmail("$uniqueSeed-invited")
         memberRepository.persist(Member(email = owner, createdAt = Instant.parse("2026-04-14T08:00:00Z")))
         if (persistInvitedMember) {
             memberRepository.persist(Member(email = invitedMember, createdAt = Instant.parse("2026-04-14T08:05:00Z")))
@@ -128,7 +130,7 @@ class R2dbcGroupInvitationRepositoryIntegrationTest {
 
         val group =
             Group.create(
-                id = groupId("$seed-group"),
+                id = groupId("$uniqueSeed-group"),
                 createdBy = owner,
                 createdAt = Instant.parse("2026-04-14T08:10:00Z"),
             )
@@ -139,7 +141,7 @@ class R2dbcGroupInvitationRepositoryIntegrationTest {
             invitedMember = invitedMember,
             invitation =
                 GroupInvitation(
-                    id = groupInvitationId("$seed-inv"),
+                    id = groupInvitationId("$uniqueSeed-inv"),
                     group = group.id,
                     invitedMember = invitedMember,
                     invitedBy = owner,
