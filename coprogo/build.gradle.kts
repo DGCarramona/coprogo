@@ -7,6 +7,7 @@ plugins {
     id("com.gradleup.shadow")
     id("io.micronaut.test-resources")
     id("io.micronaut.aot")
+    id("info.solidsoft.pitest")
     id("coprogo.jooq-codegen")
 }
 
@@ -99,6 +100,42 @@ micronaut {
         replaceLogbackXml = true
         configurationProperties.put("micronaut.security.jwks.enabled", "false")
     }
+}
+
+pitest {
+    pitestVersion.set("1.25.8")
+    junit5PluginVersion.set("1.2.3")
+    targetClasses.set(
+        setOf(
+            "tech.justdev.domain.*",
+            "tech.justdev.application.*",
+            "tech.justdev.infrastructure.auth.*",
+            "tech.justdev.infrastructure.document.*",
+            "tech.justdev.infrastructure.persistence.*",
+        ),
+    )
+    targetTests.set(
+        setOf(
+            "tech.justdev.domain.*",
+            "tech.justdev.application.*",
+            "tech.justdev.infrastructure.*",
+            "tech.justdev.interfaces.*",
+        ),
+    )
+    excludedClasses.set(setOf("tech.justdev.infrastructure.persistence.jooq.*"))
+    excludedTestClasses.set(setOf("tech.justdev.*IntegrationTest"))
+    mutators.set(setOf("DEFAULTS"))
+    mutationThreshold.set(30)
+    testStrengthThreshold.set(60)
+    coverageThreshold.set(60)
+    outputFormats.set(setOf("HTML", "XML"))
+    timestampedReports.set(false)
+    threads.set(
+        providers
+            .gradleProperty("pitest.threads")
+            .map(String::toInt)
+            .orElse(4),
+    )
 }
 
 tasks.named("dockerfileNative") {

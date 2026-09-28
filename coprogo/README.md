@@ -65,6 +65,18 @@ class MyAuthenticationTest {
 }
 ```
 
+### Mutation tests
+
+Run PIT from the repository root to check whether the backend unit tests detect deliberate changes to business code:
+
+```bash
+./gradlew backendMutationTest
+```
+
+The analysis targets the `domain`, `application`, `infrastructure.auth`, `infrastructure.document`, and project-owned `infrastructure.persistence` layers; generated jOOQ classes are excluded. All test classes ending in `IntegrationTest` are excluded from PIT, while unit and configuration tests remain included. Reports are written to `coprogo/build/reports/pitest/index.html` and `coprogo/build/reports/pitest/mutations.xml`. Use `-Ppitest.threads=<count>` to override the default four worker threads.
+
+The regression floors are 30% mutation coverage, 60% test strength, and 60% line coverage, based on a validated baseline of 33%, 63%, and 62%. They are guards, not final quality targets. PIT operates on JVM bytecode; without the optional commercial Kotlin plugin, compiler-generated coroutine code can create noisy surviving or uncovered mutations. Review the HTML report before treating every survivor as a missing business test.
+
 ## Micronaut 5.0.2 Documentation
 
 - [User Guide](https://docs.micronaut.io/5.0.2/guide/index.html)

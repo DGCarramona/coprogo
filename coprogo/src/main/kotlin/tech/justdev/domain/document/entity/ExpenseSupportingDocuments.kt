@@ -138,14 +138,8 @@ private fun hasReplacementCycle(documents: List<ExpenseSupportingDocument>): Boo
     val replacedBySource = documents.associate { it.sourceUploadIntent to it.replacesSourceUploadIntent }
 
     return documents.any { document ->
-        val visited = mutableSetOf<DocumentUploadIntentId>()
-        var current: DocumentUploadIntentId? = document.sourceUploadIntent
-
-        while (current != null) {
-            if (!visited.add(current)) return true
-            current = replacedBySource.getValue(current)
-        }
-
-        false
+        generateSequence(document.sourceUploadIntent, replacedBySource::getValue)
+            .take(documents.size + 1)
+            .count() > documents.size
     }
 }

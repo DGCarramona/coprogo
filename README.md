@@ -87,6 +87,7 @@ Le frontend démarre sur `http://localhost:4200`.
 |----------|-------------|
 | `./gradlew checkAll` | Exécuter tous les checks : backend + frontend |
 | `./gradlew backendTest` | Exécuter les tests backend |
+| `./gradlew backendMutationTest` | Exécuter les tests de mutation PIT sur le domaine, l’application et les adaptateurs backend configurés |
 | `./gradlew backendCheck` | Backend checks (tests + linting + compilation) |
 | `./gradlew frontendTest` | Tests frontend (Vitest, watch=false) |
 | `./gradlew frontendLint` | Linter frontend (ESLint) |
