@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import tech.justdev.domain.document.valueobject.DocumentFileName
 import tech.justdev.domain.document.valueobject.DocumentMediaType
 import tech.justdev.domain.document.valueobject.DocumentSha256
@@ -29,13 +31,12 @@ class DocumentStorageTest {
             assertEquals(Duration.ofMinutes(5), request.validFor)
         }
 
-        @Test
-        fun `should reject a non positive validity duration`() {
-            listOf(Duration.ZERO, Duration.ofSeconds(-1)).forEach { validFor ->
-                val error = assertThrows<IllegalArgumentException> { uploadRequest(validFor) }
+        @ParameterizedTest(name = "[{index}] {0} seconds")
+        @ValueSource(longs = [0L, -1L])
+        fun `should reject a non positive validity duration`(seconds: Long) {
+            val error = assertThrows<IllegalArgumentException> { uploadRequest(Duration.ofSeconds(seconds)) }
 
-                assertEquals("document upload validity duration must be strictly positive", error.message)
-            }
+            assertEquals("document upload validity duration must be strictly positive", error.message)
         }
     }
 
@@ -48,13 +49,12 @@ class DocumentStorageTest {
             assertEquals(Duration.ofMinutes(5), request.validFor)
         }
 
-        @Test
-        fun `should reject a non positive validity duration`() {
-            listOf(Duration.ZERO, Duration.ofSeconds(-1)).forEach { validFor ->
-                val error = assertThrows<IllegalArgumentException> { downloadRequest(validFor) }
+        @ParameterizedTest(name = "[{index}] {0} seconds")
+        @ValueSource(longs = [0L, -1L])
+        fun `should reject a non positive validity duration`(seconds: Long) {
+            val error = assertThrows<IllegalArgumentException> { downloadRequest(Duration.ofSeconds(seconds)) }
 
-                assertEquals("document download validity duration must be strictly positive", error.message)
-            }
+            assertEquals("document download validity duration must be strictly positive", error.message)
         }
     }
 

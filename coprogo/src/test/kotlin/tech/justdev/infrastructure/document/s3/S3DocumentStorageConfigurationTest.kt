@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import java.net.URI
 
 class S3DocumentStorageConfigurationTest {
@@ -27,17 +29,23 @@ class S3DocumentStorageConfigurationTest {
             assertEquals(true, configuration.pathStyleAccess)
         }
 
-        @Test
-        fun `should reject a blank bucket or region`() {
-            listOf("" to "eu-west-1", "coprogo-documents" to " ").forEach { (bucket, region) ->
-                val configuration =
-                    S3DocumentStorageConfiguration().apply {
-                        this.bucket = bucket
-                        this.region = region
-                    }
+        @ParameterizedTest(name = "{0}")
+        @CsvSource(
+            "blank bucket, '', eu-west-1",
+            "blank region, coprogo-documents, ' '",
+        )
+        fun `should reject a blank bucket or region`(
+            caseName: String,
+            bucket: String,
+            region: String,
+        ) {
+            val configuration =
+                S3DocumentStorageConfiguration().apply {
+                    this.bucket = bucket
+                    this.region = region
+                }
 
-                assertThrows<IllegalArgumentException> { configuration.validate() }
-            }
+            assertThrows<IllegalArgumentException> { configuration.validate() }
         }
 
         @Test

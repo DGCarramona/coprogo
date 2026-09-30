@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import tech.justdev.application.shared.TransactionRunner
 import tech.justdev.domain.document.entity.DocumentMetadata
 import tech.justdev.domain.document.entity.DocumentUploadIntent
@@ -379,36 +381,19 @@ class R2dbcExpenseRepositoryIntegrationTest {
 
     @Nested
     inner class FindProposedByIdAndGroup {
-        @Test
-        fun `should return null when the expense is accepted`() =
+        @ParameterizedTest(name = "{0}")
+        @EnumSource(TerminalExpenseState::class)
+        fun `should return null when the expense is terminal`(state: TerminalExpenseState) =
             runTest {
-                val stored = expenseWithEqualSplit("proposed-expense-accepted")
+                val seed = "proposed-expense-${state.name.lowercase()}"
+                val stored = expenseWithEqualSplit(seed)
                 expenseRepository.persist(stored)
 
-                val participant = memberEmail("proposed-expense-accepted-participant")
+                val participant = memberEmail("$seed-participant")
                 val updated =
                     stored.recordParticipationDecision(
                         member = participant,
-                        decision = ExpenseParticipationDecision.APPROVE,
-                        decidedAt = Instant.parse("2026-06-01T12:00:00Z"),
-                    )
-
-                expenseRepository.persist(updated)
-
-                assertNull(expenseRepository.findProposedByIdAndGroup(updated.id, updated.group))
-            }
-
-        @Test
-        fun `should return null when the expense is invalidated`() =
-            runTest {
-                val stored = expenseWithEqualSplit("proposed-expense-refused")
-                expenseRepository.persist(stored)
-
-                val participant = memberEmail("proposed-expense-refused-participant")
-                val updated =
-                    stored.recordParticipationDecision(
-                        member = participant,
-                        decision = ExpenseParticipationDecision.REFUSE,
+                        decision = state.decision,
                         decidedAt = Instant.parse("2026-06-01T12:00:00Z"),
                     )
 
@@ -670,5 +655,12 @@ class R2dbcExpenseRepositoryIntegrationTest {
                 size = DocumentSize.ofBytes(128),
                 checksum = DocumentSha256.fromBase64(Base64.getEncoder().encodeToString(ByteArray(32))),
             )
+    }
+
+    enum class TerminalExpenseState(
+        val decision: ExpenseParticipationDecision,
+    ) {
+        ACCEPTED(ExpenseParticipationDecision.APPROVE),
+        INVALIDATED(ExpenseParticipationDecision.REFUSE),
     }
 }
