@@ -5,7 +5,10 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import tech.justdev.domain.group.entity.Group
 import tech.justdev.domain.group.entity.Member
 import tech.justdev.domain.group.repository.GroupRepository
@@ -35,42 +38,46 @@ class DocumentUploadIntentSchemaIntegrationTest {
     lateinit var groupRepository: GroupRepository
 
     @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class Insert {
-        @Test
-        fun `should reject incoherent state timestamps and expired lifetimes`() =
+        private fun incoherentUploadRows() =
+            listOf(
+                UploadRow(readyAt = CREATED_AT.plusSeconds(30)),
+                UploadRow(status = "READY"),
+                UploadRow(
+                    status = "READY",
+                    readyAt = CREATED_AT.plusSeconds(30),
+                    consumedAt = CREATED_AT.plusSeconds(60),
+                ),
+                UploadRow(status = "CONSUMED", readyAt = CREATED_AT.plusSeconds(30)),
+                UploadRow(expiresAt = CREATED_AT),
+                UploadRow(status = "UNKNOWN"),
+                UploadRow(status = "READY", readyAt = CREATED_AT.plusSeconds(300)),
+                UploadRow(
+                    status = "CONSUMED",
+                    readyAt = CREATED_AT.plusSeconds(30),
+                    consumedAt = CREATED_AT.plusSeconds(300),
+                ),
+                UploadRow(
+                    status = "CONSUMED",
+                    readyAt = CREATED_AT.plusSeconds(30),
+                    consumedAt = CREATED_AT.plusSeconds(29),
+                ),
+            )
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("incoherentUploadRows")
+        fun `should reject incoherent state timestamps and expired lifetimes`(row: UploadRow) =
             runTest {
-                seedGroup("constraints")
+                val seed = "constraints-${row.hashCode()}"
+                seedGroup(seed)
 
-                listOf(
-                    UploadRow(readyAt = CREATED_AT.plusSeconds(30)),
-                    UploadRow(status = "READY"),
-                    UploadRow(
-                        status = "READY",
-                        readyAt = CREATED_AT.plusSeconds(30),
-                        consumedAt = CREATED_AT.plusSeconds(60),
-                    ),
-                    UploadRow(status = "CONSUMED", readyAt = CREATED_AT.plusSeconds(30)),
-                    UploadRow(expiresAt = CREATED_AT),
-                    UploadRow(status = "UNKNOWN"),
-                    UploadRow(status = "READY", readyAt = CREATED_AT.plusSeconds(300)),
-                    UploadRow(
-                        status = "CONSUMED",
-                        readyAt = CREATED_AT.plusSeconds(30),
-                        consumedAt = CREATED_AT.plusSeconds(300),
-                    ),
-                    UploadRow(
-                        status = "CONSUMED",
-                        readyAt = CREATED_AT.plusSeconds(30),
-                        consumedAt = CREATED_AT.plusSeconds(29),
-                    ),
-                ).forEachIndexed { index, row ->
-                    val error =
-                        assertThrows<SQLException>("row $index") {
-                            insert(seed = "constraints-$index", groupSeed = "constraints", row = row)
-                        }
+                val error =
+                    assertThrows<SQLException> {
+                        insert(seed = "$seed-intent", groupSeed = seed, row = row)
+                    }
 
-                    assertEquals("23514", error.sqlState)
-                }
+                assertEquals("23514", error.sqlState)
             }
 
         @Test
@@ -140,7 +147,7 @@ class DocumentUploadIntentSchemaIntegrationTest {
         }
     }
 
-    private data class UploadRow(
+    data class UploadRow(
         val createdAt: Instant = CREATED_AT,
         val expiresAt: Instant = CREATED_AT.plusSeconds(300),
         val status: String = "PENDING",

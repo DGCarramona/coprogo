@@ -4,7 +4,10 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import tech.justdev.application.group.GroupAccessPolicy
 import tech.justdev.application.group.GroupNotFoundException
 import tech.justdev.domain.document.entity.DocumentMetadata
@@ -35,7 +38,30 @@ import java.util.Base64
 
 class DeleteExpenseSupportingDocumentUseCaseTest {
     @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class Invoke {
+        private fun documentChangeGuardCases() =
+            listOf(
+                DocumentChangeGuardCase(
+                    description = "non-creator",
+                    expense = proposedExpense(),
+                    requestedBy = memberEmail("bob"),
+                    expectedMessage = "only the expense creator can change a supporting document",
+                ),
+                DocumentChangeGuardCase(
+                    description = "accepted expense",
+                    expense = acceptedExpense(),
+                    requestedBy = CREATOR,
+                    expectedMessage = "supporting documents can only be changed while the expense is proposed",
+                ),
+                DocumentChangeGuardCase(
+                    description = "invalidated expense",
+                    expense = invalidatedExpense(),
+                    requestedBy = CREATOR,
+                    expectedMessage = "supporting documents can only be changed while the expense is proposed",
+                ),
+            )
+
         @Test
         fun `should verify membership before opening the deletion transaction`() {
             val error =
@@ -62,43 +88,22 @@ class DeleteExpenseSupportingDocumentUseCaseTest {
             assertEquals(GROUP, error.group)
         }
 
-        @Test
-        fun `should enforce creator and proposed status before reading the supporting document`() {
-            val outcomes =
-                listOf(
-                    proposedExpense() to memberEmail("bob"),
-                    acceptedExpense() to CREATOR,
-                    invalidatedExpense() to CREATOR,
-                ).map { (expense, requestedBy) ->
-                    runCatching {
-                        runTest {
-                            useCase(
-                                deletionPersistence =
-                                    RecordingExpenseSupportingDocumentDeletionPersistence(
-                                        FailingAttachmentScope(expense),
-                                    ),
-                            )(command(requestedBy = requestedBy))
-                        }
-                    }.exceptionOrNull()?.let { error -> DeletionGuardOutcome(error.javaClass, error.message) }
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("documentChangeGuardCases")
+        fun `should enforce creator and proposed status before reading the supporting document`(case: DocumentChangeGuardCase) {
+            val error =
+                assertThrows<IllegalArgumentException> {
+                    runTest {
+                        useCase(
+                            deletionPersistence =
+                                RecordingExpenseSupportingDocumentDeletionPersistence(
+                                    FailingAttachmentScope(case.expense),
+                                ),
+                        )(command(requestedBy = case.requestedBy))
+                    }
                 }
 
-            assertEquals(
-                listOf(
-                    DeletionGuardOutcome(
-                        IllegalArgumentException::class.java,
-                        "only the expense creator can change a supporting document",
-                    ),
-                    DeletionGuardOutcome(
-                        IllegalArgumentException::class.java,
-                        "supporting documents can only be changed while the expense is proposed",
-                    ),
-                    DeletionGuardOutcome(
-                        IllegalArgumentException::class.java,
-                        "supporting documents can only be changed while the expense is proposed",
-                    ),
-                ),
-                outcomes,
-            )
+            assertEquals(case.expectedMessage, error.message)
         }
 
         @Test
@@ -259,11 +264,6 @@ class DeleteExpenseSupportingDocumentUseCaseTest {
         val group: GroupId,
     )
 
-    private data class DeletionGuardOutcome(
-        val type: Class<*>?,
-        val message: String?,
-    )
-
     private data class DeletionPersistenceSnapshot(
         val sourceUploadIntent: DocumentUploadIntentId,
         val expense: tech.justdev.domain.expense.valueobject.ExpenseId,
@@ -271,6 +271,15 @@ class DeleteExpenseSupportingDocumentUseCaseTest {
         val deletedBy: MemberEmail,
         val deletedAt: Instant,
     )
+
+    data class DocumentChangeGuardCase(
+        val description: String,
+        val expense: Expense,
+        val requestedBy: MemberEmail,
+        val expectedMessage: String,
+    ) {
+        override fun toString(): String = description
+    }
 
     private companion object {
         val GROUP: GroupId = groupId("delete-document-group")

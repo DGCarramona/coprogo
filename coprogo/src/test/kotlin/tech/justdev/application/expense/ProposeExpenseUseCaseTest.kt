@@ -4,7 +4,10 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import tech.justdev.application.group.GroupAccessDeniedException
 import tech.justdev.application.group.GroupAccessPolicy
 import tech.justdev.application.support.InMemoryExpenseRepository
@@ -38,7 +41,22 @@ import java.util.Base64
 
 class ProposeExpenseUseCaseTest {
     @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class Invoke {
+        private fun unavailableIntentCases(): List<UnavailableIntentCase> {
+            val crossGroup = readyIntent("cross-group", group = groupId("another-group"))
+            val wrongUploader = readyIntent("wrong-uploader", uploader = memberEmail("bob"))
+            val pending = pendingIntent("pending")
+            val consumed = readyIntent("consumed").consume(CREATED_AT)
+            return listOf(
+                UnavailableIntentCase(emptyList(), readyIntent("missing").id),
+                UnavailableIntentCase(listOf(crossGroup), crossGroup.id),
+                UnavailableIntentCase(listOf(wrongUploader), wrongUploader.id),
+                UnavailableIntentCase(listOf(pending), pending.id),
+                UnavailableIntentCase(listOf(consumed), consumed.id),
+            )
+        }
+
         @Test
         fun `should submit an expense and its consumed upload intents to atomic proposal persistence`() {
             runTest {
@@ -91,50 +109,23 @@ class ProposeExpenseUseCaseTest {
             }
         }
 
-        @Test
-        fun `should reject unavailable supporting document upload intents before generating an expense id`() {
+        @ParameterizedTest(name = "{index}")
+        @MethodSource("unavailableIntentCases")
+        fun `should reject unavailable supporting document upload intents before generating an expense id`(case: UnavailableIntentCase) {
             runTest {
-                val crossGroup = readyIntent("cross-group", group = groupId("another-group"))
-                val wrongUploader = readyIntent("wrong-uploader", uploader = memberEmail("bob"))
-                val pending = pendingIntent("pending")
-                val consumed = readyIntent("consumed").consume(CREATED_AT)
-                val outcomes =
-                    listOf(
-                        emptyList<DocumentUploadIntent>() to readyIntent("missing").id,
-                        listOf(crossGroup) to crossGroup.id,
-                        listOf(wrongUploader) to wrongUploader.id,
-                        listOf(pending) to pending.id,
-                        listOf(consumed) to consumed.id,
-                    ).map { (stored, requested) ->
-                        val persistence = RecordingExpenseProposalPersistence()
-                        val error =
-                            runCatching {
-                                useCase(
-                                    ExpenseIdGenerator { throw AssertionError("expense id should not be generated") },
-                                    RecordingDocumentUploadIntentRepository(stored),
-                                    persistence,
-                                )(
-                                    documentedCommand(requested),
-                                )
-                            }.exceptionOrNull()
+                val persistence = RecordingExpenseProposalPersistence()
 
-                        UnavailableIntentOutcome(
-                            errorType = error?.javaClass,
-                            errorMessage = error?.message,
-                            persisted = persistence.persisted,
-                        )
+                val error =
+                    assertThrows<SupportingDocumentUploadIntentUnavailableException> {
+                        useCase(
+                            ExpenseIdGenerator { throw AssertionError("expense id should not be generated") },
+                            RecordingDocumentUploadIntentRepository(case.stored),
+                            persistence,
+                        )(documentedCommand(case.requested))
                     }
 
-                assertEquals(
-                    List(5) {
-                        UnavailableIntentOutcome(
-                            errorType = SupportingDocumentUploadIntentUnavailableException::class.java,
-                            errorMessage = "supporting document upload intent is unavailable",
-                            persisted = emptyList(),
-                        )
-                    },
-                    outcomes,
-                )
+                assertEquals("supporting document upload intent is unavailable", error.message)
+                assertEquals(emptyList<PersistedExpenseProposal>(), persistence.persisted)
             }
         }
 
@@ -645,12 +636,6 @@ class ProposeExpenseUseCaseTest {
         val consumedUploadIntents: List<DocumentUploadIntent>,
     )
 
-    private data class UnavailableIntentOutcome(
-        val errorType: Class<out Throwable>?,
-        val errorMessage: String?,
-        val persisted: List<PersistedExpenseProposal>,
-    )
-
     private class RecordingExpenseProposalPersistence(
         private val expenseRepository: ExpenseRepository? = null,
     ) : ExpenseProposalPersistence {
@@ -698,4 +683,9 @@ class ProposeExpenseUseCaseTest {
                 checksum = DocumentSha256.fromBase64(Base64.getEncoder().encodeToString(ByteArray(32))),
             )
     }
+
+    data class UnavailableIntentCase(
+        val stored: List<DocumentUploadIntent>,
+        val requested: DocumentUploadIntentId,
+    )
 }

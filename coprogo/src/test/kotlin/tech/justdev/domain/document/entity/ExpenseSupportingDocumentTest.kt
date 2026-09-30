@@ -3,7 +3,10 @@ package tech.justdev.domain.document.entity
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import tech.justdev.domain.document.valueobject.DocumentFileName
 import tech.justdev.domain.document.valueobject.DocumentMediaType
 import tech.justdev.domain.document.valueobject.DocumentSha256
@@ -19,7 +22,14 @@ import java.util.Base64
 
 class ExpenseSupportingDocumentTest {
     @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class FromConsumedUploadIntent {
+        private fun unconsumedIntents() =
+            listOf(
+                pendingIntent(),
+                pendingIntent("ready").markReady(METADATA, READY_AT),
+            )
+
         @Test
         fun `should snapshot a consumed upload intent`() {
             val intent = consumedIntent()
@@ -36,19 +46,17 @@ class ExpenseSupportingDocumentTest {
             assertEquals(null, document.deletion)
         }
 
-        @Test
-        fun `should reject a source upload intent that is not consumed`() {
-            val errors =
-                listOf(
-                    pendingIntent(),
-                    pendingIntent("ready").markReady(METADATA, READY_AT),
-                ).map { intent ->
-                    assertThrows<IllegalArgumentException> { ExpenseSupportingDocument.fromConsumedUploadIntent(intent) }.message
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("unconsumedIntents")
+        fun `should reject a source upload intent that is not consumed`(intent: DocumentUploadIntent) {
+            val error =
+                assertThrows<IllegalArgumentException> {
+                    ExpenseSupportingDocument.fromConsumedUploadIntent(intent)
                 }
 
             assertEquals(
-                List(2) { "expense supporting document requires a consumed upload intent" },
-                errors,
+                "expense supporting document requires a consumed upload intent",
+                error.message,
             )
         }
     }

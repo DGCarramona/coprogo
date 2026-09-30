@@ -5,6 +5,9 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import tech.justdev.domain.document.entity.DocumentMetadata
 import tech.justdev.domain.document.entity.DocumentUploadIntent
 import tech.justdev.domain.document.entity.ExpenseSupportingDocument
@@ -20,6 +23,7 @@ import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationStatus
 import tech.justdev.domain.expense.valueobject.ExpenseShare
 import tech.justdev.domain.expense.valueobject.RefusalReason
+import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.domain.shared.valueobject.GroupId
 import tech.justdev.testsupport.expenseId
@@ -497,87 +501,41 @@ class ExpenseTest {
     }
 
     @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class RequireSupportingDocumentChangeBy {
+        private fun deniedDocumentChanges() = documentChangeDeniedCases()
+
         @Test
         fun `should allow the expense creator while the expense is proposed`() {
             proposedExpense().requireSupportingDocumentChangeBy(memberEmail("alice"))
         }
 
-        @Test
-        fun `should reject a member other than the expense creator`() {
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("deniedDocumentChanges")
+        fun `should reject an unauthorized or terminal document change`(case: DocumentChangeDeniedCase) {
             val error =
                 assertThrows(IllegalArgumentException::class.java) {
-                    proposedExpense().requireSupportingDocumentChangeBy(memberEmail("bob"))
+                    case.expense.requireSupportingDocumentChangeBy(case.requestedBy)
                 }
 
-            assertEquals("only the expense creator can change a supporting document", error.message)
-        }
-
-        @Test
-        fun `should reject replacement after the expense is accepted`() {
-            val acceptedExpense =
-                proposedExpense().recordParticipationDecision(
-                    member = memberEmail("bob"),
-                    decision = ExpenseParticipationDecision.APPROVE,
-                    decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
-                )
-
-            val error =
-                assertThrows(IllegalArgumentException::class.java) {
-                    acceptedExpense.requireSupportingDocumentChangeBy(memberEmail("alice"))
-                }
-
-            assertEquals("supporting documents can only be changed while the expense is proposed", error.message)
-        }
-
-        @Test
-        fun `should reject replacement after the expense is invalidated`() {
-            val invalidatedExpense =
-                proposedExpense().recordParticipationDecision(
-                    member = memberEmail("bob"),
-                    decision = ExpenseParticipationDecision.REFUSE,
-                    decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
-                )
-
-            val error =
-                assertThrows(IllegalArgumentException::class.java) {
-                    invalidatedExpense.requireSupportingDocumentChangeBy(memberEmail("alice"))
-                }
-
-            assertEquals("supporting documents can only be changed while the expense is proposed", error.message)
+            assertEquals(case.expectedMessage, error.message)
         }
     }
 
     @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class CanChangeSupportingDocumentsBy {
+        private fun deniedDocumentChanges() = documentChangeDeniedCases()
+
         @Test
         fun `should report that the creator can change supporting documents while the expense is proposed`() {
             assertTrue(proposedExpense().canChangeSupportingDocumentsBy(memberEmail("alice")))
         }
 
-        @Test
-        fun `should report that another member or a terminal expense cannot change supporting documents`() {
-            val acceptedExpense =
-                proposedExpense().recordParticipationDecision(
-                    member = memberEmail("bob"),
-                    decision = ExpenseParticipationDecision.APPROVE,
-                    decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
-                )
-            val invalidatedExpense =
-                proposedExpense().recordParticipationDecision(
-                    member = memberEmail("bob"),
-                    decision = ExpenseParticipationDecision.REFUSE,
-                    decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
-                )
-
-            assertEquals(
-                listOf(false, false, false),
-                listOf(
-                    proposedExpense().canChangeSupportingDocumentsBy(memberEmail("bob")),
-                    acceptedExpense.canChangeSupportingDocumentsBy(memberEmail("alice")),
-                    invalidatedExpense.canChangeSupportingDocumentsBy(memberEmail("alice")),
-                ),
-            )
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("deniedDocumentChanges")
+        fun `should report that another member or a terminal expense cannot change supporting documents`(case: DocumentChangeDeniedCase) {
+            assertEquals(false, case.expense.canChangeSupportingDocumentsBy(case.requestedBy))
         }
     }
 
@@ -832,6 +790,35 @@ class ExpenseTest {
 
     private fun documentId(seed: String): DocumentUploadIntentId = DocumentUploadIntentId(testUuid("doc-$seed"))
 
+    private fun documentChangeDeniedCases() =
+        listOf(
+            DocumentChangeDeniedCase(
+                expense = proposedExpense(),
+                requestedBy = memberEmail("bob"),
+                expectedMessage = "only the expense creator can change a supporting document",
+            ),
+            DocumentChangeDeniedCase(
+                expense =
+                    proposedExpense().recordParticipationDecision(
+                        member = memberEmail("bob"),
+                        decision = ExpenseParticipationDecision.APPROVE,
+                        decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
+                    ),
+                requestedBy = memberEmail("alice"),
+                expectedMessage = "supporting documents can only be changed while the expense is proposed",
+            ),
+            DocumentChangeDeniedCase(
+                expense =
+                    proposedExpense().recordParticipationDecision(
+                        member = memberEmail("bob"),
+                        decision = ExpenseParticipationDecision.REFUSE,
+                        decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
+                    ),
+                requestedBy = memberEmail("alice"),
+                expectedMessage = "supporting documents can only be changed while the expense is proposed",
+            ),
+        )
+
     private fun proposeEqualSplitWithCaps(
         totalAmountInCents: Long,
         participants: Set<String>,
@@ -872,4 +859,10 @@ class ExpenseTest {
                 checksum = DocumentSha256.fromBase64(Base64.getEncoder().encodeToString(ByteArray(32))),
             )
     }
+
+    data class DocumentChangeDeniedCase(
+        val expense: Expense,
+        val requestedBy: MemberEmail,
+        val expectedMessage: String,
+    )
 }

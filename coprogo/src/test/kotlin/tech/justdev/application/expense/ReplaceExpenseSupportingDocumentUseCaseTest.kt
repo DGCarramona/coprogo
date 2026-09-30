@@ -4,7 +4,10 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import tech.justdev.application.group.GroupAccessPolicy
 import tech.justdev.application.group.GroupNotFoundException
 import tech.justdev.domain.document.entity.DocumentMetadata
@@ -36,7 +39,30 @@ import java.util.Base64
 
 class ReplaceExpenseSupportingDocumentUseCaseTest {
     @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class Invoke {
+        private fun documentChangeGuardCases() =
+            listOf(
+                DocumentChangeGuardCase(
+                    description = "non-creator",
+                    expense = proposedExpense(),
+                    requestedBy = memberEmail("bob"),
+                    expectedMessage = "only the expense creator can change a supporting document",
+                ),
+                DocumentChangeGuardCase(
+                    description = "accepted expense",
+                    expense = acceptedExpense(),
+                    requestedBy = CREATOR,
+                    expectedMessage = "supporting documents can only be changed while the expense is proposed",
+                ),
+                DocumentChangeGuardCase(
+                    description = "invalidated expense",
+                    expense = invalidatedExpense(),
+                    requestedBy = CREATOR,
+                    expectedMessage = "supporting documents can only be changed while the expense is proposed",
+                ),
+            )
+
         @Test
         fun `should verify membership before opening the replacement transaction`() {
             val error =
@@ -65,46 +91,22 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
             assertEquals(GROUP, error.group)
         }
 
-        @Test
-        fun `should enforce creator and proposed status before reading documents`() {
-            val outcomes =
-                listOf(
-                    proposedExpense() to memberEmail("bob"),
-                    acceptedExpense() to CREATOR,
-                    invalidatedExpense() to CREATOR,
-                ).map { (expense, requestedBy) ->
-                    val error =
-                        runCatching {
-                            runTest {
-                                useCase(
-                                    replacementPersistence =
-                                        RecordingExpenseSupportingDocumentReplacementPersistence(
-                                            FailingDocumentScope(expense),
-                                        ),
-                                )(command(requestedBy = requestedBy))
-                            }
-                        }.exceptionOrNull()
-
-                    ReplacementGuardOutcome(error?.javaClass, error?.message)
+        @ParameterizedTest(name = "{index}: {2}")
+        @MethodSource("documentChangeGuardCases")
+        fun `should enforce creator and proposed status before reading documents`(case: DocumentChangeGuardCase) {
+            val error =
+                assertThrows<IllegalArgumentException> {
+                    runTest {
+                        useCase(
+                            replacementPersistence =
+                                RecordingExpenseSupportingDocumentReplacementPersistence(
+                                    FailingDocumentScope(case.expense),
+                                ),
+                        )(command(requestedBy = case.requestedBy))
+                    }
                 }
 
-            assertEquals(
-                listOf(
-                    ReplacementGuardOutcome(
-                        IllegalArgumentException::class.java,
-                        "only the expense creator can change a supporting document",
-                    ),
-                    ReplacementGuardOutcome(
-                        IllegalArgumentException::class.java,
-                        "supporting documents can only be changed while the expense is proposed",
-                    ),
-                    ReplacementGuardOutcome(
-                        IllegalArgumentException::class.java,
-                        "supporting documents can only be changed while the expense is proposed",
-                    ),
-                ),
-                outcomes,
-            )
+            assertEquals(case.expectedMessage, error.message)
         }
 
         @Test
@@ -149,7 +151,7 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
         @Test
         fun `should persist the consumed replacement intent and successor document in the transaction`() =
             runTest {
-                val replacementIntent = readyIntent("replacement")
+                val replacementIntent = readyIntent("replacement", REPLACEMENT_UPLOAD_INTENT)
                 val replacementPersistence = recordingReplacementPersistence(intent = replacementIntent)
 
                 useCase(replacementPersistence = replacementPersistence)(command())
@@ -238,16 +240,14 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
         )
 
     private fun currentDocument(): ExpenseSupportingDocument =
-        ExpenseSupportingDocument.fromConsumedUploadIntent(readyIntent("original").consume(REPLACED_AT))
+        ExpenseSupportingDocument.fromConsumedUploadIntent(readyIntent("original", ORIGINAL_UPLOAD_INTENT).consume(REPLACED_AT))
 
-    private fun readyIntent(seed: String): DocumentUploadIntent =
+    private fun readyIntent(
+        seed: String,
+        id: DocumentUploadIntentId = DocumentUploadIntentId(testUuid("$seed:replace-document")),
+    ): DocumentUploadIntent =
         DocumentUploadIntent.restore(
-            id =
-                when (seed) {
-                    "original" -> ORIGINAL_UPLOAD_INTENT
-                    "replacement" -> REPLACEMENT_UPLOAD_INTENT
-                    else -> DocumentUploadIntentId(testUuid("$seed:replace-document"))
-                },
+            id = id,
             group = GROUP,
             uploader = CREATOR,
             storageKey = DocumentStorageKey.of("groups/${GROUP.toPrimitive()}/documents/$seed.pdf"),
@@ -340,11 +340,6 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
         val uploader: MemberEmail,
     )
 
-    private data class ReplacementGuardOutcome(
-        val errorType: Class<out Throwable>?,
-        val message: String?,
-    )
-
     private data class ReplacementPersistenceSnapshot(
         val consumedIntent: DocumentUploadIntentId,
         val consumedStatus: DocumentUploadIntentStatus,
@@ -353,6 +348,15 @@ class ReplaceExpenseSupportingDocumentUseCaseTest {
         val expense: tech.justdev.domain.expense.valueobject.ExpenseId,
         val group: GroupId,
     )
+
+    data class DocumentChangeGuardCase(
+        val description: String,
+        val expense: Expense,
+        val requestedBy: MemberEmail,
+        val expectedMessage: String,
+    ) {
+        override fun toString(): String = description
+    }
 
     private companion object {
         val GROUP = groupId("replace-document-group")

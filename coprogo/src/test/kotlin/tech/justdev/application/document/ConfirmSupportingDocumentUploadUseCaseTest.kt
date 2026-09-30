@@ -4,7 +4,10 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import tech.justdev.application.group.GroupAccessDeniedException
 import tech.justdev.application.group.GroupAccessPolicy
 import tech.justdev.domain.document.entity.DocumentMetadata
@@ -29,7 +32,36 @@ import java.util.Base64
 
 class ConfirmSupportingDocumentUploadUseCaseTest {
     @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class Invoke {
+        private fun confirmationFailureCases() =
+            listOf(
+                ConfirmationFailureCase(
+                    pending = null,
+                    storedMetadata = METADATA,
+                    expectedInteractions = listOf("membership", "find"),
+                    expectedInspectedKeys = emptyList(),
+                ),
+                ConfirmationFailureCase(
+                    pending = pendingIntent(),
+                    storedMetadata = null,
+                    expectedInteractions = listOf("membership", "find", "inspect"),
+                    expectedInspectedKeys = listOf(pendingIntent().storageKey),
+                ),
+                ConfirmationFailureCase(
+                    pending = pendingIntent(),
+                    storedMetadata = mismatchedMetadata(),
+                    expectedInteractions = listOf("membership", "find", "inspect"),
+                    expectedInspectedKeys = listOf(pendingIntent().storageKey),
+                ),
+                ConfirmationFailureCase(
+                    pending = pendingIntent(expiresAt = VERIFIED_AT),
+                    storedMetadata = METADATA,
+                    expectedInteractions = listOf("membership", "find", "inspect"),
+                    expectedInspectedKeys = listOf(pendingIntent().storageKey),
+                ),
+            )
+
         @Test
         fun `should inspect and persist the ready upload intent after membership validation`() =
             runTest {
@@ -80,11 +112,12 @@ class ConfirmSupportingDocumentUploadUseCaseTest {
             assertEquals(emptyList<DocumentUploadIntent>(), repository.persisted)
         }
 
-        @Test
-        fun `should reject an unavailable pending upload intent without inspecting or persisting`() {
+        @ParameterizedTest(name = "{index}")
+        @MethodSource("confirmationFailureCases")
+        fun `should reject an unavailable upload intent without persisting`(case: ConfirmationFailureCase) {
             val interactions = mutableListOf<String>()
-            val repository = RecordingDocumentUploadIntentRepository(interactions, pending = null)
-            val storage = RecordingDocumentStorage(interactions, METADATA)
+            val repository = RecordingDocumentUploadIntentRepository(interactions, case.pending)
+            val storage = RecordingDocumentStorage(interactions, case.storedMetadata)
 
             val error =
                 assertThrows<DocumentUploadIntentUnavailableException> {
@@ -98,74 +131,8 @@ class ConfirmSupportingDocumentUploadUseCaseTest {
                 }
 
             assertEquals("document upload intent is unavailable", error.message)
-            assertEquals(listOf("membership", "find"), interactions)
-            assertEquals(emptyList<DocumentStorageKey>(), storage.inspectedKeys)
-            assertEquals(emptyList<DocumentUploadIntent>(), repository.persisted)
-        }
-
-        @Test
-        fun `should reject a missing stored object without persisting`() {
-            val interactions = mutableListOf<String>()
-            val repository = RecordingDocumentUploadIntentRepository(interactions, pendingIntent())
-            val storage = RecordingDocumentStorage(interactions, metadata = null)
-
-            val error =
-                assertThrows<DocumentUploadIntentUnavailableException> {
-                    runTest {
-                        useCase(
-                            groupRepository = RecordingGroupRepository(interactions, group()),
-                            documentStorage = storage,
-                            documentUploadIntentRepository = repository,
-                        )(command())
-                    }
-                }
-
-            assertEquals("document upload intent is unavailable", error.message)
-            assertEquals(listOf("membership", "find", "inspect"), interactions)
-            assertEquals(emptyList<DocumentUploadIntent>(), repository.persisted)
-        }
-
-        @Test
-        fun `should reject mismatched stored metadata without persisting`() {
-            val interactions = mutableListOf<String>()
-            val repository = RecordingDocumentUploadIntentRepository(interactions, pendingIntent())
-            val storage = RecordingDocumentStorage(interactions, mismatchedMetadata())
-
-            val error =
-                assertThrows<DocumentUploadIntentUnavailableException> {
-                    runTest {
-                        useCase(
-                            groupRepository = RecordingGroupRepository(interactions, group()),
-                            documentStorage = storage,
-                            documentUploadIntentRepository = repository,
-                        )(command())
-                    }
-                }
-
-            assertEquals("document upload intent is unavailable", error.message)
-            assertEquals(listOf("membership", "find", "inspect"), interactions)
-            assertEquals(emptyList<DocumentUploadIntent>(), repository.persisted)
-        }
-
-        @Test
-        fun `should reject verification outside the upload intent lifetime without persisting`() {
-            val interactions = mutableListOf<String>()
-            val repository = RecordingDocumentUploadIntentRepository(interactions, pendingIntent(expiresAt = VERIFIED_AT))
-            val storage = RecordingDocumentStorage(interactions, METADATA)
-
-            val error =
-                assertThrows<DocumentUploadIntentUnavailableException> {
-                    runTest {
-                        useCase(
-                            groupRepository = RecordingGroupRepository(interactions, group()),
-                            documentStorage = storage,
-                            documentUploadIntentRepository = repository,
-                        )(command())
-                    }
-                }
-
-            assertEquals("document upload intent is unavailable", error.message)
-            assertEquals(listOf("membership", "find", "inspect"), interactions)
+            assertEquals(case.expectedInteractions, interactions)
+            assertEquals(case.expectedInspectedKeys, storage.inspectedKeys)
             assertEquals(emptyList<DocumentUploadIntent>(), repository.persisted)
         }
     }
@@ -299,4 +266,11 @@ class ConfirmSupportingDocumentUploadUseCaseTest {
                 checksum = DocumentSha256.fromBase64(Base64.getEncoder().encodeToString(ByteArray(32))),
             )
     }
+
+    data class ConfirmationFailureCase(
+        val pending: DocumentUploadIntent?,
+        val storedMetadata: DocumentMetadata?,
+        val expectedInteractions: List<String>,
+        val expectedInspectedKeys: List<DocumentStorageKey>,
+    )
 }
