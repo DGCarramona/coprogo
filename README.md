@@ -162,12 +162,11 @@ L'adaptateur utilise la chaîne de credentials AWS standard et un endpoint optio
 Le test d'intégration réel peut être lancé explicitement ainsi :
 
 ```bash
-docker compose up -d s3mock
-S3MOCK_ENDPOINT=http://localhost:9090 ./gradlew -p coprogo test \
+./gradlew -p coprogo test \
   --tests 'tech.justdev.infrastructure.document.s3.S3DocumentStorageIntegrationTest'
 ```
 
-Ce test vérifie les échanges S3 réels, mais S3Mock accepte les URL présignées sans valider leur signature, leur expiration ni leur verbe HTTP. La présence des en-têtes signés est donc vérifiée séparément par le test unitaire de l'adaptateur.
+Micronaut Test Resources démarre automatiquement un conteneur S3Mock éphémère et lui attribue un port libre. Le test vérifie les échanges S3 réels, mais S3Mock accepte les URL présignées sans valider leur signature, leur expiration ni leur verbe HTTP. La présence des en-têtes signés est donc vérifiée séparément par le test unitaire de l'adaptateur.
 
 ## Workflow de développement typique
 

@@ -1,5 +1,7 @@
 package tech.justdev.infrastructure.document.s3
 
+import io.micronaut.context.env.Environment
+import jakarta.inject.Inject
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -10,13 +12,13 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.core.async.AsyncRequestBody
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.S3Configuration
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
@@ -27,6 +29,7 @@ import tech.justdev.domain.document.valueobject.DocumentMediaType
 import tech.justdev.domain.document.valueobject.DocumentSha256
 import tech.justdev.domain.document.valueobject.DocumentSize
 import tech.justdev.domain.document.valueobject.DocumentStorageKey
+import tech.justdev.testsupport.NoDbMicronautTest
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -41,9 +44,12 @@ import java.util.UUID
  * does not validate their signature, expiration, or HTTP verb; signed-header binding is covered by
  * [S3DocumentStorageTest].
  */
-@EnabledIfEnvironmentVariable(named = "S3MOCK_ENDPOINT", matches = ".+")
+@NoDbMicronautTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class S3DocumentStorageIntegrationTest {
+    @Inject
+    lateinit var environment: Environment
+
     private lateinit var client: S3AsyncClient
     private lateinit var presigner: S3Presigner
     private lateinit var storage: S3DocumentStorage
@@ -52,7 +58,11 @@ class S3DocumentStorageIntegrationTest {
 
     @BeforeAll
     fun setUp() {
-        val endpoint = URI.create(System.getenv("S3MOCK_ENDPOINT"))
+        val endpoint =
+            URI.create(
+                "http://${environment.getRequiredProperty("s3mock.host", String::class.java)}:" +
+                    environment.getRequiredProperty("s3mock.port", String::class.java),
+            )
         val credentials = StaticCredentialsProvider.create(AwsBasicCredentials.create("test", "test"))
         val serviceConfiguration = S3Configuration.builder().pathStyleAccessEnabled(true).build()
         client =
@@ -63,6 +73,11 @@ class S3DocumentStorageIntegrationTest {
                 .endpointOverride(endpoint)
                 .serviceConfiguration(serviceConfiguration)
                 .build()
+        runBlocking {
+            client
+                .createBucket(CreateBucketRequest.builder().bucket(BUCKET).build())
+                .await()
+        }
         presigner =
             S3Presigner
                 .builder()
