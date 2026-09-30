@@ -67,15 +67,17 @@ class MyAuthenticationTest {
 
 ### Mutation tests
 
-Run PIT from the repository root to check whether the backend unit tests detect deliberate changes to business code:
+Run PIT from the repository root to check whether the backend test suite detects deliberate code changes:
 
 ```bash
 ./gradlew backendMutationTest
 ```
 
-The analysis targets the `domain`, `application`, `infrastructure.auth`, `infrastructure.document`, and project-owned `infrastructure.persistence` layers; generated jOOQ classes are excluded. Repository and persistence-port integration tests are included so PIT can exercise the R2DBC adapters against PostgreSQL. Other integration tests remain excluded, while unit and configuration tests are included. Reports are written to `coprogo/build/reports/pitest/index.html` and `coprogo/build/reports/pitest/mutations.xml`. Use `-Ppitest.threads=<count>` to override the default four worker threads.
+The analysis covers the `domain`, `application`, authentication, document-storage, and project-owned persistence code. It includes integration tests for adapters implementing project-owned ports, including PostgreSQL, authentication, and S3 boundaries. Generated jOOQ classes plus application-workflow, HTTP, and schema integration tests remain excluded.
 
-The regression floors are 60% mutation coverage, 80% test strength, and 90% line coverage, based on a validated baseline of 64%, 81%, and 91%. They are guards, not final quality targets. PIT operates on JVM bytecode; without the optional commercial Kotlin plugin, compiler-generated coroutine code can create noisy surviving or uncovered mutations. Review the HTML report before treating every survivor as a missing business test.
+The configured operators focus on business behavior and source-authored side effects while omitting known Kotlin bytecode noise. The build enforces 100% mutation coverage, 100% test strength, and 90% line coverage over that mutation set. Reports are written to `coprogo/build/reports/pitest/index.html` and `coprogo/build/reports/pitest/mutations.xml`. Use `-Ppitest.threads=<count>` to change the default four workers, or `-Ppitest.targetClasses=<comma-separated-globs>` for a focused diagnostic run.
+
+The `pitest-support` plugin filters only the verified-equivalent mutations declared in [`pitest-equivalent-mutations.json`](pitest-equivalent-mutations.json), matched by exact class, method, mutator, and bytecode index. Every entry requires a justification, and a compiler or source change invalidates the match. When its result listener prints a surviving mutation, first try to distinguish it with an observable test. If that is impossible, add the reported signature to the whitelist with the equivalence argument; otherwise the test suite must kill it.
 
 ## Micronaut 5.0.2 Documentation
 

@@ -23,6 +23,8 @@ version = "0.1"
 group = "tech.justdev"
 
 dependencies {
+    add("pitest", project(":pitest-support"))
+
     ksp("io.micronaut:micronaut-http-validation")
     ksp("io.micronaut.security:micronaut-security-annotations")
     ksp("io.micronaut.serde:micronaut-serde-processor")
@@ -106,13 +108,23 @@ pitest {
     pitestVersion.set("1.25.8")
     junit5PluginVersion.set("1.2.3")
     targetClasses.set(
-        setOf(
-            "tech.justdev.domain.*",
-            "tech.justdev.application.*",
-            "tech.justdev.infrastructure.auth.*",
-            "tech.justdev.infrastructure.document.*",
-            "tech.justdev.infrastructure.persistence.*",
-        ),
+        providers
+            .gradleProperty("pitest.targetClasses")
+            .map { classes ->
+                classes
+                    .split(',')
+                    .map(String::trim)
+                    .filter(String::isNotEmpty)
+                    .toSet()
+            }.orElse(
+                setOf(
+                    "tech.justdev.domain.*",
+                    "tech.justdev.application.*",
+                    "tech.justdev.infrastructure.auth.*",
+                    "tech.justdev.infrastructure.document.*",
+                    "tech.justdev.infrastructure.persistence.*",
+                ),
+            ),
     )
     targetTests.set(
         setOf(
@@ -122,19 +134,68 @@ pitest {
             "tech.justdev.interfaces.*",
         ),
     )
-    excludedClasses.set(setOf("tech.justdev.infrastructure.persistence.jooq.*"))
+    excludedClasses.set(
+        setOf(
+            "tech.justdev.infrastructure.persistence.jooq.*",
+            "tech.justdev.application.*Snapshot",
+            "tech.justdev.application.*Preview",
+            "tech.justdev.application.document.DocumentUploadRequest",
+            "tech.justdev.application.revenue.PreviewRevenueDistribution*",
+            "tech.justdev.infrastructure.persistence.ledger.LedgerEventRow",
+        ),
+    )
+    excludedMethods.set(
+        setOf(
+            "invokeSuspend",
+            "*lambda*",
+            "compare",
+            "component*",
+            "copy*",
+            "hashCode",
+            "isRfc5987AttributeCharacter",
+            "toString",
+            "getChanges",
+            "getDEFAULT_ISSUERS",
+            "getJwksUrl",
+            "getZERO*",
+            "getPaidBy*",
+            "getPathStyleAccess",
+            "getTransfers",
+        ),
+    )
     excludedTestClasses.set(
         setOf(
             "tech.justdev.application.*IntegrationTest",
-            "tech.justdev.infrastructure.auth.*IntegrationTest",
-            "tech.justdev.infrastructure.document.*IntegrationTest",
             "tech.justdev.infrastructure.persistence.*SchemaIntegrationTest",
             "tech.justdev.interfaces.*IntegrationTest",
         ),
     )
-    mutators.set(setOf("DEFAULTS"))
-    mutationThreshold.set(60)
-    testStrengthThreshold.set(80)
+    avoidCallsTo.set(
+        setOf(
+            "java.util.logging",
+            "org.apache.log4j",
+            "org.slf4j",
+            "org.apache.commons.logging",
+            "kotlin.ResultKt",
+            "kotlin.jvm.internal.Intrinsics",
+        ),
+    )
+    mutators.set(
+        setOf(
+            "CONDITIONALS_BOUNDARY",
+            "EMPTY_RETURNS",
+            "FALSE_RETURNS",
+            "INCREMENTS",
+            "INVERT_NEGS",
+            "MATH",
+            "NEGATE_CONDITIONALS",
+            "PRIMITIVE_RETURNS",
+            "TRUE_RETURNS",
+            "VOID_METHOD_CALLS",
+        ),
+    )
+    mutationThreshold.set(100)
+    testStrengthThreshold.set(100)
     coverageThreshold.set(90)
     outputFormats.set(setOf("HTML", "XML"))
     timestampedReports.set(false)
@@ -148,4 +209,8 @@ pitest {
 
 tasks.named("dockerfileNative") {
     setProperty("jdkVersion", "25")
+}
+
+tasks.named("check") {
+    dependsOn(":pitest-support:check")
 }

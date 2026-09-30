@@ -34,3 +34,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "coprogo"
+
+include("pitest-support")
