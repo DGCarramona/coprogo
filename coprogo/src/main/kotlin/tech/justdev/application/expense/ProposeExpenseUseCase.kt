@@ -97,12 +97,9 @@ class ProposeExpenseUseCaseImpl(
                 is EqualSplitWithCapsExpenseAllocationCommand -> allocation.participants + allocation.capsInCentsByMember.keys
                 is CumulativeTiersExpenseAllocationCommand -> allocation.tiers.flatMap { tier -> tier.participants }.toSet()
                 is CustomExpenseAllocationCommand -> allocation.participations.map { participation -> participation.member }.toSet()
-            }.let {
-                it
-                    .filterNot(group::contains)
-                    .minByOrNull { member -> member.toPrimitive() }
-            }
-        if (nonMember != null) {
+            }.filterNot(group::contains)
+                .minByOrNull(MemberEmail::toPrimitive)
+        if (nonMember !== null) {
             throw IllegalArgumentException(
                 "expense participant ${nonMember.toPrimitive()} is not part of group ${command.group.toPrimitive()}",
             )

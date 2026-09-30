@@ -234,11 +234,9 @@ data class Expense(
             capsByMember: Map<MemberEmail, MoneyAmount>,
         ): Expense {
             require(participants.isNotEmpty()) { "participants must not be empty" }
-            require(capsByMember.keys.all(participants::contains)) { "caps must only target participants" }
-            require(capsByMember.values.all { cap -> cap > MoneyAmount.ZERO }) { "caps must be strictly positive" }
-            require(participants.any { participant -> participant !in capsByMember }) {
-                "at least one participant must be uncapped"
-            }
+            require(participants.containsAll(capsByMember.keys)) { "caps must only target participants" }
+            require(MoneyAmount.ZERO !in capsByMember.values) { "caps must be strictly positive" }
+            require((participants - capsByMember.keys).isNotEmpty()) { "at least one participant must be uncapped" }
 
             return propose(
                 id = id,
@@ -294,7 +292,12 @@ data class Expense(
             tiers: List<CumulativeExpenseTier>,
         ): Expense {
             require(tiers.isNotEmpty()) { "cumulative tiers must not be empty" }
-            require(tiers.zipWithNext().all { (current, next) -> next.upTo > current.upTo }) {
+            require(
+                tiers
+                    .map { it.upTo.inCents() }
+                    .zipWithNext()
+                    .all { (current, next) -> next > current },
+            ) {
                 "cumulative tier bounds must be strictly increasing"
             }
             require(tiers.last().upTo == totalAmount) { "last cumulative tier bound must equal totalAmount" }
@@ -310,7 +313,7 @@ data class Expense(
                     val sortedParticipants = tier.participants.sortedBy { member -> member.toPrimitive() }
                     val tierAmounts = tierAmount.splitEvenly(sortedParticipants.size)
 
-                    require(tierAmounts.none(MoneyAmount::isZero)) {
+                    require(MoneyAmount.ZERO !in tierAmounts) {
                         "cumulative tier requires at least 1 cent per participant"
                     }
 

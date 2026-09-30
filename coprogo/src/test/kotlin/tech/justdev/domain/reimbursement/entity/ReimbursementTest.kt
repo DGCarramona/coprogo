@@ -97,6 +97,42 @@ class ReimbursementTest {
         }
 
         @Test
+        fun `should restore a reimbursement accepted at its declaration time`() {
+            val reimbursement =
+                Reimbursement.restore(
+                    id = ID,
+                    group = groupId("direct-reimbursement"),
+                    paidBy = memberEmail("bob"),
+                    receivedBy = memberEmail("alice"),
+                    amount = MoneyAmount.ofCents(4_200),
+                    reimbursedAt = REIMBURSED_AT,
+                    declaredBy = memberEmail("alice"),
+                    declaredAt = DECLARED_AT,
+                    status = ReimbursementStatus.Accepted(DECLARED_AT),
+                )
+
+            assertEquals(ReimbursementStatus.Accepted(DECLARED_AT), reimbursement.status)
+        }
+
+        @Test
+        fun `should restore a reimbursement declared at its reimbursement time`() {
+            val reimbursement =
+                Reimbursement.restore(
+                    id = ID,
+                    group = groupId("direct-reimbursement"),
+                    paidBy = memberEmail("bob"),
+                    receivedBy = memberEmail("alice"),
+                    amount = MoneyAmount.ofCents(4_200),
+                    reimbursedAt = DECLARED_AT,
+                    declaredBy = memberEmail("alice"),
+                    declaredAt = DECLARED_AT,
+                    status = ReimbursementStatus.Accepted(DECLARED_AT),
+                )
+
+            assertEquals(DECLARED_AT, reimbursement.reimbursedAt)
+        }
+
+        @Test
         fun `should reject acceptance before declaration`() {
             val error =
                 assertThrows<IllegalArgumentException> {

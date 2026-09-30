@@ -100,6 +100,21 @@ class S3DocumentStorageTest {
                 assertTrue(target.expiresAt >= earliestExpiration)
                 assertTrue(target.expiresAt <= Instant.now().plus(Duration.ofMinutes(5)).plusSeconds(1))
             }
+
+        @Test
+        fun `should preserve alphanumeric RFC5987 boundary characters`() =
+            runTest {
+                val target =
+                    storage.presignDownload(
+                        DocumentDownloadRequest(
+                            key = DocumentStorageKey.of("documents/invoice.pdf"),
+                            fileName = DocumentFileName.of("azAZ09.pdf"),
+                            validFor = Duration.ofMinutes(5),
+                        ),
+                    )
+
+                assertTrue(target.uri.rawQuery.contains("azAZ09.pdf"))
+            }
     }
 
     private fun uploadRequest(): DocumentUploadRequest =

@@ -38,11 +38,18 @@ class ExpenseSupportingDocumentTest {
 
         @Test
         fun `should reject a source upload intent that is not consumed`() {
-            val intent = pendingIntent()
+            val errors =
+                listOf(
+                    pendingIntent(),
+                    pendingIntent("ready").markReady(METADATA, READY_AT),
+                ).map { intent ->
+                    assertThrows<IllegalArgumentException> { ExpenseSupportingDocument.fromConsumedUploadIntent(intent) }.message
+                }
 
-            val error = assertThrows<IllegalArgumentException> { ExpenseSupportingDocument.fromConsumedUploadIntent(intent) }
-
-            assertEquals("expense supporting document requires a consumed upload intent", error.message)
+            assertEquals(
+                List(2) { "expense supporting document requires a consumed upload intent" },
+                errors,
+            )
         }
     }
 

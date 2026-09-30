@@ -58,6 +58,7 @@ dependencies {
 
     testImplementation("io.micronaut:micronaut-http-client")
     testImplementation("io.projectreactor:reactor-core")
+    testImplementation("org.junit.jupiter:junit-jupiter-params")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testResourcesService("io.micronaut:micronaut-jackson-databind:$micronautVersion")

@@ -158,6 +158,25 @@ class ExpenseTest {
         }
 
         @Test
+        fun `should leave an equal share unchanged when it exactly matches its cap`() {
+            val expense =
+                proposeEqualSplitWithCaps(
+                    totalAmountInCents = 100,
+                    participants = setOf("carol", "bob", "alice"),
+                    caps = mapOf("bob" to 33),
+                )
+
+            assertEquals(
+                mapOf(
+                    memberEmail("alice") to MoneyAmount.ofCents(34),
+                    memberEmail("bob") to MoneyAmount.ofCents(33),
+                    memberEmail("carol") to MoneyAmount.ofCents(33),
+                ),
+                expense.amountsByMember(),
+            )
+        }
+
+        @Test
         fun `should reject when every participant has a cap`() {
             assertThrows(IllegalArgumentException::class.java) {
                 proposeEqualSplitWithCaps(
@@ -181,13 +200,16 @@ class ExpenseTest {
 
         @Test
         fun `should reject a zero cap`() {
-            assertThrows(IllegalArgumentException::class.java) {
-                proposeEqualSplitWithCaps(
-                    totalAmountInCents = 100,
-                    participants = setOf("alice", "bob"),
-                    caps = mapOf("bob" to 0),
-                )
-            }
+            val error =
+                assertThrows(IllegalArgumentException::class.java) {
+                    proposeEqualSplitWithCaps(
+                        totalAmountInCents = 100,
+                        participants = setOf("alice", "bob"),
+                        caps = mapOf("bob" to 0),
+                    )
+                }
+
+            assertEquals("caps must be strictly positive", error.message)
         }
     }
 
@@ -262,17 +284,20 @@ class ExpenseTest {
 
         @Test
         fun `should reject non increasing cumulative bounds`() {
-            assertThrows(IllegalArgumentException::class.java) {
-                proposeCumulativeTiers(
-                    totalAmountInCents = 100,
-                    tiers =
-                        listOf(
-                            CumulativeExpenseTier(MoneyAmount.ofCents(60), setOf(memberEmail("alice"))),
-                            CumulativeExpenseTier(MoneyAmount.ofCents(60), setOf(memberEmail("alice"))),
-                            CumulativeExpenseTier(MoneyAmount.ofCents(100), setOf(memberEmail("alice"))),
-                        ),
-                )
-            }
+            val error =
+                assertThrows(IllegalArgumentException::class.java) {
+                    proposeCumulativeTiers(
+                        totalAmountInCents = 100,
+                        tiers =
+                            listOf(
+                                CumulativeExpenseTier(MoneyAmount.ofCents(60), setOf(memberEmail("alice"))),
+                                CumulativeExpenseTier(MoneyAmount.ofCents(60), setOf(memberEmail("alice"))),
+                                CumulativeExpenseTier(MoneyAmount.ofCents(100), setOf(memberEmail("alice"))),
+                            ),
+                    )
+                }
+
+            assertEquals("cumulative tier bounds must be strictly increasing", error.message)
         }
 
         @Test
@@ -669,6 +694,22 @@ class ExpenseTest {
                 }
 
             assertEquals("expense and supporting document must belong to the same group", error.message)
+        }
+
+        @Test
+        fun `should reject a replacement requested by a member other than the creator`() {
+            val expense = proposedExpense().attachSupportingDocuments(listOf(consumedIntent("first")))
+
+            val error =
+                assertThrows(IllegalArgumentException::class.java) {
+                    expense.replaceSupportingDocument(
+                        sourceUploadIntent = documentId("first"),
+                        replacementIntent = consumedIntent("replacement"),
+                        requestedBy = memberEmail("bob"),
+                    )
+                }
+
+            assertEquals("only the expense creator can change a supporting document", error.message)
         }
     }
 

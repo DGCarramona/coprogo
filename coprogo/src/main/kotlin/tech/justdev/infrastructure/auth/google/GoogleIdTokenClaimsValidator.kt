@@ -32,7 +32,7 @@ class GoogleIdTokenClaimsValidator(
         }
 
         val email = claims.get(GoogleIdTokenClaims.EMAIL)?.toString() ?: return false
-        if (!claims.get(GoogleIdTokenClaims.EMAIL_VERIFIED).toBooleanClaim()) {
+        if (!claims.get(GoogleIdTokenClaims.EMAIL_VERIFIED).toGoogleBooleanClaim()) {
             return false
         }
         if (runCatching { MemberEmail.of(email) }.isFailure) {
@@ -55,7 +55,7 @@ private fun extractAudiences(audienceClaim: Any?): Set<String> =
 
 private fun normalizeIssuer(issuer: String): String = issuer.removePrefix("https://").removeSuffix("/").trim()
 
-private fun Any?.toBooleanClaim(): Boolean =
+internal fun Any?.toGoogleBooleanClaim(): Boolean =
     when (this) {
         is Boolean -> this
         is String -> toBooleanStrictOrNull() ?: false

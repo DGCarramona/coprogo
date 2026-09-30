@@ -443,6 +443,21 @@ class ProposeExpenseUseCaseTest {
         }
 
         @Test
+        fun `invoke should identify the first non-member deterministically when several are supplied`() {
+            assertNonMemberParticipantIsRejected(
+                allocation =
+                    EqualSplitExpenseAllocationCommand(
+                        setOf(
+                            memberEmail("alice"),
+                            memberEmail("z-outsider"),
+                            memberEmail("a-outsider"),
+                        ),
+                    ),
+                expectedNonMember = memberEmail("a-outsider"),
+            )
+        }
+
+        @Test
         fun `invoke should reject a non-member cap key before generating an expense id`() {
             assertNonMemberParticipantIsRejected(
                 EqualSplitWithCapsExpenseAllocationCommand(
@@ -484,7 +499,10 @@ class ProposeExpenseUseCaseTest {
         }
     }
 
-    private fun assertNonMemberParticipantIsRejected(allocation: ExpenseAllocationCommand) {
+    private fun assertNonMemberParticipantIsRejected(
+        allocation: ExpenseAllocationCommand,
+        expectedNonMember: MemberEmail = memberEmail("outsider"),
+    ) {
         val expenseRepository = InMemoryExpenseRepository()
         val useCase =
             useCase(
@@ -509,7 +527,7 @@ class ProposeExpenseUseCaseTest {
             }
 
         assertEquals(
-            "expense participant ${memberEmail("outsider").toPrimitive()} is not part of group ${groupId("group-1").toPrimitive()}",
+            "expense participant ${expectedNonMember.toPrimitive()} is not part of group ${groupId("group-1").toPrimitive()}",
             error.message,
         )
         runTest {

@@ -1,12 +1,12 @@
 package tech.justdev.application.revenue
 
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import tech.justdev.application.group.GroupAccessDeniedException
 import tech.justdev.application.group.GroupAccessPolicy
-import tech.justdev.application.shared.DirectTransactionRunner
 import tech.justdev.application.support.InMemoryGroupRepository
 import tech.justdev.application.support.InMemoryLedgerEventRepository
 import tech.justdev.application.support.InMemoryOwnershipShareTimelineRepository
@@ -90,7 +90,7 @@ class RecordCashPoolIncomeUseCaseTest {
             groupAccessPolicy = GroupAccessPolicy(InMemoryGroupRepository(listOf(group()))),
             ownershipShareTimelineRepository = InMemoryOwnershipShareTimelineRepository(listOf(timeline())),
             ledgerEventRepository = ledgerEventRepository,
-            transactionRunner = DirectTransactionRunner,
+            transactionRunner = YieldingTransactionRunner,
             ledgerEventIdGenerator =
                 FixedLedgerEventIdGenerator(
                     listOf(ledgerEventId("income-event")),
@@ -126,4 +126,11 @@ class RecordCashPoolIncomeUseCaseTest {
                     ),
                 ),
         )
+
+    private object YieldingTransactionRunner : tech.justdev.application.shared.TransactionRunner {
+        override suspend fun <T> transaction(block: suspend () -> T): T {
+            yield()
+            return block()
+        }
+    }
 }

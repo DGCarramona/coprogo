@@ -5,11 +5,13 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.group.entity.Group
 import tech.justdev.domain.group.entity.Member
 import tech.justdev.domain.group.repository.GroupRepository
 import tech.justdev.domain.group.repository.MemberRepository
 import tech.justdev.domain.ledger.effect.MemberBalanceTransfer
+import tech.justdev.domain.ledger.event.AcceptedExpenseLedgerEvent
 import tech.justdev.domain.ledger.event.CashPoolIncomeLedgerEvent
 import tech.justdev.domain.ledger.event.CashPoolWithdrawalLedgerEvent
 import tech.justdev.domain.ledger.event.LedgerEvent
@@ -57,6 +59,32 @@ class R2dbcLedgerEventRepositoryIntegrationTest {
                 ledgerEventRepository.append(withdrawal)
 
                 assertEquals(listOf(withdrawal), ledgerEventRepository.findByGroup(fixture.group.id))
+            }
+
+        @Test
+        fun `should append accepted expense events with their balance transfers`() =
+            runTest {
+                val fixture = persistedGroupFixture("accepted-expense")
+                val event =
+                    AcceptedExpenseLedgerEvent(
+                        id = ledgerEventId("${fixture.seed}-accepted-expense"),
+                        group = fixture.group.id,
+                        expense = ExpenseId(tech.justdev.testsupport.testUuid("${fixture.seed}-expense")),
+                        paidBy = fixture.owner,
+                        occurredAt = Instant.parse("2026-04-03T12:00:00Z"),
+                        transfers =
+                            setOf(
+                                MemberBalanceTransfer(
+                                    fromMember = fixture.coOwner,
+                                    toMember = fixture.owner,
+                                    amount = MoneyAmount.ofCents(45),
+                                ),
+                            ),
+                    )
+
+                ledgerEventRepository.append(event)
+
+                assertEquals(listOf(event), ledgerEventRepository.findByGroup(fixture.group.id))
             }
     }
 
@@ -113,8 +141,8 @@ class R2dbcLedgerEventRepositoryIntegrationTest {
         val seed: String,
         val group: Group,
     ) {
-        private val owner = group.createdBy
-        private val coOwner = group.members.single { member -> member.member != owner }.member
+        val owner = group.createdBy
+        val coOwner = group.members.single { member -> member.member != owner }.member
 
         fun revenueEvents(): List<LedgerEvent> =
             listOf(

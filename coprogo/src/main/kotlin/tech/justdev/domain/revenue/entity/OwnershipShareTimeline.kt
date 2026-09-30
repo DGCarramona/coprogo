@@ -58,10 +58,8 @@ data class OwnershipShareTimeline(
     }
 
     fun sharesAt(date: LocalDate): Set<OwnershipShare> =
-        changes
-            .asSequence()
-            .filter { change -> change.effectiveDate <= date }
-            .maxByOrNull { change -> change.effectiveDate }
+        history()
+            .lastOrNull { change -> change.effectiveDate <= date }
             ?.shares
             ?: throw IllegalArgumentException("no ownership shares are effective on $date")
 
