@@ -76,6 +76,14 @@ The policy remains deliberately specific where product correctness, security, au
 - Before editing, surface blocking questions, ambiguities, and conflicting interpretations. Ask before assuming anything that materially changes scope, behavior, architecture, or acceptance criteria; proceed without a question only when the request is precise enough.
 - When a user provides a reusable addition or refinement to these rules, propose updating this file in the same conversation. Update it after confirmation when feasible.
 
+### Cost-conscious delegation
+
+- SHOULD delegate bounded implementation work to GPT-5.6 Terra only after the primary agent has established the design, scope, relevant tests, and acceptance criteria. Keep architecture decisions, ambiguous product work, final review, and validation with the primary agent.
+- Give a delegated writer a minimal self-contained brief and only the context needed for its files; do not fork the complete conversation by default. The primary agent must inspect the resulting diff and independently run the relevant checks.
+- Use one fresh delegated writer per atomic reviewable backlog slice. Keep that writer through the slice's red-green-refactor cycle and necessary corrections, then stop it before starting the next slice; do not reuse a growing sub-agent context across slices.
+- Do not delegate a trivial change when coordination and duplicated context are likely to cost more than implementing it directly.
+- Never assign overlapping writes to multiple agents. Finish or stop a delegated writer before another agent edits the same files.
+
 ### Monorepo and shared contracts
 
 - This is a polyglot monorepo. The backend lives in `coprogo/` (named `backend` in the composite Gradle build); `frontend/` is the Angular SPA; `.github/` contains CI/CD and automation. Root files may orchestrate the monorepo. Do not blur these boundaries.
