@@ -1,3 +1,4 @@
+import { ProviderToken } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { QueryClient } from '@tanstack/angular-query-experimental';
 
@@ -22,6 +23,53 @@ import { HttpExpenseSupportingDocumentsGateway } from './infrastructure/supporti
 import { WebCryptoSha256ChecksumGateway } from './infrastructure/supporting-document/web-crypto-sha256-checksum.gateway';
 import { appConfig } from './app.config';
 
+const portBindings: readonly {
+  name: string;
+  port: ProviderToken<unknown>;
+  adapter: ProviderToken<unknown>;
+}[] = [
+  {
+    name: 'expense proposal',
+    port: ExpenseProposalPort,
+    adapter: HttpExpenseProposalGateway,
+  },
+  {
+    name: 'navigation',
+    port: NavigationPort,
+    adapter: RouterNavigationAdapter,
+  },
+  {
+    name: 'group members',
+    port: GroupMembersPort,
+    adapter: HttpGroupMembersGateway,
+  },
+  {
+    name: 'SHA-256 checksum',
+    port: Sha256ChecksumPort,
+    adapter: WebCryptoSha256ChecksumGateway,
+  },
+  {
+    name: 'signed supporting document uploader',
+    port: SignedSupportingDocumentUploaderPort,
+    adapter: HttpSignedSupportingDocumentUploaderGateway,
+  },
+  {
+    name: 'supporting document upload control plane',
+    port: SupportingDocumentUploadControlPlanePort,
+    adapter: HttpSupportingDocumentUploadControlPlaneGateway,
+  },
+  {
+    name: 'supporting document deletion',
+    port: ExpenseSupportingDocumentDeletionPort,
+    adapter: HttpExpenseSupportingDocumentDeletionGateway,
+  },
+  {
+    name: 'supporting documents read',
+    port: ExpenseSupportingDocumentsPort,
+    adapter: HttpExpenseSupportingDocumentsGateway,
+  },
+];
+
 describe('appConfig', () => {
   it('provides a TanStack Query client', () => {
     TestBed.configureTestingModule({ providers: appConfig.providers });
@@ -29,59 +77,18 @@ describe('appConfig', () => {
     expect(TestBed.inject(QueryClient)).toBeInstanceOf(QueryClient);
   });
 
-  it('binds the expense proposal port to the existing HTTP gateway instance', () => {
-    TestBed.configureTestingModule({ providers: appConfig.providers });
+  it.each(portBindings)(
+    'binds the $name port to the existing adapter instance',
+    ({ port, adapter }) => {
+      TestBed.configureTestingModule({ providers: appConfig.providers });
 
-    const expenseProposalPort = TestBed.inject(ExpenseProposalPort);
-
-    expect(expenseProposalPort).toBeInstanceOf(HttpExpenseProposalGateway);
-    expect(expenseProposalPort).toBe(TestBed.inject(HttpExpenseProposalGateway));
-  });
-
-  it('binds the navigation port to the existing router navigation adapter instance', () => {
-    TestBed.configureTestingModule({ providers: appConfig.providers });
-
-    const navigationPort = TestBed.inject(NavigationPort);
-
-    expect(navigationPort).toBeInstanceOf(RouterNavigationAdapter);
-    expect(navigationPort).toBe(TestBed.inject(RouterNavigationAdapter));
-  });
-
-  it('binds the group members port to the existing HTTP gateway instance', () => {
-    TestBed.configureTestingModule({ providers: appConfig.providers });
-
-    const groupMembersPort = TestBed.inject(GroupMembersPort);
-
-    expect(groupMembersPort).toBeInstanceOf(HttpGroupMembersGateway);
-    expect(groupMembersPort).toBe(TestBed.inject(HttpGroupMembersGateway));
-  });
+      expect(TestBed.inject(port)).toBe(TestBed.inject(adapter));
+    },
+  );
 
   it('wires the reusable supporting document upload workflow through its ports', () => {
     TestBed.configureTestingModule({ providers: appConfig.providers });
 
-    expect(TestBed.inject(Sha256ChecksumPort)).toBe(TestBed.inject(WebCryptoSha256ChecksumGateway));
-    expect(TestBed.inject(SignedSupportingDocumentUploaderPort)).toBe(
-      TestBed.inject(HttpSignedSupportingDocumentUploaderGateway),
-    );
-    expect(TestBed.inject(SupportingDocumentUploadControlPlanePort)).toBe(
-      TestBed.inject(HttpSupportingDocumentUploadControlPlaneGateway),
-    );
     expect(TestBed.inject(UploadSupportingDocument)).toBeInstanceOf(UploadSupportingDocument);
-  });
-
-  it('binds the supporting document deletion port to the existing HTTP gateway instance', () => {
-    TestBed.configureTestingModule({ providers: appConfig.providers });
-
-    expect(TestBed.inject(ExpenseSupportingDocumentDeletionPort)).toBe(
-      TestBed.inject(HttpExpenseSupportingDocumentDeletionGateway),
-    );
-  });
-
-  it('binds the supporting documents read port to the existing HTTP gateway instance', () => {
-    TestBed.configureTestingModule({ providers: appConfig.providers });
-
-    expect(TestBed.inject(ExpenseSupportingDocumentsPort)).toBe(
-      TestBed.inject(HttpExpenseSupportingDocumentsGateway),
-    );
   });
 });

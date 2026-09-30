@@ -8,20 +8,27 @@ import { provideApiClient, resolveApiBasePath } from './provide-api-client';
 
 describe('API client providers', () => {
   describe('resolveApiBasePath', () => {
-    it('prefers the provided base path over the runtime environment', () => {
-      expect(resolveApiBasePath({ basePath: 'https://override.example' })).toBe(
-        'https://override.example',
-      );
-    });
-
-    it('falls back to the runtime environment base path when no override is provided', () => {
-      expect(resolveApiBasePath({}, { APP_API_BASE_URL: 'https://env.example' })).toBe(
-        'https://env.example',
-      );
-    });
-
-    it('falls back to the default base path when no override or environment value is provided', () => {
-      expect(resolveApiBasePath({}, {})).toBe('http://localhost:8080');
+    it.each([
+      {
+        name: 'provided base path over the runtime environment',
+        options: { basePath: 'https://override.example' },
+        environment: { APP_API_BASE_URL: 'https://env.example' },
+        expected: 'https://override.example',
+      },
+      {
+        name: 'runtime environment base path without an override',
+        options: {},
+        environment: { APP_API_BASE_URL: 'https://env.example' },
+        expected: 'https://env.example',
+      },
+      {
+        name: 'default base path without an override or environment value',
+        options: {},
+        environment: {},
+        expected: 'http://localhost:8080',
+      },
+    ])('resolves the $name', ({ options, environment, expected }) => {
+      expect(resolveApiBasePath(options, environment)).toBe(expected);
     });
   });
 
