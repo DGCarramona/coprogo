@@ -19,6 +19,7 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest
+import software.amazon.awssdk.services.s3.model.DeleteBucketRequest
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
@@ -102,6 +103,9 @@ class S3DocumentStorageIntegrationTest {
                             .build(),
                     ).await()
             }
+            client
+                .deleteBucket(DeleteBucketRequest.builder().bucket(BUCKET).build())
+                .await()
         }
         presigner.close()
         client.close()

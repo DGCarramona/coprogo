@@ -128,12 +128,22 @@ pitest {
             ),
     )
     targetTests.set(
-        setOf(
-            "tech.justdev.domain.*",
-            "tech.justdev.application.*",
-            "tech.justdev.infrastructure.*",
-            "tech.justdev.interfaces.*",
-        ),
+        providers
+            .gradleProperty("pitest.targetTests")
+            .map { tests ->
+                tests
+                    .split(',')
+                    .map(String::trim)
+                    .filter(String::isNotEmpty)
+                    .toSet()
+            }.orElse(
+                setOf(
+                    "tech.justdev.domain.*",
+                    "tech.justdev.application.*",
+                    "tech.justdev.infrastructure.*",
+                    "tech.justdev.interfaces.*",
+                ),
+            ),
     )
     excludedClasses.set(
         setOf(
