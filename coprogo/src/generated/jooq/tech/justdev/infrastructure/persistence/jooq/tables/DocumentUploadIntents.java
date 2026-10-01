@@ -173,7 +173,7 @@ public class DocumentUploadIntents extends TableImpl<Record> {
 
     @Override
     public List<UniqueKey<Record>> getUniqueKeys() {
-        return Arrays.asList(Keys.DOCUMENT_UPLOAD_INTENTS_ID_GROUP_STATUS_UNIQUE, Keys.DOCUMENT_UPLOAD_INTENTS_STORAGE_KEY_KEY);
+        return Arrays.asList(Keys.DOCUMENT_UPLOAD_INTENTS_ID_GROUP_STATUS_UNIQUE, Keys.DOCUMENT_UPLOAD_INTENTS_ID_GROUP_UPLOADER_STATUS_UNIQUE, Keys.DOCUMENT_UPLOAD_INTENTS_STORAGE_KEY_KEY);
     }
 
     @Override

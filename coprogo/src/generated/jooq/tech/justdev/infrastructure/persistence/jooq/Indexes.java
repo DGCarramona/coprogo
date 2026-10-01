@@ -20,6 +20,8 @@ import tech.justdev.infrastructure.persistence.jooq.tables.LedgerMemberBalanceTr
 import tech.justdev.infrastructure.persistence.jooq.tables.LedgerMemberCashPoolShareDeltas;
 import tech.justdev.infrastructure.persistence.jooq.tables.OwnershipShareAllocations;
 import tech.justdev.infrastructure.persistence.jooq.tables.OwnershipShareChanges;
+import tech.justdev.infrastructure.persistence.jooq.tables.ReimbursementSupportingDocuments;
+import tech.justdev.infrastructure.persistence.jooq.tables.Reimbursements;
 
 
 /**
@@ -46,4 +48,6 @@ public class Indexes {
     public static final Index LEDGER_MEMBER_CASH_POOL_SHARE_DELTAS_EVENT_IDX = Internal.createIndex(DSL.name("ledger_member_cash_pool_share_deltas_event_idx"), LedgerMemberCashPoolShareDeltas.LEDGER_MEMBER_CASH_POOL_SHARE_DELTAS, new OrderField[] { LedgerMemberCashPoolShareDeltas.LEDGER_MEMBER_CASH_POOL_SHARE_DELTAS.EVENT }, false);
     public static final Index OWNERSHIP_SHARE_ALLOCATIONS_CHANGE_IDX = Internal.createIndex(DSL.name("ownership_share_allocations_change_idx"), OwnershipShareAllocations.OWNERSHIP_SHARE_ALLOCATIONS, new OrderField[] { OwnershipShareAllocations.OWNERSHIP_SHARE_ALLOCATIONS.CHANGE_ID }, false);
     public static final Index OWNERSHIP_SHARE_CHANGES_GROUP_IDX = Internal.createIndex(DSL.name("ownership_share_changes_group_idx"), OwnershipShareChanges.OWNERSHIP_SHARE_CHANGES, new OrderField[] { OwnershipShareChanges.OWNERSHIP_SHARE_CHANGES.GROUP }, false);
+    public static final Index REIMBURSEMENT_SUPPORTING_DOCUMENTS_GROUP_REIMBURSEMENT_IDX = Internal.createIndex(DSL.name("reimbursement_supporting_documents_group_reimbursement_idx"), ReimbursementSupportingDocuments.REIMBURSEMENT_SUPPORTING_DOCUMENTS, new OrderField[] { ReimbursementSupportingDocuments.REIMBURSEMENT_SUPPORTING_DOCUMENTS.GROUP, ReimbursementSupportingDocuments.REIMBURSEMENT_SUPPORTING_DOCUMENTS.REIMBURSEMENT, ReimbursementSupportingDocuments.REIMBURSEMENT_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT }, false);
+    public static final Index REIMBURSEMENTS_GROUP_REIMBURSED_AT_IDX = Internal.createIndex(DSL.name("reimbursements_group_reimbursed_at_idx"), Reimbursements.REIMBURSEMENTS, new OrderField[] { Reimbursements.REIMBURSEMENTS.GROUP, Reimbursements.REIMBURSEMENTS.REIMBURSED_AT, Reimbursements.REIMBURSEMENTS.ID }, false);
 }

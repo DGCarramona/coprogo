@@ -132,7 +132,7 @@ class SupportingDocumentAttachmentSchemaIntegrationTest {
                     ).use { statement ->
                         statement.executeQuery().use { rows ->
                             val labels = buildList { while (rows.next()) add(rows.getString(1)) }
-                            assertEquals(listOf("EXPENSE"), labels)
+                            assertEquals(listOf("EXPENSE", "REIMBURSEMENT"), labels)
                         }
                     }
             }
