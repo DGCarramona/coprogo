@@ -21,8 +21,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 
 ## Ordre de travail actuel
 
-1. BE-REB-002 : introduire le remboursement declare par le debiteur avec justificatif contestable.
-2. FE-DOC-005B : raccorder l'historique documentaire aux remboursements pendant la construction de leur ecran.
+1. FE-DOC-005B : raccorder l'historique documentaire aux remboursements pendant la construction de leur ecran.
 
 ## Fondations monorepo et DX
 
@@ -88,7 +87,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 ## Backend - remboursements
 
 - [x] BE-REB-001 Introduire le modele de domaine pour un remboursement direct, immediatement accepte lorsqu'il est declare par son destinataire.
-- [ ] BE-REB-002 Introduire le modele de domaine pour un remboursement declare par le debiteur avec justificatif contestable, portant ses snapshots documentaires et reutilisant le workflow d'upload intent sans repository generique d'association.
+- [x] BE-REB-002 Introduire le modele de domaine pour un remboursement declare par le debiteur avec justificatif contestable, portant ses snapshots documentaires et reutilisant le workflow d'upload intent sans repository generique d'association.
 - [ ] BE-REB-003 Ajouter les migrations Flyway pour les remboursements et leur historique de decision.
 - [ ] BE-REB-004 Creer les repositories et adaptateurs R2DBC des remboursements.
 - [ ] BE-REB-005 Implementer le cas d'usage "Alice enregistre que Bob l'a rembourse" sans confirmation de Bob.
