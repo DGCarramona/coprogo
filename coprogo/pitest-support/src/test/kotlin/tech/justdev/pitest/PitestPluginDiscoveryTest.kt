@@ -14,6 +14,7 @@ class PitestPluginDiscoveryTest {
         val candidateFactory = listenerFactories.single { factory -> factory is EquivalentMutationCandidateListenerFactory }
 
         assertTrue(CoprogoEquivalentKotlinMutationFilterFactory::class.java in interceptorFactories)
+        assertTrue(KotlinCoroutineSuspensionMutationFilterFactory::class.java in interceptorFactories)
         assertTrue(candidateFactory.provides().isOnByDefault)
     }
 }

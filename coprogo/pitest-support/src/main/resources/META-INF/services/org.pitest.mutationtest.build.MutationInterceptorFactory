@@ -1,1 +1,2 @@
 tech.justdev.pitest.CoprogoEquivalentKotlinMutationFilterFactory
+tech.justdev.pitest.KotlinCoroutineSuspensionMutationFilterFactory
