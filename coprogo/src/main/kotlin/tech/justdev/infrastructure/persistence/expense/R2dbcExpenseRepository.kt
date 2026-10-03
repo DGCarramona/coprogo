@@ -3,13 +3,10 @@ package tech.justdev.infrastructure.persistence.expense
 import io.r2dbc.spi.ConnectionFactory
 import jakarta.inject.Named
 import jakarta.inject.Singleton
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.Record6
-import org.jooq.ResultQuery
 import org.jooq.exception.IntegrityConstraintViolationException
 import org.jooq.impl.DSL
 import tech.justdev.domain.document.entity.DocumentMetadata
@@ -37,6 +34,7 @@ import tech.justdev.infrastructure.persistence.jooq.Tables.EXPENSES
 import tech.justdev.infrastructure.persistence.jooq.Tables.EXPENSE_PARTICIPATIONS
 import tech.justdev.infrastructure.persistence.jooq.Tables.EXPENSE_SUPPORTING_DOCUMENTS
 import tech.justdev.infrastructure.persistence.jooq.Tables.SUPPORTING_DOCUMENT_ATTACHMENTS
+import tech.justdev.infrastructure.persistence.jooq.awaitList
 import tech.justdev.infrastructure.persistence.jooq.dsl
 import tech.justdev.infrastructure.persistence.jooq.enums.SupportingDocumentAttachmentType
 import tech.justdev.infrastructure.persistence.jooq.transaction
@@ -554,5 +552,3 @@ private fun JooqExpenseParticipationStatus.toDomain(
             )
         }
     }
-
-private suspend fun <R : Record> ResultQuery<R>.awaitList(): List<R> = asFlow().toList()

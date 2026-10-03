@@ -91,7 +91,8 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 - [x] BE-REB-003A Ajouter les migrations Flyway du schema actuel des remboursements et de leurs justificatifs.
 - [x] BE-REB-003B Definir la semantique de la decision de revue avant d'ajouter son historique Flyway.
 - [x] BE-REB-003C Ajouter la migration Flyway append-only de l'historique des decisions de revue avant les repositories.
-- [ ] BE-REB-004 Creer les repositories et adaptateurs R2DBC des remboursements.
+- [x] BE-REB-004A Creer le repository de remboursement et son adaptateur R2DBC pour la lecture unitaire et la persistance.
+- [ ] BE-REB-004B Ajouter la lecture set-based des remboursements d'un groupe.
 - [ ] BE-REB-005 Implementer le cas d'usage "Alice enregistre que Bob l'a rembourse" sans confirmation de Bob.
 - [ ] BE-REB-006 Implementer le cas d'usage "Bob declare qu'il a rembourse Alice avec justificatif".
 - [ ] BE-REB-007 Implementer le cas d'usage de rejet d'un remboursement conteste par le crediteur.

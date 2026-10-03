@@ -3,11 +3,7 @@ package tech.justdev.infrastructure.persistence.ledger
 import io.r2dbc.spi.ConnectionFactory
 import jakarta.inject.Named
 import jakarta.inject.Singleton
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import org.jooq.Record
-import org.jooq.ResultQuery
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.ledger.effect.MemberBalanceTransfer
@@ -27,6 +23,7 @@ import tech.justdev.infrastructure.persistence.jooq.Tables.LEDGER_CASH_POOL_WITH
 import tech.justdev.infrastructure.persistence.jooq.Tables.LEDGER_EVENTS
 import tech.justdev.infrastructure.persistence.jooq.Tables.LEDGER_MEMBER_BALANCE_TRANSFERS
 import tech.justdev.infrastructure.persistence.jooq.Tables.LEDGER_MEMBER_CASH_POOL_SHARE_DELTAS
+import tech.justdev.infrastructure.persistence.jooq.awaitList
 import tech.justdev.infrastructure.persistence.jooq.dsl
 import tech.justdev.infrastructure.persistence.jooq.transaction
 import java.time.OffsetDateTime
@@ -306,8 +303,6 @@ private fun LedgerCashPoolShareDeltaRow.toDomain(): MemberCashPoolShareDelta =
         member = MemberEmail.of(memberEmail),
         amount = NetBalanceAmount.ofCents(amountInCents),
     )
-
-private suspend fun <R : Record> ResultQuery<R>.awaitList(): List<R> = asFlow().toList()
 
 private data class LedgerEventRow(
     val id: UUID,

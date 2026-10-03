@@ -3,12 +3,9 @@ package tech.justdev.infrastructure.persistence.revenue
 import io.r2dbc.spi.ConnectionFactory
 import jakarta.inject.Named
 import jakarta.inject.Singleton
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.Record5
 import org.jooq.Record6
-import org.jooq.ResultQuery
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.revenue.entity.OwnershipShareChange
 import tech.justdev.domain.revenue.entity.OwnershipShareChangeId
@@ -19,6 +16,7 @@ import tech.justdev.domain.revenue.valueobject.OwnershipShare
 import tech.justdev.domain.shared.valueobject.GroupId
 import tech.justdev.infrastructure.persistence.jooq.Tables.OWNERSHIP_SHARE_ALLOCATIONS
 import tech.justdev.infrastructure.persistence.jooq.Tables.OWNERSHIP_SHARE_CHANGES
+import tech.justdev.infrastructure.persistence.jooq.awaitList
 import tech.justdev.infrastructure.persistence.jooq.dsl
 import tech.justdev.infrastructure.persistence.jooq.transaction
 import java.time.LocalDate
@@ -157,5 +155,3 @@ private fun Record6<UUID, UUID, String, Int, LocalDate, String>.toDomain(): Owne
         member = MemberEmail.of(value3()),
         percentage = OwnershipPercentage.ofBasisPoints(value4()),
     )
-
-private suspend fun <R : org.jooq.Record> ResultQuery<R>.awaitList(): List<R> = asFlow().toList()

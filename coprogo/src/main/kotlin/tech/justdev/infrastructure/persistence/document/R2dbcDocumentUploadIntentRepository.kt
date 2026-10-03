@@ -3,8 +3,6 @@ package tech.justdev.infrastructure.persistence.document
 import io.r2dbc.spi.ConnectionFactory
 import jakarta.inject.Named
 import jakarta.inject.Singleton
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.jooq.Condition
@@ -23,6 +21,7 @@ import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.valueobject.GroupId
 import tech.justdev.infrastructure.persistence.jooq.Tables.DOCUMENT_UPLOAD_INTENTS
+import tech.justdev.infrastructure.persistence.jooq.awaitList
 import tech.justdev.infrastructure.persistence.jooq.dsl
 import tech.justdev.infrastructure.persistence.jooq.transaction
 import java.time.OffsetDateTime
@@ -205,8 +204,7 @@ class R2dbcDocumentUploadIntentRepository(
             .and(DOCUMENT_UPLOAD_INTENTS.UPLOADER.eq(uploader.toPrimitive()))
             .and(DOCUMENT_UPLOAD_INTENTS.STATUS.eq(PersistenceStatus.READY.name))
             .orderBy(DOCUMENT_UPLOAD_INTENTS.ID.asc())
-            .asFlow()
-            .toList()
+            .awaitList()
             .map { it.toDomain() }
     }
 
@@ -240,8 +238,7 @@ class R2dbcDocumentUploadIntentRepository(
             .and(DOCUMENT_UPLOAD_INTENTS.STATUS.eq(PersistenceStatus.READY.name))
             .orderBy(DOCUMENT_UPLOAD_INTENTS.ID.asc())
             .forUpdate()
-            .asFlow()
-            .toList()
+            .awaitList()
             .map { it.toDomain() }
     }
 }
