@@ -172,37 +172,120 @@ class R2dbcReimbursementRepositoryIntegrationTest {
             }
     }
 
-    private suspend fun directReimbursement(seed: String): Reimbursement {
-        val group = seedGroup(seed)
-        return Reimbursement.recordDirect(
-            id = reimbursementId(seed),
+    @Nested
+    inner class FindByGroup {
+        @Test
+        fun `should return an empty list for a group without reimbursements`() =
+            runTest {
+                val group = seedGroup("list-empty")
+
+                assertEquals(emptyList<ReimbursementSnapshot>(), repository.findByGroup(group).map { it.toSnapshot() })
+            }
+
+        @Test
+        fun `should return only the group reimbursements with complete state in deterministic order`() =
+            runTest {
+                val memberSeed = "list"
+                val group = seedGroup(memberSeed)
+                val direct =
+                    directReimbursement(
+                        seed = "list-direct",
+                        group = group,
+                        memberSeed = memberSeed,
+                        reimbursedAt = REIMBURSED_AT.minusSeconds(2),
+                    )
+                val pending =
+                    documentedReimbursement(
+                        seed = "list-pending",
+                        group = group,
+                        memberSeed = memberSeed,
+                        reimbursedAt = REIMBURSED_AT.minusSeconds(1),
+                        documentCount = 2,
+                    )
+                val accepted =
+                    documentedReimbursement(
+                        seed = "list-accepted",
+                        group = group,
+                        memberSeed = memberSeed,
+                        id = ReimbursementId(UUID.fromString("00000000-0000-0000-0000-000000000001")),
+                    ).accept(receiver(memberSeed), DECIDED_AT)
+                val rejected =
+                    documentedReimbursement(
+                        seed = "list-rejected",
+                        group = group,
+                        memberSeed = memberSeed,
+                        id = ReimbursementId(UUID.fromString("00000000-0000-0000-0000-000000000002")),
+                    ).reject(
+                        reviewedBy = receiver(memberSeed),
+                        rejectedAt = DECIDED_AT,
+                        reason = ReimbursementRejectionReason.of("Le justificatif ne correspond pas"),
+                    )
+                val otherGroupReimbursement = directReimbursement("list-other")
+                listOf(direct, pending, accepted, rejected, otherGroupReimbursement).forEach { repository.persist(it) }
+
+                assertEquals(
+                    listOf(rejected, accepted, pending, direct).map { reimbursement -> reimbursement.toSnapshot() },
+                    repository.findByGroup(group).map { reimbursement -> reimbursement.toSnapshot() },
+                )
+            }
+    }
+
+    private suspend fun directReimbursement(seed: String): Reimbursement =
+        directReimbursement(
+            seed = seed,
+            group = seedGroup(seed),
+            memberSeed = seed,
+        )
+
+    private fun directReimbursement(
+        seed: String,
+        group: GroupId,
+        memberSeed: String,
+        reimbursedAt: Instant = REIMBURSED_AT,
+        id: ReimbursementId = reimbursementId(seed),
+    ): Reimbursement =
+        Reimbursement.recordDirect(
+            id = id,
             group = group,
-            paidBy = payer(seed),
-            receivedBy = receiver(seed),
+            paidBy = payer(memberSeed),
+            receivedBy = receiver(memberSeed),
             amount = MoneyAmount.ofCents(4_200),
-            reimbursedAt = REIMBURSED_AT,
-            declaredBy = receiver(seed),
+            reimbursedAt = reimbursedAt,
+            declaredBy = receiver(memberSeed),
             declaredAt = DECLARED_AT,
         )
-    }
 
     private suspend fun documentedReimbursement(
         seed: String,
         documentCount: Int = 1,
+    ): Reimbursement =
+        documentedReimbursement(
+            seed = seed,
+            group = seedGroup(seed),
+            memberSeed = seed,
+            documentCount = documentCount,
+        )
+
+    private suspend fun documentedReimbursement(
+        seed: String,
+        group: GroupId,
+        memberSeed: String,
+        reimbursedAt: Instant = REIMBURSED_AT,
+        documentCount: Int = 1,
+        id: ReimbursementId = reimbursementId(seed),
     ): Reimbursement {
-        val group = seedGroup(seed)
         val intents =
             (1..documentCount).map { index ->
-                consumedIntent(seed, group, index).also { documentUploadIntentRepository.persist(it) }
+                consumedIntent(seed, group, memberSeed, index).also { documentUploadIntentRepository.persist(it) }
             }
         return Reimbursement.declareWithSupportingDocuments(
-            id = reimbursementId(seed),
+            id = id,
             group = group,
-            paidBy = payer(seed),
-            receivedBy = receiver(seed),
+            paidBy = payer(memberSeed),
+            receivedBy = receiver(memberSeed),
             amount = MoneyAmount.ofCents(4_200),
-            reimbursedAt = REIMBURSED_AT,
-            declaredBy = payer(seed),
+            reimbursedAt = reimbursedAt,
+            declaredBy = payer(memberSeed),
             declaredAt = DECLARED_AT,
             supportingDocumentUploadIntents = intents,
         )
@@ -225,13 +308,14 @@ class R2dbcReimbursementRepositoryIntegrationTest {
     private fun consumedIntent(
         seed: String,
         group: GroupId,
+        memberSeed: String,
         index: Int,
     ): DocumentUploadIntent =
         DocumentUploadIntent
             .create(
                 id = DocumentUploadIntentId(namedUuid("document:$seed:$index")),
                 group = group,
-                uploader = payer(seed),
+                uploader = payer(memberSeed),
                 storageKey = DocumentStorageKey.of("groups/$seed/documents/$index.pdf"),
                 fileName = DocumentFileName.of("Justificatif $index.pdf"),
                 expectedMetadata = METADATA,

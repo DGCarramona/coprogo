@@ -50,28 +50,39 @@ open class R2dbcReimbursementRepository(
         val dsl = connectionFactory.dsl()
         val record =
             dsl
-                .select(
-                    REIMBURSEMENTS.ID,
-                    REIMBURSEMENTS.GROUP,
-                    REIMBURSEMENTS.PAID_BY,
-                    REIMBURSEMENTS.RECEIVED_BY,
-                    REIMBURSEMENTS.AMOUNT,
-                    REIMBURSEMENTS.REIMBURSED_AT,
-                    REIMBURSEMENTS.DECLARED_BY,
-                    REIMBURSEMENTS.DECLARED_AT,
-                    REIMBURSEMENT_REVIEW_DECISIONS.DECISION,
-                    REIMBURSEMENT_REVIEW_DECISIONS.DECIDED_AT,
-                    REIMBURSEMENT_REVIEW_DECISIONS.REJECTION_REASON,
-                ).from(REIMBURSEMENTS)
-                .leftJoin(REIMBURSEMENT_REVIEW_DECISIONS)
-                .on(REIMBURSEMENT_REVIEW_DECISIONS.REIMBURSEMENT.eq(REIMBURSEMENTS.ID))
-                .and(REIMBURSEMENT_REVIEW_DECISIONS.GROUP.eq(REIMBURSEMENTS.GROUP))
+                .selectReimbursementsWithReviewDecision()
                 .where(REIMBURSEMENTS.ID.eq(id.toPrimitive()))
                 .and(REIMBURSEMENTS.GROUP.eq(group.toPrimitive()))
                 .awaitFirstOrNull()
                 ?: return null
 
         return record.toDomain(dsl.findSupportingDocuments(id, group))
+    }
+
+    override suspend fun findByGroup(group: GroupId): List<Reimbursement> {
+        val dsl = connectionFactory.dsl()
+        val records =
+            dsl
+                .selectReimbursementsWithReviewDecision()
+                .where(REIMBURSEMENTS.GROUP.eq(group.toPrimitive()))
+                .orderBy(REIMBURSEMENTS.REIMBURSED_AT.desc(), REIMBURSEMENTS.ID.desc())
+                .awaitList()
+
+        if (records.isEmpty()) return emptyList()
+
+        val supportingDocumentsByReimbursement =
+            dsl
+                .findSupportingDocuments(
+                    reimbursements = records.map { record -> ReimbursementId(record.get(REIMBURSEMENTS.ID)) },
+                    group = group,
+                ).groupBy(
+                    keySelector = { (reimbursement, _) -> reimbursement },
+                    valueTransform = { (_, supportingDocument) -> supportingDocument },
+                )
+
+        return records.map { record ->
+            record.toDomain(supportingDocumentsByReimbursement[ReimbursementId(record.get(REIMBURSEMENTS.ID))].orEmpty())
+        }
     }
 
     override suspend fun persist(reimbursement: Reimbursement) {
@@ -91,6 +102,24 @@ open class R2dbcReimbursementRepository(
         }
     }
 }
+
+private fun DSLContext.selectReimbursementsWithReviewDecision() =
+    select(
+        REIMBURSEMENTS.ID,
+        REIMBURSEMENTS.GROUP,
+        REIMBURSEMENTS.PAID_BY,
+        REIMBURSEMENTS.RECEIVED_BY,
+        REIMBURSEMENTS.AMOUNT,
+        REIMBURSEMENTS.REIMBURSED_AT,
+        REIMBURSEMENTS.DECLARED_BY,
+        REIMBURSEMENTS.DECLARED_AT,
+        REIMBURSEMENT_REVIEW_DECISIONS.DECISION,
+        REIMBURSEMENT_REVIEW_DECISIONS.DECIDED_AT,
+        REIMBURSEMENT_REVIEW_DECISIONS.REJECTION_REASON,
+    ).from(REIMBURSEMENTS)
+        .leftJoin(REIMBURSEMENT_REVIEW_DECISIONS)
+        .on(REIMBURSEMENT_REVIEW_DECISIONS.REIMBURSEMENT.eq(REIMBURSEMENTS.ID))
+        .and(REIMBURSEMENT_REVIEW_DECISIONS.GROUP.eq(REIMBURSEMENTS.GROUP))
 
 private suspend fun DSLContext.persistRoot(reimbursement: Reimbursement) {
     insertInto(REIMBURSEMENTS)
@@ -215,7 +244,16 @@ private suspend fun DSLContext.findSupportingDocuments(
     reimbursement: ReimbursementId,
     group: GroupId,
 ): List<ReimbursementSupportingDocument> =
-    select(
+    findSupportingDocuments(listOf(reimbursement), group).map { (_, supportingDocument) -> supportingDocument }
+
+private suspend fun DSLContext.findSupportingDocuments(
+    reimbursements: List<ReimbursementId>,
+    group: GroupId,
+): List<Pair<ReimbursementId, ReimbursementSupportingDocument>> {
+    if (reimbursements.isEmpty()) return emptyList()
+
+    return select(
+        REIMBURSEMENT_SUPPORTING_DOCUMENTS.REIMBURSEMENT,
         DOCUMENT_UPLOAD_INTENTS.ID,
         DOCUMENT_UPLOAD_INTENTS.GROUP,
         DOCUMENT_UPLOAD_INTENTS.UPLOADER,
@@ -230,11 +268,18 @@ private suspend fun DSLContext.findSupportingDocuments(
         .join(DOCUMENT_UPLOAD_INTENTS)
         .on(DOCUMENT_UPLOAD_INTENTS.ID.eq(REIMBURSEMENT_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT))
         .and(DOCUMENT_UPLOAD_INTENTS.GROUP.eq(REIMBURSEMENT_SUPPORTING_DOCUMENTS.GROUP))
-        .where(REIMBURSEMENT_SUPPORTING_DOCUMENTS.REIMBURSEMENT.eq(reimbursement.toPrimitive()))
+        .where(REIMBURSEMENT_SUPPORTING_DOCUMENTS.REIMBURSEMENT.`in`(reimbursements.map(ReimbursementId::toPrimitive)))
         .and(REIMBURSEMENT_SUPPORTING_DOCUMENTS.GROUP.eq(group.toPrimitive()))
-        .orderBy(DOCUMENT_UPLOAD_INTENTS.CONSUMED_AT, DOCUMENT_UPLOAD_INTENTS.ID)
-        .awaitList()
-        .map(Record::toSupportingDocument)
+        .orderBy(
+            REIMBURSEMENT_SUPPORTING_DOCUMENTS.REIMBURSEMENT,
+            DOCUMENT_UPLOAD_INTENTS.CONSUMED_AT,
+            DOCUMENT_UPLOAD_INTENTS.ID,
+        ).awaitList()
+        .map { record ->
+            ReimbursementId(record.get(REIMBURSEMENT_SUPPORTING_DOCUMENTS.REIMBURSEMENT)) to
+                record.toSupportingDocument()
+        }
+}
 
 private fun Record.toSupportingDocument(): ReimbursementSupportingDocument {
     require(get(DOCUMENT_UPLOAD_INTENTS.STATUS) == "CONSUMED") {
@@ -282,19 +327,24 @@ private fun Record.toStatus(
     declaredAt: java.time.Instant,
 ): ReimbursementStatus =
     when (get(REIMBURSEMENT_REVIEW_DECISIONS.DECISION)) {
-        ReimbursementReviewDecision.ACCEPTED ->
+        ReimbursementReviewDecision.ACCEPTED -> {
             ReimbursementStatus.Accepted(requireNotNull(get(REIMBURSEMENT_REVIEW_DECISIONS.DECIDED_AT)).toInstant())
-        ReimbursementReviewDecision.REJECTED ->
+        }
+
+        ReimbursementReviewDecision.REJECTED -> {
             ReimbursementStatus.Rejected(
                 decidedAt = requireNotNull(get(REIMBURSEMENT_REVIEW_DECISIONS.DECIDED_AT)).toInstant(),
                 reason = get(REIMBURSEMENT_REVIEW_DECISIONS.REJECTION_REASON)?.let(ReimbursementRejectionReason::of),
             )
-        null ->
+        }
+
+        null -> {
             if (declaredBy == receivedBy) {
                 ReimbursementStatus.Accepted(declaredAt)
             } else {
                 ReimbursementStatus.PendingReview
             }
+        }
     }
 
 private fun Reimbursement.hasSameStateAs(expected: Reimbursement): Boolean =

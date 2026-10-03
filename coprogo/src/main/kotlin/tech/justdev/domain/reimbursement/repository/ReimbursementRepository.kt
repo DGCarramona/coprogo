@@ -10,5 +10,7 @@ interface ReimbursementRepository {
         group: GroupId,
     ): Reimbursement?
 
+    suspend fun findByGroup(group: GroupId): List<Reimbursement>
+
     suspend fun persist(reimbursement: Reimbursement)
 }
