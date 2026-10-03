@@ -29,6 +29,7 @@ import tech.justdev.infrastructure.persistence.jooq.tables.LedgerMemberCashPoolS
 import tech.justdev.infrastructure.persistence.jooq.tables.Members;
 import tech.justdev.infrastructure.persistence.jooq.tables.OwnershipShareAllocations;
 import tech.justdev.infrastructure.persistence.jooq.tables.OwnershipShareChanges;
+import tech.justdev.infrastructure.persistence.jooq.tables.ReimbursementReviewDecisions;
 import tech.justdev.infrastructure.persistence.jooq.tables.ReimbursementSupportingDocuments;
 import tech.justdev.infrastructure.persistence.jooq.tables.Reimbursements;
 import tech.justdev.infrastructure.persistence.jooq.tables.SupportingDocumentAttachments;
@@ -128,6 +129,11 @@ public class Public extends SchemaImpl {
     public final OwnershipShareChanges OWNERSHIP_SHARE_CHANGES = OwnershipShareChanges.OWNERSHIP_SHARE_CHANGES;
 
     /**
+     * The table <code>public.reimbursement_review_decisions</code>.
+     */
+    public final ReimbursementReviewDecisions REIMBURSEMENT_REVIEW_DECISIONS = ReimbursementReviewDecisions.REIMBURSEMENT_REVIEW_DECISIONS;
+
+    /**
      * The table <code>public.reimbursement_supporting_documents</code>.
      */
     public final ReimbursementSupportingDocuments REIMBURSEMENT_SUPPORTING_DOCUMENTS = ReimbursementSupportingDocuments.REIMBURSEMENT_SUPPORTING_DOCUMENTS;
@@ -185,6 +191,7 @@ public class Public extends SchemaImpl {
             Members.MEMBERS,
             OwnershipShareAllocations.OWNERSHIP_SHARE_ALLOCATIONS,
             OwnershipShareChanges.OWNERSHIP_SHARE_CHANGES,
+            ReimbursementReviewDecisions.REIMBURSEMENT_REVIEW_DECISIONS,
             ReimbursementSupportingDocuments.REIMBURSEMENT_SUPPORTING_DOCUMENTS,
             Reimbursements.REIMBURSEMENTS,
             SupportingDocumentAttachments.SUPPORTING_DOCUMENT_ATTACHMENTS

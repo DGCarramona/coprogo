@@ -37,7 +37,6 @@ import tech.justdev.infrastructure.persistence.jooq.Domains;
 import tech.justdev.infrastructure.persistence.jooq.Indexes;
 import tech.justdev.infrastructure.persistence.jooq.Keys;
 import tech.justdev.infrastructure.persistence.jooq.Public;
-import tech.justdev.infrastructure.persistence.jooq.enums.ReimbursementStatus;
 
 
 /**
@@ -101,16 +100,6 @@ public class Reimbursements extends TableImpl<Record> {
      */
     public final TableField<Record, OffsetDateTime> DECLARED_AT = createField(DSL.name("declared_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false), this, "");
 
-    /**
-     * The column <code>public.reimbursements.status</code>.
-     */
-    public final TableField<Record, ReimbursementStatus> STATUS = createField(DSL.name("status"), SQLDataType.VARCHAR.nullable(false).asEnumDataType(ReimbursementStatus.class), this, "");
-
-    /**
-     * The column <code>public.reimbursements.accepted_at</code>.
-     */
-    public final TableField<Record, OffsetDateTime> ACCEPTED_AT = createField(DSL.name("accepted_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "");
-
     private Reimbursements(Name alias, Table<Record> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }
@@ -157,7 +146,7 @@ public class Reimbursements extends TableImpl<Record> {
 
     @Override
     public List<UniqueKey<Record>> getUniqueKeys() {
-        return Arrays.asList(Keys.REIMBURSEMENTS_ID_GROUP_DECLARER_UNIQUE);
+        return Arrays.asList(Keys.REIMBURSEMENTS_ID_GROUP_DECLARER_UNIQUE, Keys.REIMBURSEMENTS_ID_GROUP_RECEIVER_UNIQUE);
     }
 
     @Override
@@ -170,8 +159,7 @@ public class Reimbursements extends TableImpl<Record> {
         return Arrays.asList(
             Internal.createCheck(this, DSL.name("reimbursements_declarer_check"), "((((declared_by)::text = (paid_by)::text) OR ((declared_by)::text = (received_by)::text)))", true),
             Internal.createCheck(this, DSL.name("reimbursements_occurred_before_declaration_check"), "((reimbursed_at <= declared_at))", true),
-            Internal.createCheck(this, DSL.name("reimbursements_payer_receiver_different_check"), "(((paid_by)::text <> (received_by)::text))", true),
-            Internal.createCheck(this, DSL.name("reimbursements_status_acceptance_check"), "((((status = 'PENDING_REVIEW'::reimbursement_status) AND ((declared_by)::text = (paid_by)::text) AND (accepted_at IS NULL)) OR ((status = 'ACCEPTED'::reimbursement_status) AND (accepted_at IS NOT NULL) AND (accepted_at >= declared_at))))", true)
+            Internal.createCheck(this, DSL.name("reimbursements_payer_receiver_different_check"), "(((paid_by)::text <> (received_by)::text))", true)
         );
     }
 

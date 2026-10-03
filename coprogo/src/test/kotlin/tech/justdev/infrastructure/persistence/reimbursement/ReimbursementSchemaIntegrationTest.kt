@@ -16,9 +16,11 @@ import tech.justdev.testsupport.groupUuid
 import tech.justdev.testsupport.memberEmail
 import tech.justdev.testsupport.memberEmailString
 import tech.justdev.testsupport.testUuid
+import java.nio.charset.StandardCharsets
 import java.sql.SQLException
 import java.time.Instant
 import java.time.ZoneOffset
+import java.util.UUID
 import javax.sql.DataSource
 
 @PostgresMicronautTest
@@ -41,7 +43,7 @@ class ReimbursementSchemaIntegrationTest {
 
                 assertEquals(
                     1,
-                    insertReimbursement("direct", "direct", status = "ACCEPTED", declaredBy = receiver("direct"), acceptedAt = ACCEPTED_AT),
+                    insertReimbursement("direct", "direct", declaredBy = receiver("direct")),
                 )
             }
 
@@ -49,7 +51,7 @@ class ReimbursementSchemaIntegrationTest {
         fun `should attach several consumed documents to a pending reimbursement`() =
             runTest {
                 seedGroup("pending")
-                insertReimbursement("pending", "documented", status = "PENDING_REVIEW", declaredBy = payer("pending"))
+                insertReimbursement("pending", "documented", declaredBy = payer("pending"))
                 listOf("first", "second").forEach { documentSeed ->
                     insertConsumedIntent("pending", documentSeed, payer("pending"))
                     insertRegistry("pending", documentSeed, "REIMBURSEMENT")
@@ -78,16 +80,186 @@ class ReimbursementSchemaIntegrationTest {
     @Nested
     inner class EnumTypes {
         @Test
-        fun `should expose the exact reimbursement and supporting document enum values`() {
+        fun `should expose only the review decision and supporting document enum values`() {
             assertEquals(
-                listOf("PENDING_REVIEW", "ACCEPTED"),
+                emptyList<String>(),
                 enumLabels("reimbursement_status"),
             )
             assertEquals(
                 listOf("EXPENSE", "REIMBURSEMENT"),
                 enumLabels("supporting_document_attachment_type"),
             )
+            assertEquals(
+                listOf("ACCEPTED", "REJECTED"),
+                enumLabels("reimbursement_review_decision"),
+            )
         }
+    }
+
+    @Nested
+    inner class PersistedState {
+        @Test
+        fun `should not persist a redundant reimbursement status`() {
+            assertEquals(
+                listOf(
+                    "id",
+                    "group",
+                    "paid_by",
+                    "received_by",
+                    "amount",
+                    "reimbursed_at",
+                    "declared_by",
+                    "declared_at",
+                ),
+                reimbursementColumnNames(),
+            )
+        }
+    }
+
+    @Nested
+    inner class ReviewDecisionHistory {
+        @Test
+        fun `should append accepted and rejected review decisions`() =
+            runTest {
+                seedGroup("review-history")
+                listOf("accepted", "rejected", "rejected-without-reason").forEach { reimbursementSeed ->
+                    insertReimbursement(
+                        "review-history",
+                        reimbursementSeed,
+                        declaredBy = payer("review-history"),
+                    )
+                }
+
+                insertReviewDecision("review-history", "accepted", "ACCEPTED", ACCEPTED_AT)
+                insertReviewDecision(
+                    "review-history",
+                    "rejected",
+                    "REJECTED",
+                    ACCEPTED_AT.plusSeconds(1),
+                    "Le justificatif ne correspond pas au paiement",
+                )
+                insertReviewDecision(
+                    "review-history",
+                    "rejected-without-reason",
+                    "REJECTED",
+                    ACCEPTED_AT.plusSeconds(2),
+                )
+
+                assertEquals(
+                    listOf(
+                        ReviewDecisionRow("ACCEPTED", ACCEPTED_AT, null),
+                        ReviewDecisionRow(
+                            "REJECTED",
+                            ACCEPTED_AT.plusSeconds(1),
+                            "Le justificatif ne correspond pas au paiement",
+                        ),
+                        ReviewDecisionRow("REJECTED", ACCEPTED_AT.plusSeconds(2), null),
+                    ),
+                    reviewDecisions("review-history"),
+                )
+            }
+
+        @Test
+        fun `should reject incoherent review decisions`() =
+            runTest {
+                seedGroup("review-constraints")
+                insertReimbursement(
+                    "review-constraints",
+                    "pending",
+                    declaredBy = payer("review-constraints"),
+                )
+                insertReimbursement(
+                    "review-constraints",
+                    "direct",
+                    declaredBy = receiver("review-constraints"),
+                )
+
+                val errors =
+                    listOf(
+                        assertThrows<SQLException> {
+                            insertReviewDecision(
+                                "review-constraints",
+                                "pending",
+                                "ACCEPTED",
+                                ACCEPTED_AT,
+                                reviewedBy = payer("review-constraints"),
+                            )
+                        },
+                        assertThrows<SQLException> {
+                            insertReviewDecision(
+                                "review-constraints",
+                                "pending",
+                                "ACCEPTED",
+                                DECLARED_AT.minusSeconds(1),
+                            )
+                        },
+                        assertThrows<SQLException> {
+                            insertReviewDecision("review-constraints", "direct", "ACCEPTED", ACCEPTED_AT)
+                        },
+                        assertThrows<SQLException> {
+                            insertReviewDecision(
+                                "review-constraints",
+                                "pending",
+                                "ACCEPTED",
+                                ACCEPTED_AT,
+                                "acceptance must not have a reason",
+                            )
+                        },
+                        assertThrows<SQLException> {
+                            insertReviewDecision(
+                                "review-constraints",
+                                "pending",
+                                "REJECTED",
+                                ACCEPTED_AT,
+                                "   ",
+                            )
+                        },
+                    )
+
+                assertEquals(
+                    listOf("23503", "23514", "23514", "23514", "23514"),
+                    errors.map { it.sqlState },
+                )
+            }
+
+        @Test
+        fun `should allow only one terminal review decision`() =
+            runTest {
+                seedGroup("single-review")
+                insertReimbursement(
+                    "single-review",
+                    "pending",
+                    declaredBy = payer("single-review"),
+                )
+                insertReviewDecision("single-review", "pending", "ACCEPTED", ACCEPTED_AT)
+
+                val error =
+                    assertThrows<SQLException> {
+                        insertReviewDecision("single-review", "pending", "REJECTED", ACCEPTED_AT.plusSeconds(1))
+                    }
+
+                assertEquals("23505", error.sqlState)
+            }
+
+        @Test
+        fun `should forbid changing or deleting a recorded review decision`() =
+            runTest {
+                seedGroup("immutable-review")
+                insertReimbursement(
+                    "immutable-review",
+                    "pending",
+                    declaredBy = payer("immutable-review"),
+                )
+                insertReviewDecision("immutable-review", "pending", "ACCEPTED", ACCEPTED_AT)
+
+                val errors =
+                    listOf(
+                        assertThrows<SQLException> { updateReviewDecision("immutable-review", "pending") },
+                        assertThrows<SQLException> { deleteReviewDecision("immutable-review", "pending") },
+                    )
+
+                assertEquals(listOf("55000", "55000"), errors.map { it.sqlState })
+            }
     }
 
     @Nested
@@ -108,7 +280,7 @@ class ReimbursementSchemaIntegrationTest {
     @Nested
     inner class Constraints {
         @Test
-        fun `should reject inconsistent reimbursement members dates and statuses`() =
+        fun `should reject inconsistent reimbursement members and dates`() =
             runTest {
                 seedGroup("constraints")
                 val errors =
@@ -119,8 +291,6 @@ class ReimbursementSchemaIntegrationTest {
                                 "outsider",
                                 paidBy = outsider("constraints"),
                                 declaredBy = receiver("constraints"),
-                                status = "ACCEPTED",
-                                acceptedAt = ACCEPTED_AT,
                             )
                         },
                         assertThrows<SQLException> {
@@ -130,8 +300,6 @@ class ReimbursementSchemaIntegrationTest {
                                 paidBy = payer("constraints"),
                                 receivedBy = payer("constraints"),
                                 declaredBy = payer("constraints"),
-                                status = "ACCEPTED",
-                                acceptedAt = ACCEPTED_AT,
                             )
                         },
                         assertThrows<SQLException> {
@@ -140,8 +308,6 @@ class ReimbursementSchemaIntegrationTest {
                                 "late-declaration",
                                 reimbursedAt = DECLARED_AT.plusSeconds(1),
                                 declaredBy = receiver("constraints"),
-                                status = "ACCEPTED",
-                                acceptedAt = ACCEPTED_AT,
                             )
                         },
                         assertThrows<SQLException> {
@@ -149,48 +315,12 @@ class ReimbursementSchemaIntegrationTest {
                                 "constraints",
                                 "unrelated-declarer",
                                 declaredBy = outsider("constraints"),
-                                status = "ACCEPTED",
-                                acceptedAt = ACCEPTED_AT,
-                            )
-                        },
-                        assertThrows<SQLException> {
-                            insertReimbursement(
-                                "constraints",
-                                "pending-receiver",
-                                declaredBy = receiver("constraints"),
-                                status = "PENDING_REVIEW",
-                            )
-                        },
-                        assertThrows<SQLException> {
-                            insertReimbursement(
-                                "constraints",
-                                "pending-accepted-at",
-                                declaredBy = payer("constraints"),
-                                status = "PENDING_REVIEW",
-                                acceptedAt = ACCEPTED_AT,
-                            )
-                        },
-                        assertThrows<SQLException> {
-                            insertReimbursement(
-                                "constraints",
-                                "accepted-missing-time",
-                                declaredBy = receiver("constraints"),
-                                status = "ACCEPTED",
-                            )
-                        },
-                        assertThrows<SQLException> {
-                            insertReimbursement(
-                                "constraints",
-                                "accepted-too-early",
-                                declaredBy = receiver("constraints"),
-                                status = "ACCEPTED",
-                                acceptedAt = DECLARED_AT.minusSeconds(1),
                             )
                         },
                     )
 
                 assertEquals(
-                    listOf("23503", "23514", "23514", "23514", "23514", "23514", "23514", "23514"),
+                    listOf("23503", "23514", "23514", "23514"),
                     errors.map { it.sqlState },
                 )
             }
@@ -200,7 +330,7 @@ class ReimbursementSchemaIntegrationTest {
             runTest {
                 seedGroup("documents")
                 seedGroup("other-documents")
-                insertReimbursement("documents", "pending", status = "PENDING_REVIEW", declaredBy = payer("documents"))
+                insertReimbursement("documents", "pending", declaredBy = payer("documents"))
                 insertReadyIntent("documents", "ready", payer("documents"))
                 insertConsumedIntent("documents", "wrong-uploader", receiver("documents"))
                 insertConsumedIntent("documents", "wrong-group", payer("documents"))
@@ -238,6 +368,7 @@ class ReimbursementSchemaIntegrationTest {
     private fun clearReimbursementFixture(groupSeed: String) {
         dataSource.connection.use { connection ->
             listOf(
+                "reimbursement_review_decisions",
                 "reimbursement_supporting_documents",
                 "supporting_document_attachments",
                 "document_upload_intents",
@@ -251,6 +382,100 @@ class ReimbursementSchemaIntegrationTest {
         }
     }
 
+    private fun insertReviewDecision(
+        groupSeed: String,
+        reimbursementSeed: String,
+        decision: String,
+        decidedAt: Instant,
+        rejectionReason: String? = null,
+        reviewedBy: String = receiver(groupSeed),
+    ): Int =
+        dataSource.connection.use { connection ->
+            connection
+                .prepareStatement(
+                    """
+                    INSERT INTO reimbursement_review_decisions (
+                        reimbursement, "group", reviewed_by, decision, decided_at, rejection_reason
+                    ) VALUES (?, ?, ?, ?::reimbursement_review_decision, ?, ?)
+                    """.trimIndent(),
+                ).use { statement ->
+                    statement.setObject(1, reimbursementUuid(groupSeed, reimbursementSeed))
+                    statement.setObject(2, groupUuid(groupSeed))
+                    statement.setString(3, reviewedBy)
+                    statement.setString(4, decision)
+                    statement.setObject(5, decidedAt.atOffset(ZoneOffset.UTC))
+                    statement.setString(6, rejectionReason)
+                    statement.executeUpdate()
+                }
+        }
+
+    private fun reviewDecisions(groupSeed: String): List<ReviewDecisionRow> =
+        dataSource.connection.use { connection ->
+            connection
+                .prepareStatement(
+                    """
+                    SELECT decision, decided_at, rejection_reason
+                    FROM reimbursement_review_decisions
+                    WHERE "group" = ?
+                    ORDER BY decided_at
+                    """.trimIndent(),
+                ).use { statement ->
+                    statement.setObject(1, groupUuid(groupSeed))
+                    statement.executeQuery().use { rows ->
+                        buildList {
+                            while (rows.next()) {
+                                add(
+                                    ReviewDecisionRow(
+                                        rows.getString("decision"),
+                                        rows.getObject("decided_at", java.time.OffsetDateTime::class.java).toInstant(),
+                                        rows.getString("rejection_reason"),
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                }
+        }
+
+    private fun updateReviewDecision(
+        groupSeed: String,
+        reimbursementSeed: String,
+    ) {
+        dataSource.connection.use { connection ->
+            connection
+                .prepareStatement(
+                    """
+                    UPDATE reimbursement_review_decisions
+                    SET decision = 'REJECTED', rejection_reason = 'changed'
+                    WHERE "group" = ? AND reimbursement = ?
+                    """.trimIndent(),
+                ).use { statement ->
+                    statement.setObject(1, groupUuid(groupSeed))
+                    statement.setObject(2, reimbursementUuid(groupSeed, reimbursementSeed))
+                    statement.executeUpdate()
+                }
+        }
+    }
+
+    private fun deleteReviewDecision(
+        groupSeed: String,
+        reimbursementSeed: String,
+    ) {
+        dataSource.connection.use { connection ->
+            connection
+                .prepareStatement(
+                    """
+                    DELETE FROM reimbursement_review_decisions
+                    WHERE "group" = ? AND reimbursement = ?
+                    """.trimIndent(),
+                ).use { statement ->
+                    statement.setObject(1, groupUuid(groupSeed))
+                    statement.setObject(2, reimbursementUuid(groupSeed, reimbursementSeed))
+                    statement.executeUpdate()
+                }
+        }
+    }
+
     private fun insertReimbursement(
         groupSeed: String,
         reimbursementSeed: String,
@@ -258,8 +483,6 @@ class ReimbursementSchemaIntegrationTest {
         receivedBy: String = receiver(groupSeed),
         reimbursedAt: Instant = REIMBURSED_AT,
         declaredBy: String,
-        status: String,
-        acceptedAt: Instant? = null,
     ): Int =
         dataSource.connection.use { connection ->
             connection
@@ -267,11 +490,11 @@ class ReimbursementSchemaIntegrationTest {
                     """
                     INSERT INTO reimbursements (
                         id, "group", paid_by, received_by, amount, reimbursed_at,
-                        declared_by, declared_at, status, accepted_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?::reimbursement_status, ?)
+                        declared_by, declared_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """.trimIndent(),
                 ).use { statement ->
-                    statement.setObject(1, reimbursementUuid(reimbursementSeed))
+                    statement.setObject(1, reimbursementUuid(groupSeed, reimbursementSeed))
                     statement.setObject(2, groupUuid(groupSeed))
                     statement.setString(3, paidBy)
                     statement.setString(4, receivedBy)
@@ -279,8 +502,6 @@ class ReimbursementSchemaIntegrationTest {
                     statement.setObject(6, reimbursedAt.atOffset(ZoneOffset.UTC))
                     statement.setString(7, declaredBy)
                     statement.setObject(8, DECLARED_AT.atOffset(ZoneOffset.UTC))
-                    statement.setString(9, status)
-                    statement.setObject(10, acceptedAt?.atOffset(ZoneOffset.UTC))
                     statement.executeUpdate()
                 }
         }
@@ -371,7 +592,7 @@ class ReimbursementSchemaIntegrationTest {
                 ).use { statement ->
                     statement.setObject(1, uploadIntentUuid(intentSeed))
                     statement.setObject(2, groupUuid(groupSeed))
-                    statement.setObject(3, reimbursementUuid(reimbursementSeed))
+                    statement.setObject(3, reimbursementUuid(groupSeed, reimbursementSeed))
                     statement.setString(4, uploader)
                     statement.executeUpdate()
                 }
@@ -393,7 +614,7 @@ class ReimbursementSchemaIntegrationTest {
                     """.trimIndent(),
                 ).use { statement ->
                     statement.setObject(1, groupUuid(groupSeed))
-                    statement.setObject(2, reimbursementUuid(reimbursementSeed))
+                    statement.setObject(2, reimbursementUuid(groupSeed, reimbursementSeed))
                     statement.executeQuery().use { rows ->
                         buildList {
                             while (rows.next()) {
@@ -417,6 +638,23 @@ class ReimbursementSchemaIntegrationTest {
                     """.trimIndent(),
                 ).use { statement ->
                     statement.setString(1, typeName)
+                    statement.executeQuery().use { rows ->
+                        buildList { while (rows.next()) add(rows.getString(1)) }
+                    }
+                }
+        }
+
+    private fun reimbursementColumnNames(): List<String> =
+        dataSource.connection.use { connection ->
+            connection
+                .prepareStatement(
+                    """
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_schema = 'public' AND table_name = 'reimbursements'
+                    ORDER BY ordinal_position
+                    """.trimIndent(),
+                ).use { statement ->
                     statement.executeQuery().use { rows ->
                         buildList { while (rows.next()) add(rows.getString(1)) }
                     }
@@ -447,7 +685,13 @@ class ReimbursementSchemaIntegrationTest {
 
     private fun outsider(groupSeed: String): String = memberEmailString("$groupSeed-outsider")
 
-    private fun reimbursementUuid(seed: String) = testUuid("reimbursement:$seed")
+    private fun reimbursementUuid(
+        groupSeed: String,
+        reimbursementSeed: String,
+    ): UUID =
+        UUID.nameUUIDFromBytes(
+            "reimbursement:$groupSeed:$reimbursementSeed".toByteArray(StandardCharsets.UTF_8),
+        )
 
     private fun uploadIntentUuid(seed: String) = testUuid("rd:$seed")
 
@@ -456,6 +700,12 @@ class ReimbursementSchemaIntegrationTest {
             uploadIntentUuid("first").toString() to "first",
             uploadIntentUuid("second").toString() to "second",
         ).getValue(uploadIntent)
+
+    private data class ReviewDecisionRow(
+        val decision: String,
+        val decidedAt: Instant,
+        val rejectionReason: String?,
+    )
 
     private companion object {
         val CREATED_AT: Instant = Instant.parse("2026-10-01T10:00:00Z")

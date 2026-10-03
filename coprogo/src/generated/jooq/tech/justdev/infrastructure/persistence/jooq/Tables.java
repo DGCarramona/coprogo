@@ -20,6 +20,7 @@ import tech.justdev.infrastructure.persistence.jooq.tables.LedgerMemberCashPoolS
 import tech.justdev.infrastructure.persistence.jooq.tables.Members;
 import tech.justdev.infrastructure.persistence.jooq.tables.OwnershipShareAllocations;
 import tech.justdev.infrastructure.persistence.jooq.tables.OwnershipShareChanges;
+import tech.justdev.infrastructure.persistence.jooq.tables.ReimbursementReviewDecisions;
 import tech.justdev.infrastructure.persistence.jooq.tables.ReimbursementSupportingDocuments;
 import tech.justdev.infrastructure.persistence.jooq.tables.Reimbursements;
 import tech.justdev.infrastructure.persistence.jooq.tables.SupportingDocumentAttachments;
@@ -110,6 +111,11 @@ public class Tables {
      * The table <code>public.ownership_share_changes</code>.
      */
     public static final OwnershipShareChanges OWNERSHIP_SHARE_CHANGES = OwnershipShareChanges.OWNERSHIP_SHARE_CHANGES;
+
+    /**
+     * The table <code>public.reimbursement_review_decisions</code>.
+     */
+    public static final ReimbursementReviewDecisions REIMBURSEMENT_REVIEW_DECISIONS = ReimbursementReviewDecisions.REIMBURSEMENT_REVIEW_DECISIONS;
 
     /**
      * The table <code>public.reimbursement_supporting_documents</code>.
