@@ -93,7 +93,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 - [x] BE-REB-003C Ajouter la migration Flyway append-only de l'historique des decisions de revue avant les repositories.
 - [x] BE-REB-004A Creer le repository de remboursement et son adaptateur R2DBC pour la lecture unitaire et la persistance.
 - [x] BE-REB-004B Ajouter la lecture set-based des remboursements d'un groupe.
-- [ ] BE-REB-005 Implementer le cas d'usage "Alice enregistre que Bob l'a rembourse" sans confirmation de Bob.
+- [x] BE-REB-005 Implementer le cas d'usage "Alice enregistre que Bob l'a rembourse" sans confirmation de Bob.
 - [ ] BE-REB-006 Implementer le cas d'usage "Bob declare qu'il a rembourse Alice avec justificatif".
 - [ ] BE-REB-007 Implementer le cas d'usage de rejet d'un remboursement conteste par le crediteur.
 - [ ] BE-REB-008 Produire les effets ledger associes aux remboursements acceptes.
