@@ -1,6 +1,7 @@
 package tech.justdev.domain.reimbursement.entity
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -14,6 +15,7 @@ import tech.justdev.domain.document.valueobject.DocumentStorageKey
 import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.reimbursement.valueobject.ReimbursementId
+import tech.justdev.domain.reimbursement.valueobject.ReimbursementRejectionReason
 import tech.justdev.domain.reimbursement.valueobject.ReimbursementStatus
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.domain.shared.valueobject.GroupId
@@ -199,6 +201,139 @@ class ReimbursementTest {
     }
 
     @Nested
+    inner class Accept {
+        @Test
+        fun `should accept a documented reimbursement when its receiver reviews it`() {
+            val acceptedAt = DECLARED_AT.plusSeconds(60)
+
+            val reimbursement =
+                declaredReimbursement().accept(
+                    reviewedBy = memberEmail("alice"),
+                    acceptedAt = acceptedAt,
+                )
+
+            assertEquals(ReimbursementStatus.Accepted(acceptedAt), reimbursement.status)
+        }
+
+        @Test
+        fun `should reject an acceptance recorded by someone other than its receiver`() {
+            val error =
+                assertThrows<IllegalArgumentException> {
+                    declaredReimbursement().accept(
+                        reviewedBy = memberEmail("bob"),
+                        acceptedAt = DECLARED_AT,
+                    )
+                }
+
+            assertEquals("only the reimbursement receiver can review it", error.message)
+        }
+
+        @Test
+        fun `should reject an acceptance before its declaration`() {
+            val error =
+                assertThrows<IllegalArgumentException> {
+                    declaredReimbursement().accept(
+                        reviewedBy = memberEmail("alice"),
+                        acceptedAt = DECLARED_AT.minusNanos(1),
+                    )
+                }
+
+            assertEquals("reimbursement review decision must not precede its declaration", error.message)
+        }
+    }
+
+    @Nested
+    inner class Reject {
+        @Test
+        fun `should retain an optional rejection reason and supporting documents when its receiver rejects it`() {
+            val rejectedAt = DECLARED_AT.plusSeconds(60)
+            val rejectionReason = ReimbursementRejectionReason.of("The supporting document does not match the payment")
+            val declaredReimbursement = declaredReimbursement()
+
+            val reimbursement =
+                declaredReimbursement.reject(
+                    reviewedBy = memberEmail("alice"),
+                    rejectedAt = rejectedAt,
+                    reason = rejectionReason,
+                )
+
+            val status = assertInstanceOf(ReimbursementStatus.Rejected::class.java, reimbursement.status)
+            assertEquals(rejectedAt, status.decidedAt)
+            assertEquals(rejectionReason, status.reason)
+            assertEquals(declaredReimbursement.supportingDocuments, reimbursement.supportingDocuments)
+        }
+
+        @Test
+        fun `should allow its receiver to reject a documented reimbursement without a reason`() {
+            val rejectedAt = DECLARED_AT.plusSeconds(60)
+
+            val reimbursement =
+                declaredReimbursement().reject(
+                    reviewedBy = memberEmail("alice"),
+                    rejectedAt = rejectedAt,
+                )
+
+            assertEquals(ReimbursementStatus.Rejected(rejectedAt, null), reimbursement.status)
+        }
+
+        @Test
+        fun `should reject a rejection recorded by someone other than its receiver`() {
+            val error =
+                assertThrows<IllegalArgumentException> {
+                    declaredReimbursement().reject(
+                        reviewedBy = memberEmail("bob"),
+                        rejectedAt = DECLARED_AT,
+                    )
+                }
+
+            assertEquals("only the reimbursement receiver can review it", error.message)
+        }
+
+        @Test
+        fun `should reject a rejection before its declaration`() {
+            val error =
+                assertThrows<IllegalArgumentException> {
+                    declaredReimbursement().reject(
+                        reviewedBy = memberEmail("alice"),
+                        rejectedAt = DECLARED_AT.minusNanos(1),
+                    )
+                }
+
+            assertEquals("reimbursement review decision must not precede its declaration", error.message)
+        }
+
+        @Test
+        fun `should reject a rejection after an acceptance`() {
+            val error =
+                assertThrows<IllegalArgumentException> {
+                    declaredReimbursement()
+                        .accept(
+                            reviewedBy = memberEmail("alice"),
+                            acceptedAt = DECLARED_AT,
+                        ).reject(
+                            reviewedBy = memberEmail("alice"),
+                            rejectedAt = DECLARED_AT.plusSeconds(60),
+                        )
+                }
+
+            assertEquals("reimbursement is not awaiting review", error.message)
+        }
+
+        @Test
+        fun `should reject a rejection for an immediately accepted direct reimbursement`() {
+            val error =
+                assertThrows<IllegalArgumentException> {
+                    directReimbursement().reject(
+                        reviewedBy = memberEmail("alice"),
+                        rejectedAt = DECLARED_AT.plusSeconds(60),
+                    )
+                }
+
+            assertEquals("reimbursement is not awaiting review", error.message)
+        }
+    }
+
+    @Nested
     inner class Restore {
         @Test
         fun `should restore an accepted reimbursement`() {
@@ -354,6 +489,74 @@ class ReimbursementTest {
                 )
 
             assertEquals(listOf(document), reimbursement.supportingDocuments)
+        }
+
+        @Test
+        fun `should restore a rejected documented reimbursement with its supporting documents`() {
+            val document = ReimbursementSupportingDocument.fromConsumedUploadIntent(consumedIntent("rejected-document"))
+            val decidedAt = DECLARED_AT.plusSeconds(60)
+            val rejectionReason = ReimbursementRejectionReason.of("The payment could not be verified")
+
+            val reimbursement =
+                Reimbursement.restore(
+                    id = ID,
+                    group = GROUP,
+                    paidBy = memberEmail("bob"),
+                    receivedBy = memberEmail("alice"),
+                    amount = MoneyAmount.ofCents(4_200),
+                    reimbursedAt = REIMBURSED_AT,
+                    declaredBy = memberEmail("bob"),
+                    declaredAt = DECLARED_AT,
+                    status = ReimbursementStatus.Rejected(decidedAt, rejectionReason),
+                    supportingDocuments = listOf(document),
+                )
+
+            assertEquals(ReimbursementStatus.Rejected(decidedAt, rejectionReason), reimbursement.status)
+            assertEquals(listOf(document), reimbursement.supportingDocuments)
+        }
+
+        @Test
+        fun `should reject an incoherent rejected reimbursement without supporting documents`() {
+            val error =
+                assertThrows<IllegalArgumentException> {
+                    Reimbursement.restore(
+                        id = ID,
+                        group = GROUP,
+                        paidBy = memberEmail("bob"),
+                        receivedBy = memberEmail("alice"),
+                        amount = MoneyAmount.ofCents(4_200),
+                        reimbursedAt = REIMBURSED_AT,
+                        declaredBy = memberEmail("alice"),
+                        declaredAt = DECLARED_AT,
+                        status = ReimbursementStatus.Rejected(DECLARED_AT, null),
+                    )
+                }
+
+            assertEquals("rejected reimbursement must keep its supporting documents", error.message)
+        }
+
+        @Test
+        fun `should reject a rejected reimbursement decided before its declaration`() {
+            val error =
+                assertThrows<IllegalArgumentException> {
+                    Reimbursement.restore(
+                        id = ID,
+                        group = GROUP,
+                        paidBy = memberEmail("bob"),
+                        receivedBy = memberEmail("alice"),
+                        amount = MoneyAmount.ofCents(4_200),
+                        reimbursedAt = REIMBURSED_AT,
+                        declaredBy = memberEmail("bob"),
+                        declaredAt = DECLARED_AT,
+                        status = ReimbursementStatus.Rejected(DECLARED_AT.minusNanos(1), null),
+                        supportingDocuments =
+                            listOf(
+                                ReimbursementSupportingDocument.fromConsumedUploadIntent(consumedIntent("early-rejection")),
+                            ),
+                    )
+                }
+
+            assertEquals("reimbursement rejection must not precede its declaration", error.message)
         }
 
         @Test

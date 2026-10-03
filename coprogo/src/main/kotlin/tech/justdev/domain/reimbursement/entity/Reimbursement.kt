@@ -3,6 +3,7 @@ package tech.justdev.domain.reimbursement.entity
 import tech.justdev.domain.document.entity.DocumentUploadIntent
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.reimbursement.valueobject.ReimbursementId
+import tech.justdev.domain.reimbursement.valueobject.ReimbursementRejectionReason
 import tech.justdev.domain.reimbursement.valueobject.ReimbursementStatus
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.domain.shared.valueobject.GroupId
@@ -20,6 +21,48 @@ class Reimbursement private constructor(
     val status: ReimbursementStatus,
     val supportingDocuments: List<ReimbursementSupportingDocument>,
 ) {
+    fun accept(
+        reviewedBy: MemberEmail,
+        acceptedAt: Instant,
+    ): Reimbursement {
+        requireReviewableBy(reviewedBy, acceptedAt)
+
+        return restoreWithStatus(ReimbursementStatus.Accepted(acceptedAt))
+    }
+
+    fun reject(
+        reviewedBy: MemberEmail,
+        rejectedAt: Instant,
+        reason: ReimbursementRejectionReason? = null,
+    ): Reimbursement {
+        requireReviewableBy(reviewedBy, rejectedAt)
+
+        return restoreWithStatus(ReimbursementStatus.Rejected(rejectedAt, reason))
+    }
+
+    private fun requireReviewableBy(
+        reviewedBy: MemberEmail,
+        decidedAt: Instant,
+    ) {
+        require(status == ReimbursementStatus.PendingReview) { "reimbursement is not awaiting review" }
+        require(reviewedBy == receivedBy) { "only the reimbursement receiver can review it" }
+        require(decidedAt >= declaredAt) { "reimbursement review decision must not precede its declaration" }
+    }
+
+    private fun restoreWithStatus(status: ReimbursementStatus): Reimbursement =
+        restore(
+            id = id,
+            group = group,
+            paidBy = paidBy,
+            receivedBy = receivedBy,
+            amount = amount,
+            reimbursedAt = reimbursedAt,
+            declaredBy = declaredBy,
+            declaredAt = declaredAt,
+            status = status,
+            supportingDocuments = supportingDocuments,
+        )
+
     companion object {
         fun recordDirect(
             id: ReimbursementId,
@@ -132,6 +175,15 @@ class Reimbursement private constructor(
                 is ReimbursementStatus.Accepted -> {
                     require(status.acceptedAt >= declaredAt) {
                         "reimbursement acceptance must not precede its declaration"
+                    }
+                }
+
+                is ReimbursementStatus.Rejected -> {
+                    require(status.decidedAt >= declaredAt) {
+                        "reimbursement rejection must not precede its declaration"
+                    }
+                    require(restoredSupportingDocuments.isNotEmpty()) {
+                        "rejected reimbursement must keep its supporting documents"
                     }
                 }
             }

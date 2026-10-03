@@ -8,4 +8,9 @@ sealed interface ReimbursementStatus {
     data class Accepted(
         val acceptedAt: Instant,
     ) : ReimbursementStatus
+
+    data class Rejected(
+        val decidedAt: Instant,
+        val reason: ReimbursementRejectionReason?,
+    ) : ReimbursementStatus
 }

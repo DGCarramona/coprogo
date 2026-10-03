@@ -89,7 +89,8 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 - [x] BE-REB-001 Introduire le modele de domaine pour un remboursement direct, immediatement accepte lorsqu'il est declare par son destinataire.
 - [x] BE-REB-002 Introduire le modele de domaine pour un remboursement declare par le debiteur avec justificatif contestable, portant ses snapshots documentaires et reutilisant le workflow d'upload intent sans repository generique d'association.
 - [x] BE-REB-003A Ajouter les migrations Flyway du schema actuel des remboursements et de leurs justificatifs.
-- [ ] BE-REB-003B Definir la semantique de la decision de revue avant d'ajouter son historique Flyway.
+- [x] BE-REB-003B Definir la semantique de la decision de revue avant d'ajouter son historique Flyway.
+- [ ] BE-REB-003C Ajouter la migration Flyway append-only de l'historique des decisions de revue avant les repositories.
 - [ ] BE-REB-004 Creer les repositories et adaptateurs R2DBC des remboursements.
 - [ ] BE-REB-005 Implementer le cas d'usage "Alice enregistre que Bob l'a rembourse" sans confirmation de Bob.
 - [ ] BE-REB-006 Implementer le cas d'usage "Bob declare qu'il a rembourse Alice avec justificatif".
