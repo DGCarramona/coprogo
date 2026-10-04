@@ -1,5 +1,6 @@
 package tech.justdev.application.support
 
+import tech.justdev.application.reimbursement.AcceptedReimbursementPersistence
 import tech.justdev.domain.expense.entity.Expense
 import tech.justdev.domain.expense.repository.ExpenseRepository
 import tech.justdev.domain.expense.valueobject.ExpenseId
@@ -63,6 +64,16 @@ class InMemoryReimbursementRepository(
     }
 
     fun findAll(): List<Reimbursement> = reimbursementsById.values.toList()
+}
+
+class InMemoryAcceptedReimbursementPersistence : AcceptedReimbursementPersistence {
+    private val reimbursements = mutableListOf<Reimbursement>()
+
+    override suspend fun persist(reimbursement: Reimbursement) {
+        reimbursements += reimbursement
+    }
+
+    fun findAll(): List<Reimbursement> = reimbursements.toList()
 }
 
 class InMemoryLedgerEventRepository(

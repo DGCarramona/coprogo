@@ -7,8 +7,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import tech.justdev.application.group.GroupAccessDeniedException
 import tech.justdev.application.group.GroupAccessPolicy
+import tech.justdev.application.support.InMemoryAcceptedReimbursementPersistence
 import tech.justdev.application.support.InMemoryGroupRepository
-import tech.justdev.application.support.InMemoryReimbursementRepository
 import tech.justdev.domain.group.entity.Group
 import tech.justdev.domain.reimbursement.entity.Reimbursement
 import tech.justdev.domain.reimbursement.valueobject.ReimbursementId
@@ -24,8 +24,8 @@ class RecordDirectReimbursementUseCaseTest {
         @Test
         fun `should persist an accepted reimbursement recorded by its receiver`() =
             runTest {
-                val repository = InMemoryReimbursementRepository()
-                val useCase = useCase(repository)
+                val persistence = InMemoryAcceptedReimbursementPersistence()
+                val useCase = useCase(persistence)
 
                 useCase(command())
 
@@ -42,32 +42,32 @@ class RecordDirectReimbursementUseCaseTest {
                             status = ReimbursementStatus.Accepted(DECLARED_AT),
                         ),
                     ),
-                    repository.findByGroup(GROUP).map { reimbursement -> reimbursement.toSnapshot() },
+                    persistence.findAll().map { reimbursement -> reimbursement.toSnapshot() },
                 )
             }
 
         @Test
         fun `should reject a recorder outside the group before generating an id`() {
-            val repository = InMemoryReimbursementRepository()
+            val persistence = InMemoryAcceptedReimbursementPersistence()
 
             assertThrows<GroupAccessDeniedException> {
                 runTest {
-                    useCase(repository, failingIdGenerator())(
+                    useCase(persistence, idGenerator = failingIdGenerator())(
                         command(recordedBy = "outsider"),
                     )
                 }
             }
-            assertEquals(emptyList<Reimbursement>(), repository.findAll())
+            assertEquals(emptyList<Reimbursement>(), persistence.findAll())
         }
 
         @Test
         fun `should reject a payer outside the group before generating an id`() {
-            val repository = InMemoryReimbursementRepository()
+            val persistence = InMemoryAcceptedReimbursementPersistence()
 
             val error =
                 assertThrows<IllegalArgumentException> {
                     runTest {
-                        useCase(repository, failingIdGenerator())(
+                        useCase(persistence, idGenerator = failingIdGenerator())(
                             command(paidBy = "outsider"),
                         )
                     }
@@ -77,12 +77,12 @@ class RecordDirectReimbursementUseCaseTest {
                 "reimbursement payer outsider@example.com is not part of group ${GROUP.toPrimitive()}",
                 error.message,
             )
-            assertEquals(emptyList<Reimbursement>(), repository.findAll())
+            assertEquals(emptyList<Reimbursement>(), persistence.findAll())
         }
     }
 
     private fun useCase(
-        repository: InMemoryReimbursementRepository,
+        persistence: AcceptedReimbursementPersistence,
         idGenerator: ReimbursementIdGenerator =
             ReimbursementIdGenerator {
                 ReimbursementId(testUuid("reimbursement:direct"))
@@ -91,7 +91,7 @@ class RecordDirectReimbursementUseCaseTest {
         RecordDirectReimbursementUseCaseImpl(
             groupAccessPolicy = GroupAccessPolicy(InMemoryGroupRepository(listOf(group()))),
             reimbursementIdGenerator = idGenerator,
-            reimbursementRepository = repository,
+            acceptedReimbursementPersistence = persistence,
         )
 
     private fun failingIdGenerator(): ReimbursementIdGenerator =

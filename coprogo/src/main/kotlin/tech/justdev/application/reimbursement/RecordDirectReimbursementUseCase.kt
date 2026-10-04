@@ -4,7 +4,6 @@ import jakarta.inject.Singleton
 import tech.justdev.application.group.GroupAccessPolicy
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.reimbursement.entity.Reimbursement
-import tech.justdev.domain.reimbursement.repository.ReimbursementRepository
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.domain.shared.valueobject.GroupId
 import java.time.Instant
@@ -26,7 +25,7 @@ interface RecordDirectReimbursementUseCase {
 class RecordDirectReimbursementUseCaseImpl(
     private val groupAccessPolicy: GroupAccessPolicy,
     private val reimbursementIdGenerator: ReimbursementIdGenerator,
-    private val reimbursementRepository: ReimbursementRepository,
+    private val acceptedReimbursementPersistence: AcceptedReimbursementPersistence,
 ) : RecordDirectReimbursementUseCase {
     override suspend operator fun invoke(command: RecordDirectReimbursementCommand) {
         val group = groupAccessPolicy.requireMember(command.group, command.recordedBy)
@@ -44,6 +43,6 @@ class RecordDirectReimbursementUseCaseImpl(
                 reimbursedAt = command.reimbursedAt,
                 declaredBy = command.recordedBy,
                 declaredAt = command.recordedAt,
-            ).let { reimbursement -> reimbursementRepository.persist(reimbursement) }
+            ).let { reimbursement -> acceptedReimbursementPersistence.persist(reimbursement) }
     }
 }
