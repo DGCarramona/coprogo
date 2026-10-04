@@ -96,7 +96,8 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 - [x] BE-REB-005 Implementer le cas d'usage "Alice enregistre que Bob l'a rembourse" sans confirmation de Bob.
 - [x] BE-REB-006 Implementer le cas d'usage "Bob declare qu'il a rembourse Alice avec justificatif".
 - [x] BE-REB-007 Implementer le cas d'usage de rejet d'un remboursement conteste par le crediteur.
-- [ ] BE-REB-008 Produire les effets ledger associes aux remboursements acceptes.
+- [x] BE-REB-008A Modeliser et persister l'effet ledger d'un remboursement accepte.
+- [ ] BE-REB-008B Produire atomiquement l'effet ledger lors de l'enregistrement ou de l'acceptation d'un remboursement.
 - [ ] BE-REB-009 Exposer les endpoints REST de creation, consultation et revue des remboursements.
 - [ ] BE-REB-010 Ajouter des tests d'integration sur les parcours de remboursement directs et contestables.
 

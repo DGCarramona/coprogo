@@ -12,6 +12,7 @@ import tech.justdev.infrastructure.persistence.jooq.tables.GroupInvitations;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupMemberships;
 import tech.justdev.infrastructure.persistence.jooq.tables.Groups;
 import tech.justdev.infrastructure.persistence.jooq.tables.LedgerAcceptedExpenseEvents;
+import tech.justdev.infrastructure.persistence.jooq.tables.LedgerAcceptedReimbursementEvents;
 import tech.justdev.infrastructure.persistence.jooq.tables.LedgerCashPoolIncomeEvents;
 import tech.justdev.infrastructure.persistence.jooq.tables.LedgerCashPoolWithdrawalEvents;
 import tech.justdev.infrastructure.persistence.jooq.tables.LedgerEvents;
@@ -71,6 +72,11 @@ public class Tables {
      * The table <code>public.ledger_accepted_expense_events</code>.
      */
     public static final LedgerAcceptedExpenseEvents LEDGER_ACCEPTED_EXPENSE_EVENTS = LedgerAcceptedExpenseEvents.LEDGER_ACCEPTED_EXPENSE_EVENTS;
+
+    /**
+     * The table <code>public.ledger_accepted_reimbursement_events</code>.
+     */
+    public static final LedgerAcceptedReimbursementEvents LEDGER_ACCEPTED_REIMBURSEMENT_EVENTS = LedgerAcceptedReimbursementEvents.LEDGER_ACCEPTED_REIMBURSEMENT_EVENTS;
 
     /**
      * The table <code>public.ledger_cash_pool_income_events</code>.

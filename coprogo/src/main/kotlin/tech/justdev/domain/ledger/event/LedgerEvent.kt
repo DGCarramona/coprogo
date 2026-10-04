@@ -9,6 +9,9 @@ import tech.justdev.domain.ledger.effect.LedgerEffect
 import tech.justdev.domain.ledger.effect.MemberBalanceTransfer
 import tech.justdev.domain.ledger.effect.MemberCashPoolShareDelta
 import tech.justdev.domain.ledger.valueobject.LedgerEventId
+import tech.justdev.domain.reimbursement.entity.Reimbursement
+import tech.justdev.domain.reimbursement.valueobject.ReimbursementId
+import tech.justdev.domain.reimbursement.valueobject.ReimbursementStatus
 import tech.justdev.domain.revenue.valueobject.RevenueDistribution
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.domain.shared.money.sum
@@ -62,6 +65,38 @@ data class AcceptedExpenseLedgerEvent(
                 paidBy = expense.createdBy,
                 occurredAt = expense.acceptedAt(),
                 transfers = transfers,
+            )
+        }
+    }
+}
+
+data class AcceptedReimbursementLedgerEvent(
+    override val id: LedgerEventId,
+    override val group: GroupId,
+    val reimbursement: ReimbursementId,
+    override val occurredAt: Instant,
+    val balanceTransfer: MemberBalanceTransfer,
+) : LedgerEvent {
+    override val effects: Set<LedgerEffect>
+        get() = setOf(balanceTransfer)
+
+    companion object {
+        fun from(reimbursement: Reimbursement): AcceptedReimbursementLedgerEvent {
+            require(reimbursement.status is ReimbursementStatus.Accepted) {
+                "reimbursement must be accepted before it can produce a ledger event"
+            }
+
+            return AcceptedReimbursementLedgerEvent(
+                id = LedgerEventId.fromName("accepted-reimbursement:${reimbursement.id.toPrimitive()}"),
+                group = reimbursement.group,
+                reimbursement = reimbursement.id,
+                occurredAt = reimbursement.status.acceptedAt,
+                balanceTransfer =
+                    MemberBalanceTransfer(
+                        fromMember = reimbursement.receivedBy,
+                        toMember = reimbursement.paidBy,
+                        amount = reimbursement.amount,
+                    ),
             )
         }
     }
