@@ -95,7 +95,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 - [x] BE-REB-004B Ajouter la lecture set-based des remboursements d'un groupe.
 - [x] BE-REB-005 Implementer le cas d'usage "Alice enregistre que Bob l'a rembourse" sans confirmation de Bob.
 - [x] BE-REB-006 Implementer le cas d'usage "Bob declare qu'il a rembourse Alice avec justificatif".
-- [ ] BE-REB-007 Implementer le cas d'usage de rejet d'un remboursement conteste par le crediteur.
+- [x] BE-REB-007 Implementer le cas d'usage de rejet d'un remboursement conteste par le crediteur.
 - [ ] BE-REB-008 Produire les effets ledger associes aux remboursements acceptes.
 - [ ] BE-REB-009 Exposer les endpoints REST de creation, consultation et revue des remboursements.
 - [ ] BE-REB-010 Ajouter des tests d'integration sur les parcours de remboursement directs et contestables.
