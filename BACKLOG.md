@@ -98,7 +98,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 - [x] BE-REB-007 Implementer le cas d'usage de rejet d'un remboursement conteste par le crediteur.
 - [x] BE-REB-008A Modeliser et persister l'effet ledger d'un remboursement accepte.
 - [x] BE-REB-008B Produire atomiquement l'effet ledger lors de l'enregistrement ou de l'acceptation d'un remboursement.
-- [ ] BE-REB-009 Exposer les endpoints REST de creation, consultation et revue des remboursements.
+- [x] BE-REB-009 Exposer les endpoints REST de creation, consultation et revue des remboursements.
 - [ ] BE-REB-010 Ajouter des tests d'integration sur les parcours de remboursement directs et contestables.
 
 ## Backend - caisse commune, balances et historique explicatif

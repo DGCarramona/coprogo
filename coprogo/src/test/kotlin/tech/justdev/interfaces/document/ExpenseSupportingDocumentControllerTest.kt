@@ -28,6 +28,7 @@ import tech.justdev.domain.document.valueobject.SupportingDocumentAttachmentDele
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.valueobject.GroupId
+import tech.justdev.interfaces.configuration.SupportingDocumentDownloadConfiguration
 import java.net.URI
 import java.time.Duration
 import java.time.Instant

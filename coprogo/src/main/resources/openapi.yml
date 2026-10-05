@@ -494,6 +494,184 @@ paths:
           description: recordOwnershipShareChange 204 response
       security:
       - bearerAuth: []
+  /api/groups/{groupId}/reimbursements:
+    get:
+      tags:
+      - Reimbursements
+      summary: List reimbursements for a group
+      operationId: listReimbursements
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: Reimbursements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReimbursementResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/reimbursements/direct:
+    post:
+      tags:
+      - Reimbursements
+      summary: Record a direct reimbursement
+      operationId: recordDirectReimbursement
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DirectReimbursementRequest"
+        required: true
+      responses:
+        "204":
+          description: Direct reimbursement recorded
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/reimbursements/documented:
+    post:
+      tags:
+      - Reimbursements
+      summary: Declare a documented reimbursement
+      operationId: declareDocumentedReimbursement
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentedReimbursementRequest"
+        required: true
+      responses:
+        "204":
+          description: Documented reimbursement declared
+        "409":
+          description: Supporting document upload intent is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/reimbursements/{reimbursementId}:
+    get:
+      tags:
+      - Reimbursements
+      summary: Get reimbursement details
+      operationId: getReimbursement
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: reimbursementId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: Reimbursement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReimbursementResponse"
+        "404":
+          description: Reimbursement is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/reimbursements/{reimbursementId}/acceptance:
+    post:
+      tags:
+      - Reimbursements
+      summary: Accept a documented reimbursement
+      operationId: acceptReimbursement
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: reimbursementId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: Reimbursement accepted
+        "404":
+          description: Reimbursement is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/reimbursements/{reimbursementId}/rejection:
+    post:
+      tags:
+      - Reimbursements
+      summary: Reject a documented reimbursement
+      operationId: rejectReimbursement
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: reimbursementId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReimbursementRejectionRequest"
+        required: true
+      responses:
+        "204":
+          description: Reimbursement rejected
+        "404":
+          description: Reimbursement is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+      security:
+      - bearerAuth: []
   /api/groups/{groupId}/revenue-distribution/preview:
     post:
       tags:
@@ -695,6 +873,51 @@ components:
           exclusiveMinimum: true
           type: integer
           format: int64
+    DirectReimbursementRequest:
+      required:
+      - amountInCents
+      - paidBy
+      - reimbursedAt
+      type: object
+      properties:
+        paidBy:
+          minLength: 1
+          type: string
+          format: email
+        amountInCents:
+          minimum: 0
+          exclusiveMinimum: true
+          type: integer
+          format: int64
+        reimbursedAt:
+          type: string
+          format: date-time
+    DocumentedReimbursementRequest:
+      required:
+      - amountInCents
+      - receivedBy
+      - reimbursedAt
+      - supportingDocumentUploadIntents
+      type: object
+      properties:
+        receivedBy:
+          minLength: 1
+          type: string
+          format: email
+        amountInCents:
+          minimum: 0
+          exclusiveMinimum: true
+          type: integer
+          format: int64
+        reimbursedAt:
+          type: string
+          format: date-time
+        supportingDocumentUploadIntents:
+          minItems: 1
+          type: array
+          items:
+            type: string
+            format: uuid
     EqualExpenseAllocationRequest:
       required:
       - participants
@@ -1202,6 +1425,102 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/OwnershipShareInput"
+    ReimbursementDocumentDownloadResponse:
+      required:
+      - expiresAt
+      - url
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        expiresAt:
+          type: string
+          format: date-time
+    ReimbursementRejectionRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          nullable: true
+    ReimbursementResponse:
+      required:
+      - amountInCents
+      - declaredAt
+      - declaredBy
+      - documents
+      - id
+      - paidBy
+      - receivedBy
+      - reimbursedAt
+      - status
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        paidBy:
+          type: string
+        receivedBy:
+          type: string
+        amountInCents:
+          type: integer
+          format: int64
+        reimbursedAt:
+          type: string
+          format: date-time
+        declaredBy:
+          type: string
+        declaredAt:
+          type: string
+          format: date-time
+        status:
+          $ref: "#/components/schemas/ReimbursementStatusResponse"
+        decidedAt:
+          type: string
+          format: date-time
+          nullable: true
+        rejectionReason:
+          type: string
+          nullable: true
+        documents:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReimbursementSupportingDocumentResponse"
+    ReimbursementStatusResponse:
+      type: string
+      enum:
+      - PENDING_REVIEW
+      - ACCEPTED
+      - REJECTED
+    ReimbursementSupportingDocumentResponse:
+      required:
+      - attachedAt
+      - download
+      - fileName
+      - mediaType
+      - sizeBytes
+      - sourceUploadIntent
+      - uploader
+      type: object
+      properties:
+        sourceUploadIntent:
+          type: string
+          format: uuid
+        fileName:
+          type: string
+        mediaType:
+          type: string
+        sizeBytes:
+          type: integer
+          format: int64
+        uploader:
+          type: string
+        attachedAt:
+          type: string
+          format: date-time
+        download:
+          $ref: "#/components/schemas/ReimbursementDocumentDownloadResponse"
     ReplaceExpenseSupportingDocumentRequest:
       required:
       - replacementUploadIntent

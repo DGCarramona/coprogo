@@ -1,6 +1,5 @@
 package tech.justdev.interfaces.document
 
-import io.micronaut.context.annotation.ConfigurationProperties
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
@@ -15,7 +14,6 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
-import jakarta.annotation.PostConstruct
 import tech.justdev.application.auth.AuthenticatedUserProvider
 import tech.justdev.application.document.ExpenseSupportingDocumentAuditAction
 import tech.justdev.application.document.ExpenseSupportingDocumentAuditEntrySnapshot
@@ -33,25 +31,11 @@ import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.shared.valueobject.GroupId
 import tech.justdev.interfaces.ApiErrorResponse
+import tech.justdev.interfaces.configuration.SupportingDocumentDownloadConfiguration
 import tech.justdev.interfaces.openapi.AuthenticatedApi
 import java.net.URI
-import java.time.Duration
 import java.time.Instant
 import java.util.UUID
-
-@ConfigurationProperties(SupportingDocumentDownloadConfiguration.PREFIX)
-class SupportingDocumentDownloadConfiguration {
-    var validFor: Duration = Duration.ofMinutes(5)
-
-    @PostConstruct
-    fun validate() {
-        require(validFor > Duration.ZERO) { "$PREFIX.valid-for must be strictly positive" }
-    }
-
-    companion object {
-        const val PREFIX = "coprogo.documents.download"
-    }
-}
 
 @Controller("/api")
 @AuthenticatedApi
