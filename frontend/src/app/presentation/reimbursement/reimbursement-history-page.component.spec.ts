@@ -7,6 +7,7 @@ import { provideRouter, RouterLink } from '@angular/router';
 
 import { ReimbursementHistoryPageComponent } from './reimbursement-history-page.component';
 import { ReimbursementHistoryPageViewModel } from './reimbursement-history-page.view-model';
+import { ReimbursementSupportingDocumentsComponent } from './reimbursement-supporting-documents.component';
 
 @Component({ selector: 'app-authenticated-shell', template: '<ng-content />' })
 class StubAuthenticatedShellComponent {
@@ -26,6 +27,7 @@ describe('ReimbursementHistoryPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('alice@example.com');
     expect(fixture.nativeElement.textContent).toContain('25,00\u00a0€');
     expect(fixture.nativeElement.textContent).toContain('1 oct. 2026');
+    expect(fixture.nativeElement.textContent).toContain('recu.pdf');
     expect(fixture.nativeElement.textContent).not.toContain('ACCEPTED');
   });
 
@@ -60,6 +62,7 @@ const createFixture = (
         MatButtonModule,
         MatCardModule,
         MatProgressBarModule,
+        ReimbursementSupportingDocumentsComponent,
         RouterLink,
       ],
       providers: [{ provide: ReimbursementHistoryPageViewModel, useValue: viewModel }],
@@ -77,6 +80,15 @@ class StubReimbursementHistoryPageViewModel {
       receivedBy: 'alice@example.com',
       amount: '25,00\u00a0€',
       reimbursedAt: '1 oct. 2026',
+      documents: [
+        {
+          sourceUploadIntent: 'upload-intent-1',
+          fileName: 'recu.pdf',
+          uploader: 'bob@example.com',
+          attachedAt: '1 oct. 2026',
+          downloadUrl: 'https://documents.example.test/recu.pdf',
+        },
+      ],
     },
   ]);
   readonly isLoading = signal(false);

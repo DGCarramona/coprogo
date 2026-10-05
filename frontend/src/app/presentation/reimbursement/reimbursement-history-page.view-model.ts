@@ -13,6 +13,15 @@ export interface ReimbursementHistoryViewItem {
   readonly receivedBy: string;
   readonly amount: string;
   readonly reimbursedAt: string;
+  readonly documents: readonly ReimbursementSupportingDocumentViewItem[];
+}
+
+export interface ReimbursementSupportingDocumentViewItem {
+  readonly sourceUploadIntent: string;
+  readonly fileName: string;
+  readonly uploader: string;
+  readonly attachedAt: string;
+  readonly downloadUrl: string;
 }
 
 @Injectable()
@@ -74,4 +83,11 @@ const toViewItem = (reimbursement: ReimbursementSummary): ReimbursementHistoryVi
   receivedBy: reimbursement.receivedBy,
   amount: formatMoneyFromCents(reimbursement.amountInCents),
   reimbursedAt: formatDate(reimbursement.reimbursedAt),
+  documents: reimbursement.documents.map((document) => ({
+    sourceUploadIntent: document.sourceUploadIntent,
+    fileName: document.fileName,
+    uploader: document.uploader,
+    attachedAt: formatDate(document.attachedAt),
+    downloadUrl: document.downloadTarget.url,
+  })),
 });

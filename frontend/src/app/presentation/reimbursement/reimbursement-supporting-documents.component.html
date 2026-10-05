@@ -1,0 +1,26 @@
+<section aria-label="Justificatifs joints au remboursement">
+  <h3>Justificatifs joints</h3>
+
+  @if (documents().length === 0) {
+    <p role="status">Aucun justificatif joint.</p>
+  } @else {
+    <ol>
+      @for (document of documents(); track document.sourceUploadIntent) {
+        <li>
+          <p>
+            <strong>{{ document.fileName }}</strong>
+          </p>
+          <p>Ajoute par {{ document.uploader }} le {{ document.attachedAt }}.</p>
+          <a
+            [href]="document.downloadUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            referrerpolicy="no-referrer"
+          >
+            Consulter ou telecharger {{ document.fileName }}
+          </a>
+        </li>
+      }
+    </ol>
+  }
+</section>

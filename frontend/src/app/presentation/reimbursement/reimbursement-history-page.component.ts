@@ -6,6 +6,7 @@ import { RouterLink } from '@angular/router';
 
 import { AuthenticatedShellComponent } from '../shared/authenticated-shell/authenticated-shell.component';
 import { ReimbursementHistoryPageViewModel } from './reimbursement-history-page.view-model';
+import { ReimbursementSupportingDocumentsComponent } from './reimbursement-supporting-documents.component';
 
 @Component({
   selector: 'app-reimbursement-history-page',
@@ -14,6 +15,7 @@ import { ReimbursementHistoryPageViewModel } from './reimbursement-history-page.
     MatButtonModule,
     MatCardModule,
     MatProgressBarModule,
+    ReimbursementSupportingDocumentsComponent,
     RouterLink,
   ],
   templateUrl: './reimbursement-history-page.component.html',

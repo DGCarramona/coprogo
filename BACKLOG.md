@@ -21,7 +21,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 
 ## Ordre de travail actuel
 
-1. FE-DOC-005B : raccorder l'historique documentaire aux remboursements dans leur ecran.
+1. FE-REB-002 : creer le formulaire de remboursement direct.
 
 ## Fondations monorepo et DX
 
@@ -236,4 +236,4 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 - [x] FE-DOC-004 Ajouter l'action de suppression avec message d'audit clair.
 - [x] FE-DOC-005A Afficher dans l'ecran depense actuel l'historique des justificatifs lies et l'action de suppression seulement lorsque la capacite serveur l'autorise.
 - [x] FE-DOC-006 Completer les tests de composants et de mapping documentaires, notamment l'audit de retrait et les dates issues du transport.
-- [ ] FE-DOC-005B Afficher l'historique des justificatifs lies dans l'ecran de remboursement, apres la creation de cet ecran.
+- [x] FE-DOC-005B Afficher les justificatifs attaches dans l'ecran de remboursement, sans presenter les snapshots actuels comme un historique de versions.

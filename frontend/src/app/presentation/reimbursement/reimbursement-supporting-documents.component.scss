@@ -1,0 +1,28 @@
+:host {
+  display: block;
+  margin-top: 1rem;
+}
+
+h3 {
+  margin: 0 0 0.75rem;
+  font-family: var(--mat-sys-title-medium-font);
+  font-size: var(--mat-sys-title-medium-size);
+  line-height: var(--mat-sys-title-medium-line-height);
+  font-weight: var(--mat-sys-title-medium-weight);
+  letter-spacing: var(--mat-sys-title-medium-tracking);
+}
+
+p {
+  margin: 0.25rem 0;
+}
+
+ol {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+li p:not(:first-child) {
+  color: var(--mat-sys-on-surface-variant);
+}

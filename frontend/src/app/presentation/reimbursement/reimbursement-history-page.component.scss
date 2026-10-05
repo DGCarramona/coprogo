@@ -18,11 +18,15 @@
 }
 
 .reimbursement-history-page__item {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.7fr) minmax(18rem, 1.3fr);
   gap: 2rem;
   padding: 1rem 0;
   border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.reimbursement-history-page__item app-reimbursement-supporting-documents {
+  grid-column: 1 / -1;
 }
 
 .reimbursement-history-page__item:last-child {
@@ -58,7 +62,7 @@
 
 @media (max-width: 640px) {
   .reimbursement-history-page__item {
-    flex-direction: column;
+    grid-template-columns: 1fr;
     gap: 1rem;
   }
 }

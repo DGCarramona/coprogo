@@ -38,6 +38,15 @@ describe('ReimbursementHistoryPageViewModel', () => {
           receivedBy: 'alice@example.com',
           amount: '25,00\u00a0€',
           reimbursedAt: '1 oct. 2026',
+          documents: [
+            {
+              sourceUploadIntent: 'upload-intent-1',
+              fileName: 'recu.pdf',
+              uploader: 'bob@example.com',
+              attachedAt: '1 oct. 2026',
+              downloadUrl: 'https://documents.example.test/recu.pdf',
+            },
+          ],
         },
       ]);
     });
@@ -112,7 +121,20 @@ const reimbursement = (): ReimbursementSummary => ({
   reimbursedAt: new Date('2026-10-01T09:00:00.000Z'),
   declaredBy: 'alice@example.com',
   declaredAt: new Date('2026-10-01T10:00:00.000Z'),
-  documents: [],
+  documents: [
+    {
+      sourceUploadIntent: 'upload-intent-1',
+      fileName: 'recu.pdf',
+      mediaType: 'application/pdf',
+      sizeBytes: 1234,
+      uploader: 'bob@example.com',
+      attachedAt: new Date('2026-10-01T09:30:00.000Z'),
+      downloadTarget: {
+        url: 'https://documents.example.test/recu.pdf',
+        expiresAt: new Date('2026-10-01T10:30:00.000Z'),
+      },
+    },
+  ],
   status: 'ACCEPTED',
   decidedAt: new Date('2026-10-01T10:00:00.000Z'),
   rejectionReason: null,
