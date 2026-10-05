@@ -10,8 +10,6 @@ interface ExpenseRepository {
         group: GroupId,
     ): Expense?
 
-    suspend fun findByGroup(group: GroupId): List<Expense>
-
     suspend fun findProposedByIdAndGroup(
         id: ExpenseId,
         group: GroupId,

@@ -121,52 +121,6 @@ open class R2dbcExpenseRepository(
         )
     }
 
-    override suspend fun findByGroup(group: GroupId): List<Expense> {
-        val dsl = connectionFactory.dsl()
-        val expenses =
-            dsl
-                .select(EXPENSES.ID, EXPENSES.GROUP, EXPENSES.TITLE, EXPENSES.CREATED_BY, EXPENSES.TOTAL_AMOUNT, EXPENSES.CREATED_AT)
-                .from(EXPENSES)
-                .where(EXPENSES.GROUP.eq(group.toPrimitive()))
-                .orderBy(EXPENSES.CREATED_AT.desc(), EXPENSES.ID.desc())
-                .awaitList()
-
-        if (expenses.isEmpty()) return emptyList()
-
-        val participationsByExpense =
-            dsl
-                .select(
-                    EXPENSE_PARTICIPATIONS.EXPENSE,
-                    EXPENSE_PARTICIPATIONS.MEMBER,
-                    EXPENSE_PARTICIPATIONS.AMOUNT,
-                    EXPENSE_PARTICIPATIONS.STATUS,
-                    EXPENSE_PARTICIPATIONS.DECIDED_AT,
-                    EXPENSE_PARTICIPATIONS.REFUSAL_REASON,
-                ).from(EXPENSE_PARTICIPATIONS)
-                .where(EXPENSE_PARTICIPATIONS.EXPENSE.`in`(expenses.map { it.value1() }))
-                .awaitList()
-                .groupBy(
-                    keySelector = { it.value1() },
-                    valueTransform = { it.toParticipationDomain() },
-                )
-        val supportingDocumentsByExpense =
-            dsl
-                .findSupportingDocumentHistoryByExpenses(
-                    expenses = expenses.map { record -> ExpenseId(record.value1()) },
-                    group = group,
-                ).groupBy(
-                    keySelector = { (expense, _) -> expense },
-                    valueTransform = { (_, supportingDocument) -> supportingDocument },
-                )
-
-        return expenses.map { expense ->
-            expense.toDomain(
-                participations = participationsByExpense[expense.value1()].orEmpty().toSet(),
-                supportingDocuments = supportingDocumentsByExpense[ExpenseId(expense.value1())].orEmpty(),
-            )
-        }
-    }
-
     override suspend fun findProposedByIdAndGroup(
         id: ExpenseId,
         group: GroupId,

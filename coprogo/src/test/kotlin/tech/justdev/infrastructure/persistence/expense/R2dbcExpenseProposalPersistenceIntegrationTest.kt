@@ -112,8 +112,6 @@ class R2dbcExpenseProposalPersistenceIntegrationTest {
                                     group: GroupId,
                                 ): Expense? = error("not used")
 
-                                override suspend fun findByGroup(group: GroupId): List<Expense> = error("not used")
-
                                 override suspend fun findProposedByIdAndGroup(
                                     id: ExpenseId,
                                     group: GroupId,

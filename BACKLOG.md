@@ -21,7 +21,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 
 ## Ordre de travail actuel
 
-1. BE-EXP-016 : remplacer l'hydratation d'agregats complets dans la liste des depenses par une projection de synthese group-scoped.
+1. BE-LED-006 : implementer le cas d'usage de retrait de la caisse commune avec verification de disponibilite.
 
 ## Fondations monorepo et DX
 
@@ -82,7 +82,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 - [x] BE-EXP-013 Ajouter des tests d'integration couvrant acceptation, refus et emission d'evenement ledger.
 - [x] BE-EXP-014 Ajouter la couverture d'integration des quatre modes d'allocation.
 - [x] BE-EXP-015 Corriger et tester le motif latent `@Singleton object RandomExpenseIdGenerator` avant le raccordement REST.
-- [ ] BE-EXP-016 Remplacer l'hydratation d'agregats complets dans la liste des depenses par une projection de synthese group-scoped.
+- [x] BE-EXP-016 Remplacer l'hydratation d'agregats complets dans la liste des depenses par une projection de synthese group-scoped.
 
 ## Backend - remboursements
 

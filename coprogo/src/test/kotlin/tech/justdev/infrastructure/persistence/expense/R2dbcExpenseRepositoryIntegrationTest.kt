@@ -4,7 +4,6 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -338,7 +337,6 @@ class R2dbcExpenseRepositoryIntegrationTest {
                                 r2dbcExpenseRepository.findByIdAndGroupForUpdate(stored.id, stored.group)
                             },
                         ),
-                        expenseRepository.findByGroup(stored.group).single { it.id == stored.id },
                     )
                 val expectedHistory = listOf(deletedTombstone.snapshot(), original.snapshot(), replacement.snapshot())
                 val expectedCurrent = listOf(replacement.snapshot())
@@ -440,84 +438,6 @@ class R2dbcExpenseRepositoryIntegrationTest {
                         stored.id,
                         groupId("requested-other-group"),
                     ),
-                )
-            }
-    }
-
-    @Nested
-    inner class FindByGroup {
-        @Test
-        fun `should return expenses for a specific group`() =
-            runTest {
-                val groupA = groupId("ga")
-                val groupB = groupId("gb")
-                val owner = memberEmail("findbygroup-owner")
-                persistMember(owner)
-                persistGroup(groupA, owner)
-                persistGroup(groupB, owner)
-
-                val expense1 =
-                    expenseWithEqualSplit(
-                        seed = "fbge1",
-                        groupOverride = groupA,
-                        ownerOverride = owner,
-                    )
-                val expense2 =
-                    expenseWithEqualSplit(
-                        seed = "fbge2",
-                        groupOverride = groupA,
-                        ownerOverride = owner,
-                    )
-                expenseRepository.persist(expense1)
-                expenseRepository.persist(expense2)
-
-                val expense3 =
-                    expenseWithEqualSplit(
-                        seed = "fbge3",
-                        groupOverride = groupB,
-                        ownerOverride = owner,
-                    )
-                expenseRepository.persist(expense3)
-
-                val groupAExpenses = expenseRepository.findByGroup(groupA)
-                assertEquals(setOf(expense1, expense2), groupAExpenses.toSet())
-
-                val groupBExpenses = expenseRepository.findByGroup(groupB)
-                assertEquals(setOf(expense3), groupBExpenses.toSet())
-            }
-
-        @Test
-        fun `should return empty list when group has no expenses`() =
-            runTest {
-                val emptyGroup = groupId("fbge")
-                val owner = memberEmail("fbge-owner")
-                persistMember(owner)
-                persistGroup(emptyGroup, owner)
-
-                val result = expenseRepository.findByGroup(emptyGroup)
-                assertTrue(result.isEmpty())
-            }
-
-        @Test
-        fun `should hydrate documents for the full group through the aggregate reads`() =
-            runTest {
-                val group = groupId("doc-group")
-                val owner = memberEmail("doc-group-owner")
-                persistMember(owner)
-                persistGroup(group, owner)
-                val first = expenseWithEqualSplit("doc-group-first", groupOverride = group, ownerOverride = owner)
-                val second = expenseWithEqualSplit("doc-group-second", groupOverride = group, ownerOverride = owner)
-                expenseRepository.persist(first)
-                expenseRepository.persist(second)
-                val firstAttachment = persistCurrentAttachment(first, "group-first")
-                val secondAttachment = persistCurrentAttachment(second, "group-second")
-
-                assertEquals(
-                    mapOf(first.id to listOf(firstAttachment.snapshot()), second.id to listOf(secondAttachment.snapshot())),
-                    expenseRepository
-                        .findByGroup(first.group)
-                        .filter { expense -> expense.id in setOf(first.id, second.id) }
-                        .associate { expense -> expense.id to expense.supportingDocuments.current.map { document -> document.snapshot() } },
                 )
             }
     }
