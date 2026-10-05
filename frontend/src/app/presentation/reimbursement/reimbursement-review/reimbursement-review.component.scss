@@ -1,0 +1,23 @@
+.reimbursement-review {
+  display: grid;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+}
+
+textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 4rem;
+  padding: 0.7rem;
+  resize: vertical;
+}
+
+.reimbursement-review__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.reimbursement-review p {
+  margin: 0;
+}

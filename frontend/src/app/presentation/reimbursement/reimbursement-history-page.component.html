@@ -48,6 +48,12 @@
                 </div>
               </dl>
               <app-reimbursement-supporting-documents [documents]="reimbursement.documents" />
+              @if (reimbursement.awaitsReview && viewModel.groupId !== null) {
+                <app-reimbursement-review
+                  [groupId]="viewModel.groupId"
+                  [reimbursementId]="reimbursement.id"
+                />
+              }
             </article>
           }
         </div>

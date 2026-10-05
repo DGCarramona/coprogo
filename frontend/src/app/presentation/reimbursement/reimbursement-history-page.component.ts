@@ -8,6 +8,7 @@ import { AuthenticatedShellComponent } from '../shared/authenticated-shell/authe
 import { DocumentedReimbursementWidgetComponent } from './documented-reimbursement-widget/documented-reimbursement-widget.component';
 import { DirectReimbursementWidgetComponent } from './direct-reimbursement-widget/direct-reimbursement-widget.component';
 import { ReimbursementHistoryPageViewModel } from './reimbursement-history-page.view-model';
+import { ReimbursementReviewComponent } from './reimbursement-review/reimbursement-review.component';
 import { ReimbursementSupportingDocumentsComponent } from './reimbursement-supporting-documents.component';
 
 @Component({
@@ -19,6 +20,7 @@ import { ReimbursementSupportingDocumentsComponent } from './reimbursement-suppo
     MatButtonModule,
     MatCardModule,
     MatProgressBarModule,
+    ReimbursementReviewComponent,
     ReimbursementSupportingDocumentsComponent,
     RouterLink,
   ],

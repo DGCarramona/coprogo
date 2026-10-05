@@ -13,6 +13,7 @@ export interface ReimbursementHistoryViewItem {
   readonly receivedBy: string;
   readonly amount: string;
   readonly reimbursedAt: string;
+  readonly awaitsReview: boolean;
   readonly documents: readonly ReimbursementSupportingDocumentViewItem[];
 }
 
@@ -83,6 +84,7 @@ const toViewItem = (reimbursement: ReimbursementSummary): ReimbursementHistoryVi
   receivedBy: reimbursement.receivedBy,
   amount: formatMoneyFromCents(reimbursement.amountInCents),
   reimbursedAt: formatDate(reimbursement.reimbursedAt),
+  awaitsReview: reimbursement.status === 'PENDING_REVIEW',
   documents: reimbursement.documents.map((document) => ({
     sourceUploadIntent: document.sourceUploadIntent,
     fileName: document.fileName,

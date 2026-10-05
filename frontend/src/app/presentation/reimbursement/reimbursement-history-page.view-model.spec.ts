@@ -38,6 +38,7 @@ describe('ReimbursementHistoryPageViewModel', () => {
           receivedBy: 'alice@example.com',
           amount: '25,00\u00a0€',
           reimbursedAt: '1 oct. 2026',
+          awaitsReview: false,
           documents: [
             {
               sourceUploadIntent: 'upload-intent-1',
@@ -49,6 +50,17 @@ describe('ReimbursementHistoryPageViewModel', () => {
           ],
         },
       ]);
+    });
+
+    it('marks a pending documented reimbursement as awaiting review', async () => {
+      port.result = [pendingReimbursement()];
+      const viewModel = createViewModel();
+
+      await waitFor(() => viewModel.isReady());
+
+      expect(
+        viewModel.reimbursements().map(({ id, awaitsReview }) => ({ id, awaitsReview })),
+      ).toEqual([{ id: 'reimbursement-1', awaitsReview: true }]);
     });
 
     it('exposes an empty history', async () => {
@@ -137,6 +149,13 @@ const reimbursement = (): ReimbursementSummary => ({
   ],
   status: 'ACCEPTED',
   decidedAt: new Date('2026-10-01T10:00:00.000Z'),
+  rejectionReason: null,
+});
+
+const pendingReimbursement = (): ReimbursementSummary => ({
+  ...reimbursement(),
+  status: 'PENDING_REVIEW',
+  decidedAt: null,
   rejectionReason: null,
 });
 

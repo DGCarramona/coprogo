@@ -27,6 +27,12 @@ class StubDocumentedReimbursementWidgetComponent {
   @Input({ required: true }) groupId = '';
 }
 
+@Component({ selector: 'app-reimbursement-review', template: '' })
+class StubReimbursementReviewComponent {
+  @Input({ required: true }) groupId = '';
+  @Input({ required: true }) reimbursementId = '';
+}
+
 describe('ReimbursementHistoryPageComponent', () => {
   it('renders the reimbursement history without exposing technical status labels', () => {
     const viewModel = new StubReimbursementHistoryPageViewModel();
@@ -77,6 +83,21 @@ describe('ReimbursementHistoryPageComponent', () => {
     );
     expect(widget.componentInstance.groupId).toBe('group-1');
   });
+
+  it('offers review actions for a pending reimbursement', () => {
+    const fixture = createFixture(new StubReimbursementHistoryPageViewModel());
+
+    fixture.detectChanges();
+
+    const review = fixture.debugElement.query(By.directive(StubReimbursementReviewComponent));
+    expect({
+      groupId: review.componentInstance.groupId,
+      reimbursementId: review.componentInstance.reimbursementId,
+    }).toEqual({
+      groupId: 'group-1',
+      reimbursementId: 'reimbursement-1',
+    });
+  });
 });
 
 const createFixture = (
@@ -92,6 +113,7 @@ const createFixture = (
         StubAuthenticatedShellComponent,
         StubDirectReimbursementWidgetComponent,
         StubDocumentedReimbursementWidgetComponent,
+        StubReimbursementReviewComponent,
         MatButtonModule,
         MatCardModule,
         MatProgressBarModule,
@@ -113,6 +135,7 @@ class StubReimbursementHistoryPageViewModel {
       receivedBy: 'alice@example.com',
       amount: '25,00\u00a0€',
       reimbursedAt: '1 oct. 2026',
+      awaitsReview: true,
       documents: [
         {
           sourceUploadIntent: 'upload-intent-1',

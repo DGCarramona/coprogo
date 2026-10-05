@@ -7,6 +7,7 @@ import { ExpenseProposalPort } from './application/expense/expense-proposal.port
 import { ReimbursementListPort } from './application/reimbursement/reimbursement-list.port';
 import { DirectReimbursementRecordingPort } from './application/reimbursement/direct-reimbursement-recording.port';
 import { DocumentedReimbursementDeclarationPort } from './application/reimbursement/documented-reimbursement-declaration.port';
+import { ReimbursementReviewPort } from './application/reimbursement/reimbursement-review.port';
 import { NavigationPort } from './application/shared/navigation.port';
 import { GoogleIdTokenPort } from './application/auth/google-id-token.port';
 import { GoogleIdentityPort } from './application/auth/google-identity.port';
@@ -30,6 +31,7 @@ import { HttpExpenseProposalGateway } from './infrastructure/expense/http-expens
 import { HttpReimbursementListGateway } from './infrastructure/reimbursement/http-reimbursement-list.gateway';
 import { HttpDirectReimbursementRecordingGateway } from './infrastructure/reimbursement/http-direct-reimbursement-recording.gateway';
 import { HttpDocumentedReimbursementDeclarationGateway } from './infrastructure/reimbursement/http-documented-reimbursement-declaration.gateway';
+import { HttpReimbursementReviewGateway } from './infrastructure/reimbursement/http-reimbursement-review.gateway';
 import { HttpGroupCreationGateway } from './infrastructure/group/http-group-creation.gateway';
 import { HttpGroupInvitationsGateway } from './infrastructure/group/http-group-invitations.gateway';
 import { HttpGroupMembersGateway } from './infrastructure/group/http-group-members.gateway';
@@ -96,6 +98,10 @@ export const appConfig: ApplicationConfig = {
     {
       provide: DocumentedReimbursementDeclarationPort,
       useExisting: HttpDocumentedReimbursementDeclarationGateway,
+    },
+    {
+      provide: ReimbursementReviewPort,
+      useExisting: HttpReimbursementReviewGateway,
     },
     {
       provide: Sha256ChecksumPort,
