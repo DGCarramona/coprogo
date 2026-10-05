@@ -21,7 +21,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 
 ## Ordre de travail actuel
 
-1. FE-REB-003B : creer le formulaire de remboursement auto-declare avec justificatif.
+1. FE-REB-004 : creer l'ecran de revue d'un remboursement contestable.
 
 ## Fondations monorepo et DX
 
@@ -211,7 +211,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 - [x] FE-REB-001B Creer la page et le ViewModel d'historique des remboursements.
 - [x] FE-REB-002 Creer le formulaire de remboursement direct.
 - [x] FE-REB-003A Ajouter le port applicatif et la gateway HTTP de declaration d'un remboursement avec justificatif.
-- [ ] FE-REB-003B Creer le formulaire de remboursement auto-declare avec justificatif.
+- [x] FE-REB-003B Creer le formulaire de remboursement auto-declare avec justificatif.
 - [ ] FE-REB-004 Creer l'ecran de revue d'un remboursement contestable.
 - [ ] FE-REB-005 Afficher le statut "a revoir / refuse / accepte" des remboursements documentes.
 - [ ] FE-REB-006 Ajouter les tests de ViewModel et de composants des remboursements.

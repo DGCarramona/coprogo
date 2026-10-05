@@ -5,6 +5,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { RouterLink } from '@angular/router';
 
 import { AuthenticatedShellComponent } from '../shared/authenticated-shell/authenticated-shell.component';
+import { DocumentedReimbursementWidgetComponent } from './documented-reimbursement-widget/documented-reimbursement-widget.component';
 import { DirectReimbursementWidgetComponent } from './direct-reimbursement-widget/direct-reimbursement-widget.component';
 import { ReimbursementHistoryPageViewModel } from './reimbursement-history-page.view-model';
 import { ReimbursementSupportingDocumentsComponent } from './reimbursement-supporting-documents.component';
@@ -13,6 +14,7 @@ import { ReimbursementSupportingDocumentsComponent } from './reimbursement-suppo
   selector: 'app-reimbursement-history-page',
   imports: [
     AuthenticatedShellComponent,
+    DocumentedReimbursementWidgetComponent,
     DirectReimbursementWidgetComponent,
     MatButtonModule,
     MatCardModule,

@@ -9,6 +9,7 @@ import {
 } from '../../../application/reimbursement/direct-reimbursement-recording.port';
 import { describeError } from '../../../application/shared/describe-error';
 import { parseAmountInCents } from '../../../shared/format/parse-amount-in-cents';
+import { parseLocalDateTime } from '../../../shared/format/parse-local-date-time';
 import { groupMembersQueryOptions } from '../../shared/group-members/group-members-query';
 
 interface DirectReimbursementFormModel {
@@ -79,7 +80,7 @@ export class DirectReimbursementWidgetViewModel {
         );
         required(reimbursement.reimbursedAt, { message: 'Indiquez la date du remboursement.' });
         validate(reimbursement.reimbursedAt, ({ value }) =>
-          toReimbursementDate(value()) === null
+          parseLocalDateTime(value()) === null
             ? { kind: 'date', message: 'Indiquez une date de remboursement valide.' }
             : undefined,
         );
@@ -90,7 +91,7 @@ export class DirectReimbursementWidgetViewModel {
           action: async (submittedForm): Promise<TreeValidationResult> => {
             const value = submittedForm().value();
             const amountInCents = parseAmountInCents(value.amountInEuros);
-            const reimbursedAt = toReimbursementDate(value.reimbursedAt);
+            const reimbursedAt = parseLocalDateTime(value.reimbursedAt);
             const groupId = this.groupIdState();
 
             if (groupId === null || amountInCents === null || reimbursedAt === null) {
@@ -136,10 +137,3 @@ const emptyFormModel = (): DirectReimbursementFormModel => ({
   amountInEuros: '',
   reimbursedAt: '',
 });
-
-const toReimbursementDate = (value: string): Date | null => {
-  if (value.trim().length === 0) return null;
-
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date;
-};

@@ -22,6 +22,11 @@ class StubDirectReimbursementWidgetComponent {
   @Input({ required: true }) groupId = '';
 }
 
+@Component({ selector: 'app-documented-reimbursement-widget', template: '' })
+class StubDocumentedReimbursementWidgetComponent {
+  @Input({ required: true }) groupId = '';
+}
+
 describe('ReimbursementHistoryPageComponent', () => {
   it('renders the reimbursement history without exposing technical status labels', () => {
     const viewModel = new StubReimbursementHistoryPageViewModel();
@@ -61,6 +66,17 @@ describe('ReimbursementHistoryPageComponent', () => {
     const widget = fixture.debugElement.query(By.directive(StubDirectReimbursementWidgetComponent));
     expect(widget.componentInstance.groupId).toBe('group-1');
   });
+
+  it('provides the current group to the documented reimbursement form', () => {
+    const fixture = createFixture(new StubReimbursementHistoryPageViewModel());
+
+    fixture.detectChanges();
+
+    const widget = fixture.debugElement.query(
+      By.directive(StubDocumentedReimbursementWidgetComponent),
+    );
+    expect(widget.componentInstance.groupId).toBe('group-1');
+  });
 });
 
 const createFixture = (
@@ -75,6 +91,7 @@ const createFixture = (
       imports: [
         StubAuthenticatedShellComponent,
         StubDirectReimbursementWidgetComponent,
+        StubDocumentedReimbursementWidgetComponent,
         MatButtonModule,
         MatCardModule,
         MatProgressBarModule,

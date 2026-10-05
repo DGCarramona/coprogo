@@ -1,0 +1,96 @@
+<mat-card class="material-card" appearance="outlined">
+  <mat-card-header>
+    <mat-card-title>Déclarer un remboursement envoyé</mat-card-title>
+    <mat-card-subtitle>
+      Ajoutez un justificatif pour que la personne remboursée puisse vérifier votre déclaration.
+    </mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    @if (viewModel.isLoading()) {
+      <p role="status">Chargement des membres…</p>
+    } @else if (viewModel.hasLoadError()) {
+      <p role="alert">{{ viewModel.loadErrorMessage() }}</p>
+      <button matButton="outlined" type="button" aria-label="Réessayer" (click)="viewModel.retry()">
+        Réessayer
+      </button>
+    } @else {
+      @if (viewModel.isDeclared()) {
+        <p role="status">Le remboursement a été déclaré.</p>
+      }
+      @if (viewModel.hasDeclarationError()) {
+        <p role="alert">{{ viewModel.declarationErrorMessage() }}</p>
+      }
+
+      <form [formRoot]="viewModel.form">
+        <p>
+          <label for="documented-reimbursement-receiver">Personne remboursée</label>
+          <select
+            id="documented-reimbursement-receiver"
+            aria-label="Personne remboursee"
+            [formField]="viewModel.form.receivedBy"
+          >
+            <option value="">Choisir un membre</option>
+            @for (member of viewModel.members(); track member) {
+              <option [value]="member">{{ member }}</option>
+            }
+          </select>
+        </p>
+        <p>
+          <label for="documented-reimbursement-amount">Montant remboursé en euros</label>
+          <input
+            id="documented-reimbursement-amount"
+            type="text"
+            inputmode="decimal"
+            aria-label="Montant rembourse en euros"
+            [formField]="viewModel.form.amountInEuros"
+          />
+        </p>
+        <p>
+          <label for="documented-reimbursement-date">Date du remboursement</label>
+          <input
+            id="documented-reimbursement-date"
+            type="datetime-local"
+            aria-label="Date du remboursement"
+            [formField]="viewModel.form.reimbursedAt"
+          />
+        </p>
+
+        <app-supporting-document-upload-widget
+          [groupId]="groupId()"
+          (confirmed)="viewModel.addSupportingDocument($event)"
+          (uploadPendingChange)="viewModel.setSupportingDocumentUploadPending($event)"
+        />
+
+        @if (viewModel.documents().length > 0) {
+          <ul class="documented-reimbursement-widget__documents">
+            @for (document of viewModel.documents(); track document.intentId) {
+              <li>
+                <span>{{ document.fileName }}</span>
+                <button
+                  matButton="outlined"
+                  type="button"
+                  [attr.aria-label]="'Retirer ' + document.fileName"
+                  (click)="viewModel.removeSupportingDocument(document.intentId)"
+                >
+                  Retirer
+                </button>
+              </li>
+            }
+          </ul>
+        }
+
+        <button
+          matButton="filled"
+          type="submit"
+          [disabled]="
+            viewModel.form().invalid() ||
+            viewModel.isDeclaring() ||
+            viewModel.isSupportingDocumentUploadPending()
+          "
+        >
+          Déclarer le remboursement
+        </button>
+      </form>
+    }
+  </mat-card-content>
+</mat-card>
