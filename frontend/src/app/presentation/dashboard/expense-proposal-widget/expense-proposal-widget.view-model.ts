@@ -1,7 +1,6 @@
 import { computed, Injectable, Injector, signal } from '@angular/core';
 import { FieldTree, TreeValidationResult, form, required, validate } from '@angular/forms/signals';
 import { injectMutation, injectQuery, QueryClient } from '@tanstack/angular-query-experimental';
-import { firstValueFrom } from 'rxjs';
 
 import {
   ExpenseProposalPort,
@@ -10,7 +9,6 @@ import {
 } from '../../../application/expense/expense-proposal.port';
 import { GroupMembersPort } from '../../../application/group/group-members.port';
 import { describeError } from '../../../application/shared/describe-error';
-import { GroupMember } from '../../../domain/group/group-member';
 import {
   addCumulativeIntermediateTier,
   CumulativeTiersFormModel,
@@ -37,8 +35,10 @@ import {
   toggleEqualWithCapsParticipant,
   validateEqualWithCapsForm,
 } from './equal-with-caps-allocation-form';
-import { parseAmountInCents, toggleMember } from './expense-proposal-form';
+import { parseAmountInCents } from '../../../shared/format/parse-amount-in-cents';
+import { toggleMember } from './expense-proposal-form';
 import type { SupportingDocumentUploadResult } from '../../shared/supporting-document-upload/supporting-document-upload-result';
+import { groupMembersQueryOptions } from '../../shared/group-members/group-members-query';
 
 export interface EqualSplitExpenseProposalInput {
   title: string;
@@ -104,23 +104,7 @@ export class ExpenseProposalWidgetViewModel {
     injector: Injector,
   ) {
     this.membersQuery = injectQuery(
-      () => {
-        const groupId = this.groupIdState();
-
-        return {
-          queryKey: ['groups', groupId, 'members'] as const,
-          queryFn: (): Promise<readonly GroupMember[]> => {
-            if (groupId === null) {
-              throw new Error('Un groupe doit etre initialise avant de charger ses membres.');
-            }
-
-            return firstValueFrom(this.groupMembersPort.listByGroup(groupId));
-          },
-          select: (members) => members.map((member) => member.member),
-          enabled: groupId !== null,
-          staleTime: 30_000,
-        };
-      },
+      () => groupMembersQueryOptions(this.groupIdState(), this.groupMembersPort),
       { injector },
     );
     this.proposalMutation = injectMutation<void, Error, ExpenseProposalCommand>(

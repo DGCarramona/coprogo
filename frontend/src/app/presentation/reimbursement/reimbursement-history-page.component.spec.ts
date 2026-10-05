@@ -1,5 +1,6 @@
 import { Component, Input, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -14,6 +15,11 @@ class StubAuthenticatedShellComponent {
   @Input() eyebrow = '';
   @Input() title = '';
   @Input() description = '';
+}
+
+@Component({ selector: 'app-direct-reimbursement-widget', template: '' })
+class StubDirectReimbursementWidgetComponent {
+  @Input({ required: true }) groupId = '';
 }
 
 describe('ReimbursementHistoryPageComponent', () => {
@@ -46,6 +52,15 @@ describe('ReimbursementHistoryPageComponent', () => {
 
     expect(viewModel.retryCount).toBe(1);
   });
+
+  it('provides the current group to the direct reimbursement form', () => {
+    const fixture = createFixture(new StubReimbursementHistoryPageViewModel());
+
+    fixture.detectChanges();
+
+    const widget = fixture.debugElement.query(By.directive(StubDirectReimbursementWidgetComponent));
+    expect(widget.componentInstance.groupId).toBe('group-1');
+  });
 });
 
 const createFixture = (
@@ -59,6 +74,7 @@ const createFixture = (
     set: {
       imports: [
         StubAuthenticatedShellComponent,
+        StubDirectReimbursementWidgetComponent,
         MatButtonModule,
         MatCardModule,
         MatProgressBarModule,

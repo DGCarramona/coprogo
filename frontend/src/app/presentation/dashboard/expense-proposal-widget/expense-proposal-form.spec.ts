@@ -1,19 +1,4 @@
-import { parseAmountInCents, toggleMember } from './expense-proposal-form';
-
-describe('parseAmountInCents', () => {
-  it.each([
-    ['12', 1200],
-    ['12,5', 1250],
-    ['12,50', 1250],
-    ['12.50', 1250],
-  ])('parses %s into cents', (amount, expected) => {
-    expect(parseAmountInCents(amount)).toBe(expected);
-  });
-
-  it.each(['', '0', '-1', '12,345', 'not-an-amount'])('rejects %s', (amount) => {
-    expect(parseAmountInCents(amount)).toBeNull();
-  });
-});
+import { toggleMember } from './expense-proposal-form';
 
 describe('toggleMember', () => {
   it('adds or removes a member without mutating the source', () => {

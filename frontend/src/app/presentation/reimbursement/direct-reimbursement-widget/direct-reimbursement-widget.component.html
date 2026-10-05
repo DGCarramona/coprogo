@@ -1,0 +1,67 @@
+<mat-card class="material-card" appearance="outlined">
+  <mat-card-header>
+    <mat-card-title>Enregistrer un remboursement reçu</mat-card-title>
+    <mat-card-subtitle
+      >Indiquez qui vous a remboursé, sans confirmation nécessaire.</mat-card-subtitle
+    >
+  </mat-card-header>
+  <mat-card-content>
+    @if (viewModel.isLoading()) {
+      <p role="status">Chargement des membres…</p>
+    } @else if (viewModel.hasLoadError()) {
+      <p role="alert">{{ viewModel.loadErrorMessage() }}</p>
+      <button matButton="outlined" type="button" aria-label="Réessayer" (click)="viewModel.retry()">
+        Réessayer
+      </button>
+    } @else {
+      @if (viewModel.isRecorded()) {
+        <p role="status">Le remboursement a été enregistré.</p>
+      }
+      @if (viewModel.hasRecordingError()) {
+        <p role="alert">{{ viewModel.recordingErrorMessage() }}</p>
+      }
+
+      <form [formRoot]="viewModel.form">
+        <p>
+          <label for="direct-reimbursement-payer">Personne qui vous a remboursé</label>
+          <select
+            id="direct-reimbursement-payer"
+            aria-label="Personne qui a rembourse"
+            [formField]="viewModel.form.paidBy"
+          >
+            <option value="">Choisir un membre</option>
+            @for (member of viewModel.members(); track member) {
+              <option [value]="member">{{ member }}</option>
+            }
+          </select>
+        </p>
+        <p>
+          <label for="direct-reimbursement-amount">Montant remboursé en euros</label>
+          <input
+            id="direct-reimbursement-amount"
+            type="text"
+            inputmode="decimal"
+            aria-label="Montant rembourse en euros"
+            [formField]="viewModel.form.amountInEuros"
+          />
+        </p>
+        <p>
+          <label for="direct-reimbursement-date">Date du remboursement</label>
+          <input
+            id="direct-reimbursement-date"
+            type="datetime-local"
+            aria-label="Date du remboursement"
+            [formField]="viewModel.form.reimbursedAt"
+          />
+        </p>
+        <button
+          matButton="filled"
+          type="submit"
+          [disabled]="viewModel.form().invalid() || viewModel.isRecording()"
+        >
+          Enregistrer le remboursement
+        </button>
+      </form>
+    }
+  </mat-card-content>
+</mat-card>

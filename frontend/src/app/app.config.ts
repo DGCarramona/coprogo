@@ -5,6 +5,7 @@ import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-exper
 import { ExpenseListPort } from './application/expense/expense-list.port';
 import { ExpenseProposalPort } from './application/expense/expense-proposal.port';
 import { ReimbursementListPort } from './application/reimbursement/reimbursement-list.port';
+import { DirectReimbursementRecordingPort } from './application/reimbursement/direct-reimbursement-recording.port';
 import { NavigationPort } from './application/shared/navigation.port';
 import { GoogleIdTokenPort } from './application/auth/google-id-token.port';
 import { GoogleIdentityPort } from './application/auth/google-identity.port';
@@ -26,6 +27,7 @@ import { BrowserGoogleIdentityAdapter } from './infrastructure/auth/google/brows
 import { HttpExpenseListGateway } from './infrastructure/expense/http-expense-list.gateway';
 import { HttpExpenseProposalGateway } from './infrastructure/expense/http-expense-proposal.gateway';
 import { HttpReimbursementListGateway } from './infrastructure/reimbursement/http-reimbursement-list.gateway';
+import { HttpDirectReimbursementRecordingGateway } from './infrastructure/reimbursement/http-direct-reimbursement-recording.gateway';
 import { HttpGroupCreationGateway } from './infrastructure/group/http-group-creation.gateway';
 import { HttpGroupInvitationsGateway } from './infrastructure/group/http-group-invitations.gateway';
 import { HttpGroupMembersGateway } from './infrastructure/group/http-group-members.gateway';
@@ -84,6 +86,10 @@ export const appConfig: ApplicationConfig = {
     {
       provide: ReimbursementListPort,
       useExisting: HttpReimbursementListGateway,
+    },
+    {
+      provide: DirectReimbursementRecordingPort,
+      useExisting: HttpDirectReimbursementRecordingGateway,
     },
     {
       provide: Sha256ChecksumPort,

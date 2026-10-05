@@ -1,9 +1,6 @@
 import type { ExpenseAllocation } from '../../../application/expense/expense-proposal.port';
-import {
-  AllocationValidationError,
-  parseAmountInCents,
-  toggleMember,
-} from './expense-proposal-form';
+import { parseAmountInCents } from '../../../shared/format/parse-amount-in-cents';
+import { AllocationValidationError, toggleMember } from './expense-proposal-form';
 
 interface CumulativeIntermediateTierFormModel {
   readonly upToAmountInEuros: string;
