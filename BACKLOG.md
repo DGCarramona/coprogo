@@ -21,7 +21,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 
 ## Ordre de travail actuel
 
-1. FE-REB-005 : afficher le statut "a revoir / refuse / accepte" des remboursements documentes.
+1. FE-REB-006 : ajouter les tests de ViewModel et de composants des remboursements.
 
 ## Fondations monorepo et DX
 
@@ -213,7 +213,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 - [x] FE-REB-003A Ajouter le port applicatif et la gateway HTTP de declaration d'un remboursement avec justificatif.
 - [x] FE-REB-003B Creer le formulaire de remboursement auto-declare avec justificatif.
 - [x] FE-REB-004 Creer l'ecran de revue d'un remboursement contestable.
-- [ ] FE-REB-005 Afficher le statut "a revoir / refuse / accepte" des remboursements documentes.
+- [x] FE-REB-005 Afficher le statut "a revoir / refuse / accepte" des remboursements documentes.
 - [ ] FE-REB-006 Ajouter les tests de ViewModel et de composants des remboursements.
 
 ## Frontend - revenus, quotes-parts et caisse commune

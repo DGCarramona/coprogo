@@ -47,6 +47,14 @@
                   <dd>{{ reimbursement.receivedBy }}</dd>
                 </div>
               </dl>
+              @if (reimbursement.reviewStatusLabel; as reviewStatusLabel) {
+                <p class="reimbursement-history-page__review-status">
+                  Vérification : <strong>{{ reviewStatusLabel }}</strong>
+                </p>
+              }
+              @if (reimbursement.rejectionReason; as rejectionReason) {
+                <p>Motif du refus : {{ rejectionReason }}</p>
+              }
               <app-reimbursement-supporting-documents [documents]="reimbursement.documents" />
               @if (reimbursement.awaitsReview && viewModel.groupId !== null) {
                 <app-reimbursement-review

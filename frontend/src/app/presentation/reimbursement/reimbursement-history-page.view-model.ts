@@ -14,6 +14,8 @@ export interface ReimbursementHistoryViewItem {
   readonly amount: string;
   readonly reimbursedAt: string;
   readonly awaitsReview: boolean;
+  readonly reviewStatusLabel: string | null;
+  readonly rejectionReason: string | null;
   readonly documents: readonly ReimbursementSupportingDocumentViewItem[];
 }
 
@@ -85,6 +87,8 @@ const toViewItem = (reimbursement: ReimbursementSummary): ReimbursementHistoryVi
   amount: formatMoneyFromCents(reimbursement.amountInCents),
   reimbursedAt: formatDate(reimbursement.reimbursedAt),
   awaitsReview: reimbursement.status === 'PENDING_REVIEW',
+  reviewStatusLabel: toReviewStatusLabel(reimbursement),
+  rejectionReason: reimbursement.status === 'REJECTED' ? reimbursement.rejectionReason : null,
   documents: reimbursement.documents.map((document) => ({
     sourceUploadIntent: document.sourceUploadIntent,
     fileName: document.fileName,
@@ -93,3 +97,16 @@ const toViewItem = (reimbursement: ReimbursementSummary): ReimbursementHistoryVi
     downloadUrl: document.downloadTarget.url,
   })),
 });
+
+const toReviewStatusLabel = (reimbursement: ReimbursementSummary): string | null => {
+  if (reimbursement.documents.length === 0) return null;
+
+  switch (reimbursement.status) {
+    case 'PENDING_REVIEW':
+      return 'À revoir';
+    case 'ACCEPTED':
+      return 'Accepté';
+    case 'REJECTED':
+      return 'Refusé';
+  }
+};

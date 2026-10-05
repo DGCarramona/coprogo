@@ -45,6 +45,7 @@ describe('ReimbursementHistoryPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('25,00\u00a0€');
     expect(fixture.nativeElement.textContent).toContain('1 oct. 2026');
     expect(fixture.nativeElement.textContent).toContain('recu.pdf');
+    expect(fixture.nativeElement.textContent).toContain('À revoir');
     expect(fixture.nativeElement.textContent).not.toContain('ACCEPTED');
   });
 
@@ -98,6 +99,24 @@ describe('ReimbursementHistoryPageComponent', () => {
       reimbursementId: 'reimbursement-1',
     });
   });
+
+  it('shows the rejection reason in plain language', () => {
+    const viewModel = new StubReimbursementHistoryPageViewModel();
+    viewModel.reimbursements.update((reimbursements) =>
+      reimbursements.map((reimbursement) => ({
+        ...reimbursement,
+        awaitsReview: false,
+        reviewStatusLabel: 'Refusé',
+        rejectionReason: 'Le montant ne correspond pas.',
+      })),
+    );
+    const fixture = createFixture(viewModel);
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Refusé');
+    expect(fixture.nativeElement.textContent).toContain('Le montant ne correspond pas.');
+  });
 });
 
 const createFixture = (
@@ -136,6 +155,8 @@ class StubReimbursementHistoryPageViewModel {
       amount: '25,00\u00a0€',
       reimbursedAt: '1 oct. 2026',
       awaitsReview: true,
+      reviewStatusLabel: 'À revoir',
+      rejectionReason: null as string | null,
       documents: [
         {
           sourceUploadIntent: 'upload-intent-1',

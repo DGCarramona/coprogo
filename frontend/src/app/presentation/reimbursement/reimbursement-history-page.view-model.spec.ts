@@ -39,6 +39,8 @@ describe('ReimbursementHistoryPageViewModel', () => {
           amount: '25,00\u00a0€',
           reimbursedAt: '1 oct. 2026',
           awaitsReview: false,
+          reviewStatusLabel: 'Accepté',
+          rejectionReason: null,
           documents: [
             {
               sourceUploadIntent: 'upload-intent-1',
@@ -59,8 +61,28 @@ describe('ReimbursementHistoryPageViewModel', () => {
       await waitFor(() => viewModel.isReady());
 
       expect(
-        viewModel.reimbursements().map(({ id, awaitsReview }) => ({ id, awaitsReview })),
-      ).toEqual([{ id: 'reimbursement-1', awaitsReview: true }]);
+        viewModel.reimbursements().map(({ id, awaitsReview, reviewStatusLabel }) => ({
+          id,
+          awaitsReview,
+          reviewStatusLabel,
+        })),
+      ).toEqual([{ id: 'reimbursement-1', awaitsReview: true, reviewStatusLabel: 'À revoir' }]);
+    });
+
+    it('presents a rejected documented reimbursement and its reason', async () => {
+      port.result = [rejectedReimbursement()];
+      const viewModel = createViewModel();
+
+      await waitFor(() => viewModel.isReady());
+
+      expect(
+        viewModel.reimbursements().map(({ reviewStatusLabel, rejectionReason }) => ({
+          reviewStatusLabel,
+          rejectionReason,
+        })),
+      ).toEqual([
+        { reviewStatusLabel: 'Refusé', rejectionReason: 'Le montant ne correspond pas.' },
+      ]);
     });
 
     it('exposes an empty history', async () => {
@@ -157,6 +179,13 @@ const pendingReimbursement = (): ReimbursementSummary => ({
   status: 'PENDING_REVIEW',
   decidedAt: null,
   rejectionReason: null,
+});
+
+const rejectedReimbursement = (): ReimbursementSummary => ({
+  ...reimbursement(),
+  status: 'REJECTED',
+  decidedAt: new Date('2026-10-02T10:00:00.000Z'),
+  rejectionReason: 'Le montant ne correspond pas.',
 });
 
 const routeWithGroup = (groupId: string | null): ActivatedRoute =>
