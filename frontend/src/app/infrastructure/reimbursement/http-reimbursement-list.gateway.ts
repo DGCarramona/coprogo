@@ -46,9 +46,7 @@ const toReimbursementSummary = (response: ReimbursementResponseDto): Reimburseme
   ...toDecision(response),
 });
 
-const toDecision = (
-  response: ReimbursementResponseDto,
-): ReimbursementDecision => {
+const toDecision = (response: ReimbursementResponseDto): ReimbursementDecision => {
   switch (toStatus(response.status)) {
     case 'PENDING_REVIEW':
       if (response.decidedAt != null || response.rejectionReason != null) {
@@ -70,7 +68,9 @@ const toDecision = (
   }
 };
 
-const toStatus = (status: ReimbursementStatusResponseDto | string): ReimbursementSummary['status'] => {
+const toStatus = (
+  status: ReimbursementStatusResponseDto | string,
+): ReimbursementSummary['status'] => {
   switch (status) {
     case 'PENDING_REVIEW':
     case 'ACCEPTED':
@@ -99,10 +99,7 @@ const toSupportingDocument = (
   attachedAt: toDate(response.attachedAt, 'Date d ajout du justificatif invalide'),
   downloadTarget: {
     url: response.download.url,
-    expiresAt: toDate(
-      response.download.expiresAt,
-      'Date d expiration du telechargement invalide',
-    ),
+    expiresAt: toDate(response.download.expiresAt, 'Date d expiration du telechargement invalide'),
   },
 });
 

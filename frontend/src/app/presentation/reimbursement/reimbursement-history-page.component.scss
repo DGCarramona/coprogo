@@ -1,0 +1,64 @@
+.reimbursement-history-page__back,
+.reimbursement-history-page__card {
+  margin-top: 1.5rem;
+}
+
+.reimbursement-history-page__card mat-progress-bar {
+  margin-top: 1rem;
+}
+
+.reimbursement-history-page__card p {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.reimbursement-history-page__list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.reimbursement-history-page__item {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.reimbursement-history-page__item:last-child {
+  border-bottom: 0;
+}
+
+.reimbursement-history-page__item > div,
+.reimbursement-history-page__item dl,
+.reimbursement-history-page__item dl div {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.reimbursement-history-page__item > div,
+.reimbursement-history-page__item dl div {
+  flex-direction: column;
+}
+
+.reimbursement-history-page__item dl {
+  margin: 0;
+  flex-wrap: wrap;
+}
+
+.reimbursement-history-page__item dt,
+.reimbursement-history-page__item span {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.reimbursement-history-page__item dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .reimbursement-history-page__item {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}

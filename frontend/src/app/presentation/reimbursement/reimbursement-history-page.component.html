@@ -1,0 +1,54 @@
+<app-authenticated-shell
+  eyebrow="Historique des operations"
+  title="Remboursements"
+  description="Retrouvez les remboursements enregistres pour ce groupe."
+>
+  @if (viewModel.groupId !== null) {
+    <a
+      class="reimbursement-history-page__back"
+      mat-stroked-button
+      [routerLink]="['/groups', viewModel.groupId, 'dashboard']"
+    >
+      Retour au groupe
+    </a>
+  }
+
+  <mat-card class="material-card reimbursement-history-page__card" appearance="outlined">
+    <mat-card-header>
+      <mat-card-title>Historique des remboursements</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      @if (viewModel.isLoading()) {
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+      } @else if (viewModel.hasLoadError()) {
+        <p>{{ viewModel.errorMessage() }}</p>
+        @if (viewModel.groupId !== null) {
+          <button mat-flat-button type="button" (click)="viewModel.retry()">Reessayer</button>
+        }
+      } @else if (viewModel.isReady() && viewModel.reimbursements().length === 0) {
+        <p>Aucun remboursement enregistre.</p>
+      } @else {
+        <div class="reimbursement-history-page__list">
+          @for (reimbursement of viewModel.reimbursements(); track reimbursement.id) {
+            <article class="reimbursement-history-page__item">
+              <div>
+                <strong>{{ reimbursement.amount }}</strong>
+                <span>{{ reimbursement.reimbursedAt }}</span>
+              </div>
+              <dl>
+                <div>
+                  <dt>Paye par</dt>
+                  <dd>{{ reimbursement.paidBy }}</dd>
+                </div>
+                <div>
+                  <dt>Recu par</dt>
+                  <dd>{{ reimbursement.receivedBy }}</dd>
+                </div>
+              </dl>
+            </article>
+          }
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</app-authenticated-shell>

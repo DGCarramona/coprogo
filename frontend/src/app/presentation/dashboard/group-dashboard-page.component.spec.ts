@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { provideRouter, RouterLink } from '@angular/router';
 
 import { GroupDashboardPageComponent } from './group-dashboard-page.component';
 import { GroupDashboardPageViewModel } from './group-dashboard-page.view-model';
@@ -38,6 +39,17 @@ describe('GroupDashboardPageComponent', () => {
 
     expect(widget.componentInstance.groupId).toBe('group-1');
   });
+
+  it('links to the reimbursement history of the ready group', () => {
+    const fixture = createFixture(new StubGroupDashboardPageViewModel());
+
+    fixture.detectChanges();
+
+    const link = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>(
+      'a[href="/groups/group-1/reimbursements"]',
+    );
+    expect(link).not.toBeNull();
+  });
 });
 
 const createFixture = (
@@ -45,6 +57,7 @@ const createFixture = (
 ): ComponentFixture<GroupDashboardPageComponent> => {
   TestBed.configureTestingModule({
     imports: [GroupDashboardPageComponent],
+    providers: [provideRouter([])],
   });
   TestBed.overrideComponent(GroupDashboardPageComponent, {
     set: {
@@ -56,6 +69,7 @@ const createFixture = (
         MatCardModule,
         MatChipsModule,
         MatProgressBarModule,
+        RouterLink,
       ],
       providers: [{ provide: GroupDashboardPageViewModel, useValue: viewModel }],
     },

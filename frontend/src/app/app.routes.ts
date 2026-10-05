@@ -32,6 +32,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'groups/:groupId/reimbursements',
+    canActivate: [authenticatedRouteGuard],
+    loadComponent: () =>
+      import('./presentation/reimbursement/reimbursement-history-page.component').then(
+        (module) => module.ReimbursementHistoryPageComponent,
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'invitations',
   },

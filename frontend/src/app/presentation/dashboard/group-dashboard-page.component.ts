@@ -3,6 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { RouterLink } from '@angular/router';
 
 import { AuthenticatedShellComponent } from '../shared/authenticated-shell/authenticated-shell.component';
 import { ExpenseListWidgetComponent } from './expense-list-widget/expense-list-widget.component';
@@ -19,6 +20,7 @@ import { GroupDashboardPageViewModel } from './group-dashboard-page.view-model';
     MatCardModule,
     MatChipsModule,
     MatProgressBarModule,
+    RouterLink,
   ],
   templateUrl: './group-dashboard-page.component.html',
   styleUrl: './group-dashboard-page.component.scss',

@@ -106,25 +106,20 @@ describe('HttpReimbursementListGateway', () => {
           rejectionReason: 'Le montant ne correspond pas.',
         },
       },
-    ] as const)(
-      'maps the $name decision',
-      async ({ response, expected }) => {
-        const reimbursements = gateway.listByGroup(GROUP_ID);
+    ] as const)('maps the $name decision', async ({ response, expected }) => {
+      const reimbursements = gateway.listByGroup(GROUP_ID);
 
-        expectListRequest().flush([response]);
+      expectListRequest().flush([response]);
 
-        await expect(reimbursements).resolves.toMatchObject([expected]);
-      },
-    );
+      await expect(reimbursements).resolves.toMatchObject([expected]);
+    });
 
     it('rejects an unknown reimbursement status', async () => {
       const reimbursements = gateway.listByGroup(GROUP_ID);
 
       expectListRequest().flush([{ ...reimbursementResponse(), status: 'CANCELLED' }]);
 
-      await expect(reimbursements).rejects.toThrow(
-        'Statut de remboursement inconnu: CANCELLED.',
-      );
+      await expect(reimbursements).rejects.toThrow('Statut de remboursement inconnu: CANCELLED.');
     });
 
     it.each([
