@@ -7,6 +7,7 @@ import { GroupMembersPort } from './application/group/group-members.port';
 import { NavigationPort } from './application/shared/navigation.port';
 import { ReimbursementListPort } from './application/reimbursement/reimbursement-list.port';
 import { DirectReimbursementRecordingPort } from './application/reimbursement/direct-reimbursement-recording.port';
+import { DocumentedReimbursementDeclarationPort } from './application/reimbursement/documented-reimbursement-declaration.port';
 import { ExpenseSupportingDocumentDeletionPort } from './application/supporting-document/expense-supporting-document-deletion.port';
 import { ExpenseSupportingDocumentsPort } from './application/supporting-document/expense-supporting-documents.port';
 import {
@@ -19,6 +20,7 @@ import { HttpExpenseProposalGateway } from './infrastructure/expense/http-expens
 import { HttpGroupMembersGateway } from './infrastructure/group/http-group-members.gateway';
 import { HttpReimbursementListGateway } from './infrastructure/reimbursement/http-reimbursement-list.gateway';
 import { HttpDirectReimbursementRecordingGateway } from './infrastructure/reimbursement/http-direct-reimbursement-recording.gateway';
+import { HttpDocumentedReimbursementDeclarationGateway } from './infrastructure/reimbursement/http-documented-reimbursement-declaration.gateway';
 import { RouterNavigationAdapter } from './infrastructure/router/router-navigation.adapter';
 import { HttpSignedSupportingDocumentUploaderGateway } from './infrastructure/supporting-document/http-signed-supporting-document-uploader.gateway';
 import { HttpSupportingDocumentUploadControlPlaneGateway } from './infrastructure/supporting-document/http-supporting-document-upload-control-plane.gateway';
@@ -56,6 +58,11 @@ const portBindings: readonly {
     name: 'direct reimbursement recording',
     port: DirectReimbursementRecordingPort,
     adapter: HttpDirectReimbursementRecordingGateway,
+  },
+  {
+    name: 'documented reimbursement declaration',
+    port: DocumentedReimbursementDeclarationPort,
+    adapter: HttpDocumentedReimbursementDeclarationGateway,
   },
   {
     name: 'SHA-256 checksum',
