@@ -21,7 +21,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 
 ## Ordre de travail actuel
 
-1. BE-REB-010 : ajouter les tests d'integration sur les parcours de remboursement directs et contestables.
+1. BE-EXP-016 : remplacer l'hydratation d'agregats complets dans la liste des depenses par une projection de synthese group-scoped.
 
 ## Fondations monorepo et DX
 
@@ -99,7 +99,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 - [x] BE-REB-008A Modeliser et persister l'effet ledger d'un remboursement accepte.
 - [x] BE-REB-008B Produire atomiquement l'effet ledger lors de l'enregistrement ou de l'acceptation d'un remboursement.
 - [x] BE-REB-009 Exposer les endpoints REST de creation, consultation et revue des remboursements.
-- [ ] BE-REB-010 Ajouter des tests d'integration sur les parcours de remboursement directs et contestables.
+- [x] BE-REB-010 Ajouter des tests d'integration sur les parcours de remboursement directs et contestables.
 
 ## Backend - caisse commune, balances et historique explicatif
 
