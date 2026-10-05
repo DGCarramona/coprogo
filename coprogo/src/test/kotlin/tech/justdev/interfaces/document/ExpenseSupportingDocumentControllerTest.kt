@@ -7,22 +7,30 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import tech.justdev.application.auth.AuthenticatedUser
 import tech.justdev.application.auth.AuthenticatedUserProvider
+import tech.justdev.application.document.DocumentDownloadRequest
 import tech.justdev.application.document.DocumentDownloadTarget
+import tech.justdev.application.document.DocumentStorage
+import tech.justdev.application.document.DocumentUploadRequest
+import tech.justdev.application.document.DocumentUploadTarget
 import tech.justdev.application.document.ExpenseSupportingDocumentAuditAction
 import tech.justdev.application.document.ExpenseSupportingDocumentAuditEntrySnapshot
-import tech.justdev.application.document.ExpenseSupportingDocumentSnapshot
 import tech.justdev.application.document.ListExpenseSupportingDocumentAuditTrailQuery
 import tech.justdev.application.document.ListExpenseSupportingDocumentAuditTrailUseCase
 import tech.justdev.application.document.ListExpenseSupportingDocumentsQuery
 import tech.justdev.application.document.ListExpenseSupportingDocumentsResult
 import tech.justdev.application.document.ListExpenseSupportingDocumentsUseCase
+import tech.justdev.application.document.ListedExpenseSupportingDocument
 import tech.justdev.application.expense.DeleteExpenseSupportingDocumentCommand
 import tech.justdev.application.expense.DeleteExpenseSupportingDocumentUseCase
 import tech.justdev.application.expense.ReplaceExpenseSupportingDocumentCommand
 import tech.justdev.application.expense.ReplaceExpenseSupportingDocumentUseCase
+import tech.justdev.domain.document.entity.DocumentMetadata
+import tech.justdev.domain.document.entity.ExpenseSupportingDocument
 import tech.justdev.domain.document.valueobject.DocumentFileName
 import tech.justdev.domain.document.valueobject.DocumentMediaType
+import tech.justdev.domain.document.valueobject.DocumentSha256
 import tech.justdev.domain.document.valueobject.DocumentSize
+import tech.justdev.domain.document.valueobject.DocumentStorageKey
 import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
 import tech.justdev.domain.document.valueobject.SupportingDocumentAttachmentDeletion
 import tech.justdev.domain.expense.valueobject.ExpenseId
@@ -32,6 +40,7 @@ import tech.justdev.interfaces.configuration.SupportingDocumentDownloadConfigura
 import java.net.URI
 import java.time.Duration
 import java.time.Instant
+import java.util.Base64
 import java.util.UUID
 
 class ExpenseSupportingDocumentControllerTest {
@@ -40,6 +49,7 @@ class ExpenseSupportingDocumentControllerTest {
     private val listSupportingDocumentAuditTrailUseCase = FakeListExpenseSupportingDocumentAuditTrailUseCase()
     private val replaceSupportingDocumentUseCase = FakeReplaceExpenseSupportingDocumentUseCase()
     private val deleteSupportingDocumentUseCase = FakeDeleteExpenseSupportingDocumentUseCase()
+    private val documentStorage = RecordingDocumentStorage()
     private val controller =
         ExpenseSupportingDocumentController(
             authenticatedUserProvider = authProvider,
@@ -47,7 +57,7 @@ class ExpenseSupportingDocumentControllerTest {
             listExpenseSupportingDocumentAuditTrailUseCase = listSupportingDocumentAuditTrailUseCase,
             replaceExpenseSupportingDocumentUseCase = replaceSupportingDocumentUseCase,
             deleteExpenseSupportingDocumentUseCase = deleteSupportingDocumentUseCase,
-            configuration = SupportingDocumentDownloadConfiguration(),
+            presenter = presenter(documentStorage),
         )
 
     @Nested
@@ -66,7 +76,6 @@ class ExpenseSupportingDocumentControllerTest {
                     snapshot(
                         sourceUploadIntent = sourceUploadIntent,
                         attachedAt = attachedAt,
-                        downloadExpiresAt = expiresAt,
                         canDelete = true,
                     )
                 val historical =
@@ -75,7 +84,6 @@ class ExpenseSupportingDocumentControllerTest {
                         attachedAt = attachedAt.minusSeconds(60),
                         replacesSourceUploadIntent = sourceUploadIntent,
                         deletion = SupportingDocumentAttachmentDeletion(MemberEmail.of("deleter@example.com"), deletedAt),
-                        downloadExpiresAt = expiresAt.minusSeconds(60),
                     )
                 listSupportingDocumentsUseCase.result =
                     ListExpenseSupportingDocumentsResult(
@@ -121,7 +129,7 @@ class ExpenseSupportingDocumentControllerTest {
                                     download =
                                         SupportingDocumentDownloadResponse(
                                             url = URI("https://storage.example.test/$replacementSourceUploadIntent"),
-                                            expiresAt = expiresAt.minusSeconds(60),
+                                            expiresAt = expiresAt,
                                         ),
                                 ),
                                 ExpenseSupportingDocumentResponse(
@@ -147,7 +155,7 @@ class ExpenseSupportingDocumentControllerTest {
             }
 
         @Test
-        fun `should pass group expense authenticated member and default download validity to the use case`() =
+        fun `should pass group expense and authenticated member to the use case`() =
             runTest {
                 val groupId = UUID.randomUUID()
                 val expenseId = UUID.randomUUID()
@@ -159,7 +167,6 @@ class ExpenseSupportingDocumentControllerTest {
                         group = GroupId(groupId),
                         expense = ExpenseId(expenseId),
                         requestedBy = MemberEmail.of("member@example.com"),
-                        downloadValidFor = Duration.ofMinutes(5),
                     ),
                     listSupportingDocumentsUseCase.lastQuery,
                 )
@@ -179,6 +186,12 @@ class ExpenseSupportingDocumentControllerTest {
         fun `should use the configured download validity duration`() =
             runTest {
                 val configuredValidity = Duration.ofSeconds(42)
+                val configuredStorage = RecordingDocumentStorage()
+                listSupportingDocumentsUseCase.result =
+                    ListExpenseSupportingDocumentsResult(
+                        current = emptyList(),
+                        history = listOf(snapshot(UUID.randomUUID(), Instant.parse("2026-09-23T10:00:00Z"))),
+                    )
                 val configuredController =
                     ExpenseSupportingDocumentController(
                         authenticatedUserProvider = authProvider,
@@ -186,12 +199,12 @@ class ExpenseSupportingDocumentControllerTest {
                         listExpenseSupportingDocumentAuditTrailUseCase = listSupportingDocumentAuditTrailUseCase,
                         replaceExpenseSupportingDocumentUseCase = replaceSupportingDocumentUseCase,
                         deleteExpenseSupportingDocumentUseCase = deleteSupportingDocumentUseCase,
-                        configuration = SupportingDocumentDownloadConfiguration().apply { validFor = configuredValidity },
+                        presenter = presenter(configuredStorage, configuredValidity),
                     )
 
                 configuredController.listExpenseSupportingDocuments(UUID.randomUUID(), UUID.randomUUID())
 
-                assertEquals(configuredValidity, requireNotNull(listSupportingDocumentsUseCase.lastQuery).downloadValidFor)
+                assertEquals(configuredValidity, configuredStorage.downloadRequests.single().validFor)
             }
     }
 
@@ -348,23 +361,34 @@ class ExpenseSupportingDocumentControllerTest {
         replacesSourceUploadIntent: UUID? = null,
         deletion: SupportingDocumentAttachmentDeletion? = null,
         canDelete: Boolean = false,
-        downloadExpiresAt: Instant,
-    ): ExpenseSupportingDocumentSnapshot =
-        ExpenseSupportingDocumentSnapshot(
-            sourceUploadIntent = DocumentUploadIntentId(sourceUploadIntent),
-            fileName = DocumentFileName.of("invoice.pdf"),
-            mediaType = DocumentMediaType.of("application/pdf"),
-            size = DocumentSize.ofBytes(1234),
-            uploader = MemberEmail.of("uploader@example.com"),
-            attachedAt = attachedAt,
-            replacesSourceUploadIntent = replacesSourceUploadIntent?.let(::DocumentUploadIntentId),
-            deletion = deletion,
-            canDelete = canDelete,
-            download =
-                DocumentDownloadTarget(
-                    uri = URI("https://storage.example.test/$sourceUploadIntent"),
-                    expiresAt = downloadExpiresAt,
+    ): ListedExpenseSupportingDocument =
+        ListedExpenseSupportingDocument(
+            document =
+                ExpenseSupportingDocument.restore(
+                    sourceUploadIntent = DocumentUploadIntentId(sourceUploadIntent),
+                    uploader = MemberEmail.of("uploader@example.com"),
+                    storageKey = DocumentStorageKey.of("documents/$sourceUploadIntent"),
+                    fileName = DocumentFileName.of("invoice.pdf"),
+                    metadata =
+                        DocumentMetadata(
+                            mediaType = DocumentMediaType.of("application/pdf"),
+                            size = DocumentSize.ofBytes(1234),
+                            checksum = CHECKSUM,
+                        ),
+                    attachedAt = attachedAt,
+                    replacesSourceUploadIntent = replacesSourceUploadIntent?.let(::DocumentUploadIntentId),
+                    deletion = deletion,
                 ),
+            canDelete = canDelete,
+        )
+
+    private fun presenter(
+        storage: DocumentStorage,
+        validity: Duration = Duration.ofMinutes(5),
+    ): ExpenseSupportingDocumentPresenter =
+        ExpenseSupportingDocumentPresenter(
+            documentStorage = storage,
+            configuration = SupportingDocumentDownloadConfiguration().apply { validFor = validity },
         )
 
     private fun auditEntry(
@@ -384,6 +408,22 @@ class ExpenseSupportingDocumentControllerTest {
 
     private class FakeAuthenticatedUserProvider : AuthenticatedUserProvider {
         override suspend fun currentAuthenticatedUser(): AuthenticatedUser = AuthenticatedUser(MemberEmail.of("member@example.com"))
+    }
+
+    private class RecordingDocumentStorage : DocumentStorage {
+        val downloadRequests = mutableListOf<DocumentDownloadRequest>()
+
+        override suspend fun presignUpload(request: DocumentUploadRequest): DocumentUploadTarget = error("not used")
+
+        override suspend fun inspect(key: DocumentStorageKey): DocumentMetadata? = error("not used")
+
+        override suspend fun presignDownload(request: DocumentDownloadRequest): DocumentDownloadTarget {
+            downloadRequests += request
+            return DocumentDownloadTarget(
+                uri = URI("https://storage.example.test/${request.key.toPrimitive().removePrefix("documents/")}"),
+                expiresAt = DOWNLOAD_EXPIRES_AT,
+            )
+        }
     }
 
     private class FakeListExpenseSupportingDocumentsUseCase : ListExpenseSupportingDocumentsUseCase {
@@ -422,5 +462,10 @@ class ExpenseSupportingDocumentControllerTest {
         override suspend fun invoke(command: DeleteExpenseSupportingDocumentCommand) {
             lastCommand = command
         }
+    }
+
+    private companion object {
+        val DOWNLOAD_EXPIRES_AT: Instant = Instant.parse("2026-09-23T10:05:00Z")
+        val CHECKSUM: DocumentSha256 = DocumentSha256.fromBase64(Base64.getEncoder().encodeToString(ByteArray(32)))
     }
 }

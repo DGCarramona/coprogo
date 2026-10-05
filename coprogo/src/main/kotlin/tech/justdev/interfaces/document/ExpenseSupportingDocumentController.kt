@@ -15,13 +15,9 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import tech.justdev.application.auth.AuthenticatedUserProvider
-import tech.justdev.application.document.ExpenseSupportingDocumentAuditAction
-import tech.justdev.application.document.ExpenseSupportingDocumentAuditEntrySnapshot
-import tech.justdev.application.document.ExpenseSupportingDocumentSnapshot
 import tech.justdev.application.document.ListExpenseSupportingDocumentAuditTrailQuery
 import tech.justdev.application.document.ListExpenseSupportingDocumentAuditTrailUseCase
 import tech.justdev.application.document.ListExpenseSupportingDocumentsQuery
-import tech.justdev.application.document.ListExpenseSupportingDocumentsResult
 import tech.justdev.application.document.ListExpenseSupportingDocumentsUseCase
 import tech.justdev.application.expense.DeleteExpenseSupportingDocumentCommand
 import tech.justdev.application.expense.DeleteExpenseSupportingDocumentUseCase
@@ -31,9 +27,7 @@ import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.shared.valueobject.GroupId
 import tech.justdev.interfaces.ApiErrorResponse
-import tech.justdev.interfaces.configuration.SupportingDocumentDownloadConfiguration
 import tech.justdev.interfaces.openapi.AuthenticatedApi
-import java.net.URI
 import java.time.Instant
 import java.util.UUID
 
@@ -46,7 +40,7 @@ class ExpenseSupportingDocumentController(
     private val listExpenseSupportingDocumentAuditTrailUseCase: ListExpenseSupportingDocumentAuditTrailUseCase,
     private val replaceExpenseSupportingDocumentUseCase: ReplaceExpenseSupportingDocumentUseCase,
     private val deleteExpenseSupportingDocumentUseCase: DeleteExpenseSupportingDocumentUseCase,
-    private val configuration: SupportingDocumentDownloadConfiguration,
+    private val presenter: ExpenseSupportingDocumentPresenter,
 ) {
     @Get("/groups/{groupId}/expenses/{expenseId}/supporting-documents")
     @Operation(summary = "List current and historical supporting documents for an expense")
@@ -62,10 +56,9 @@ class ExpenseSupportingDocumentController(
                     group = GroupId(groupId),
                     expense = ExpenseId(expenseId),
                     requestedBy = authenticatedUser.email,
-                    downloadValidFor = configuration.validFor,
                 )
             }.let { query -> listExpenseSupportingDocumentsUseCase(query) }
-            .toResponse()
+            .let { result -> presenter.present(result) }
 
     @Get("/groups/{groupId}/expenses/{expenseId}/supporting-document-audit-entries")
     @Operation(
@@ -91,7 +84,7 @@ class ExpenseSupportingDocumentController(
                     requestedBy = authenticatedUser.email,
                 )
             }.let { query -> listExpenseSupportingDocumentAuditTrailUseCase(query) }
-            .map(ExpenseSupportingDocumentAuditEntrySnapshot::toResponse)
+            .let(presenter::presentAuditTrail)
 
     @Post("/groups/{groupId}/expenses/{expenseId}/supporting-documents/{sourceUploadIntent}/replacements")
     @Status(HttpStatus.NO_CONTENT)
@@ -165,89 +158,3 @@ class ExpenseSupportingDocumentController(
 data class ReplaceExpenseSupportingDocumentRequest(
     val replacementUploadIntent: UUID,
 )
-
-@Serdeable
-data class ExpenseSupportingDocumentsResponse(
-    val current: List<ExpenseSupportingDocumentResponse>,
-    val history: List<ExpenseSupportingDocumentResponse>,
-)
-
-@Serdeable
-enum class ExpenseSupportingDocumentAuditActionResponse {
-    ATTACHED,
-    REPLACED,
-    DELETED,
-}
-
-@Serdeable
-data class ExpenseSupportingDocumentAuditEntryResponse(
-    val action: ExpenseSupportingDocumentAuditActionResponse,
-    val occurredAt: Instant,
-    val performedBy: String,
-    val documentUploadIntent: UUID,
-    val replacedDocumentUploadIntent: UUID?,
-    val fileName: String,
-)
-
-@Serdeable
-data class ExpenseSupportingDocumentResponse(
-    val sourceUploadIntent: UUID,
-    val fileName: String,
-    val mediaType: String,
-    val sizeBytes: Long,
-    val uploader: String,
-    val attachedAt: Instant,
-    val replacesSourceUploadIntent: UUID?,
-    val deletion: SupportingDocumentDeletionResponse?,
-    val canDelete: Boolean,
-    val download: SupportingDocumentDownloadResponse,
-)
-
-@Serdeable
-data class SupportingDocumentDeletionResponse(
-    val deletedBy: String,
-    val deletedAt: Instant,
-)
-
-@Serdeable
-data class SupportingDocumentDownloadResponse(
-    val url: URI,
-    val expiresAt: Instant,
-)
-
-private fun ListExpenseSupportingDocumentsResult.toResponse(): ExpenseSupportingDocumentsResponse =
-    ExpenseSupportingDocumentsResponse(
-        current = current.map(ExpenseSupportingDocumentSnapshot::toResponse),
-        history = history.map(ExpenseSupportingDocumentSnapshot::toResponse),
-    )
-
-private fun ExpenseSupportingDocumentSnapshot.toResponse(): ExpenseSupportingDocumentResponse =
-    ExpenseSupportingDocumentResponse(
-        sourceUploadIntent = sourceUploadIntent.toPrimitive(),
-        fileName = fileName.toPrimitive(),
-        mediaType = mediaType.toPrimitive(),
-        sizeBytes = size.toBytes(),
-        uploader = uploader.toPrimitive(),
-        attachedAt = attachedAt,
-        replacesSourceUploadIntent = replacesSourceUploadIntent?.toPrimitive(),
-        deletion = deletion?.let { SupportingDocumentDeletionResponse(it.deletedBy.toPrimitive(), it.deletedAt) },
-        canDelete = canDelete,
-        download = SupportingDocumentDownloadResponse(download.uri, download.expiresAt),
-    )
-
-private fun ExpenseSupportingDocumentAuditEntrySnapshot.toResponse(): ExpenseSupportingDocumentAuditEntryResponse =
-    ExpenseSupportingDocumentAuditEntryResponse(
-        action = action.toResponse(),
-        occurredAt = occurredAt,
-        performedBy = performedBy.toPrimitive(),
-        documentUploadIntent = documentUploadIntent.toPrimitive(),
-        replacedDocumentUploadIntent = replacedDocumentUploadIntent?.toPrimitive(),
-        fileName = fileName.toPrimitive(),
-    )
-
-private fun ExpenseSupportingDocumentAuditAction.toResponse(): ExpenseSupportingDocumentAuditActionResponse =
-    when (this) {
-        ExpenseSupportingDocumentAuditAction.ATTACHED -> ExpenseSupportingDocumentAuditActionResponse.ATTACHED
-        ExpenseSupportingDocumentAuditAction.REPLACED -> ExpenseSupportingDocumentAuditActionResponse.REPLACED
-        ExpenseSupportingDocumentAuditAction.DELETED -> ExpenseSupportingDocumentAuditActionResponse.DELETED
-    }

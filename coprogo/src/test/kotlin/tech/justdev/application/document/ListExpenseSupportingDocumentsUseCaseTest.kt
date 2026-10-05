@@ -34,8 +34,6 @@ import tech.justdev.testsupport.expenseId
 import tech.justdev.testsupport.groupId
 import tech.justdev.testsupport.memberEmail
 import tech.justdev.testsupport.testUuid
-import java.net.URI
-import java.time.Duration
 import java.time.Instant
 import java.util.Base64
 
@@ -51,7 +49,6 @@ class ListExpenseSupportingDocumentsUseCaseTest {
                     useCase(
                         groupRepository = RecordingGroupRepository(interactions, group()),
                         expenseRepository = FailingExpenseRepository(),
-                        documentStorage = FailingDocumentStorage(),
                     )(query(requestedBy = OUTSIDER))
                 }
             }
@@ -70,7 +67,6 @@ class ListExpenseSupportingDocumentsUseCaseTest {
                         useCase(
                             groupRepository = RecordingGroupRepository(interactions, group()),
                             expenseRepository = expenseRepository,
-                            documentStorage = FailingDocumentStorage(),
                         )(query())
                     }
                 }
@@ -82,20 +78,17 @@ class ListExpenseSupportingDocumentsUseCaseTest {
         }
 
         @Test
-        fun `should return empty current and history without presigning downloads`() =
+        fun `should return empty current and history`() =
             runTest {
                 val interactions = mutableListOf<String>()
-                val documentStorage = RecordingDocumentStorage(interactions)
 
                 val result =
                     useCase(
                         groupRepository = RecordingGroupRepository(interactions, group()),
                         expenseRepository = RecordingExpenseRepository(interactions, expense()),
-                        documentStorage = documentStorage,
                     )(query())
 
                 assertEquals(ListExpenseSupportingDocumentsResult(emptyList(), emptyList()), result)
-                assertEquals(emptyList<DocumentDownloadRequest>(), documentStorage.downloadRequests)
                 assertEquals(listOf("membership", "expense"), interactions)
             }
 
@@ -112,13 +105,11 @@ class ListExpenseSupportingDocumentsUseCaseTest {
                         deletion = SupportingDocumentAttachmentDeletion(UPLOADER, DELETED_AT),
                     )
                 val history = listOf(original, replacement)
-                val documentStorage = RecordingDocumentStorage(mutableListOf())
 
                 val result =
                     useCase(
                         groupRepository = RecordingGroupRepository(mutableListOf(), group()),
                         expenseRepository = RecordingExpenseRepository(mutableListOf(), expense(history)),
-                        documentStorage = documentStorage,
                     )(query())
 
                 assertEquals(
@@ -126,14 +117,12 @@ class ListExpenseSupportingDocumentsUseCaseTest {
                         current = emptyList(),
                         history =
                             listOf(
-                                snapshot(
+                                listedDocument(
                                     document = original,
-                                    download = downloadTarget(ORIGINAL),
                                     canDelete = false,
                                 ),
-                                snapshot(
+                                listedDocument(
                                     document = replacement,
-                                    download = downloadTarget(REPLACEMENT),
                                     canDelete = false,
                                 ),
                             ),
@@ -152,25 +141,22 @@ class ListExpenseSupportingDocumentsUseCaseTest {
                         replaces = ORIGINAL,
                     )
                 val expense = expense(listOf(original, current))
-                val documentStorage = RecordingDocumentStorage(mutableListOf())
 
                 val creatorResult =
                     useCase(
                         groupRepository = RecordingGroupRepository(mutableListOf(), group()),
                         expenseRepository = RecordingExpenseRepository(mutableListOf(), expense),
-                        documentStorage = documentStorage,
                     )(query())
                 val otherMemberResult =
                     useCase(
                         groupRepository = RecordingGroupRepository(mutableListOf(), group()),
                         expenseRepository = RecordingExpenseRepository(mutableListOf(), expense),
-                        documentStorage = RecordingDocumentStorage(mutableListOf()),
                     )(query(requestedBy = OUTSIDER_MEMBER))
 
-                assertEquals(listOf(true), creatorResult.current.map(ExpenseSupportingDocumentSnapshot::canDelete))
-                assertEquals(listOf(false, true), creatorResult.history.map(ExpenseSupportingDocumentSnapshot::canDelete))
-                assertEquals(listOf(false), otherMemberResult.current.map(ExpenseSupportingDocumentSnapshot::canDelete))
-                assertEquals(listOf(false, false), otherMemberResult.history.map(ExpenseSupportingDocumentSnapshot::canDelete))
+                assertEquals(listOf(true), creatorResult.current.map(ListedExpenseSupportingDocument::canDelete))
+                assertEquals(listOf(false, true), creatorResult.history.map(ListedExpenseSupportingDocument::canDelete))
+                assertEquals(listOf(false), otherMemberResult.current.map(ListedExpenseSupportingDocument::canDelete))
+                assertEquals(listOf(false, false), otherMemberResult.history.map(ListedExpenseSupportingDocument::canDelete))
             }
 
         @Test
@@ -196,54 +182,12 @@ class ListExpenseSupportingDocumentsUseCaseTest {
                         useCase(
                             groupRepository = RecordingGroupRepository(mutableListOf(), group()),
                             expenseRepository = RecordingExpenseRepository(mutableListOf(), terminalExpense),
-                            documentStorage = RecordingDocumentStorage(mutableListOf()),
                         )(query())
                     }
 
                 assertEquals(
                     listOf(listOf(false), listOf(false)),
-                    results.map { result -> result.current.map(ExpenseSupportingDocumentSnapshot::canDelete) },
-                )
-            }
-
-        @Test
-        fun `should presign each hydrated document once`() =
-            runTest {
-                val original = document(consumedIntent(ORIGINAL, "original.pdf", "application/pdf", 512, ORIGINAL_ATTACHED_AT))
-                val replacement =
-                    document(
-                        consumedIntent(REPLACEMENT, "replacement.jpg", "image/jpeg", 1_024, REPLACEMENT_ATTACHED_AT),
-                        replaces = ORIGINAL,
-                    )
-                val duplicateCurrent = document(consumedIntent(CURRENT, "current.png", "image/png", 256, CURRENT_ATTACHED_AT))
-                val history = listOf(original, replacement, duplicateCurrent)
-                val documentStorage = RecordingDocumentStorage(mutableListOf())
-
-                useCase(
-                    groupRepository = RecordingGroupRepository(mutableListOf(), group()),
-                    expenseRepository = RecordingExpenseRepository(mutableListOf(), expense(history)),
-                    documentStorage = documentStorage,
-                )(query())
-
-                assertEquals(
-                    listOf(
-                        DocumentDownloadRequest(
-                            key = DocumentStorageKey.of("documents/$ORIGINAL"),
-                            fileName = DocumentFileName.of("original.pdf"),
-                            validFor = DOWNLOAD_VALID_FOR,
-                        ),
-                        DocumentDownloadRequest(
-                            key = DocumentStorageKey.of("documents/$REPLACEMENT"),
-                            fileName = DocumentFileName.of("replacement.jpg"),
-                            validFor = DOWNLOAD_VALID_FOR,
-                        ),
-                        DocumentDownloadRequest(
-                            key = DocumentStorageKey.of("documents/$CURRENT"),
-                            fileName = DocumentFileName.of("current.png"),
-                            validFor = DOWNLOAD_VALID_FOR,
-                        ),
-                    ),
-                    documentStorage.downloadRequests,
+                    results.map { result -> result.current.map(ListedExpenseSupportingDocument::canDelete) },
                 )
             }
     }
@@ -251,12 +195,10 @@ class ListExpenseSupportingDocumentsUseCaseTest {
     private fun useCase(
         groupRepository: GroupRepository,
         expenseRepository: ExpenseRepository,
-        documentStorage: DocumentStorage,
     ): ListExpenseSupportingDocumentsUseCase =
         ListExpenseSupportingDocumentsUseCaseImpl(
             groupAccessPolicy = GroupAccessPolicy(groupRepository),
             expenseRepository = expenseRepository,
-            documentStorage = documentStorage,
         )
 
     private fun query(requestedBy: MemberEmail = UPLOADER): ListExpenseSupportingDocumentsQuery =
@@ -264,7 +206,6 @@ class ListExpenseSupportingDocumentsUseCaseTest {
             group = GROUP,
             expense = EXPENSE,
             requestedBy = requestedBy,
-            downloadValidFor = DOWNLOAD_VALID_FOR,
         )
 
     private fun group(): Group = Group.create(GROUP, UPLOADER, CREATED_AT).addMember(OUTSIDER_MEMBER, CREATED_AT.plusSeconds(1))
@@ -321,28 +262,13 @@ class ListExpenseSupportingDocumentsUseCaseTest {
             status = DocumentUploadIntentStatus.Consumed(VERIFIED_AT, consumedAt),
         )
 
-    private fun snapshot(
+    private fun listedDocument(
         document: ExpenseSupportingDocument,
-        download: DocumentDownloadTarget,
         canDelete: Boolean,
-    ): ExpenseSupportingDocumentSnapshot =
-        ExpenseSupportingDocumentSnapshot(
-            sourceUploadIntent = document.sourceUploadIntent,
-            fileName = document.fileName,
-            mediaType = document.metadata.mediaType,
-            size = document.metadata.size,
-            uploader = document.uploader,
-            attachedAt = document.attachedAt,
-            replacesSourceUploadIntent = document.replacesSourceUploadIntent,
-            deletion = document.deletion,
-            download = download,
+    ): ListedExpenseSupportingDocument =
+        ListedExpenseSupportingDocument(
+            document = document,
             canDelete = canDelete,
-        )
-
-    private fun downloadTarget(id: DocumentUploadIntentId): DocumentDownloadTarget =
-        DocumentDownloadTarget(
-            uri = URI.create("https://documents.example/$id"),
-            expiresAt = DOWNLOAD_EXPIRES_AT,
         )
 
     private class RecordingGroupRepository(
@@ -382,28 +308,6 @@ class ListExpenseSupportingDocumentsUseCaseTest {
         override suspend fun persist(expense: Expense) = error("not used")
     }
 
-    private class RecordingDocumentStorage(
-        private val interactions: MutableList<String>,
-    ) : DocumentStorage {
-        val downloadRequests = mutableListOf<DocumentDownloadRequest>()
-
-        override suspend fun presignUpload(request: DocumentUploadRequest): DocumentUploadTarget = error("not used")
-
-        override suspend fun inspect(key: DocumentStorageKey): DocumentMetadata? = error("not used")
-
-        override suspend fun presignDownload(request: DocumentDownloadRequest): DocumentDownloadTarget {
-            interactions += "download"
-            downloadRequests += request
-            return downloadTargetFor(request.key)
-        }
-
-        private fun downloadTargetFor(key: DocumentStorageKey): DocumentDownloadTarget =
-            DocumentDownloadTarget(
-                URI.create("https://documents.example/${key.toPrimitive().removePrefix("documents/")}"),
-                DOWNLOAD_EXPIRES_AT,
-            )
-    }
-
     private class FailingExpenseRepository : ExpenseRepository {
         override suspend fun findByIdAndGroup(
             id: ExpenseId,
@@ -418,15 +322,6 @@ class ListExpenseSupportingDocumentsUseCaseTest {
         ): Expense? = error("expense repository must not be accessed")
 
         override suspend fun persist(expense: Expense) = error("expense repository must not be accessed")
-    }
-
-    private class FailingDocumentStorage : DocumentStorage {
-        override suspend fun presignUpload(request: DocumentUploadRequest): DocumentUploadTarget = error("storage must not be accessed")
-
-        override suspend fun inspect(key: DocumentStorageKey): DocumentMetadata? = error("storage must not be accessed")
-
-        override suspend fun presignDownload(request: DocumentDownloadRequest): DocumentDownloadTarget =
-            error("storage must not be accessed")
     }
 
     private data class ExpenseLookup(
@@ -450,8 +345,6 @@ class ListExpenseSupportingDocumentsUseCaseTest {
         val CURRENT_ATTACHED_AT: Instant = Instant.parse("2026-09-20T10:04:00Z")
         val DELETED_AT: Instant = Instant.parse("2026-09-20T10:05:00Z")
         val EXPIRES_AT: Instant = Instant.parse("2026-09-20T11:00:00Z")
-        val DOWNLOAD_EXPIRES_AT: Instant = Instant.parse("2026-09-20T10:20:00Z")
-        val DOWNLOAD_VALID_FOR: Duration = Duration.ofMinutes(10)
         val CHECKSUM: DocumentSha256 = DocumentSha256.fromBase64(Base64.getEncoder().encodeToString(ByteArray(32)))
     }
 }

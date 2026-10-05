@@ -4,41 +4,25 @@ import jakarta.inject.Singleton
 import tech.justdev.application.expense.ExpenseNotFoundException
 import tech.justdev.application.group.GroupAccessPolicy
 import tech.justdev.domain.document.entity.ExpenseSupportingDocument
-import tech.justdev.domain.document.valueobject.DocumentFileName
-import tech.justdev.domain.document.valueobject.DocumentMediaType
-import tech.justdev.domain.document.valueobject.DocumentSize
-import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
-import tech.justdev.domain.document.valueobject.SupportingDocumentAttachmentDeletion
 import tech.justdev.domain.expense.repository.ExpenseRepository
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.valueobject.GroupId
-import java.time.Duration
-import java.time.Instant
 
 data class ListExpenseSupportingDocumentsQuery(
     val group: GroupId,
     val expense: ExpenseId,
     val requestedBy: MemberEmail,
-    val downloadValidFor: Duration,
 )
 
-data class ExpenseSupportingDocumentSnapshot(
-    val sourceUploadIntent: DocumentUploadIntentId,
-    val fileName: DocumentFileName,
-    val mediaType: DocumentMediaType,
-    val size: DocumentSize,
-    val uploader: MemberEmail,
-    val attachedAt: Instant,
-    val replacesSourceUploadIntent: DocumentUploadIntentId?,
-    val deletion: SupportingDocumentAttachmentDeletion?,
+data class ListedExpenseSupportingDocument(
+    val document: ExpenseSupportingDocument,
     val canDelete: Boolean,
-    val download: DocumentDownloadTarget,
 )
 
 data class ListExpenseSupportingDocumentsResult(
-    val current: List<ExpenseSupportingDocumentSnapshot>,
-    val history: List<ExpenseSupportingDocumentSnapshot>,
+    val current: List<ListedExpenseSupportingDocument>,
+    val history: List<ListedExpenseSupportingDocument>,
 )
 
 interface ListExpenseSupportingDocumentsUseCase {
@@ -49,7 +33,6 @@ interface ListExpenseSupportingDocumentsUseCase {
 class ListExpenseSupportingDocumentsUseCaseImpl(
     private val groupAccessPolicy: GroupAccessPolicy,
     private val expenseRepository: ExpenseRepository,
-    private val documentStorage: DocumentStorage,
 ) : ListExpenseSupportingDocumentsUseCase {
     override suspend operator fun invoke(query: ListExpenseSupportingDocumentsQuery): ListExpenseSupportingDocumentsResult {
         groupAccessPolicy.requireMember(query.group, query.requestedBy)
@@ -67,17 +50,10 @@ class ListExpenseSupportingDocumentsUseCaseImpl(
             return ListExpenseSupportingDocumentsResult(current = emptyList(), history = emptyList())
         }
 
-        val historySnapshots =
+        val historyDocuments =
             history.map { document ->
-                toSnapshot(
-                    document,
-                    documentStorage.presignDownload(
-                        DocumentDownloadRequest(
-                            key = document.storageKey,
-                            fileName = document.fileName,
-                            validFor = query.downloadValidFor,
-                        ),
-                    ),
+                ListedExpenseSupportingDocument(
+                    document = document,
                     canDelete =
                         expense.canChangeSupportingDocumentsBy(query.requestedBy) &&
                             document.sourceUploadIntent in currentIntentIds,
@@ -85,26 +61,8 @@ class ListExpenseSupportingDocumentsUseCaseImpl(
             }
 
         return ListExpenseSupportingDocumentsResult(
-            current = historySnapshots.filter { it.sourceUploadIntent in currentIntentIds },
-            history = historySnapshots,
+            current = historyDocuments.filter { it.document.sourceUploadIntent in currentIntentIds },
+            history = historyDocuments,
         )
     }
-
-    private fun toSnapshot(
-        document: ExpenseSupportingDocument,
-        download: DocumentDownloadTarget,
-        canDelete: Boolean,
-    ): ExpenseSupportingDocumentSnapshot =
-        ExpenseSupportingDocumentSnapshot(
-            sourceUploadIntent = document.sourceUploadIntent,
-            fileName = document.fileName,
-            mediaType = document.metadata.mediaType,
-            size = document.metadata.size,
-            uploader = document.uploader,
-            attachedAt = document.attachedAt,
-            replacesSourceUploadIntent = document.replacesSourceUploadIntent,
-            deletion = document.deletion,
-            canDelete = canDelete,
-            download = download,
-        )
 }

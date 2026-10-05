@@ -103,6 +103,13 @@ The policy remains deliberately specific where product correctness, security, au
 
 Keep adapters focused on conversion, delivery, and persistence/integration mechanics. A controller, component, mapper, or persistence model is never a convenient substitute for an aggregate, domain policy, or application workflow.
 
+### Use-case outputs, presenters, and view models
+
+- Backend use cases MUST return domain objects or application-owned results and projections, never REST response types or delivery-specific view models. After invoking a use case, a REST controller maps its output at the interface-adapter boundary.
+- When response assembly is non-trivial or requires I/O or delivery configuration, the controller MUST pass the use-case output to a dedicated presenter. The presenter owns response/view-model construction; it is called by the controller after the use case and MUST NOT be injected into or called by the use case. A simple pure one-to-one conversion MAY remain a private mapper at the controller boundary; do not introduce an injected presenter solely to relocate trivial field copying.
+- Delivery-only augmentation and configuration, including presigned download links and their validity duration, MUST remain in an interface adapter or presenter. A read use case MUST NOT accept delivery configuration or call an external port solely to shape an HTTP response.
+- This separation does not prohibit an application workflow from calling an external port when that interaction is itself part of the use case, such as creating an upload target whose expiration is persisted. Application results from such workflows still remain transport-independent and are mapped to HTTP responses by the controller or presenter.
+
 ## 4. Technology and runtime constraints
 
 ### Backend
