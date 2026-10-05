@@ -21,7 +21,9 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 
 ## Ordre de travail actuel
 
-1. FE-DOC-005B : raccorder l'historique documentaire aux remboursements pendant la construction de leur ecran.
+1. FE-REB-001A : ajouter le modele de lecture, le port applicatif et la gateway HTTP des remboursements.
+2. FE-REB-001B : creer la page et le ViewModel d'historique des remboursements.
+3. FE-DOC-005B : raccorder l'historique documentaire aux remboursements dans leur ecran.
 
 ## Fondations monorepo et DX
 
@@ -207,7 +209,8 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 
 ## Frontend - remboursements
 
-- [ ] FE-REB-001 Creer la page d'historique des remboursements.
+- [x] FE-REB-001A Ajouter le modele de lecture, le port applicatif et la gateway HTTP des remboursements.
+- [ ] FE-REB-001B Creer la page et le ViewModel d'historique des remboursements.
 - [ ] FE-REB-002 Creer le formulaire de remboursement direct.
 - [ ] FE-REB-003 Creer le formulaire de remboursement auto-declare avec justificatif.
 - [ ] FE-REB-004 Creer l'ecran de revue d'un remboursement contestable.

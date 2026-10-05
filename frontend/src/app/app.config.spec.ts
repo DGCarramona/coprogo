@@ -5,6 +5,7 @@ import { QueryClient } from '@tanstack/angular-query-experimental';
 import { ExpenseProposalPort } from './application/expense/expense-proposal.port';
 import { GroupMembersPort } from './application/group/group-members.port';
 import { NavigationPort } from './application/shared/navigation.port';
+import { ReimbursementListPort } from './application/reimbursement/reimbursement-list.port';
 import { ExpenseSupportingDocumentDeletionPort } from './application/supporting-document/expense-supporting-document-deletion.port';
 import { ExpenseSupportingDocumentsPort } from './application/supporting-document/expense-supporting-documents.port';
 import {
@@ -15,6 +16,7 @@ import {
 import { UploadSupportingDocument } from './application/supporting-document/upload-supporting-document.use-case';
 import { HttpExpenseProposalGateway } from './infrastructure/expense/http-expense-proposal.gateway';
 import { HttpGroupMembersGateway } from './infrastructure/group/http-group-members.gateway';
+import { HttpReimbursementListGateway } from './infrastructure/reimbursement/http-reimbursement-list.gateway';
 import { RouterNavigationAdapter } from './infrastructure/router/router-navigation.adapter';
 import { HttpSignedSupportingDocumentUploaderGateway } from './infrastructure/supporting-document/http-signed-supporting-document-uploader.gateway';
 import { HttpSupportingDocumentUploadControlPlaneGateway } from './infrastructure/supporting-document/http-supporting-document-upload-control-plane.gateway';
@@ -42,6 +44,11 @@ const portBindings: readonly {
     name: 'group members',
     port: GroupMembersPort,
     adapter: HttpGroupMembersGateway,
+  },
+  {
+    name: 'reimbursements read',
+    port: ReimbursementListPort,
+    adapter: HttpReimbursementListGateway,
   },
   {
     name: 'SHA-256 checksum',

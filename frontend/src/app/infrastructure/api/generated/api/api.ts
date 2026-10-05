@@ -4,6 +4,8 @@ export * from './groups.service';
 import { GroupsService } from './groups.service';
 export * from './ledger.service';
 import { LedgerService } from './ledger.service';
+export * from './reimbursements.service';
+import { ReimbursementsService } from './reimbursements.service';
 export * from './revenue-distribution.service';
 import { RevenueDistributionService } from './revenue-distribution.service';
 export * from './supporting-document-uploads.service';
@@ -14,6 +16,7 @@ export const APIS = [
   ExpensesService,
   GroupsService,
   LedgerService,
+  ReimbursementsService,
   RevenueDistributionService,
   SupportingDocumentUploadsService,
   SupportingDocumentsService,
