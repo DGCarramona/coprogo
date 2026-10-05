@@ -20,5 +20,23 @@ services:
       timeout: 5s
       retries: 5
 
+  s3mock:
+    image: adobe/s3mock:5.1.0
+    environment:
+      COM_ADOBE_TESTING_S3MOCK_STORE_INITIAL_BUCKETS: coprogo-documents
+      COM_ADOBE_TESTING_S3MOCK_STORE_REGION: eu-west-1
+      COM_ADOBE_TESTING_S3MOCK_STORE_ROOT: /containers3root
+      COM_ADOBE_TESTING_S3MOCK_STORE_RETAIN_FILES_ON_EXIT: "true"
+    ports:
+      - "9090:9090"
+    volumes:
+      - s3mock-data:/containers3root
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:9090/favicon.ico || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres-data:
+  s3mock-data:

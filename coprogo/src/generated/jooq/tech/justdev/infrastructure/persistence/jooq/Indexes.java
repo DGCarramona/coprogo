@@ -9,7 +9,9 @@ import org.jooq.OrderField;
 import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 
+import tech.justdev.infrastructure.persistence.jooq.tables.DocumentUploadIntents;
 import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseParticipations;
+import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseSupportingDocuments;
 import tech.justdev.infrastructure.persistence.jooq.tables.Expenses;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupInvitations;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupMemberships;
@@ -18,6 +20,9 @@ import tech.justdev.infrastructure.persistence.jooq.tables.LedgerMemberBalanceTr
 import tech.justdev.infrastructure.persistence.jooq.tables.LedgerMemberCashPoolShareDeltas;
 import tech.justdev.infrastructure.persistence.jooq.tables.OwnershipShareAllocations;
 import tech.justdev.infrastructure.persistence.jooq.tables.OwnershipShareChanges;
+import tech.justdev.infrastructure.persistence.jooq.tables.ReimbursementReviewDecisions;
+import tech.justdev.infrastructure.persistence.jooq.tables.ReimbursementSupportingDocuments;
+import tech.justdev.infrastructure.persistence.jooq.tables.Reimbursements;
 
 
 /**
@@ -30,7 +35,10 @@ public class Indexes {
     // INDEX definitions
     // -------------------------------------------------------------------------
 
+    public static final Index DOCUMENT_UPLOAD_INTENTS_GROUP_UPLOADER_IDX = Internal.createIndex(DSL.name("document_upload_intents_group_uploader_idx"), DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS, new OrderField[] { DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS.GROUP, DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS.UPLOADER }, false);
+    public static final Index DOCUMENT_UPLOAD_INTENTS_STATUS_EXPIRES_AT_IDX = Internal.createIndex(DSL.name("document_upload_intents_status_expires_at_idx"), DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS, new OrderField[] { DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS.STATUS, DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS.EXPIRES_AT }, false);
     public static final Index EXPENSE_PARTICIPATIONS_EXPENSE_IDX = Internal.createIndex(DSL.name("expense_participations_expense_idx"), ExpenseParticipations.EXPENSE_PARTICIPATIONS, new OrderField[] { ExpenseParticipations.EXPENSE_PARTICIPATIONS.EXPENSE }, false);
+    public static final Index EXPENSE_SUPPORTING_DOCUMENTS_GROUP_EXPENSE_IDX = Internal.createIndex(DSL.name("expense_supporting_documents_group_expense_idx"), ExpenseSupportingDocuments.EXPENSE_SUPPORTING_DOCUMENTS, new OrderField[] { ExpenseSupportingDocuments.EXPENSE_SUPPORTING_DOCUMENTS.GROUP, ExpenseSupportingDocuments.EXPENSE_SUPPORTING_DOCUMENTS.EXPENSE, ExpenseSupportingDocuments.EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT }, false);
     public static final Index EXPENSES_GROUP_IDX = Internal.createIndex(DSL.name("expenses_group_idx"), Expenses.EXPENSES, new OrderField[] { Expenses.EXPENSES.GROUP, Expenses.EXPENSES.CREATED_AT, Expenses.EXPENSES.ID }, false);
     public static final Index GROUP_INVITATIONS_GROUP_PENDING_IDX = Internal.createIndex(DSL.name("group_invitations_group_pending_idx"), GroupInvitations.GROUP_INVITATIONS, new OrderField[] { GroupInvitations.GROUP_INVITATIONS.GROUP }, false);
     public static final Index GROUP_INVITATIONS_INVITED_EMAIL_PENDING_IDX = Internal.createIndex(DSL.name("group_invitations_invited_email_pending_idx"), GroupInvitations.GROUP_INVITATIONS, new OrderField[] { GroupInvitations.GROUP_INVITATIONS.INVITED_EMAIL }, false);
@@ -41,4 +49,7 @@ public class Indexes {
     public static final Index LEDGER_MEMBER_CASH_POOL_SHARE_DELTAS_EVENT_IDX = Internal.createIndex(DSL.name("ledger_member_cash_pool_share_deltas_event_idx"), LedgerMemberCashPoolShareDeltas.LEDGER_MEMBER_CASH_POOL_SHARE_DELTAS, new OrderField[] { LedgerMemberCashPoolShareDeltas.LEDGER_MEMBER_CASH_POOL_SHARE_DELTAS.EVENT }, false);
     public static final Index OWNERSHIP_SHARE_ALLOCATIONS_CHANGE_IDX = Internal.createIndex(DSL.name("ownership_share_allocations_change_idx"), OwnershipShareAllocations.OWNERSHIP_SHARE_ALLOCATIONS, new OrderField[] { OwnershipShareAllocations.OWNERSHIP_SHARE_ALLOCATIONS.CHANGE_ID }, false);
     public static final Index OWNERSHIP_SHARE_CHANGES_GROUP_IDX = Internal.createIndex(DSL.name("ownership_share_changes_group_idx"), OwnershipShareChanges.OWNERSHIP_SHARE_CHANGES, new OrderField[] { OwnershipShareChanges.OWNERSHIP_SHARE_CHANGES.GROUP }, false);
+    public static final Index REIMBURSEMENT_REVIEW_DECISIONS_GROUP_DECIDED_AT_IDX = Internal.createIndex(DSL.name("reimbursement_review_decisions_group_decided_at_idx"), ReimbursementReviewDecisions.REIMBURSEMENT_REVIEW_DECISIONS, new OrderField[] { ReimbursementReviewDecisions.REIMBURSEMENT_REVIEW_DECISIONS.GROUP, ReimbursementReviewDecisions.REIMBURSEMENT_REVIEW_DECISIONS.DECIDED_AT, ReimbursementReviewDecisions.REIMBURSEMENT_REVIEW_DECISIONS.REIMBURSEMENT }, false);
+    public static final Index REIMBURSEMENT_SUPPORTING_DOCUMENTS_GROUP_REIMBURSEMENT_IDX = Internal.createIndex(DSL.name("reimbursement_supporting_documents_group_reimbursement_idx"), ReimbursementSupportingDocuments.REIMBURSEMENT_SUPPORTING_DOCUMENTS, new OrderField[] { ReimbursementSupportingDocuments.REIMBURSEMENT_SUPPORTING_DOCUMENTS.GROUP, ReimbursementSupportingDocuments.REIMBURSEMENT_SUPPORTING_DOCUMENTS.REIMBURSEMENT, ReimbursementSupportingDocuments.REIMBURSEMENT_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT }, false);
+    public static final Index REIMBURSEMENTS_GROUP_REIMBURSED_AT_IDX = Internal.createIndex(DSL.name("reimbursements_group_reimbursed_at_idx"), Reimbursements.REIMBURSEMENTS, new OrderField[] { Reimbursements.REIMBURSEMENTS.GROUP, Reimbursements.REIMBURSEMENTS.REIMBURSED_AT, Reimbursements.REIMBURSEMENTS.ID }, false);
 }

@@ -23,6 +23,7 @@ import tech.justdev.application.expense.ProposeExpenseCommand
 import tech.justdev.application.expense.ProposeExpenseUseCase
 import tech.justdev.application.expense.RecordExpenseParticipationDecisionCommand
 import tech.justdev.application.expense.RecordExpenseParticipationDecisionUseCase
+import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationStatus
 import tech.justdev.domain.expense.valueobject.ExpenseStatus
@@ -217,6 +218,68 @@ class ExpenseControllerTest {
 
     @Nested
     inner class ProposeExpense {
+        @Test
+        fun `should map supporting document upload intent ids to proposal command`() =
+            runTest {
+                val firstIntentId = UUID.randomUUID()
+                val secondIntentId = UUID.randomUUID()
+
+                controller.proposeExpense(
+                    groupId = UUID.randomUUID(),
+                    request =
+                        ProposeExpenseRequest(
+                            title = "Boiler repair",
+                            totalAmountInCents = 12_345,
+                            allocation = EqualExpenseAllocationRequest(setOf("creator@example.com")),
+                            supportingDocumentUploadIntents = setOf(firstIntentId, secondIntentId),
+                        ),
+                )
+
+                assertEquals(
+                    setOf(DocumentUploadIntentId(firstIntentId), DocumentUploadIntentId(secondIntentId)),
+                    requireNotNull(proposeExpenseUseCase.lastCommand).supportingDocumentUploadIntents,
+                )
+            }
+
+        @Test
+        fun `should map an absent supporting document upload intents field to an empty command set`() =
+            runTest {
+                controller.proposeExpense(
+                    groupId = UUID.randomUUID(),
+                    request =
+                        ProposeExpenseRequest(
+                            title = "Boiler repair",
+                            totalAmountInCents = 12_345,
+                            allocation = EqualExpenseAllocationRequest(setOf("creator@example.com")),
+                        ),
+                )
+
+                assertEquals(
+                    emptySet<DocumentUploadIntentId>(),
+                    requireNotNull(proposeExpenseUseCase.lastCommand).supportingDocumentUploadIntents,
+                )
+            }
+
+        @Test
+        fun `should map an empty supporting document upload intents field to an empty command set`() =
+            runTest {
+                controller.proposeExpense(
+                    groupId = UUID.randomUUID(),
+                    request =
+                        ProposeExpenseRequest(
+                            title = "Boiler repair",
+                            totalAmountInCents = 12_345,
+                            allocation = EqualExpenseAllocationRequest(setOf("creator@example.com")),
+                            supportingDocumentUploadIntents = emptySet(),
+                        ),
+                )
+
+                assertEquals(
+                    emptySet<DocumentUploadIntentId>(),
+                    requireNotNull(proposeExpenseUseCase.lastCommand).supportingDocumentUploadIntents,
+                )
+            }
+
         @Test
         fun `should map a cumulative tiers request to a proposal command`() =
             runTest {

@@ -21,7 +21,9 @@ public enum LedgerEventType implements EnumType {
 
     CASH_POOL_INCOME("CASH_POOL_INCOME"),
 
-    CASH_POOL_WITHDRAWAL("CASH_POOL_WITHDRAWAL");
+    CASH_POOL_WITHDRAWAL("CASH_POOL_WITHDRAWAL"),
+
+    ACCEPTED_REIMBURSEMENT("ACCEPTED_REIMBURSEMENT");
 
     private final String literal;
 

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 import { NEVER, Observable, of, throwError } from 'rxjs';
 import {
@@ -6,372 +7,538 @@ import {
   ExpenseProposalCommand,
 } from '../../../application/expense/expense-proposal.port';
 import { GroupMembersPort } from '../../../application/group/group-members.port';
+import { UploadSupportingDocument } from '../../../application/supporting-document/upload-supporting-document.use-case';
+import { SupportingDocumentUploadWidgetComponent } from '../../shared/supporting-document-upload/supporting-document-upload-widget.component';
 import { GroupMember } from '../../../domain/group/group-member';
 import { ExpenseProposalWidgetComponent } from './expense-proposal-widget.component';
 
 describe('ExpenseProposalWidgetComponent', () => {
-  it('offers the four allocation modes with equal selected by default', async () => {
-    const { fixture, host } = createFixture(new Members());
+  describe('supporting documents', () => {
+    it('includes only confirmed document intents in the proposed expense', async () => {
+      const proposals = new StubExpenseProposalPort();
+      const { fixture, host } = createFixture(new Members(), proposals);
 
-    await waitFor(() => {
+      await waitFor(() => {
+        fixture.detectChanges();
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
+      supportingDocumentUploadWidget(fixture).confirmed.emit({
+        intentId: 'intent-1',
+        fileName: 'facture.pdf',
+      });
       fixture.detectChanges();
+      fillProposal(host, fixture);
 
-      return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      requiredButton(host, 'button[type="submit"]').click();
+
+      await waitFor(() => proposals.commands.length === 1);
+      expect(proposals.commands).toEqual([
+        {
+          groupId: 'group-1',
+          title: 'Toiture',
+          totalAmountInCents: 1250,
+          allocation: {
+            type: 'EQUAL',
+            participants: new Set(['a@b.c']),
+          },
+          supportingDocumentUploadIntents: new Set(['intent-1']),
+        },
+      ]);
+      expect(host.textContent).toContain('facture.pdf');
     });
 
-    const allocationMode = requiredSelect(host, 'select[aria-label="Mode de répartition"]');
+    it('blocks proposal submission while a document is still being sent', async () => {
+      const proposals = new StubExpenseProposalPort();
+      const { fixture, host } = createFixture(new Members(), proposals);
 
-    expect(allocationMode.value).toBe('EQUAL');
-    expect([...allocationMode.options].map((option) => [option.value, option.textContent])).toEqual(
-      [
+      await waitFor(() => {
+        fixture.detectChanges();
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
+      fixture.componentInstance.viewModel.setSupportingDocumentUploadPending(true);
+      fillProposal(host, fixture);
+      fixture.detectChanges();
+
+      expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
+      requiredForm(host).dispatchEvent(new Event('submit', { cancelable: true }));
+      await new Promise((resolve) => setTimeout(resolve));
+      expect(proposals.commands).toEqual([]);
+    });
+
+    it('excludes a document removed from the draft', async () => {
+      const proposals = new StubExpenseProposalPort();
+      const { fixture, host } = createFixture(new Members(), proposals);
+
+      await waitFor(() => {
+        fixture.detectChanges();
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
+      fixture.componentInstance.viewModel.addSupportingDocument({
+        intentId: 'intent-1',
+        fileName: 'facture.pdf',
+      });
+      fixture.detectChanges();
+      requiredButton(host, 'button[aria-label="Retirer facture.pdf"]').click();
+      fillProposal(host, fixture);
+
+      requiredButton(host, 'button[type="submit"]').click();
+
+      await waitFor(() => proposals.commands.length === 1);
+      expect(proposals.commands).toEqual([
+        {
+          groupId: 'group-1',
+          title: 'Toiture',
+          totalAmountInCents: 1250,
+          allocation: {
+            type: 'EQUAL',
+            participants: new Set(['a@b.c']),
+          },
+          supportingDocumentUploadIntents: new Set(),
+        },
+      ]);
+    });
+  });
+
+  describe('allocation mode selection', () => {
+    it('offers the four allocation modes with equal selected by default', async () => {
+      const { fixture, host } = createFixture(new Members());
+
+      await waitFor(() => {
+        fixture.detectChanges();
+
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
+
+      const allocationMode = requiredSelect(host, 'select[aria-label="Mode de répartition"]');
+
+      expect(allocationMode.value).toBe('EQUAL');
+      expect(
+        [...allocationMode.options].map((option) => [option.value, option.textContent]),
+      ).toEqual([
         ['EQUAL', 'Parts égales'],
         ['EQUAL_WITH_CAPS', 'Parts égales avec plafonds'],
         ['CUMULATIVE_TIERS', 'Répartition par tranches'],
         ['CUSTOM', 'Montants personnalisés'],
-      ],
-    );
+      ]);
+    });
   });
 
-  it('shows an unavailable mode without equal fields or submission', async () => {
-    const { fixture, host } = createFixture(new Members());
+  describe('custom proposal', () => {
+    it('shows an accessible amount for each member and plain-language guidance', async () => {
+      const { fixture, host } = createFixture(new Members());
 
-    await waitFor(() => {
-      fixture.detectChanges();
+      await waitFor(() => {
+        fixture.detectChanges();
 
-      return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
+
+      selectAllocationMode(host, fixture, 'CUSTOM');
+
+      expect(host.textContent).toContain(
+        'Saisissez des montants positifs. Leur somme doit correspondre exactement au montant total. Le créateur doit inclure sa propre part.',
+      );
+      const aliceAmount = requiredInput(host, 'input[aria-label="Montant pour a@b.c"]');
+      expect(aliceAmount.inputMode).toBe('decimal');
+      expect(aliceAmount.getAttribute('aria-describedby')).toBe('custom-allocation-help');
+      expect(requiredInput(host, 'input[aria-label="Montant pour b@c.d"]')).toBeDefined();
+      expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
     });
 
-    const allocationMode = requiredSelect(host, 'select[aria-label="Mode de répartition"]');
-    allocationMode.value = 'CUSTOM';
-    allocationMode.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
+    it('disables submission for an invalid amount or an inexact sum', async () => {
+      const { fixture, host } = createFixture(new Members());
 
-    expect(host.querySelector('fieldset')).toBeNull();
-    expect(host.querySelector('[role="status"]')?.textContent?.trim()).toBe(
-      'Les champs de ce mode de répartition ne sont pas encore disponibles.',
-    );
-    expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
-  });
+      await waitFor(() => {
+        fixture.detectChanges();
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
 
-  it('shows an optional maximum amount only for selected capped-mode participants', async () => {
-    const { fixture, host } = createFixture(new Members());
+      fillSharedFields(host);
+      selectAllocationMode(host, fixture, 'CUSTOM');
+      const aliceAmount = requiredInput(host, 'input[aria-label="Montant pour a@b.c"]');
 
-    await waitFor(() => {
+      aliceAmount.value = '12,555';
+      aliceAmount.dispatchEvent(new Event('input'));
       fixture.detectChanges();
-      return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
+
+      aliceAmount.value = '10';
+      aliceAmount.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
     });
 
-    selectAllocationMode(host, fixture, 'EQUAL_WITH_CAPS');
+    it('submits exact custom amounts while excluding blank members', async () => {
+      const proposals = new StubExpenseProposalPort();
+      const { fixture, host } = createFixture(new Members(), proposals);
 
-    expect(host.textContent).toContain(
-      'Un montant maximum est facultatif. Laissez au moins un participant sans maximum.',
-    );
-    expect(host.querySelector('input[aria-label="Montant maximum pour a@b.c"]')).toBeNull();
+      await waitFor(() => {
+        fixture.detectChanges();
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
 
-    requiredInput(host, 'input[id="equal-with-caps-participant-a@b.c"]').click();
-    fixture.detectChanges();
-
-    const maximum = requiredInput(host, 'input[aria-label="Montant maximum pour a@b.c"]');
-    expect(maximum.getAttribute('aria-describedby')).toBe('equal-with-caps-help');
-    expect(host.querySelector('input[aria-label="Montant maximum pour b@c.d"]')).toBeNull();
-  });
-
-  it('submits a valid equal split with caps', async () => {
-    const proposals = new StubExpenseProposalPort();
-    const { fixture, host } = createFixture(new Members(), proposals);
-
-    await waitFor(() => {
+      fillSharedFields(host);
+      selectAllocationMode(host, fixture, 'CUSTOM');
+      const aliceAmount = requiredInput(host, 'input[aria-label="Montant pour a@b.c"]');
+      aliceAmount.value = '12,50';
+      aliceAmount.dispatchEvent(new Event('input'));
       fixture.detectChanges();
-      return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
-    });
 
-    fillSharedFields(host);
-    selectAllocationMode(host, fixture, 'EQUAL_WITH_CAPS');
-    requiredInput(host, 'input[id="equal-with-caps-participant-a@b.c"]').click();
-    requiredInput(host, 'input[id="equal-with-caps-participant-b@c.d"]').click();
-    fixture.detectChanges();
-    const maximum = requiredInput(host, 'input[aria-label="Montant maximum pour b@c.d"]');
-    maximum.value = '25,50';
-    maximum.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
+      const submitButton = requiredButton(host, 'button[type="submit"]');
+      expect(submitButton.disabled).toBe(false);
+      submitButton.click();
 
-    const submitButton = requiredButton(host, 'button[type="submit"]');
-    expect(submitButton.disabled).toBe(false);
-    submitButton.click();
-
-    await waitFor(() => proposals.commands.length === 1);
-    expect(proposals.commands).toEqual([
-      {
-        groupId: 'group-1',
-        title: 'Toiture',
-        totalAmountInCents: 1250,
-        allocation: {
-          type: 'EQUAL_WITH_CAPS',
-          participants: new Set(['a@b.c', 'b@c.d']),
-          capsInCentsByMember: new Map([['b@c.d', 2550]]),
+      await waitFor(() => proposals.commands.length === 1);
+      expect(proposals.commands).toEqual([
+        {
+          groupId: 'group-1',
+          title: 'Toiture',
+          totalAmountInCents: 1250,
+          allocation: {
+            type: 'CUSTOM',
+            amountsInCentsByMember: new Map([['a@b.c', 1250]]),
+          },
+          supportingDocumentUploadIntents: new Set(),
         },
-      },
-    ]);
+      ]);
+    });
   });
 
-  it('disables capped-mode submission for an invalid maximum amount', async () => {
-    const { fixture, host } = createFixture(new Members());
+  describe('equal-with-caps proposal', () => {
+    it('shows an optional maximum amount only for selected capped-mode participants', async () => {
+      const { fixture, host } = createFixture(new Members());
 
-    await waitFor(() => {
+      await waitFor(() => {
+        fixture.detectChanges();
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
+
+      selectAllocationMode(host, fixture, 'EQUAL_WITH_CAPS');
+
+      expect(host.textContent).toContain(
+        'Un montant maximum est facultatif. Laissez au moins un participant sans maximum.',
+      );
+      expect(host.querySelector('input[aria-label="Montant maximum pour a@b.c"]')).toBeNull();
+
+      requiredInput(host, 'input[id="equal-with-caps-participant-a@b.c"]').click();
       fixture.detectChanges();
-      return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+
+      const maximum = requiredInput(host, 'input[aria-label="Montant maximum pour a@b.c"]');
+      expect(maximum.getAttribute('aria-describedby')).toBe('equal-with-caps-help');
+      expect(host.querySelector('input[aria-label="Montant maximum pour b@c.d"]')).toBeNull();
     });
 
-    fillSharedFields(host);
-    selectAllocationMode(host, fixture, 'EQUAL_WITH_CAPS');
-    requiredInput(host, 'input[id="equal-with-caps-participant-a@b.c"]').click();
-    requiredInput(host, 'input[id="equal-with-caps-participant-b@c.d"]').click();
-    fixture.detectChanges();
-    const maximum = requiredInput(host, 'input[aria-label="Montant maximum pour b@c.d"]');
-    maximum.value = '25,555';
-    maximum.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
+    it('submits a valid equal split with caps', async () => {
+      const proposals = new StubExpenseProposalPort();
+      const { fixture, host } = createFixture(new Members(), proposals);
 
-    expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
+      await waitFor(() => {
+        fixture.detectChanges();
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
 
-    maximum.value = '25,50';
-    maximum.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-    expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(false);
-  });
-
-  it('adds and removes an intermediate cumulative tier before the final tier', async () => {
-    const { fixture, host } = createFixture(new Members());
-
-    await waitFor(() => {
+      fillSharedFields(host);
+      selectAllocationMode(host, fixture, 'EQUAL_WITH_CAPS');
+      requiredInput(host, 'input[id="equal-with-caps-participant-a@b.c"]').click();
+      requiredInput(host, 'input[id="equal-with-caps-participant-b@c.d"]').click();
       fixture.detectChanges();
-      return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
-    });
-
-    selectAllocationMode(host, fixture, 'CUMULATIVE_TIERS');
-
-    expect(host.textContent).toContain(
-      'Ajoutez des seuils intermédiaires. La dernière tranche va toujours jusqu’au montant total.',
-    );
-    expect(host.textContent).toContain('Tranche finale jusqu’au montant total');
-    expect(host.querySelector('input[aria-label="Seuil de la tranche 1 en euros"]')).toBeNull();
-
-    requiredButton(host, 'button[aria-label="Ajouter une tranche"]').click();
-    fixture.detectChanges();
-
-    expect(requiredInput(host, 'input[aria-label="Seuil de la tranche 1 en euros"]')).toBeDefined();
-    expect(host.textContent).toContain('Tranche 1');
-
-    requiredButton(host, 'button[aria-label="Supprimer la tranche 1"]').click();
-    fixture.detectChanges();
-
-    expect(host.querySelector('input[aria-label="Seuil de la tranche 1 en euros"]')).toBeNull();
-    expect(host.textContent).toContain('Tranche finale jusqu’au montant total');
-  });
-
-  it('submits cumulative tiers with a final tier bounded by the total amount', async () => {
-    const proposals = new StubExpenseProposalPort();
-    const { fixture, host } = createFixture(new Members(), proposals);
-
-    await waitFor(() => {
+      const maximum = requiredInput(host, 'input[aria-label="Montant maximum pour b@c.d"]');
+      maximum.value = '25,50';
+      maximum.dispatchEvent(new Event('input'));
       fixture.detectChanges();
-      return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
-    });
 
-    fillSharedFields(host, '101');
-    selectAllocationMode(host, fixture, 'CUMULATIVE_TIERS');
-    requiredButton(host, 'button[aria-label="Ajouter une tranche"]').click();
-    fixture.detectChanges();
-    const threshold = requiredInput(host, 'input[aria-label="Seuil de la tranche 1 en euros"]');
-    threshold.value = '40';
-    threshold.dispatchEvent(new Event('input'));
-    requiredInput(host, 'input[id="cumulative-tier-0-participant-a@b.c"]').click();
-    requiredInput(host, 'input[id="cumulative-tier-0-participant-b@c.d"]').click();
-    requiredInput(host, 'input[id="cumulative-final-participant-a@b.c"]').click();
-    fixture.detectChanges();
+      const submitButton = requiredButton(host, 'button[type="submit"]');
+      expect(submitButton.disabled).toBe(false);
+      submitButton.click();
 
-    const submitButton = requiredButton(host, 'button[type="submit"]');
-    expect(submitButton.disabled).toBe(false);
-    submitButton.click();
-
-    await waitFor(() => proposals.commands.length === 1);
-    expect(proposals.commands).toEqual([
-      {
-        groupId: 'group-1',
-        title: 'Toiture',
-        totalAmountInCents: 10100,
-        allocation: {
-          type: 'CUMULATIVE_TIERS',
-          tiers: [
-            {
-              upToAmountInCents: 4000,
-              participants: new Set(['a@b.c', 'b@c.d']),
-            },
-            {
-              upToAmountInCents: 10100,
-              participants: new Set(['a@b.c']),
-            },
-          ],
+      await waitFor(() => proposals.commands.length === 1);
+      expect(proposals.commands).toEqual([
+        {
+          groupId: 'group-1',
+          title: 'Toiture',
+          totalAmountInCents: 1250,
+          allocation: {
+            type: 'EQUAL_WITH_CAPS',
+            participants: new Set(['a@b.c', 'b@c.d']),
+            capsInCentsByMember: new Map([['b@c.d', 2550]]),
+          },
+          supportingDocumentUploadIntents: new Set(),
         },
-      },
-    ]);
-  });
-
-  it('disables cumulative submission when a participant would receive zero cents', async () => {
-    const { fixture, host } = createFixture(new Members());
-
-    await waitFor(() => {
-      fixture.detectChanges();
-      return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      ]);
     });
 
-    fillSharedFields(host, '0,01');
-    selectAllocationMode(host, fixture, 'CUMULATIVE_TIERS');
-    requiredInput(host, 'input[id="cumulative-final-participant-a@b.c"]').click();
-    requiredInput(host, 'input[id="cumulative-final-participant-b@c.d"]').click();
-    fixture.detectChanges();
+    it('disables capped-mode submission for an invalid maximum amount', async () => {
+      const { fixture, host } = createFixture(new Members());
 
-    expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
-  });
+      await waitFor(() => {
+        fixture.detectChanges();
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
 
-  it('submits the filled proposal', async () => {
-    const proposals = new StubExpenseProposalPort();
-    const { fixture, host } = createFixture(new Members(), proposals);
-
-    await waitFor(() => {
+      fillSharedFields(host);
+      selectAllocationMode(host, fixture, 'EQUAL_WITH_CAPS');
+      requiredInput(host, 'input[id="equal-with-caps-participant-a@b.c"]').click();
+      requiredInput(host, 'input[id="equal-with-caps-participant-b@c.d"]').click();
+      fixture.detectChanges();
+      const maximum = requiredInput(host, 'input[aria-label="Montant maximum pour b@c.d"]');
+      maximum.value = '25,555';
+      maximum.dispatchEvent(new Event('input'));
       fixture.detectChanges();
 
-      return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
+
+      maximum.value = '25,50';
+      maximum.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(false);
+    });
+  });
+
+  describe('cumulative-tiers proposal', () => {
+    it('adds and removes an intermediate cumulative tier before the final tier', async () => {
+      const { fixture, host } = createFixture(new Members());
+
+      await waitFor(() => {
+        fixture.detectChanges();
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
+
+      selectAllocationMode(host, fixture, 'CUMULATIVE_TIERS');
+
+      expect(host.textContent).toContain(
+        'Ajoutez des seuils intermédiaires. La dernière tranche va toujours jusqu’au montant total.',
+      );
+      expect(host.textContent).toContain('Tranche finale jusqu’au montant total');
+      expect(host.querySelector('input[aria-label="Seuil de la tranche 1 en euros"]')).toBeNull();
+
+      requiredButton(host, 'button[aria-label="Ajouter une tranche"]').click();
+      fixture.detectChanges();
+
+      expect(
+        requiredInput(host, 'input[aria-label="Seuil de la tranche 1 en euros"]'),
+      ).toBeDefined();
+      expect(host.textContent).toContain('Tranche 1');
+
+      requiredButton(host, 'button[aria-label="Supprimer la tranche 1"]').click();
+      fixture.detectChanges();
+
+      expect(host.querySelector('input[aria-label="Seuil de la tranche 1 en euros"]')).toBeNull();
+      expect(host.textContent).toContain('Tranche finale jusqu’au montant total');
     });
 
-    const title = requiredInput(host, 'input[aria-label="Titre"]');
-    const amount = requiredInput(host, 'input[aria-label="Montant en euros"]');
-    expect(host.querySelector('form')).toBeInstanceOf(HTMLFormElement);
-    expect(requiredForm(host).noValidate).toBe(true);
-    expect(host.querySelector('label[for="expense-title"]')).toBeInstanceOf(HTMLLabelElement);
-    expect(host.querySelector('label[for="expense-amount"]')).toBeInstanceOf(HTMLLabelElement);
-    expect(requiredInput(host, 'input[type="checkbox"]').checked).toBe(false);
-    expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
+    it('submits cumulative tiers with a final tier bounded by the total amount', async () => {
+      const proposals = new StubExpenseProposalPort();
+      const { fixture, host } = createFixture(new Members(), proposals);
 
-    title.value = 'Toiture';
-    title.dispatchEvent(new Event('input'));
-    amount.value = '12,50';
-    amount.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
+      await waitFor(() => {
+        fixture.detectChanges();
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
 
-    const button = requiredButton(host, 'button[type="submit"]');
-    expect(button.disabled).toBe(true);
-    requiredInput(host, 'input[type="checkbox"]').click();
-    fixture.detectChanges();
-    expect(button.disabled).toBe(false);
-    button.click();
+      fillSharedFields(host, '101');
+      selectAllocationMode(host, fixture, 'CUMULATIVE_TIERS');
+      requiredButton(host, 'button[aria-label="Ajouter une tranche"]').click();
+      fixture.detectChanges();
+      const threshold = requiredInput(host, 'input[aria-label="Seuil de la tranche 1 en euros"]');
+      threshold.value = '40';
+      threshold.dispatchEvent(new Event('input'));
+      requiredInput(host, 'input[id="cumulative-tier-0-participant-a@b.c"]').click();
+      requiredInput(host, 'input[id="cumulative-tier-0-participant-b@c.d"]').click();
+      requiredInput(host, 'input[id="cumulative-final-participant-a@b.c"]').click();
+      fixture.detectChanges();
 
-    await waitFor(() => proposals.commands.length === 1);
-    await waitFor(() => fixture.componentInstance.viewModel.isProposed());
-    fixture.detectChanges();
+      const submitButton = requiredButton(host, 'button[type="submit"]');
+      expect(submitButton.disabled).toBe(false);
+      submitButton.click();
 
-    expect(proposals.commands).toEqual([
-      {
-        groupId: 'group-1',
-        title: 'Toiture',
-        totalAmountInCents: 1250,
-        allocation: {
-          type: 'EQUAL',
-          participants: new Set(['a@b.c']),
+      await waitFor(() => proposals.commands.length === 1);
+      expect(proposals.commands).toEqual([
+        {
+          groupId: 'group-1',
+          title: 'Toiture',
+          totalAmountInCents: 10100,
+          allocation: {
+            type: 'CUMULATIVE_TIERS',
+            tiers: [
+              {
+                upToAmountInCents: 4000,
+                participants: new Set(['a@b.c', 'b@c.d']),
+              },
+              {
+                upToAmountInCents: 10100,
+                participants: new Set(['a@b.c']),
+              },
+            ],
+          },
+          supportingDocumentUploadIntents: new Set(),
         },
-      },
-    ]);
-    expect(host.textContent).toContain('La dépense a été proposée.');
+      ]);
+    });
+
+    it('disables cumulative submission when a participant would receive zero cents', async () => {
+      const { fixture, host } = createFixture(new Members());
+
+      await waitFor(() => {
+        fixture.detectChanges();
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
+
+      fillSharedFields(host, '0,01');
+      selectAllocationMode(host, fixture, 'CUMULATIVE_TIERS');
+      requiredInput(host, 'input[id="cumulative-final-participant-a@b.c"]').click();
+      requiredInput(host, 'input[id="cumulative-final-participant-b@c.d"]').click();
+      fixture.detectChanges();
+
+      expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
+    });
   });
 
-  it('disables submission while the Signal Form is submitting', async () => {
-    const proposals = new StubExpenseProposalPort();
-    proposals.useDeferredResult();
-    const { fixture, host } = createFixture(new Members(), proposals);
+  describe('equal proposal', () => {
+    it('submits the filled proposal', async () => {
+      const proposals = new StubExpenseProposalPort();
+      const { fixture, host } = createFixture(new Members(), proposals);
 
-    await waitFor(() => {
+      await waitFor(() => {
+        fixture.detectChanges();
+
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
+
+      const title = requiredInput(host, 'input[aria-label="Titre"]');
+      const amount = requiredInput(host, 'input[aria-label="Montant en euros"]');
+      expect(host.querySelector('form')).toBeInstanceOf(HTMLFormElement);
+      expect(requiredForm(host).noValidate).toBe(true);
+      expect(host.querySelector('label[for="expense-title"]')).toBeInstanceOf(HTMLLabelElement);
+      expect(host.querySelector('label[for="expense-amount"]')).toBeInstanceOf(HTMLLabelElement);
+      expect(requiredInput(host, 'input[type="checkbox"]').checked).toBe(false);
+      expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
+
+      title.value = 'Toiture';
+      title.dispatchEvent(new Event('input'));
+      amount.value = '12,50';
+      amount.dispatchEvent(new Event('input'));
       fixture.detectChanges();
 
-      return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      const button = requiredButton(host, 'button[type="submit"]');
+      expect(button.disabled).toBe(true);
+      requiredInput(host, 'input[type="checkbox"]').click();
+      fixture.detectChanges();
+      expect(button.disabled).toBe(false);
+      button.click();
+
+      await waitFor(() => proposals.commands.length === 1);
+      await waitFor(() => fixture.componentInstance.viewModel.isProposed());
+      fixture.detectChanges();
+
+      expect(proposals.commands).toEqual([
+        {
+          groupId: 'group-1',
+          title: 'Toiture',
+          totalAmountInCents: 1250,
+          allocation: {
+            type: 'EQUAL',
+            participants: new Set(['a@b.c']),
+          },
+          supportingDocumentUploadIntents: new Set(),
+        },
+      ]);
+      expect(host.textContent).toContain('La dépense a été proposée.');
     });
-
-    fillProposal(host, fixture);
-    const button = requiredButton(host, 'button[type="submit"]');
-    button.click();
-
-    await waitFor(() => fixture.componentInstance.viewModel.isProposing());
-    fixture.detectChanges();
-
-    expect(button.disabled).toBe(true);
-
-    proposals.resolveDeferred();
   });
 
-  it('shows member loading', async () => {
-    const members = new Members();
-    members.loading = true;
-    const { fixture, host } = createFixture(members);
+  describe('proposal feedback and submission state', () => {
+    it('disables submission while the Signal Form is submitting', async () => {
+      const proposals = new StubExpenseProposalPort();
+      proposals.useDeferredResult();
+      const { fixture, host } = createFixture(new Members(), proposals);
 
-    await waitFor(() => {
+      await waitFor(() => {
+        fixture.detectChanges();
+
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
+
+      fillProposal(host, fixture);
+      const button = requiredButton(host, 'button[type="submit"]');
+      button.click();
+
+      await waitFor(() => fixture.componentInstance.viewModel.isProposing());
       fixture.detectChanges();
 
-      return host.textContent?.includes('Chargement des membres…') ?? false;
+      expect(button.disabled).toBe(true);
+
+      proposals.resolveDeferred();
     });
 
-    expect(host.querySelector('[role="status"]')).toBeInstanceOf(HTMLElement);
+    it('shows a proposal error', async () => {
+      const proposals = new StubExpenseProposalPort();
+      proposals.failure = new Error('Proposition indisponible');
+      const { fixture, host } = createFixture(new Members(), proposals);
+
+      await waitFor(() => {
+        fixture.detectChanges();
+
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
+
+      fillProposal(host, fixture);
+      requiredButton(host, 'button[type="submit"]').click();
+
+      await waitFor(() => fixture.componentInstance.viewModel.hasProposalError());
+      fixture.detectChanges();
+
+      expect(host.textContent).toContain('Proposition indisponible');
+      expect(host.querySelector('[role="alert"]')).toBeInstanceOf(HTMLElement);
+    });
   });
 
-  it('shows the member error and retries loading', async () => {
-    const members = new Members();
-    members.failure = new Error('Membres indisponibles');
-    const { fixture, host } = createFixture(members);
+  describe('member loading', () => {
+    it('shows member loading', async () => {
+      const members = new Members();
+      members.loading = true;
+      const { fixture, host } = createFixture(members);
 
-    await waitFor(() => {
-      fixture.detectChanges();
+      await waitFor(() => {
+        fixture.detectChanges();
 
-      return host.textContent?.includes('Membres indisponibles') ?? false;
+        return host.textContent?.includes('Chargement des membres…') ?? false;
+      });
+
+      expect(host.querySelector('[role="status"]')).toBeInstanceOf(HTMLElement);
     });
 
-    const retry = requiredButton(host, 'button[aria-label="Réessayer"]');
-    expect(host.querySelector('[role="alert"]')).toBeInstanceOf(HTMLElement);
+    it('shows the member error and retries loading', async () => {
+      const members = new Members();
+      members.failure = new Error('Membres indisponibles');
+      const { fixture, host } = createFixture(members);
 
-    members.failure = null;
-    retry.click();
+      await waitFor(() => {
+        fixture.detectChanges();
 
-    await waitFor(() => {
-      fixture.detectChanges();
+        return host.textContent?.includes('Membres indisponibles') ?? false;
+      });
 
-      return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      const retry = requiredButton(host, 'button[aria-label="Réessayer"]');
+      expect(host.querySelector('[role="alert"]')).toBeInstanceOf(HTMLElement);
+
+      members.failure = null;
+      retry.click();
+
+      await waitFor(() => {
+        fixture.detectChanges();
+
+        return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
+      });
+
+      expect(members.requestedGroupIds).toEqual(['group-1', 'group-1']);
     });
-
-    expect(members.requestedGroupIds).toEqual(['group-1', 'group-1']);
-  });
-
-  it('shows a proposal error', async () => {
-    const proposals = new StubExpenseProposalPort();
-    proposals.failure = new Error('Proposition indisponible');
-    const { fixture, host } = createFixture(new Members(), proposals);
-
-    await waitFor(() => {
-      fixture.detectChanges();
-
-      return host.querySelector('input[type="checkbox"]') instanceof HTMLInputElement;
-    });
-
-    fillProposal(host, fixture);
-    requiredButton(host, 'button[type="submit"]').click();
-
-    await waitFor(() => fixture.componentInstance.viewModel.hasProposalError());
-    fixture.detectChanges();
-
-    expect(host.textContent).toContain('Proposition indisponible');
-    expect(host.querySelector('[role="alert"]')).toBeInstanceOf(HTMLElement);
   });
 });
 
 const createFixture = (
   members: Members,
   proposals = new StubExpenseProposalPort(),
+  uploadSupportingDocument = new StubUploadSupportingDocument(),
 ): { fixture: ComponentFixture<ExpenseProposalWidgetComponent>; host: HTMLElement } => {
   TestBed.configureTestingModule({
     providers: [
@@ -384,6 +551,7 @@ const createFixture = (
       ),
       { provide: GroupMembersPort, useValue: members },
       { provide: ExpenseProposalPort, useValue: proposals },
+      { provide: UploadSupportingDocument, useValue: uploadSupportingDocument },
     ],
   });
   const fixture = TestBed.createComponent(ExpenseProposalWidgetComponent);
@@ -433,6 +601,14 @@ const requiredForm = (host: HTMLElement): HTMLFormElement => {
   const form = host.querySelector('form');
   if (!(form instanceof HTMLFormElement)) throw new Error('Formulaire absent.');
   return form;
+};
+
+const supportingDocumentUploadWidget = (
+  fixture: ComponentFixture<ExpenseProposalWidgetComponent>,
+): SupportingDocumentUploadWidgetComponent => {
+  const widget = fixture.debugElement.query(By.directive(SupportingDocumentUploadWidgetComponent));
+  if (widget === null) throw new Error('Widget de justificatif absent.');
+  return widget.componentInstance;
 };
 
 const requiredInput = (host: HTMLElement, selector: string): HTMLInputElement => {
@@ -503,5 +679,11 @@ class StubExpenseProposalPort extends ExpenseProposalPort {
 
   resolveDeferred(): void {
     this.resolveDeferredPromise?.();
+  }
+}
+
+class StubUploadSupportingDocument {
+  upload(): Promise<string> {
+    return Promise.resolve('intent-1');
   }
 }

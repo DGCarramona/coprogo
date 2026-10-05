@@ -1,5 +1,6 @@
 package tech.justdev.application.support
 
+import tech.justdev.application.reimbursement.AcceptedReimbursementPersistence
 import tech.justdev.domain.expense.entity.Expense
 import tech.justdev.domain.expense.repository.ExpenseRepository
 import tech.justdev.domain.expense.valueobject.ExpenseId
@@ -14,6 +15,9 @@ import tech.justdev.domain.group.repository.MemberRepository
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.ledger.event.LedgerEvent
 import tech.justdev.domain.ledger.repository.LedgerEventRepository
+import tech.justdev.domain.reimbursement.entity.Reimbursement
+import tech.justdev.domain.reimbursement.repository.ReimbursementRepository
+import tech.justdev.domain.reimbursement.valueobject.ReimbursementId
 import tech.justdev.domain.revenue.entity.OwnershipShareTimeline
 import tech.justdev.domain.revenue.repository.OwnershipShareTimelineRepository
 import tech.justdev.domain.shared.valueobject.GroupId
@@ -40,6 +44,36 @@ class InMemoryExpenseRepository(
     override suspend fun persist(expense: Expense) {
         expensesById[expense.id] = expense
     }
+}
+
+class InMemoryReimbursementRepository(
+    reimbursements: Iterable<Reimbursement> = emptyList(),
+) : ReimbursementRepository {
+    private val reimbursementsById = reimbursements.associateBy(Reimbursement::id).toMutableMap()
+
+    override suspend fun findByIdAndGroup(
+        id: ReimbursementId,
+        group: GroupId,
+    ): Reimbursement? = reimbursementsById[id]?.takeIf { reimbursement -> reimbursement.group == group }
+
+    override suspend fun findByGroup(group: GroupId): List<Reimbursement> =
+        reimbursementsById.values.filter { reimbursement -> reimbursement.group == group }
+
+    override suspend fun persist(reimbursement: Reimbursement) {
+        reimbursementsById[reimbursement.id] = reimbursement
+    }
+
+    fun findAll(): List<Reimbursement> = reimbursementsById.values.toList()
+}
+
+class InMemoryAcceptedReimbursementPersistence : AcceptedReimbursementPersistence {
+    private val reimbursements = mutableListOf<Reimbursement>()
+
+    override suspend fun persist(reimbursement: Reimbursement) {
+        reimbursements += reimbursement
+    }
+
+    fun findAll(): List<Reimbursement> = reimbursements.toList()
 }
 
 class InMemoryLedgerEventRepository(

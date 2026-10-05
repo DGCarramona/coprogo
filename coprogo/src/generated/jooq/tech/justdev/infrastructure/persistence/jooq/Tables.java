@@ -4,12 +4,15 @@
 package tech.justdev.infrastructure.persistence.jooq;
 
 
+import tech.justdev.infrastructure.persistence.jooq.tables.DocumentUploadIntents;
 import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseParticipations;
+import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseSupportingDocuments;
 import tech.justdev.infrastructure.persistence.jooq.tables.Expenses;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupInvitations;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupMemberships;
 import tech.justdev.infrastructure.persistence.jooq.tables.Groups;
 import tech.justdev.infrastructure.persistence.jooq.tables.LedgerAcceptedExpenseEvents;
+import tech.justdev.infrastructure.persistence.jooq.tables.LedgerAcceptedReimbursementEvents;
 import tech.justdev.infrastructure.persistence.jooq.tables.LedgerCashPoolIncomeEvents;
 import tech.justdev.infrastructure.persistence.jooq.tables.LedgerCashPoolWithdrawalEvents;
 import tech.justdev.infrastructure.persistence.jooq.tables.LedgerEvents;
@@ -18,6 +21,10 @@ import tech.justdev.infrastructure.persistence.jooq.tables.LedgerMemberCashPoolS
 import tech.justdev.infrastructure.persistence.jooq.tables.Members;
 import tech.justdev.infrastructure.persistence.jooq.tables.OwnershipShareAllocations;
 import tech.justdev.infrastructure.persistence.jooq.tables.OwnershipShareChanges;
+import tech.justdev.infrastructure.persistence.jooq.tables.ReimbursementReviewDecisions;
+import tech.justdev.infrastructure.persistence.jooq.tables.ReimbursementSupportingDocuments;
+import tech.justdev.infrastructure.persistence.jooq.tables.Reimbursements;
+import tech.justdev.infrastructure.persistence.jooq.tables.SupportingDocumentAttachments;
 
 
 /**
@@ -27,9 +34,19 @@ import tech.justdev.infrastructure.persistence.jooq.tables.OwnershipShareChanges
 public class Tables {
 
     /**
+     * The table <code>public.document_upload_intents</code>.
+     */
+    public static final DocumentUploadIntents DOCUMENT_UPLOAD_INTENTS = DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS;
+
+    /**
      * The table <code>public.expense_participations</code>.
      */
     public static final ExpenseParticipations EXPENSE_PARTICIPATIONS = ExpenseParticipations.EXPENSE_PARTICIPATIONS;
+
+    /**
+     * The table <code>public.expense_supporting_documents</code>.
+     */
+    public static final ExpenseSupportingDocuments EXPENSE_SUPPORTING_DOCUMENTS = ExpenseSupportingDocuments.EXPENSE_SUPPORTING_DOCUMENTS;
 
     /**
      * The table <code>public.expenses</code>.
@@ -55,6 +72,11 @@ public class Tables {
      * The table <code>public.ledger_accepted_expense_events</code>.
      */
     public static final LedgerAcceptedExpenseEvents LEDGER_ACCEPTED_EXPENSE_EVENTS = LedgerAcceptedExpenseEvents.LEDGER_ACCEPTED_EXPENSE_EVENTS;
+
+    /**
+     * The table <code>public.ledger_accepted_reimbursement_events</code>.
+     */
+    public static final LedgerAcceptedReimbursementEvents LEDGER_ACCEPTED_REIMBURSEMENT_EVENTS = LedgerAcceptedReimbursementEvents.LEDGER_ACCEPTED_REIMBURSEMENT_EVENTS;
 
     /**
      * The table <code>public.ledger_cash_pool_income_events</code>.
@@ -95,4 +117,24 @@ public class Tables {
      * The table <code>public.ownership_share_changes</code>.
      */
     public static final OwnershipShareChanges OWNERSHIP_SHARE_CHANGES = OwnershipShareChanges.OWNERSHIP_SHARE_CHANGES;
+
+    /**
+     * The table <code>public.reimbursement_review_decisions</code>.
+     */
+    public static final ReimbursementReviewDecisions REIMBURSEMENT_REVIEW_DECISIONS = ReimbursementReviewDecisions.REIMBURSEMENT_REVIEW_DECISIONS;
+
+    /**
+     * The table <code>public.reimbursement_supporting_documents</code>.
+     */
+    public static final ReimbursementSupportingDocuments REIMBURSEMENT_SUPPORTING_DOCUMENTS = ReimbursementSupportingDocuments.REIMBURSEMENT_SUPPORTING_DOCUMENTS;
+
+    /**
+     * The table <code>public.reimbursements</code>.
+     */
+    public static final Reimbursements REIMBURSEMENTS = Reimbursements.REIMBURSEMENTS;
+
+    /**
+     * The table <code>public.supporting_document_attachments</code>.
+     */
+    public static final SupportingDocumentAttachments SUPPORTING_DOCUMENT_ATTACHMENTS = SupportingDocumentAttachments.SUPPORTING_DOCUMENT_ATTACHMENTS;
 }

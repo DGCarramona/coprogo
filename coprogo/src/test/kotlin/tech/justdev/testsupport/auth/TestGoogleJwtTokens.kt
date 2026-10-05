@@ -22,24 +22,31 @@ object TestGoogleJwtTokens {
     fun jwksJson(): String = JWKSet(rsaJwk.toPublicJWK()).toString()
 
     fun googleIdToken(
-        audience: String = PRIMARY_AUDIENCE,
-        issuer: String = GOOGLE_ISSUER,
+        audience: String? = PRIMARY_AUDIENCE,
+        additionalAudiences: List<String> = emptyList(),
+        issuer: String? = GOOGLE_ISSUER,
         subject: String = "google-subject-123",
-        email: String = "member@example.com",
-        emailVerified: Boolean = true,
+        email: String? = "member@example.com",
+        emailVerified: Any? = true,
     ): String {
         val now = Instant.now()
-        val claims =
+        val builder =
             JWTClaimsSet
                 .Builder()
-                .issuer(issuer)
-                .audience(audience)
                 .subject(subject)
                 .issueTime(Date.from(now))
                 .expirationTime(Date.from(now.plusSeconds(300)))
-                .claim("email", email)
-                .claim("email_verified", emailVerified)
-                .build()
+        issuer?.let(builder::issuer)
+        audience?.let { primaryAudience ->
+            if (additionalAudiences.isEmpty()) {
+                builder.audience(primaryAudience)
+            } else {
+                builder.audience(listOf(primaryAudience) + additionalAudiences)
+            }
+        }
+        email?.let { builder.claim("email", it) }
+        emailVerified?.let { builder.claim("email_verified", it) }
+        val claims = builder.build()
 
         return SignedJWT(
             JWSHeader

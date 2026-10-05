@@ -7,6 +7,7 @@ import type { ExpenseSummary } from '../../../domain/expense/expense-summary';
 import { formatMoneyFromCents } from '../../../shared/format/financial-format';
 
 export interface ExpenseViewItem {
+  readonly id: string;
   readonly title: string;
   readonly amount: string;
   readonly createdBy: string;
@@ -15,6 +16,7 @@ export interface ExpenseViewItem {
 @Injectable()
 export class ExpenseListWidgetViewModel {
   private readonly groupIdState = signal<string | null>(null);
+  private readonly openedSupportingDocumentExpenseIds = signal<ReadonlySet<string>>(new Set());
 
   private readonly expensesQuery;
   readonly expenses = computed<readonly ExpenseViewItem[]>(() => this.expensesQuery.data() ?? []);
@@ -48,6 +50,7 @@ export class ExpenseListWidgetViewModel {
           staleTime: 30_000,
           select: (expenses) =>
             expenses.map((expense) => ({
+              id: expense.id,
               title: expense.title,
               amount: formatMoneyFromCents(expense.totalAmountInCents),
               createdBy: expense.createdBy,
@@ -64,5 +67,22 @@ export class ExpenseListWidgetViewModel {
 
   retry(): void {
     void this.expensesQuery.refetch();
+  }
+
+  setSupportingDocumentsOpen(expenseId: string, isOpen: boolean): void {
+    this.openedSupportingDocumentExpenseIds.update((openedExpenseIds) => {
+      const nextOpenedExpenseIds = new Set(openedExpenseIds);
+      if (isOpen) {
+        nextOpenedExpenseIds.add(expenseId);
+      } else {
+        nextOpenedExpenseIds.delete(expenseId);
+      }
+
+      return nextOpenedExpenseIds;
+    });
+  }
+
+  isSupportingDocumentsOpen(expenseId: string): boolean {
+    return this.openedSupportingDocumentExpenseIds().has(expenseId);
   }
 }

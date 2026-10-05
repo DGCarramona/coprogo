@@ -1,28 +1,26 @@
-import { HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
 
 import { GoogleIdTokenPort } from '../../application/auth/google-id-token.port';
 
-@Injectable()
-export class ApiAuthInterceptor implements HttpInterceptor {
-  constructor(private readonly googleIdTokenPort: GoogleIdTokenPort) {}
-
-  intercept(request: HttpRequest<unknown>, next: HttpHandler) {
+export const createApiAuthInterceptor =
+  (tokenPort: GoogleIdTokenPort): HttpInterceptorFn =>
+  (request, next) => {
     if (request.headers.has('Authorization')) {
-      return next.handle(request);
+      return next(request);
     }
 
-    const idToken = this.googleIdTokenPort.currentToken();
-    if (idToken === null) {
-      return next.handle(request);
-    }
+    const idToken = tokenPort.currentToken();
+    if (idToken === null) return next(request);
 
-    return next.handle(
+    return next(
       request.clone({
         setHeaders: {
           Authorization: `Bearer ${idToken}`,
         },
       }),
     );
-  }
-}
+  };
+
+export const apiAuthInterceptor: HttpInterceptorFn = (request, next) =>
+  createApiAuthInterceptor(inject(GoogleIdTokenPort))(request, next);

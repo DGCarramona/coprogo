@@ -5,6 +5,7 @@ pluginManagement {
     val kspVersion: String by settings
     val ktlintGradlePluginVersion: String by settings
     val micronautGradlePluginVersion: String by settings
+    val pitestGradlePluginVersion: String by settings
     val shadowGradlePluginVersion: String by settings
 
     repositories {
@@ -21,6 +22,7 @@ pluginManagement {
         id("com.gradleup.shadow") version shadowGradlePluginVersion
         id("io.micronaut.test-resources") version micronautGradlePluginVersion
         id("io.micronaut.aot") version micronautGradlePluginVersion
+        id("info.solidsoft.pitest") version pitestGradlePluginVersion
     }
 }
 
@@ -32,3 +34,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "coprogo"
+
+include("pitest-support")

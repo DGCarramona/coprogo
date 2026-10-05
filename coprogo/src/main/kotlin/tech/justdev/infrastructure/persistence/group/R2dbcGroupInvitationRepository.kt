@@ -3,11 +3,8 @@ package tech.justdev.infrastructure.persistence.group
 import io.r2dbc.spi.ConnectionFactory
 import jakarta.inject.Named
 import jakarta.inject.Singleton
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.jooq.Record7
-import org.jooq.ResultQuery
 import org.jooq.SelectJoinStep
 import org.jooq.impl.DSL
 import tech.justdev.domain.group.entity.GroupInvitation
@@ -16,6 +13,7 @@ import tech.justdev.domain.group.repository.GroupInvitationRepository
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.valueobject.GroupId
 import tech.justdev.infrastructure.persistence.jooq.Tables.GROUP_INVITATIONS
+import tech.justdev.infrastructure.persistence.jooq.awaitList
 import tech.justdev.infrastructure.persistence.jooq.dsl
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -104,5 +102,3 @@ private fun InvitationRecord.toDomain(): GroupInvitation =
         acceptedBy = value6()?.let(MemberEmail::of),
         acceptedAt = value7()?.toInstant(),
     )
-
-private suspend fun <R : org.jooq.Record> ResultQuery<R>.awaitList(): List<R> = asFlow().toList()

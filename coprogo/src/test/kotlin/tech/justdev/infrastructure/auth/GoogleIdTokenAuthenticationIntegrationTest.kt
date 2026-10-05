@@ -111,6 +111,46 @@ class GoogleIdTokenAuthenticationIntegrationTest {
     }
 
     @Test
+    fun `accepts normalized Google claims and any configured audience in a list`() {
+        val email = "normalized.member@example.com"
+        val request =
+            authenticatedRequest(
+                TestGoogleJwtTokens.googleIdToken(
+                    audience = "unrelated-client.apps.googleusercontent.com",
+                    additionalAudiences = listOf(TestGoogleJwtTokens.PRIMARY_AUDIENCE),
+                    issuer = "https://accounts.google.com/",
+                    email = " $email ",
+                    emailVerified = "true",
+                ),
+            )
+
+        val response = httpClient.toBlocking().exchange(request, TestAuthenticatedUserResponse::class.java)
+
+        assertEquals(TestAuthenticatedUserResponse(email = email), response.body())
+    }
+
+    @Test
+    fun `rejects tokens missing or carrying invalid required Google claims`() {
+        val tokens =
+            listOf(
+                TestGoogleJwtTokens.googleIdToken(issuer = null),
+                TestGoogleJwtTokens.googleIdToken(issuer = "https://issuer.example.com"),
+                TestGoogleJwtTokens.googleIdToken(audience = null),
+                TestGoogleJwtTokens.googleIdToken(audience = " "),
+                TestGoogleJwtTokens.googleIdToken(email = null),
+                TestGoogleJwtTokens.googleIdToken(email = " "),
+                TestGoogleJwtTokens.googleIdToken(email = "not-an-email"),
+                TestGoogleJwtTokens.googleIdToken(emailVerified = null),
+                TestGoogleJwtTokens.googleIdToken(emailVerified = "not-a-boolean"),
+            )
+
+        assertEquals(
+            List(tokens.size) { HttpStatus.UNAUTHORIZED },
+            tokens.map(::authenticationStatus),
+        )
+    }
+
+    @Test
     fun `rejects the legacy generic JWT that used the local shared secret`() {
         val request =
             HttpRequest
@@ -124,4 +164,16 @@ class GoogleIdTokenAuthenticationIntegrationTest {
 
         assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
     }
+
+    private fun authenticatedRequest(token: String): HttpRequest<Any> =
+        HttpRequest
+            .GET<Any>("/test/authenticated-user")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+
+    private fun authenticationStatus(token: String): HttpStatus =
+        try {
+            httpClient.toBlocking().exchange(authenticatedRequest(token), String::class.java).status
+        } catch (exception: HttpClientResponseException) {
+            exception.status
+        }
 }

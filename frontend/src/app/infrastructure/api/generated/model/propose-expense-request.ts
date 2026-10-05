@@ -13,4 +13,5 @@ export interface ProposeExpenseRequestDto {
   title: string;
   totalAmountInCents: number;
   allocation: ExpenseAllocationRequestDto;
+  supportingDocumentUploadIntents?: Array<string>;
 }

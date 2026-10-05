@@ -1,0 +1,19 @@
+<p>
+  <label for="supporting-document-file">Ajouter un justificatif</label>
+  <input
+    id="supporting-document-file"
+    type="file"
+    [disabled]="viewModel.isUploading()"
+    (change)="onFileSelection($event)"
+  />
+</p>
+
+@if (viewModel.isUploading()) {
+  <p role="status">Envoi du justificatif en cours…</p>
+} @else if (viewModel.isUploaded()) {
+  <p role="status">Le justificatif a été ajouté.</p>
+}
+
+@if (viewModel.hasUploadError()) {
+  <p role="alert">{{ viewModel.uploadErrorMessage() }}</p>
+}

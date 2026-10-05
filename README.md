@@ -87,6 +87,7 @@ Le frontend démarre sur `http://localhost:4200`.
 |----------|-------------|
 | `./gradlew checkAll` | Exécuter tous les checks : backend + frontend |
 | `./gradlew backendTest` | Exécuter les tests backend |
+| `./gradlew backendMutationTest` | Exécuter les tests de mutation PIT sur le domaine, l’application et les adaptateurs backend configurés |
 | `./gradlew backendCheck` | Backend checks (tests + linting + compilation) |
 | `./gradlew frontendTest` | Tests frontend (Vitest, watch=false) |
 | `./gradlew frontendLint` | Linter frontend (ESLint) |
@@ -138,6 +139,34 @@ Le backend valide les Google ID tokens. Pour tester localement :
    ```
 
 Voir `coprogo/README.md` pour plus de détails sur les conventions de test backend.
+
+### Infrastructure locale
+
+```bash
+docker compose up -d
+```
+
+Cette commande démarre PostgreSQL et Adobe S3Mock. Le stockage objet local est accessible sur `http://localhost:9090`, avec le bucket `coprogo-documents` dans la région `eu-west-1` par défaut.
+Les clients S3 doivent utiliser l'accès path-style. S3Mock est uniquement un mock de développement local : il n'est pas déployé dans les environnements applicatifs.
+
+Les propriétés S3 locales sont fournies dans `coprogo/src/main/resources/application-local.example.properties`.
+Après les avoir copiées dans `application-local.properties`, fournir des credentials factices réservés à S3Mock :
+
+```bash
+export AWS_ACCESS_KEY_ID=coprogo-local
+export AWS_SECRET_ACCESS_KEY=coprogo-local
+```
+
+L'adaptateur utilise la chaîne de credentials AWS standard et un endpoint optionnel : ces valeurs factices ne doivent jamais être utilisées hors du mock local.
+
+Le test d'intégration réel peut être lancé explicitement ainsi :
+
+```bash
+./gradlew -p coprogo test \
+  --tests 'tech.justdev.infrastructure.document.s3.S3DocumentStorageIntegrationTest'
+```
+
+Micronaut Test Resources démarre automatiquement un conteneur S3Mock éphémère et lui attribue un port libre. Le test vérifie les échanges S3 réels, mais S3Mock accepte les URL présignées sans valider leur signature, leur expiration ni leur verbe HTTP. La présence des en-têtes signés est donc vérifiée séparément par le test unitaire de l'adaptateur.
 
 ## Workflow de développement typique
 

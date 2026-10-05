@@ -1,13 +1,14 @@
 # Backlog
 
-Backlog derive de l'etat actuel du depot au 2026-08-08.
+Backlog derive de l'etat actuel du depot au 2026-09-28.
 
 ## Etat actuel constate
 
 - Backend: coeur metier deja entame pour `expense`, `revenue` et `ledger`, avec des tests de domaine et d'application.
 - Backend HTTP: les groupes, invitations, quotes-parts, revenus, depenses et lectures financieres du groupe sont exposes avec l'OpenAPI.
-- Backend infra: migrations Flyway et adaptateurs R2DBC presents pour groupes, invitations, quotes-parts, ledger et depenses, validation Google ID token orientee produit en place, pas encore de stockage S3.
-- Frontend: connexion Google, invitations et dashboard de groupe sont en place, avec lecture des soldes, caisse, depenses et proposition de depense a partage egal.
+- Backend infra: migrations Flyway et adaptateurs R2DBC presents pour groupes, invitations, quotes-parts, ledger et depenses, validation Google ID token orientee produit, Adobe S3Mock local et adaptateur S3-compatible en place.
+- Architecture documentaire: `Expense` porte l'historique complet de ses justificatifs; `DocumentUploadIntent` reste un agregat distinct jusqu'a sa consommation; les tables d'association de justificatifs sont un detail d'infrastructure, pas des entites du domaine.
+- Frontend: connexion Google, invitations et dashboard de groupe sont en place, avec lecture des soldes, caisse, depenses et proposition selon les quatre modes `Equal`, `EqualWithCaps`, `CumulativeTiers` et `Custom`.
 - Frontend API: client OpenAPI genere pour groupes, depenses, ledger et revenus, avec source reelle de Google ID token.
 - Monorepo: orchestration Gradle racine en place pour piloter ensemble le front et le back.
 
@@ -20,9 +21,7 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 
 ## Ordre de travail actuel
 
-1. Terminer l'audit des conventions de tests frontend avec FE-TEST-001B.
-2. Raccorder le client et les formulaires frontend avec FE-EXP-007.
-3. Traiter les justificatifs avec les lots BE-DOC et FE-DOC.
+1. FE-DOC-005B : raccorder l'historique documentaire aux remboursements pendant la construction de leur ecran.
 
 ## Fondations monorepo et DX
 
@@ -32,7 +31,7 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 - [x] MONO-004 Ajouter des taches Gradle racine pour lancer `lint`, `test` et `build` du frontend depuis Gradle.
 - [x] MONO-005 Ajouter des taches Gradle racine qui agregent les checks front et back (`checkAll`, `buildAll` ou equivalent).
 - [x] MONO-006 Ajouter une tache Gradle de dev qui demarre front et back ensemble, avec un mecanisme explicite pour les processus longs (`execfork` ou equivalent).
-- [ ] MONO-007 Completer `docker-compose.yml` avec un service S3-compatible local (ex: MinIO).
+- [x] MONO-007 Ajouter Adobe S3Mock local au `docker-compose.yml` avec un stockage persistant.
 - [x] MONO-008 Documenter le workflow local monorepo et les nouvelles commandes Gradle racine dans un README racine.
 - [x] MONO-009 Ajouter une CI qui execute les checks front et back via les entrees Gradle racine.
 
@@ -83,18 +82,23 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 - [x] BE-EXP-013 Ajouter des tests d'integration couvrant acceptation, refus et emission d'evenement ledger.
 - [x] BE-EXP-014 Ajouter la couverture d'integration des quatre modes d'allocation.
 - [x] BE-EXP-015 Corriger et tester le motif latent `@Singleton object RandomExpenseIdGenerator` avant le raccordement REST.
+- [ ] BE-EXP-016 Remplacer l'hydratation d'agregats complets dans la liste des depenses par une projection de synthese group-scoped.
 
 ## Backend - remboursements
 
-- [ ] BE-REB-001 Introduire le modele de domaine pour un remboursement direct.
-- [ ] BE-REB-002 Introduire le modele de domaine pour un remboursement declare par le debiteur avec justificatif contestable.
-- [ ] BE-REB-003 Ajouter les migrations Flyway pour les remboursements et leur historique de decision.
-- [ ] BE-REB-004 Creer les repositories et adaptateurs R2DBC des remboursements.
-- [ ] BE-REB-005 Implementer le cas d'usage "Alice enregistre que Bob l'a rembourse" sans confirmation de Bob.
-- [ ] BE-REB-006 Implementer le cas d'usage "Bob declare qu'il a rembourse Alice avec justificatif".
-- [ ] BE-REB-007 Implementer le cas d'usage de rejet d'un remboursement conteste par le crediteur.
-- [ ] BE-REB-008 Produire les effets ledger associes aux remboursements acceptes.
-- [ ] BE-REB-009 Exposer les endpoints REST de creation, consultation et revue des remboursements.
+- [x] BE-REB-001 Introduire le modele de domaine pour un remboursement direct, immediatement accepte lorsqu'il est declare par son destinataire.
+- [x] BE-REB-002 Introduire le modele de domaine pour un remboursement declare par le debiteur avec justificatif contestable, portant ses snapshots documentaires et reutilisant le workflow d'upload intent sans repository generique d'association.
+- [x] BE-REB-003A Ajouter les migrations Flyway du schema actuel des remboursements et de leurs justificatifs.
+- [x] BE-REB-003B Definir la semantique de la decision de revue avant d'ajouter son historique Flyway.
+- [x] BE-REB-003C Ajouter la migration Flyway append-only de l'historique des decisions de revue avant les repositories.
+- [x] BE-REB-004A Creer le repository de remboursement et son adaptateur R2DBC pour la lecture unitaire et la persistance.
+- [x] BE-REB-004B Ajouter la lecture set-based des remboursements d'un groupe.
+- [x] BE-REB-005 Implementer le cas d'usage "Alice enregistre que Bob l'a rembourse" sans confirmation de Bob.
+- [x] BE-REB-006 Implementer le cas d'usage "Bob declare qu'il a rembourse Alice avec justificatif".
+- [x] BE-REB-007 Implementer le cas d'usage de rejet d'un remboursement conteste par le crediteur.
+- [x] BE-REB-008A Modeliser et persister l'effet ledger d'un remboursement accepte.
+- [x] BE-REB-008B Produire atomiquement l'effet ledger lors de l'enregistrement ou de l'acceptation d'un remboursement.
+- [x] BE-REB-009 Exposer les endpoints REST de creation, consultation et revue des remboursements.
 - [ ] BE-REB-010 Ajouter des tests d'integration sur les parcours de remboursement directs et contestables.
 
 ## Backend - caisse commune, balances et historique explicatif
@@ -113,16 +117,43 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 
 ## Backend - justificatifs, audit et traceabilite
 
-- [ ] BE-DOC-001 Introduire un port applicatif pour le stockage de justificatifs.
-- [ ] BE-DOC-002 Ajouter un adaptateur S3-compatible pour l'upload et le download de documents.
-- [ ] BE-DOC-003 Ajouter les migrations Flyway pour les metadonnees de documents et leur historique.
-- [ ] BE-DOC-004 Implementer l'ajout d'un justificatif a une depense.
-- [ ] BE-DOC-005 Implementer le remplacement d'un justificatif sans detruire l'ancien.
-- [ ] BE-DOC-006 Implementer la suppression logique d'un justificatif avec audit.
-- [ ] BE-DOC-007 Enforcer la regle "seul le createur de l'evenement peut supprimer son justificatif".
-- [ ] BE-DOC-008 Exposer les endpoints REST d'upload, liste, consultation et suppression de justificatifs.
-- [ ] BE-DOC-009 Ajouter une vue d'historique audit des actions sensibles.
-- [ ] BE-DOC-010 Ajouter des tests d'integration sur la non-destruction de l'historique documentaire.
+- [x] BE-DOC-001 Introduire un port applicatif de presignature PUT/GET et d'inspection HEAD, sans transit d'octets ni suppression physique.
+- [x] BE-DOC-002 Ajouter un adaptateur S3-compatible de presignature PUT/GET et d'inspection HEAD.
+- [x] BE-DOC-003A Ajouter le modele metier des upload intents `PENDING`, `READY` et `CONSUMED` et leur schema Flyway contraint.
+- [x] BE-DOC-003B Ajouter le port de persistance group-scoped des upload intents et son adaptateur R2DBC.
+- [x] BE-DOC-004A Ajouter la persistance CAS des transitions d'upload intents, avec une seule transition `READY` vers `CONSUMED` gagnante.
+- [x] BE-DOC-004B1 Ajouter le modele d'association d'un justificatif a une depense et le registre parent d'attachements identifie par l'upload intent consomme, sans dupliquer ses metadonnees.
+- [x] BE-DOC-004B2 Ajouter le port et l'adaptateur de persistance des associations de justificatifs.
+- [x] BE-DOC-004B3 Ajouter l'interactor qui verifie l'uploader, consomme l'agregat `READY`, puis persiste depense, association durable et intent dans la meme transaction DB.
+- [x] BE-DOC-004B3R Extraire la persistance atomique de proposition de depense dans un port applicatif et son adaptateur R2DBC transactionnel.
+- [x] BE-DOC-004B3Q Restreindre la lecture des upload intents aux identifiants `READY` du groupe et de l'uploader de la proposition.
+- [x] BE-DOC-004B3B Persister les upload intents et les associations de justificatifs par lots, de facon atomique et set-based.
+- [x] BE-DOC-005A Modeliser une chaine append-only de remplacements de justificatifs, contrainte au meme groupe et a la meme depense, sans detruire les versions precedentes.
+- [x] BE-DOC-005B Persister les remplacements et distinguer les justificatifs courants de leur historique.
+- [x] BE-DOC-005C1 Encapsuler la regle de remplacement dans `Expense` et ajouter la lecture group-scoped d'un justificatif courant par upload intent.
+- [x] BE-DOC-005C2 Ajouter l'interactor de remplacement, reserve au createur tant que la depense est `PROPOSED`.
+- [x] BE-DOC-005C2R Encapsuler les lectures verrouillees et la persistance atomique du remplacement dans un scope transactionnel specialise, sans exposer les repositories ni la commande a l'adaptateur.
+- [x] BE-DOC-006A Modeliser la suppression logique immuable et l'audit contraint d'un justificatif.
+- [x] BE-DOC-006B Persister la suppression logique et exclure les justificatifs supprimes des lectures courantes.
+- [x] BE-DOC-007 Enforcer la regle "seul le createur de l'evenement peut supprimer son justificatif".
+- [x] BE-DOC-007R Faire de `Expense` l'agregat des justificatifs courants, hydrates explicitement sans lazy.
+- [x] BE-DOC-008A Demarrer un upload de justificatif : presigner le PUT et persister l'upload intent `PENDING`.
+- [x] BE-DOC-008B Confirmer un upload par inspection HEAD et passer l'upload intent a `READY`.
+- [x] BE-DOC-008C1 Ajouter une lecture batch group-scoped des upload intents `CONSUMED`.
+- [x] BE-DOC-008C2 Lister les justificatifs et leur historique, avec URL GET presignee.
+- [x] BE-DOC-008C2R1 Faire porter a `Expense` l'historique complet des justificatifs et deriver les justificatifs courants.
+- [x] BE-DOC-008C2R2 Simplifier l'interactor de lecture des justificatifs a partir de l'agregat `Expense` hydrate.
+- [x] BE-DOC-008C2R3 Hydrater les enfants documentaires complets de `Expense`, avec leurs metadonnees et upload intents `CONSUMED`.
+- [x] BE-DOC-008C2R4 Encapsuler l'historique, la vue courante et les transformations des justificatifs dans une collection metier immuable.
+- [x] BE-DOC-008C2R5 Faire de `ExpenseRepository` le seul repository de l'agregat documentaire : snapshots enfants autoporteurs, persistance atomique de l'historique complet et suppression du pseudo-agregat d'association.
+- [x] BE-DOC-008D1 Exposer REST/OpenAPI le demarrage et la confirmation d'un upload de justificatif, avec URL PUT signee et sans exposer d'entite du domaine.
+- [x] BE-DOC-008D2 Exposer la proposition de depense avec ses upload intents prets a etre attaches.
+- [x] BE-DOC-008D3 Exposer la liste et l'historique des justificatifs avec des URL GET signees.
+- [x] BE-DOC-008D4 Exposer le remplacement et la suppression traces des justificatifs.
+- [x] BE-DOC-009A Deriver une chronologie d'audit des justificatifs depuis l'agregat `Expense` hydrate.
+- [x] BE-DOC-009B Exposer la chronologie d'audit des justificatifs.
+- [x] BE-DOC-010 Ajouter des tests d'integration sur la non-destruction de l'historique documentaire, les conflits, le rejeu et les rollbacks transactionnels.
+- [x] BE-DOC-011 Exposer dans la lecture documentaire une capacite serveur `canDelete`, vraie uniquement pour un justificatif courant non supprime, demande par le createur tant que la depense est proposee.
 
 ## Frontend - socle applicatif et authentification
 
@@ -153,7 +184,9 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 ## Frontend - qualite des tests
 
 - [x] FE-TEST-001A Structurer les specs du formulaire de depense par point d'entree public.
-- [ ] FE-TEST-001B Structurer les autres specs frontend par point d'entree public ou comportement visible.
+- [x] FE-TEST-001B1 Structurer les facades et ViewModels restants par point d'entree public.
+- [x] FE-TEST-001B2A Structurer les utilitaires et gateways restants par point d'entree public.
+- [x] FE-TEST-001B2B Structurer les composants restants par comportement visible.
 
 ## Frontend - depenses
 
@@ -166,7 +199,8 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 - [x] FE-EXP-005 Ajouter l'interface `EqualWithCaps` avec saisie des plafonds.
 - [x] FE-EXP-006 Ajouter l'interface `CumulativeTiers` avec saisie des seuils et participants par tranche.
 - [x] FE-EXP-006R Extraire les modeles et regles pures des formulaires `EqualWithCaps` et `CumulativeTiers`.
-- [ ] FE-EXP-007 Ajouter l'interface `Custom` avec saisie des montants exacts par participant.
+- [x] FE-EXP-007A Ajouter le modele pur, la validation et le mapping de l'allocation `Custom`.
+- [x] FE-EXP-007B Raccorder l'allocation `Custom` au Signal Form et a l'interface.
 - [ ] FE-EXP-008 Ajouter l'action d'approbation ou refus de sa propre participation.
 - [ ] FE-EXP-009 Afficher clairement l'invalidation d'une depense refusee et la necessite de ressaisie.
 - [ ] FE-EXP-010 Ajouter les tests de ViewModel, mapping et composants critiques des depenses.
@@ -193,22 +227,12 @@ Backlog derive de l'etat actuel du depot au 2026-08-08.
 
 ## Frontend - justificatifs et historique audit
 
-- [ ] FE-DOC-001 Creer un composant reutilisable d'upload de justificatif.
-- [ ] FE-DOC-002 Creer un composant d'historique des versions d'un justificatif.
-- [ ] FE-DOC-003 Ajouter l'action de telechargement et consultation d'un justificatif.
-- [ ] FE-DOC-004 Ajouter l'action de suppression avec message d'audit clair.
-- [ ] FE-DOC-005 Afficher, dans les ecrans depense et remboursement, l'historique des pieces liees.
-- [ ] FE-DOC-006 Ajouter les tests de composants et de mapping pour la gestion documentaire.
-
-## Tranche verticale minimale recommandee
-
-Si on veut avancer avec des PRs simples et visibles rapidement, l'ordre recommande est:
-
-1. `MONO-001` a `MONO-009`
-2. `BE-GROUP-001` a `BE-GROUP-009`
-3. `BE-EXP-001` a `BE-EXP-006`
-4. `BE-LED-001` a `BE-LED-005`
-5. `FE-CORE-001` a `FE-CORE-009`
-6. `FE-DASH-001` a `FE-DASH-007`
-7. `FE-EXP-001` a `FE-EXP-010`
-8. Puis revenus, remboursements et justificatifs
+- [x] FE-DOC-001A Mettre en place le workflow reutilisable d'upload signe : checksum SHA-256, intention, PUT direct sans jeton applicatif et confirmation.
+- [x] FE-DOC-001B1 Faire accepter et transmettre les identifiants d'intentions d'upload confirmees dans la proposition de depense.
+- [x] FE-DOC-001B2 Creer le composant reutilisable d'upload de justificatif et l'integrer a la proposition de depense apres confirmation, avant toute creation metier. Les futurs formulaires reutiliseront ce composant.
+- [x] FE-DOC-002 Creer un composant d'historique des versions d'un justificatif.
+- [x] FE-DOC-003 Ajouter l'action de telechargement et consultation d'un justificatif via URL GET signee directe.
+- [x] FE-DOC-004 Ajouter l'action de suppression avec message d'audit clair.
+- [x] FE-DOC-005A Afficher dans l'ecran depense actuel l'historique des justificatifs lies et l'action de suppression seulement lorsque la capacite serveur l'autorise.
+- [x] FE-DOC-006 Completer les tests de composants et de mapping documentaires, notamment l'audit de retrait et les dates issues du transport.
+- [ ] FE-DOC-005B Afficher l'historique des justificatifs lies dans l'ecran de remboursement, apres la creation de cet ecran.

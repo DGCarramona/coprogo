@@ -5,15 +5,22 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.group.entity.Group
 import tech.justdev.domain.group.entity.Member
 import tech.justdev.domain.group.repository.GroupRepository
 import tech.justdev.domain.group.repository.MemberRepository
 import tech.justdev.domain.ledger.effect.MemberBalanceTransfer
+import tech.justdev.domain.ledger.event.AcceptedExpenseLedgerEvent
+import tech.justdev.domain.ledger.event.AcceptedReimbursementLedgerEvent
 import tech.justdev.domain.ledger.event.CashPoolIncomeLedgerEvent
 import tech.justdev.domain.ledger.event.CashPoolWithdrawalLedgerEvent
 import tech.justdev.domain.ledger.event.LedgerEvent
 import tech.justdev.domain.ledger.repository.LedgerEventRepository
+import tech.justdev.domain.reimbursement.entity.Reimbursement
+import tech.justdev.domain.reimbursement.repository.ReimbursementRepository
+import tech.justdev.domain.reimbursement.valueobject.ReimbursementId
 import tech.justdev.domain.revenue.valueobject.OwnershipPercentage
 import tech.justdev.domain.revenue.valueobject.OwnershipShare
 import tech.justdev.domain.revenue.valueobject.RevenueDistribution
@@ -34,6 +41,9 @@ class R2dbcLedgerEventRepositoryIntegrationTest {
 
     @Inject
     lateinit var groupRepository: GroupRepository
+
+    @Inject
+    lateinit var reimbursementRepository: ReimbursementRepository
 
     @Nested
     inner class Append {
@@ -57,6 +67,62 @@ class R2dbcLedgerEventRepositoryIntegrationTest {
                 ledgerEventRepository.append(withdrawal)
 
                 assertEquals(listOf(withdrawal), ledgerEventRepository.findByGroup(fixture.group.id))
+            }
+
+        @Test
+        fun `should append accepted expense events with their balance transfers`() =
+            runTest {
+                val fixture = persistedGroupFixture("accepted-expense")
+                val event =
+                    AcceptedExpenseLedgerEvent(
+                        id = ledgerEventId("${fixture.seed}-accepted-expense"),
+                        group = fixture.group.id,
+                        expense = ExpenseId(tech.justdev.testsupport.testUuid("${fixture.seed}-expense")),
+                        paidBy = fixture.owner,
+                        occurredAt = Instant.parse("2026-04-03T12:00:00Z"),
+                        transfers =
+                            setOf(
+                                MemberBalanceTransfer(
+                                    fromMember = fixture.coOwner,
+                                    toMember = fixture.owner,
+                                    amount = MoneyAmount.ofCents(45),
+                                ),
+                            ),
+                    )
+
+                ledgerEventRepository.append(event)
+
+                assertEquals(listOf(event), ledgerEventRepository.findByGroup(fixture.group.id))
+            }
+
+        @Test
+        fun `should append accepted reimbursement events with their debt reduction transfer`() =
+            runTest {
+                val fixture = persistedGroupFixture("accepted-reimbursement")
+                val reimbursement = fixture.acceptedReimbursement()
+                val event = AcceptedReimbursementLedgerEvent.from(reimbursement)
+                reimbursementRepository.persist(reimbursement)
+
+                ledgerEventRepository.append(event)
+
+                assertEquals(listOf(event), ledgerEventRepository.findByGroup(fixture.group.id))
+            }
+
+        @Test
+        fun `should allow only one ledger event for an accepted reimbursement`() =
+            runTest {
+                val fixture = persistedGroupFixture("unique-accepted-reimbursement")
+                val reimbursement = fixture.acceptedReimbursement()
+                val event = AcceptedReimbursementLedgerEvent.from(reimbursement)
+                reimbursementRepository.persist(reimbursement)
+                ledgerEventRepository.append(event)
+
+                assertThrows<RuntimeException> {
+                    runTest {
+                        ledgerEventRepository.append(event.copy(id = ledgerEventId("duplicate-accepted-reimbursement")))
+                    }
+                }
+                assertEquals(listOf(event), ledgerEventRepository.findByGroup(fixture.group.id))
             }
     }
 
@@ -113,8 +179,8 @@ class R2dbcLedgerEventRepositoryIntegrationTest {
         val seed: String,
         val group: Group,
     ) {
-        private val owner = group.createdBy
-        private val coOwner = group.members.single { member -> member.member != owner }.member
+        val owner = group.createdBy
+        val coOwner = group.members.single { member -> member.member != owner }.member
 
         fun revenueEvents(): List<LedgerEvent> =
             listOf(
@@ -157,6 +223,18 @@ class R2dbcLedgerEventRepositoryIntegrationTest {
                         ),
                     ),
                 occurredAt = Instant.parse("2026-04-03T12:00:00Z"),
+            )
+
+        fun acceptedReimbursement(): Reimbursement =
+            Reimbursement.recordDirect(
+                id = ReimbursementId(tech.justdev.testsupport.testUuid("$seed-reimbursement")),
+                group = group.id,
+                paidBy = coOwner,
+                receivedBy = owner,
+                amount = MoneyAmount.ofCents(45),
+                reimbursedAt = Instant.parse("2026-04-03T11:00:00Z"),
+                declaredBy = owner,
+                declaredAt = Instant.parse("2026-04-03T12:00:00Z"),
             )
     }
 }

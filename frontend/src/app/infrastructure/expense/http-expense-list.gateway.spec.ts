@@ -1,4 +1,4 @@
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
@@ -7,6 +7,7 @@ import { GoogleIdTokenPort } from '../../application/auth/google-id-token.port';
 import type { ExpenseSummary } from '../../domain/expense/expense-summary';
 import type { ExpenseResponseDto } from '../api/generated';
 import { ApiClientError } from '../api/api-client.error';
+import { apiAuthInterceptor } from '../api/api-auth.interceptor';
 import { provideApiClient } from '../api/provide-api-client';
 import { HttpExpenseListGateway } from './http-expense-list.gateway';
 
@@ -19,7 +20,7 @@ describe('HttpExpenseListGateway', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withInterceptors([apiAuthInterceptor])),
         provideHttpClientTesting(),
         {
           provide: GoogleIdTokenPort,

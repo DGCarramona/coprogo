@@ -13,7 +13,7 @@
       <p class="expense-list-widget__empty">Aucune depense enregistree.</p>
     } @else {
       <div class="expense-list-widget__list">
-        @for (expense of viewModel.expenses(); track expense.title) {
+        @for (expense of viewModel.expenses(); track expense.id) {
           <div class="expense-list-widget__row">
             <div class="expense-list-widget__info">
               <span class="expense-list-widget__title">{{ expense.title }}</span>
@@ -21,6 +21,20 @@
             </div>
             <strong>{{ expense.amount }}</strong>
           </div>
+          <details
+            #supportingDocumentsDetails
+            (toggle)="
+              viewModel.setSupportingDocumentsOpen(expense.id, supportingDocumentsDetails.open)
+            "
+          >
+            <summary>Justificatifs</summary>
+            @if (viewModel.isSupportingDocumentsOpen(expense.id)) {
+              <app-expense-supporting-documents-widget
+                [groupId]="groupId"
+                [expenseId]="expense.id"
+              />
+            }
+          </details>
         }
       </div>
     }

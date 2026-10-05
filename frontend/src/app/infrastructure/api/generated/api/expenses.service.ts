@@ -22,6 +22,8 @@ import { Observable } from 'rxjs';
 import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 
 // @ts-ignore
+import { ApiErrorResponseDto } from '../model/api-error-response';
+// @ts-ignore
 import { ExpenseDetailResponseDto } from '../model/expense-detail-response';
 // @ts-ignore
 import { ExpenseParticipationDecisionRequestDto } from '../model/expense-participation-decision-request';
@@ -251,28 +253,44 @@ export class ExpensesService extends BaseService {
     proposeExpenseRequestDto: ProposeExpenseRequestDto,
     observe?: 'body',
     reportProgress?: boolean,
-    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
   ): Observable<any>;
   public proposeExpense(
     groupId: string,
     proposeExpenseRequestDto: ProposeExpenseRequestDto,
     observe?: 'response',
     reportProgress?: boolean,
-    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
   ): Observable<HttpResponse<any>>;
   public proposeExpense(
     groupId: string,
     proposeExpenseRequestDto: ProposeExpenseRequestDto,
     observe?: 'events',
     reportProgress?: boolean,
-    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
   ): Observable<HttpEvent<any>>;
   public proposeExpense(
     groupId: string,
     proposeExpenseRequestDto: ProposeExpenseRequestDto,
     observe: any = 'body',
     reportProgress: boolean = false,
-    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
   ): Observable<any> {
     if (groupId === null || groupId === undefined) {
       throw new Error(
@@ -288,7 +306,7 @@ export class ExpensesService extends BaseService {
     let localVarHeaders = this.defaultHeaders;
 
     const localVarHttpHeaderAcceptSelected: string | undefined =
-      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([]);
+      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
     if (localVarHttpHeaderAcceptSelected !== undefined) {
       localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
     }

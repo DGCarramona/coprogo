@@ -37,6 +37,18 @@ jobs:
       - name: Run backend checks
         run: ./gradlew --no-daemon backendCheck
 
+      - name: Run backend mutation tests
+        run: ./gradlew --no-daemon backendMutationTest
+
+      - name: Upload backend mutation report
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: backend-mutation-report
+          path: coprogo/build/reports/pitest
+          if-no-files-found: ignore
+          retention-days: 14
+
   frontend-quality-and-tests:
     name: Frontend quality and tests
     runs-on: ubuntu-latest

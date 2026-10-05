@@ -7,6 +7,7 @@ plugins {
     id("com.gradleup.shadow")
     id("io.micronaut.test-resources")
     id("io.micronaut.aot")
+    id("info.solidsoft.pitest")
     id("coprogo.jooq-codegen")
 }
 
@@ -22,6 +23,8 @@ version = "0.1"
 group = "tech.justdev"
 
 dependencies {
+    add("pitest", project(":pitest-support"))
+
     ksp("io.micronaut:micronaut-http-validation")
     ksp("io.micronaut.security:micronaut-security-annotations")
     ksp("io.micronaut.serde:micronaut-serde-processor")
@@ -41,6 +44,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.11.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+    implementation("software.amazon.awssdk:s3")
 
     compileOnly("io.swagger.core.v3:swagger-annotations")
 
@@ -50,9 +54,11 @@ dependencies {
     runtimeOnly("org.flywaydb:flyway-database-postgresql")
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("org.postgresql:r2dbc-postgresql")
+    runtimeOnly("software.amazon.awssdk:netty-nio-client")
 
     testImplementation("io.micronaut:micronaut-http-client")
     testImplementation("io.projectreactor:reactor-core")
+    testImplementation("org.junit.jupiter:junit-jupiter-params")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testResourcesService("io.micronaut:micronaut-jackson-databind:$micronautVersion")
@@ -99,6 +105,123 @@ micronaut {
     }
 }
 
+pitest {
+    pitestVersion.set("1.25.8")
+    junit5PluginVersion.set("1.2.3")
+    targetClasses.set(
+        providers
+            .gradleProperty("pitest.targetClasses")
+            .map { classes ->
+                classes
+                    .split(',')
+                    .map(String::trim)
+                    .filter(String::isNotEmpty)
+                    .toSet()
+            }.orElse(
+                setOf(
+                    "tech.justdev.domain.*",
+                    "tech.justdev.application.*",
+                    "tech.justdev.infrastructure.auth.*",
+                    "tech.justdev.infrastructure.document.*",
+                    "tech.justdev.infrastructure.persistence.*",
+                ),
+            ),
+    )
+    targetTests.set(
+        providers
+            .gradleProperty("pitest.targetTests")
+            .map { tests ->
+                tests
+                    .split(',')
+                    .map(String::trim)
+                    .filter(String::isNotEmpty)
+                    .toSet()
+            }.orElse(
+                setOf(
+                    "tech.justdev.domain.*",
+                    "tech.justdev.application.*",
+                    "tech.justdev.infrastructure.*",
+                    "tech.justdev.interfaces.*",
+                ),
+            ),
+    )
+    excludedClasses.set(
+        setOf(
+            "tech.justdev.infrastructure.persistence.jooq.*",
+            "tech.justdev.application.*Snapshot",
+            "tech.justdev.application.*Preview",
+            "tech.justdev.application.document.DocumentUploadRequest",
+            "tech.justdev.application.revenue.PreviewRevenueDistribution*",
+            "tech.justdev.infrastructure.persistence.ledger.LedgerEventRow",
+        ),
+    )
+    excludedMethods.set(
+        setOf(
+            "invokeSuspend",
+            "*lambda*",
+            "compare",
+            "component*",
+            "copy*",
+            "hashCode",
+            "isRfc5987AttributeCharacter",
+            "toString",
+            "getChanges",
+            "getDEFAULT_ISSUERS",
+            "getJwksUrl",
+            "getZERO*",
+            "getPaidBy*",
+            "getPathStyleAccess",
+            "getTransfers",
+        ),
+    )
+    excludedTestClasses.set(
+        setOf(
+            "tech.justdev.application.*IntegrationTest",
+            "tech.justdev.infrastructure.persistence.*SchemaIntegrationTest",
+            "tech.justdev.interfaces.*IntegrationTest",
+        ),
+    )
+    avoidCallsTo.set(
+        setOf(
+            "java.util.logging",
+            "org.apache.log4j",
+            "org.slf4j",
+            "org.apache.commons.logging",
+            "kotlin.ResultKt",
+            "kotlin.jvm.internal.Intrinsics",
+        ),
+    )
+    mutators.set(
+        setOf(
+            "CONDITIONALS_BOUNDARY",
+            "EMPTY_RETURNS",
+            "FALSE_RETURNS",
+            "INCREMENTS",
+            "INVERT_NEGS",
+            "MATH",
+            "NEGATE_CONDITIONALS",
+            "PRIMITIVE_RETURNS",
+            "TRUE_RETURNS",
+            "VOID_METHOD_CALLS",
+        ),
+    )
+    mutationThreshold.set(100)
+    testStrengthThreshold.set(100)
+    coverageThreshold.set(90)
+    outputFormats.set(setOf("HTML", "XML"))
+    timestampedReports.set(false)
+    threads.set(
+        providers
+            .gradleProperty("pitest.threads")
+            .map(String::toInt)
+            .orElse(4),
+    )
+}
+
 tasks.named("dockerfileNative") {
     setProperty("jdkVersion", "25")
+}
+
+tasks.named("check") {
+    dependsOn(":pitest-support:check")
 }

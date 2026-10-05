@@ -24,88 +24,107 @@ describe('ExpenseListWidgetViewModel', () => {
     injector = TestBed.inject(Injector);
   });
 
-  it('refreshes expenses when the scoped query is invalidated', async () => {
-    const vm = createViewModel();
-    vm.initialize('group-1');
-    await waitFor(() => vm.isReady());
-    port.result = [expense({ id: 'e2', title: 'Toiture', totalAmountInCents: 1250 })];
+  describe('initialize', () => {
+    it('refreshes expenses when the scoped query is invalidated', async () => {
+      const vm = createViewModel();
+      vm.initialize('group-1');
+      await waitFor(() => vm.isReady());
+      port.result = [expense({ id: 'e2', title: 'Toiture', totalAmountInCents: 1250 })];
 
-    await queryClient.invalidateQueries({ queryKey: ['groups', 'group-1', 'expenses'] });
-    await waitFor(
-      () => port.requestedGroupIds.length === 2 && vm.expenses()[0]?.title === 'Toiture',
-    );
+      await queryClient.invalidateQueries({ queryKey: ['groups', 'group-1', 'expenses'] });
+      await waitFor(
+        () => port.requestedGroupIds.length === 2 && vm.expenses()[0]?.title === 'Toiture',
+      );
 
-    expect(vm.expenses()).toEqual([
-      { title: 'Toiture', amount: '12,50\u00a0€', createdBy: 'alice@example.com' },
-    ]);
-  });
-
-  it('loads expenses for the given group', async () => {
-    const vm = createViewModel();
-
-    vm.initialize('group-1');
-    await waitFor(() => vm.isReady());
-
-    expect(vm.expenses()).toEqual([
-      { title: 'Courses', amount: '15,00\u00a0€', createdBy: 'alice@example.com' },
-    ]);
-    expect(port.requestedGroupIds).toEqual(['group-1']);
-  });
-
-  it('exposes empty list when no expenses', async () => {
-    port.result = [];
-    const vm = createViewModel();
-
-    vm.initialize('group-1');
-    await waitFor(() => vm.isReady());
-
-    expect(vm.expenses()).toEqual([]);
-  });
-
-  it('exposes a load error', async () => {
-    port.failure = new Error('Erreur reseau');
-    const vm = createViewModel();
-
-    vm.initialize('group-1');
-    await waitFor(() => vm.hasLoadError());
-
-    expect(vm.hasLoadError()).toBe(true);
-    expect(vm.errorMessage()).toBe('Erreur reseau');
-  });
-
-  it('is loading while fetching', async () => {
-    let resolvePromise!: (value: readonly ExpenseSummary[]) => void;
-    port.resultPromise = new Promise((resolve) => {
-      resolvePromise = resolve;
+      expect(vm.expenses()).toEqual([
+        { id: 'e2', title: 'Toiture', amount: '12,50\u00a0€', createdBy: 'alice@example.com' },
+      ]);
     });
-    const vm = createViewModel();
 
-    vm.initialize('group-1');
-    await waitFor(() => vm.isLoading());
+    it('loads expenses for the given group', async () => {
+      const vm = createViewModel();
 
-    expect(vm.isLoading()).toBe(true);
+      vm.initialize('group-1');
+      await waitFor(() => vm.isReady());
 
-    resolvePromise([]);
-    await waitFor(() => vm.isReady());
+      expect(vm.expenses()).toEqual([
+        { id: 'e1', title: 'Courses', amount: '15,00\u00a0€', createdBy: 'alice@example.com' },
+      ]);
+      expect(port.requestedGroupIds).toEqual(['group-1']);
+    });
 
-    expect(vm.isReady()).toBe(true);
+    it('exposes empty list when no expenses', async () => {
+      port.result = [];
+      const vm = createViewModel();
+
+      vm.initialize('group-1');
+      await waitFor(() => vm.isReady());
+
+      expect(vm.expenses()).toEqual([]);
+    });
+
+    it('exposes a load error', async () => {
+      port.failure = new Error('Erreur reseau');
+      const vm = createViewModel();
+
+      vm.initialize('group-1');
+      await waitFor(() => vm.hasLoadError());
+
+      expect(vm.hasLoadError()).toBe(true);
+      expect(vm.errorMessage()).toBe('Erreur reseau');
+    });
+
+    it('is loading while fetching', async () => {
+      let resolvePromise!: (value: readonly ExpenseSummary[]) => void;
+      port.resultPromise = new Promise((resolve) => {
+        resolvePromise = resolve;
+      });
+      const vm = createViewModel();
+
+      vm.initialize('group-1');
+      await waitFor(() => vm.isLoading());
+
+      expect(vm.isLoading()).toBe(true);
+
+      resolvePromise([]);
+      await waitFor(() => vm.isReady());
+
+      expect(vm.isReady()).toBe(true);
+    });
   });
 
-  it('retries loading after a failure', async () => {
-    port.failure = new Error('Premier echec');
-    const vm = createViewModel();
+  describe('retry', () => {
+    it('retries loading after a failure', async () => {
+      port.failure = new Error('Premier echec');
+      const vm = createViewModel();
 
-    vm.initialize('group-1');
-    await waitFor(() => vm.hasLoadError());
-    expect(vm.hasLoadError()).toBe(true);
+      vm.initialize('group-1');
+      await waitFor(() => vm.hasLoadError());
+      expect(vm.hasLoadError()).toBe(true);
 
-    port.failure = null;
-    port.result = [];
-    vm.retry();
-    await waitFor(() => vm.isReady());
+      port.failure = null;
+      port.result = [];
+      vm.retry();
+      await waitFor(() => vm.isReady());
 
-    expect(vm.isReady()).toBe(true);
-    expect(port.requestedGroupIds).toEqual(['group-1', 'group-1']);
+      expect(vm.isReady()).toBe(true);
+      expect(port.requestedGroupIds).toEqual(['group-1', 'group-1']);
+    });
+  });
+
+  describe('setSupportingDocumentsOpen', () => {
+    it('tracks only the expense sections currently opened by the user', () => {
+      const vm = createViewModel();
+
+      vm.setSupportingDocumentsOpen('expense-1', true);
+      vm.setSupportingDocumentsOpen('expense-2', true);
+      vm.setSupportingDocumentsOpen('expense-1', false);
+
+      expect([
+        vm.isSupportingDocumentsOpen('expense-1'),
+        vm.isSupportingDocumentsOpen('expense-2'),
+      ]).toEqual([false, true]);
+    });
   });
 
   const createViewModel = (): ExpenseListWidgetViewModel => {

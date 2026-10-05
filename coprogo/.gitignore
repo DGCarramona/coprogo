@@ -3,6 +3,7 @@ Thumbs.db
 .gradle
 /build/
 build-logic/build/
+pitest-support/build/
 target/
 out/
 .micronaut/

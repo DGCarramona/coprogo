@@ -18,6 +18,7 @@ import tech.justdev.application.expense.EqualSplitExpenseAllocationCommand
 import tech.justdev.application.expense.EqualSplitWithCapsExpenseAllocationCommand
 import tech.justdev.application.expense.ExpenseAllocationCommand
 import tech.justdev.domain.group.valueobject.MemberEmail
+import java.util.UUID
 
 @Serdeable
 data class ProposeExpenseRequest(
@@ -27,6 +28,8 @@ data class ProposeExpenseRequest(
     val totalAmountInCents: Long,
     @field:Valid
     val allocation: ExpenseAllocationRequest,
+    @get:Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    val supportingDocumentUploadIntents: Set<UUID> = emptySet(),
 )
 
 @Serdeable

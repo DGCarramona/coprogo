@@ -1,5 +1,10 @@
 package tech.justdev.domain.expense.entity
 
+import tech.justdev.domain.document.entity.DocumentUploadIntent
+import tech.justdev.domain.document.entity.DocumentUploadIntentStatus
+import tech.justdev.domain.document.entity.ExpenseSupportingDocument
+import tech.justdev.domain.document.entity.ExpenseSupportingDocuments
+import tech.justdev.domain.document.valueobject.DocumentUploadIntentId
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.expense.valueobject.ExpenseParticipation
 import tech.justdev.domain.expense.valueobject.ExpenseParticipationDecision
@@ -28,6 +33,16 @@ private data class CumulativeTierAllocation(
     val amountsByMember: Map<MemberEmail, MoneyAmount>,
 )
 
+data class ExpenseSupportingDocumentReplacement(
+    val expense: Expense,
+    val replacement: ExpenseSupportingDocument,
+)
+
+data class ExpenseSupportingDocumentDeletion(
+    val expense: Expense,
+    val deleted: ExpenseSupportingDocument,
+)
+
 data class Expense(
     val id: ExpenseId,
     val group: GroupId,
@@ -36,6 +51,7 @@ data class Expense(
     val totalAmount: MoneyAmount,
     val createdAt: Instant,
     val participations: Set<ExpenseParticipation>,
+    val supportingDocuments: ExpenseSupportingDocuments = ExpenseSupportingDocuments.empty(),
 ) {
     init {
         require(title.isNotBlank()) { "title must not be blank" }
@@ -105,6 +121,68 @@ data class Expense(
             ?: throw IllegalStateException("accepted expense must expose an approval timestamp")
     }
 
+    fun requireSupportingDocumentChangeBy(member: MemberEmail) {
+        require(member == createdBy) { "only the expense creator can change a supporting document" }
+        require(canChangeSupportingDocumentsBy(member)) {
+            "supporting documents can only be changed while the expense is proposed"
+        }
+    }
+
+    fun canChangeSupportingDocumentsBy(member: MemberEmail): Boolean = member == createdBy && status == ExpenseStatus.PROPOSED
+
+    fun attachSupportingDocuments(consumedUploadIntents: List<DocumentUploadIntent>): Expense {
+        require(supportingDocuments.isEmpty) { "supporting documents can only be attached to an expense without documents" }
+        require(consumedUploadIntents.all { it.status is DocumentUploadIntentStatus.Consumed }) {
+            "expense supporting document requires a consumed upload intent"
+        }
+        require(consumedUploadIntents.all { it.group == group }) {
+            "expense and supporting document must belong to the same group"
+        }
+
+        return copy(
+            supportingDocuments =
+                ExpenseSupportingDocuments.from(
+                    consumedUploadIntents.map(ExpenseSupportingDocument::fromConsumedUploadIntent),
+                ),
+        )
+    }
+
+    fun replaceSupportingDocument(
+        sourceUploadIntent: DocumentUploadIntentId,
+        replacementIntent: DocumentUploadIntent,
+        requestedBy: MemberEmail,
+    ): ExpenseSupportingDocumentReplacement {
+        requireSupportingDocumentChangeBy(requestedBy)
+        require(replacementIntent.group == group) {
+            "expense and supporting document must belong to the same group"
+        }
+
+        return supportingDocuments
+            .replace(sourceUploadIntent, replacementIntent)
+            .let { replacement ->
+                ExpenseSupportingDocumentReplacement(
+                    expense = copy(supportingDocuments = replacement.supportingDocuments),
+                    replacement = replacement.replacement,
+                )
+            }
+    }
+
+    fun deleteSupportingDocument(
+        sourceUploadIntent: DocumentUploadIntentId,
+        requestedBy: MemberEmail,
+        deletedAt: Instant,
+    ): ExpenseSupportingDocumentDeletion {
+        requireSupportingDocumentChangeBy(requestedBy)
+        return supportingDocuments
+            .delete(sourceUploadIntent, requestedBy, deletedAt)
+            .let { deletion ->
+                ExpenseSupportingDocumentDeletion(
+                    expense = copy(supportingDocuments = deletion.supportingDocuments),
+                    deleted = deletion.deleted,
+                )
+            }
+    }
+
     companion object {
         fun proposeEqualSplit(
             id: ExpenseId,
@@ -156,19 +234,9 @@ data class Expense(
             capsByMember: Map<MemberEmail, MoneyAmount>,
         ): Expense {
             require(participants.isNotEmpty()) { "participants must not be empty" }
-            require(capsByMember.keys.all(participants::contains)) { "caps must only target participants" }
-            require(capsByMember.values.all { cap -> cap > MoneyAmount.ZERO }) { "caps must be strictly positive" }
-            require(participants.any { participant -> participant !in capsByMember }) {
-                "at least one participant must be uncapped"
-            }
-
-            val shares =
-                allocateEqualSplitWithCaps(
-                    remainingAmount = totalAmount,
-                    availableParticipants = participants.sortedBy { member -> member.toPrimitive() },
-                    capsByMember = capsByMember,
-                ).map { (member, amount) -> ExpenseShare(member = member, amount = amount) }
-                    .toSet()
+            require(participants.containsAll(capsByMember.keys)) { "caps must only target participants" }
+            require(MoneyAmount.ZERO !in capsByMember.values) { "caps must be strictly positive" }
+            require((participants - capsByMember.keys).isNotEmpty()) { "at least one participant must be uncapped" }
 
             return propose(
                 id = id,
@@ -177,7 +245,12 @@ data class Expense(
                 createdBy = createdBy,
                 totalAmount = totalAmount,
                 createdAt = createdAt,
-                shares = shares,
+                shares =
+                    allocateEqualSplitWithCaps(
+                        remainingAmount = totalAmount,
+                        availableParticipants = participants.sortedBy { member -> member.toPrimitive() },
+                        capsByMember = capsByMember,
+                    ).map { (member, amount) -> ExpenseShare(member = member, amount = amount) }.toSet(),
             )
         }
 
@@ -219,7 +292,12 @@ data class Expense(
             tiers: List<CumulativeExpenseTier>,
         ): Expense {
             require(tiers.isNotEmpty()) { "cumulative tiers must not be empty" }
-            require(tiers.zipWithNext().all { (current, next) -> next.upTo > current.upTo }) {
+            require(
+                tiers
+                    .map { it.upTo.inCents() }
+                    .zipWithNext()
+                    .all { (current, next) -> next > current },
+            ) {
                 "cumulative tier bounds must be strictly increasing"
             }
             require(tiers.last().upTo == totalAmount) { "last cumulative tier bound must equal totalAmount" }
@@ -235,7 +313,7 @@ data class Expense(
                     val sortedParticipants = tier.participants.sortedBy { member -> member.toPrimitive() }
                     val tierAmounts = tierAmount.splitEvenly(sortedParticipants.size)
 
-                    require(tierAmounts.none(MoneyAmount::isZero)) {
+                    require(MoneyAmount.ZERO !in tierAmounts) {
                         "cumulative tier requires at least 1 cent per participant"
                     }
 

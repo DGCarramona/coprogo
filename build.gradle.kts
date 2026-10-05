@@ -65,6 +65,12 @@ registerBackendTask(
     taskDescription = "Run backend tests.",
 )
 registerBackendTask(
+    taskName = "backendMutationTest",
+    includedBuildTaskPath = ":pitest",
+    taskGroup = "verification",
+    taskDescription = "Run mutation tests for the configured backend layers and infrastructure adapters.",
+)
+registerBackendTask(
     taskName = "backendCheck",
     includedBuildTaskPath = ":check",
     taskGroup = "verification",

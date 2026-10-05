@@ -1,6 +1,7 @@
 package tech.justdev.application.group
 
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -62,7 +63,7 @@ class AcceptGroupInvitationUseCaseTest {
                     memberRepository = memberRepository,
                     groupRepository = groupRepository,
                     groupInvitationRepository = invitationRepository,
-                    transactionRunner = DirectTransactionRunner,
+                    transactionRunner = YieldingTransactionRunner,
                 )
 
             useCase(
@@ -151,5 +152,12 @@ class AcceptGroupInvitationUseCaseTest {
             "member carol@example.com cannot accept group invitation ${groupInvitationUuid("invitation-1")}",
             error.message,
         )
+    }
+
+    private object YieldingTransactionRunner : tech.justdev.application.shared.TransactionRunner {
+        override suspend fun <T> transaction(block: suspend () -> T): T {
+            yield()
+            return block()
+        }
     }
 }

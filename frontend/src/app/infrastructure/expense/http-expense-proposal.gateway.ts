@@ -34,6 +34,7 @@ export class HttpExpenseProposalGateway extends ExpenseProposalPort {
 const toRequest = (command: ExpenseProposalCommand): ProposeExpenseRequestDto => ({
   title: command.title,
   totalAmountInCents: command.totalAmountInCents,
+  supportingDocumentUploadIntents: [...command.supportingDocumentUploadIntents],
   allocation: match(command.allocation)
     .returnType<ExpenseAllocationRequestDto>()
     .with({ type: 'EQUAL' }, (equal) => ({

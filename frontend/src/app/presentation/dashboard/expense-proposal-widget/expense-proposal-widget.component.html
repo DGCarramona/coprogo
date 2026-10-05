@@ -187,13 +187,73 @@
             }
           </fieldset>
         </section>
-      } @else {
-        <p role="status">Les champs de ce mode de répartition ne sont pas encore disponibles.</p>
+      } @else if (viewModel.proposalForm().value().allocationMode === 'CUSTOM') {
+        <fieldset>
+          <legend>Montants personnalisés</legend>
+          <p id="custom-allocation-help">
+            Saisissez des montants positifs. Leur somme doit correspondre exactement au montant
+            total. Le créateur doit inclure sa propre part.
+          </p>
+          @for (member of viewModel.members(); track member) {
+            <p>
+              <label [for]="'custom-amount-' + member">Montant pour {{ member }}</label>
+              <input
+                [id]="'custom-amount-' + member"
+                type="text"
+                inputmode="decimal"
+                [attr.aria-label]="'Montant pour ' + member"
+                aria-describedby="custom-allocation-help"
+                [value]="
+                  viewModel.proposalForm().value().custom.amountsInEurosByMember[member] ?? ''
+                "
+                (input)="updateCustomAmount(member, $event)"
+              />
+            </p>
+          }
+        </fieldset>
       }
+      <section>
+        <h3>Justificatifs</h3>
+        <p>Un justificatif est facultatif.</p>
+        <app-supporting-document-upload-widget
+          [groupId]="groupId"
+          (confirmed)="addSupportingDocument($event)"
+          (uploadPendingChange)="viewModel.setSupportingDocumentUploadPending($event)"
+        />
+        @if (viewModel.supportingDocuments().length > 0) {
+          <ul>
+            @for (document of viewModel.supportingDocuments(); track document.intentId) {
+              <li>
+                {{ document.fileName }}
+                <button
+                  matButton="text"
+                  type="button"
+                  [attr.aria-label]="'Retirer ' + document.fileName"
+                  (click)="viewModel.removeSupportingDocument(document.intentId)"
+                >
+                  Retirer
+                </button>
+              </li>
+            }
+          </ul>
+          <button
+            matButton="text"
+            type="button"
+            aria-label="Ne pas joindre de justificatif"
+            (click)="viewModel.clearSupportingDocuments()"
+          >
+            Ne pas joindre de justificatif
+          </button>
+        }
+      </section>
       <button
         matButton="filled"
         type="submit"
-        [disabled]="!viewModel.proposalForm().valid() || viewModel.isProposing()"
+        [disabled]="
+          !viewModel.proposalForm().valid() ||
+          viewModel.isProposing() ||
+          viewModel.isSupportingDocumentUploadPending()
+        "
       >
         Proposer la dépense
       </button>

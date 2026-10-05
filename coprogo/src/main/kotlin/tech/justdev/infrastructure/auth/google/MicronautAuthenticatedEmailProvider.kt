@@ -18,7 +18,7 @@ class MicronautAuthenticatedEmailProvider(
                 IllegalStateException("missing authenticated user in request context")
             }
 
-        if (!authentication.attributes[GoogleIdTokenClaims.EMAIL_VERIFIED].toBooleanClaim()) {
+        if (!authentication.attributes[GoogleIdTokenClaims.EMAIL_VERIFIED].toGoogleBooleanClaim()) {
             throw unauthorized("authenticated user email is not verified")
         }
 
@@ -40,12 +40,5 @@ private fun Authentication.toAuthenticatedEmail(): MemberEmail {
         throw unauthorized("authenticated user email claim is invalid")
     }
 }
-
-private fun Any?.toBooleanClaim(): Boolean =
-    when (this) {
-        is Boolean -> this
-        is String -> toBooleanStrictOrNull() ?: false
-        else -> false
-    }
 
 private fun unauthorized(message: String): HttpStatusException = HttpStatusException(HttpStatus.UNAUTHORIZED, message)

@@ -1,0 +1,51 @@
+[
+  {
+    "className": "tech.justdev.application.expense.ProposeExpenseUseCaseImpl",
+    "method": "invoke",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "instructionIndex": 463,
+    "justification": "minByOrNull compares two unique MemberEmail values, so equality is impossible."
+  },
+  {
+    "className": "tech.justdev.application.group.InviteMemberToGroupUseCase",
+    "method": "invoke",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "instructionIndex": 195,
+    "justification": "Kotlin's firstOrNull collection fast path is equivalent to its iterator path."
+  },
+  {
+    "className": "tech.justdev.infrastructure.auth.google.GoogleIdTokenClaimsValidator",
+    "method": "validate",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "instructionIndex": 162,
+    "justification": "Kotlin inline collection construction branches do not alter the validated claims."
+  },
+  {
+    "className": "tech.justdev.infrastructure.auth.google.GoogleIdTokenClaimsValidatorKt",
+    "method": "extractAudiences",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "instructionIndex": 372,
+    "justification": "Kotlin inline set construction branches do not alter the extracted audiences."
+  },
+  {
+    "className": "tech.justdev.infrastructure.auth.google.MicronautAuthenticatedEmailProviderKt",
+    "method": "toAuthenticatedEmail",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "instructionIndex": 59,
+    "justification": "The claims validator rejects blank emails before this authenticated adapter is called."
+  },
+  {
+    "className": "tech.justdev.domain.expense.entity.Expense$Companion",
+    "method": "allocateEqualSplitWithCaps-ud-FMjM",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+    "instructionIndex": 114,
+    "justification": "Equality with a cap allocates the same amount whether or not the share is treated as capped."
+  },
+  {
+    "className": "tech.justdev.domain.expense.entity.Expense$Companion",
+    "method": "proposeCumulativeTiers-EYqWlrs",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
+    "instructionIndex": 142,
+    "justification": "Kotlin's inline all collection fast path is equivalent to its iterator path."
+  }
+]

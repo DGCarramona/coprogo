@@ -58,6 +58,61 @@ class OwnershipShareTimelineTest {
     }
 
     @Test
+    fun `sharesAt should apply a change on its effective date`() {
+        val effectiveDate = LocalDate.parse("2026-03-01")
+        val effectiveShares = setOf(share("alice", 5000), share("bob", 5000))
+        val timeline =
+            OwnershipShareTimeline(
+                group = groupId("effective-date-group"),
+                changes = listOf(change("effective-date-change", effectiveDate, effectiveShares)),
+            )
+
+        assertEquals(effectiveShares, timeline.sharesAt(effectiveDate))
+    }
+
+    @Test
+    fun `timeline should reject duplicate change ids`() {
+        val duplicateId = "duplicate-change"
+
+        assertThrows(IllegalArgumentException::class.java) {
+            OwnershipShareTimeline(
+                group = groupId("duplicate-change-group"),
+                changes =
+                    listOf(
+                        change(duplicateId, LocalDate.parse("2026-01-01"), setOf(share("alice", 10000))),
+                        change(duplicateId, LocalDate.parse("2026-02-01"), setOf(share("alice", 10000))),
+                    ),
+            )
+        }
+    }
+
+    @Test
+    fun `ownership share change should reject duplicate members`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            change(
+                changeId = "duplicate-member-change",
+                effectiveDate = LocalDate.parse("2026-01-01"),
+                shares =
+                    setOf(
+                        share("alice", 6000),
+                        share("alice", 4000),
+                    ),
+            )
+        }
+    }
+
+    @Test
+    fun `ownership share change should reject a total other than one hundred percent`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            change(
+                changeId = "invalid-total-change",
+                effectiveDate = LocalDate.parse("2026-01-01"),
+                shares = setOf(share("alice", 6000), share("bob", 3000)),
+            )
+        }
+    }
+
+    @Test
     fun `recordChange should reject another change with the same effective date`() {
         val timeline =
             OwnershipShareTimeline

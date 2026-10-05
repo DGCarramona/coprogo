@@ -23,6 +23,13 @@ import {
   validateCumulativeTiersForm,
 } from './cumulative-tiers-allocation-form';
 import {
+  CustomAllocationFormModel,
+  emptyCustomAllocationForm,
+  setCustomAmount,
+  toCustomAllocation,
+  validateCustomAllocationForm,
+} from './custom-allocation-form';
+import {
   emptyEqualWithCapsForm,
   EqualWithCapsFormModel,
   setEqualWithCapsMaximum,
@@ -31,6 +38,7 @@ import {
   validateEqualWithCapsForm,
 } from './equal-with-caps-allocation-form';
 import { parseAmountInCents, toggleMember } from './expense-proposal-form';
+import type { SupportingDocumentUploadResult } from '../../shared/supporting-document-upload/supporting-document-upload-result';
 
 export interface EqualSplitExpenseProposalInput {
   title: string;
@@ -53,13 +61,19 @@ interface ExpenseProposalFormModel {
   };
   equalWithCaps: EqualWithCapsFormModel;
   cumulativeTiers: CumulativeTiersFormModel;
+  custom: CustomAllocationFormModel;
 }
 
 @Injectable()
 export class ExpenseProposalWidgetViewModel {
   private readonly groupIdState = signal<string | null>(null);
   private readonly proposalModel = signal<ExpenseProposalFormModel>(emptyProposalFormModel());
+  private readonly supportingDocumentsState = signal<readonly SupportingDocumentUploadResult[]>([]);
+  private readonly supportingDocumentUploadPendingState = signal(false);
   readonly proposalForm: FieldTree<ExpenseProposalFormModel>;
+  readonly supportingDocuments = this.supportingDocumentsState.asReadonly();
+  readonly isSupportingDocumentUploadPending =
+    this.supportingDocumentUploadPendingState.asReadonly();
 
   private readonly membersQuery;
   readonly members = computed<readonly string[]>(() => this.membersQuery.data() ?? []);
@@ -136,14 +150,6 @@ export class ExpenseProposalWidgetViewModel {
               }
             : undefined,
         );
-        validate(proposal.allocationMode, ({ value }) =>
-          value() === 'CUSTOM'
-            ? {
-                kind: 'mode-unavailable',
-                message: 'Les champs de ce mode de repartition ne sont pas encore disponibles.',
-              }
-            : undefined,
-        );
         validate(proposal.equal.participants, ({ value, valueOf }) =>
           valueOf(proposal.allocationMode) === 'EQUAL' && value().length === 0
             ? { kind: 'participants', message: 'Choisissez au moins un participant.' }
@@ -162,11 +168,26 @@ export class ExpenseProposalWidgetViewModel {
             ? undefined
             : validateCumulativeTiersForm(value(), totalAmountInCents);
         });
+        validate(proposal.custom, ({ value, valueOf }) => {
+          if (valueOf(proposal.allocationMode) !== 'CUSTOM') return undefined;
+
+          const totalAmountInCents = parseAmountInCents(valueOf(proposal.amountInEuros));
+          return totalAmountInCents === null
+            ? undefined
+            : validateCustomAllocationForm(value(), totalAmountInCents);
+        });
       },
       {
         injector,
         submission: {
           action: async (form): Promise<TreeValidationResult> => {
+            if (this.isSupportingDocumentUploadPending()) {
+              return {
+                kind: 'supporting-document-upload',
+                message: 'Attendez la fin de l envoi du justificatif avant de proposer la depense.',
+              };
+            }
+
             const proposal = form().value();
             const totalAmountInCents = parseAmountInCents(proposal.amountInEuros);
 
@@ -174,13 +195,6 @@ export class ExpenseProposalWidgetViewModel {
               return {
                 kind: 'amount',
                 message: 'Indiquez un montant positif avec deux decimales au plus.',
-              };
-            }
-
-            if (proposal.allocationMode === 'CUSTOM') {
-              return {
-                kind: 'mode-unavailable',
-                message: 'Les champs de ce mode de repartition ne sont pas encore disponibles.',
               };
             }
 
@@ -197,6 +211,11 @@ export class ExpenseProposalWidgetViewModel {
               return cumulativeTiersError;
             }
 
+            if (proposal.allocationMode === 'CUSTOM') {
+              const customError = validateCustomAllocationForm(proposal.custom, totalAmountInCents);
+              if (customError) return customError;
+            }
+
             const allocation: ExpenseAllocation = (() => {
               switch (proposal.allocationMode) {
                 case 'EQUAL':
@@ -208,6 +227,8 @@ export class ExpenseProposalWidgetViewModel {
                   return toEqualWithCapsAllocation(proposal.equalWithCaps);
                 case 'CUMULATIVE_TIERS':
                   return toCumulativeTiersAllocation(proposal.cumulativeTiers, totalAmountInCents);
+                case 'CUSTOM':
+                  return toCustomAllocation(proposal.custom);
               }
             })();
 
@@ -236,6 +257,8 @@ export class ExpenseProposalWidgetViewModel {
   initialize(groupId: string): void {
     this.groupIdState.set(groupId);
     this.proposalForm().reset(emptyProposalFormModel());
+    this.supportingDocumentsState.set([]);
+    this.supportingDocumentUploadPendingState.set(false);
   }
 
   retry(): void {
@@ -266,6 +289,9 @@ export class ExpenseProposalWidgetViewModel {
       title: input.title,
       totalAmountInCents: input.totalAmountInCents,
       allocation: input.allocation,
+      supportingDocumentUploadIntents: new Set(
+        this.supportingDocumentsState().map((document) => document.intentId),
+      ),
     };
   }
 
@@ -340,6 +366,31 @@ export class ExpenseProposalWidgetViewModel {
       cumulativeTiers: toggleCumulativeFinalParticipant(proposal.cumulativeTiers, member),
     }));
   }
+
+  setCustomAmount(member: string, amountInEuros: string): void {
+    this.proposalModel.update((proposal) => {
+      const custom = setCustomAmount(proposal.custom, member, amountInEuros);
+      return custom === proposal.custom ? proposal : { ...proposal, custom };
+    });
+  }
+
+  addSupportingDocument(document: SupportingDocumentUploadResult): void {
+    this.supportingDocumentsState.update((documents) => [...documents, document]);
+  }
+
+  removeSupportingDocument(intentId: string): void {
+    this.supportingDocumentsState.update((documents) =>
+      documents.filter((document) => document.intentId !== intentId),
+    );
+  }
+
+  clearSupportingDocuments(): void {
+    this.supportingDocumentsState.set([]);
+  }
+
+  setSupportingDocumentUploadPending(isPending: boolean): void {
+    this.supportingDocumentUploadPendingState.set(isPending);
+  }
 }
 
 const emptyProposalFormModel = (): ExpenseProposalFormModel => ({
@@ -351,4 +402,5 @@ const emptyProposalFormModel = (): ExpenseProposalFormModel => ({
   },
   equalWithCaps: emptyEqualWithCapsForm(),
   cumulativeTiers: emptyCumulativeTiersForm(),
+  custom: emptyCustomAllocationForm(),
 });

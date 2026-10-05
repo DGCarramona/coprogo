@@ -3,30 +3,30 @@ package tech.justdev.infrastructure.persistence.ledger
 import io.r2dbc.spi.ConnectionFactory
 import jakarta.inject.Named
 import jakarta.inject.Singleton
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import org.jooq.Record
-import org.jooq.ResultQuery
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.ledger.effect.MemberBalanceTransfer
 import tech.justdev.domain.ledger.effect.MemberCashPoolShareDelta
 import tech.justdev.domain.ledger.event.AcceptedExpenseLedgerEvent
+import tech.justdev.domain.ledger.event.AcceptedReimbursementLedgerEvent
 import tech.justdev.domain.ledger.event.CashPoolIncomeLedgerEvent
 import tech.justdev.domain.ledger.event.CashPoolWithdrawalLedgerEvent
 import tech.justdev.domain.ledger.event.LedgerEvent
 import tech.justdev.domain.ledger.repository.LedgerEventRepository
 import tech.justdev.domain.ledger.valueobject.LedgerEventId
 import tech.justdev.domain.ledger.valueobject.NetBalanceAmount
+import tech.justdev.domain.reimbursement.valueobject.ReimbursementId
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.domain.shared.valueobject.GroupId
 import tech.justdev.infrastructure.persistence.jooq.Tables.LEDGER_ACCEPTED_EXPENSE_EVENTS
+import tech.justdev.infrastructure.persistence.jooq.Tables.LEDGER_ACCEPTED_REIMBURSEMENT_EVENTS
 import tech.justdev.infrastructure.persistence.jooq.Tables.LEDGER_CASH_POOL_INCOME_EVENTS
 import tech.justdev.infrastructure.persistence.jooq.Tables.LEDGER_CASH_POOL_WITHDRAWAL_EVENTS
 import tech.justdev.infrastructure.persistence.jooq.Tables.LEDGER_EVENTS
 import tech.justdev.infrastructure.persistence.jooq.Tables.LEDGER_MEMBER_BALANCE_TRANSFERS
 import tech.justdev.infrastructure.persistence.jooq.Tables.LEDGER_MEMBER_CASH_POOL_SHARE_DELTAS
+import tech.justdev.infrastructure.persistence.jooq.awaitList
 import tech.justdev.infrastructure.persistence.jooq.dsl
 import tech.justdev.infrastructure.persistence.jooq.transaction
 import java.time.OffsetDateTime
@@ -82,6 +82,14 @@ private suspend fun org.jooq.DSLContext.persistDetail(event: LedgerEvent) {
                     LEDGER_ACCEPTED_EXPENSE_EVENTS.EXPENSE,
                     LEDGER_ACCEPTED_EXPENSE_EVENTS.PAID_BY,
                 ).values(event.id.toPrimitive(), event.expense.toPrimitive(), event.paidBy.toPrimitive())
+                .awaitFirstOrNull()
+
+        is AcceptedReimbursementLedgerEvent ->
+            insertInto(LEDGER_ACCEPTED_REIMBURSEMENT_EVENTS)
+                .columns(
+                    LEDGER_ACCEPTED_REIMBURSEMENT_EVENTS.EVENT,
+                    LEDGER_ACCEPTED_REIMBURSEMENT_EVENTS.REIMBURSEMENT,
+                ).values(event.id.toPrimitive(), event.reimbursement.toPrimitive())
                 .awaitFirstOrNull()
 
         is CashPoolIncomeLedgerEvent ->
@@ -148,6 +156,7 @@ private suspend fun org.jooq.DSLContext.findRowsByGroup(group: UUID): List<Ledge
         LEDGER_EVENTS.OCCURRED_AT,
         LEDGER_ACCEPTED_EXPENSE_EVENTS.EXPENSE,
         LEDGER_ACCEPTED_EXPENSE_EVENTS.PAID_BY,
+        LEDGER_ACCEPTED_REIMBURSEMENT_EVENTS.REIMBURSEMENT,
         LEDGER_CASH_POOL_INCOME_EVENTS.AMOUNT_IN_CENTS,
         LEDGER_CASH_POOL_WITHDRAWAL_EVENTS.WITHDRAWN_BY,
         LEDGER_CASH_POOL_WITHDRAWAL_EVENTS.WITHDRAWN_AMOUNT_IN_CENTS,
@@ -155,6 +164,8 @@ private suspend fun org.jooq.DSLContext.findRowsByGroup(group: UUID): List<Ledge
     ).from(LEDGER_EVENTS)
         .leftJoin(LEDGER_ACCEPTED_EXPENSE_EVENTS)
         .on(LEDGER_ACCEPTED_EXPENSE_EVENTS.EVENT.eq(LEDGER_EVENTS.ID))
+        .leftJoin(LEDGER_ACCEPTED_REIMBURSEMENT_EVENTS)
+        .on(LEDGER_ACCEPTED_REIMBURSEMENT_EVENTS.EVENT.eq(LEDGER_EVENTS.ID))
         .leftJoin(LEDGER_CASH_POOL_INCOME_EVENTS)
         .on(LEDGER_CASH_POOL_INCOME_EVENTS.EVENT.eq(LEDGER_EVENTS.ID))
         .leftJoin(LEDGER_CASH_POOL_WITHDRAWAL_EVENTS)
@@ -170,6 +181,7 @@ private suspend fun org.jooq.DSLContext.findRowsByGroup(group: UUID): List<Ledge
                 occurredAt = row.get(LEDGER_EVENTS.OCCURRED_AT),
                 expense = row.get(LEDGER_ACCEPTED_EXPENSE_EVENTS.EXPENSE),
                 paidBy = row.get(LEDGER_ACCEPTED_EXPENSE_EVENTS.PAID_BY),
+                reimbursement = row.get(LEDGER_ACCEPTED_REIMBURSEMENT_EVENTS.REIMBURSEMENT),
                 incomeAmountInCents = row.get(LEDGER_CASH_POOL_INCOME_EVENTS.AMOUNT_IN_CENTS),
                 withdrawnBy = row.get(LEDGER_CASH_POOL_WITHDRAWAL_EVENTS.WITHDRAWN_BY),
                 withdrawnAmountInCents = row.get(LEDGER_CASH_POOL_WITHDRAWAL_EVENTS.WITHDRAWN_AMOUNT_IN_CENTS),
@@ -227,6 +239,7 @@ private suspend fun org.jooq.DSLContext.findCashPoolShareDeltasByGroup(group: UU
 private fun LedgerEvent.toJooqType(): JooqLedgerEventType =
     when (this) {
         is AcceptedExpenseLedgerEvent -> JooqLedgerEventType.ACCEPTED_EXPENSE
+        is AcceptedReimbursementLedgerEvent -> JooqLedgerEventType.ACCEPTED_REIMBURSEMENT
         is CashPoolIncomeLedgerEvent -> JooqLedgerEventType.CASH_POOL_INCOME
         is CashPoolWithdrawalLedgerEvent -> JooqLedgerEventType.CASH_POOL_WITHDRAWAL
     }
@@ -234,6 +247,7 @@ private fun LedgerEvent.toJooqType(): JooqLedgerEventType =
 private fun LedgerEvent.memberBalanceTransfers(): Set<MemberBalanceTransfer> =
     when (this) {
         is AcceptedExpenseLedgerEvent -> transfers
+        is AcceptedReimbursementLedgerEvent -> setOf(balanceTransfer)
         is CashPoolWithdrawalLedgerEvent -> balanceTransfers
         is CashPoolIncomeLedgerEvent -> emptySet()
     }
@@ -241,6 +255,7 @@ private fun LedgerEvent.memberBalanceTransfers(): Set<MemberBalanceTransfer> =
 private fun LedgerEvent.memberCashPoolShareDeltas(): Set<MemberCashPoolShareDelta> =
     when (this) {
         is AcceptedExpenseLedgerEvent -> emptySet()
+        is AcceptedReimbursementLedgerEvent -> emptySet()
         is CashPoolIncomeLedgerEvent -> allocations
         is CashPoolWithdrawalLedgerEvent ->
             if (ownRevenueShareConsumed.isZero()) {
@@ -264,6 +279,24 @@ private fun LedgerEventRow.toDomain(
                 occurredAt = occurredAt.toInstant(),
                 transfers = transfers.map { transfer -> transfer.toDomain() }.toSet(),
             )
+
+        JooqLedgerEventType.ACCEPTED_REIMBURSEMENT -> {
+            require(transfers.size == 1) {
+                "accepted reimbursement ledger event requires exactly one balance transfer"
+            }
+            AcceptedReimbursementLedgerEvent(
+                id = LedgerEventId(id),
+                group = GroupId(group),
+                reimbursement =
+                    ReimbursementId(
+                        requireNotNull(reimbursement) {
+                            "accepted reimbursement ledger event requires reimbursement"
+                        },
+                    ),
+                occurredAt = occurredAt.toInstant(),
+                balanceTransfer = transfers.single().toDomain(),
+            )
+        }
 
         JooqLedgerEventType.CASH_POOL_INCOME ->
             CashPoolIncomeLedgerEvent(
@@ -307,8 +340,6 @@ private fun LedgerCashPoolShareDeltaRow.toDomain(): MemberCashPoolShareDelta =
         amount = NetBalanceAmount.ofCents(amountInCents),
     )
 
-private suspend fun <R : Record> ResultQuery<R>.awaitList(): List<R> = asFlow().toList()
-
 private data class LedgerEventRow(
     val id: UUID,
     val group: UUID,
@@ -316,6 +347,7 @@ private data class LedgerEventRow(
     val occurredAt: OffsetDateTime,
     val expense: UUID?,
     val paidBy: String?,
+    val reimbursement: UUID?,
     val incomeAmountInCents: Long?,
     val withdrawnBy: String?,
     val withdrawnAmountInCents: Long?,

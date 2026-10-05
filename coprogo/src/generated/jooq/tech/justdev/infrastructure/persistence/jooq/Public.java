@@ -13,12 +13,15 @@ import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SchemaImpl;
 
+import tech.justdev.infrastructure.persistence.jooq.tables.DocumentUploadIntents;
 import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseParticipations;
+import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseSupportingDocuments;
 import tech.justdev.infrastructure.persistence.jooq.tables.Expenses;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupInvitations;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupMemberships;
 import tech.justdev.infrastructure.persistence.jooq.tables.Groups;
 import tech.justdev.infrastructure.persistence.jooq.tables.LedgerAcceptedExpenseEvents;
+import tech.justdev.infrastructure.persistence.jooq.tables.LedgerAcceptedReimbursementEvents;
 import tech.justdev.infrastructure.persistence.jooq.tables.LedgerCashPoolIncomeEvents;
 import tech.justdev.infrastructure.persistence.jooq.tables.LedgerCashPoolWithdrawalEvents;
 import tech.justdev.infrastructure.persistence.jooq.tables.LedgerEvents;
@@ -27,6 +30,10 @@ import tech.justdev.infrastructure.persistence.jooq.tables.LedgerMemberCashPoolS
 import tech.justdev.infrastructure.persistence.jooq.tables.Members;
 import tech.justdev.infrastructure.persistence.jooq.tables.OwnershipShareAllocations;
 import tech.justdev.infrastructure.persistence.jooq.tables.OwnershipShareChanges;
+import tech.justdev.infrastructure.persistence.jooq.tables.ReimbursementReviewDecisions;
+import tech.justdev.infrastructure.persistence.jooq.tables.ReimbursementSupportingDocuments;
+import tech.justdev.infrastructure.persistence.jooq.tables.Reimbursements;
+import tech.justdev.infrastructure.persistence.jooq.tables.SupportingDocumentAttachments;
 
 
 /**
@@ -43,9 +50,19 @@ public class Public extends SchemaImpl {
     public static final Public PUBLIC = new Public();
 
     /**
+     * The table <code>public.document_upload_intents</code>.
+     */
+    public final DocumentUploadIntents DOCUMENT_UPLOAD_INTENTS = DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS;
+
+    /**
      * The table <code>public.expense_participations</code>.
      */
     public final ExpenseParticipations EXPENSE_PARTICIPATIONS = ExpenseParticipations.EXPENSE_PARTICIPATIONS;
+
+    /**
+     * The table <code>public.expense_supporting_documents</code>.
+     */
+    public final ExpenseSupportingDocuments EXPENSE_SUPPORTING_DOCUMENTS = ExpenseSupportingDocuments.EXPENSE_SUPPORTING_DOCUMENTS;
 
     /**
      * The table <code>public.expenses</code>.
@@ -71,6 +88,11 @@ public class Public extends SchemaImpl {
      * The table <code>public.ledger_accepted_expense_events</code>.
      */
     public final LedgerAcceptedExpenseEvents LEDGER_ACCEPTED_EXPENSE_EVENTS = LedgerAcceptedExpenseEvents.LEDGER_ACCEPTED_EXPENSE_EVENTS;
+
+    /**
+     * The table <code>public.ledger_accepted_reimbursement_events</code>.
+     */
+    public final LedgerAcceptedReimbursementEvents LEDGER_ACCEPTED_REIMBURSEMENT_EVENTS = LedgerAcceptedReimbursementEvents.LEDGER_ACCEPTED_REIMBURSEMENT_EVENTS;
 
     /**
      * The table <code>public.ledger_cash_pool_income_events</code>.
@@ -113,6 +135,26 @@ public class Public extends SchemaImpl {
     public final OwnershipShareChanges OWNERSHIP_SHARE_CHANGES = OwnershipShareChanges.OWNERSHIP_SHARE_CHANGES;
 
     /**
+     * The table <code>public.reimbursement_review_decisions</code>.
+     */
+    public final ReimbursementReviewDecisions REIMBURSEMENT_REVIEW_DECISIONS = ReimbursementReviewDecisions.REIMBURSEMENT_REVIEW_DECISIONS;
+
+    /**
+     * The table <code>public.reimbursement_supporting_documents</code>.
+     */
+    public final ReimbursementSupportingDocuments REIMBURSEMENT_SUPPORTING_DOCUMENTS = ReimbursementSupportingDocuments.REIMBURSEMENT_SUPPORTING_DOCUMENTS;
+
+    /**
+     * The table <code>public.reimbursements</code>.
+     */
+    public final Reimbursements REIMBURSEMENTS = Reimbursements.REIMBURSEMENTS;
+
+    /**
+     * The table <code>public.supporting_document_attachments</code>.
+     */
+    public final SupportingDocumentAttachments SUPPORTING_DOCUMENT_ATTACHMENTS = SupportingDocumentAttachments.SUPPORTING_DOCUMENT_ATTACHMENTS;
+
+    /**
      * No further instances allowed
      */
     private Public() {
@@ -139,12 +181,15 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
+            DocumentUploadIntents.DOCUMENT_UPLOAD_INTENTS,
             ExpenseParticipations.EXPENSE_PARTICIPATIONS,
+            ExpenseSupportingDocuments.EXPENSE_SUPPORTING_DOCUMENTS,
             Expenses.EXPENSES,
             GroupInvitations.GROUP_INVITATIONS,
             GroupMemberships.GROUP_MEMBERSHIPS,
             Groups.GROUPS,
             LedgerAcceptedExpenseEvents.LEDGER_ACCEPTED_EXPENSE_EVENTS,
+            LedgerAcceptedReimbursementEvents.LEDGER_ACCEPTED_REIMBURSEMENT_EVENTS,
             LedgerCashPoolIncomeEvents.LEDGER_CASH_POOL_INCOME_EVENTS,
             LedgerCashPoolWithdrawalEvents.LEDGER_CASH_POOL_WITHDRAWAL_EVENTS,
             LedgerEvents.LEDGER_EVENTS,
@@ -152,7 +197,11 @@ public class Public extends SchemaImpl {
             LedgerMemberCashPoolShareDeltas.LEDGER_MEMBER_CASH_POOL_SHARE_DELTAS,
             Members.MEMBERS,
             OwnershipShareAllocations.OWNERSHIP_SHARE_ALLOCATIONS,
-            OwnershipShareChanges.OWNERSHIP_SHARE_CHANGES
+            OwnershipShareChanges.OWNERSHIP_SHARE_CHANGES,
+            ReimbursementReviewDecisions.REIMBURSEMENT_REVIEW_DECISIONS,
+            ReimbursementSupportingDocuments.REIMBURSEMENT_SUPPORTING_DOCUMENTS,
+            Reimbursements.REIMBURSEMENTS,
+            SupportingDocumentAttachments.SUPPORTING_DOCUMENT_ATTACHMENTS
         );
     }
 }

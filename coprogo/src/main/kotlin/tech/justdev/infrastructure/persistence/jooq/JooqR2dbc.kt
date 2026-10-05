@@ -4,10 +4,14 @@ import io.r2dbc.spi.Connection
 import io.r2dbc.spi.ConnectionFactory
 import jakarta.inject.Named
 import jakarta.inject.Singleton
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.withContext
 import org.jooq.DSLContext
+import org.jooq.Record
+import org.jooq.ResultQuery
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import tech.justdev.application.shared.TransactionRunner
@@ -27,6 +31,8 @@ suspend fun ConnectionFactory.dsl(): DSLContext =
     coroutineContext[JooqTransactionContext]
         ?.let { context -> DSL.using(context.connection, SQLDialect.POSTGRES) }
         ?: DSL.using(this, SQLDialect.POSTGRES)
+
+suspend fun <R : Record> ResultQuery<R>.awaitList(): List<R> = asFlow().toList()
 
 suspend fun <T> ConnectionFactory.transaction(block: suspend () -> T): T {
     if (coroutineContext[JooqTransactionContext] != null) {

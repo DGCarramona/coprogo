@@ -1,0 +1,71 @@
+<section>
+  <h3>Historique des versions du justificatif</h3>
+
+  @if (versions().length === 0) {
+    <p>Aucun justificatif n’a été ajouté.</p>
+  } @else {
+    <ol aria-label="Versions du justificatif, de la plus ancienne à la plus récente">
+      @for (version of versions(); track version.sourceUploadIntent) {
+        <li>
+          <p>
+            <strong>{{ version.fileName }}</strong>
+          </p>
+          <p>
+            Ajouté par {{ version.uploader }} le
+            <time [attr.datetime]="version.attachedAt.toISOString()">{{
+              version.attachedAt | date: 'd MMM y, HH:mm'
+            }}</time
+            >.
+          </p>
+          <p>
+            <a
+              [href]="version.downloadTarget.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              referrerpolicy="no-referrer"
+            >
+              Consulter ou télécharger {{ version.fileName }}
+            </a>
+          </p>
+
+          @if (version.replacesSourceUploadIntent !== null) {
+            <p>Remplace une version précédente.</p>
+          }
+
+          @if (version.deletion; as deletion) {
+            <p>
+              Supprimé par {{ deletion.deletedBy }} le
+              <time [attr.datetime]="deletion.deletedAt.toISOString()">{{
+                deletion.deletedAt | date: 'd MMM y, HH:mm'
+              }}</time
+              >.
+            </p>
+          }
+
+          @if (canRemove(version)) {
+            <p>
+              <button
+                type="button"
+                [disabled]="viewModel.isDeleting()"
+                [attr.aria-label]="'Retirer le justificatif ' + version.fileName"
+                (click)="remove(version)"
+              >
+                Retirer
+              </button>
+            </p>
+          }
+        </li>
+      }
+    </ol>
+  }
+
+  @if (viewModel.isDeleting()) {
+    <p role="status">Retrait du justificatif en cours…</p>
+  } @else if (viewModel.isDeleted()) {
+    <p role="status">Le justificatif a été retiré. Il reste visible dans l’historique.</p>
+  }
+
+  @if (viewModel.hasDeletionError()) {
+    <p role="alert">{{ viewModel.deletionErrorMessage() }}</p>
+  }
+</section>

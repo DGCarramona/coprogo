@@ -16,6 +16,7 @@ import tech.justdev.application.expense.EqualSplitExpenseAllocationCommand
 import tech.justdev.application.expense.EqualSplitWithCapsExpenseAllocationCommand
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.testsupport.NoDbMicronautTest
+import java.util.UUID
 
 @NoDbMicronautTest
 class ExpenseProposalRequestTest {
@@ -24,6 +25,48 @@ class ExpenseProposalRequestTest {
 
     @Nested
     inner class Deserialization {
+        @Test
+        fun `should deserialize supporting document upload intent ids`() {
+            val firstIntentId = UUID.randomUUID()
+            val secondIntentId = UUID.randomUUID()
+
+            val request =
+                readRequest(
+                    """
+                    {
+                      "title": "Boiler repair",
+                      "totalAmountInCents": 100,
+                      "allocation": {
+                        "type": "EQUAL",
+                        "participants": ["alice@example.com", "bob@example.com"]
+                      },
+                      "supportingDocumentUploadIntents": ["$firstIntentId", "$secondIntentId"]
+                    }
+                    """.trimIndent(),
+                )
+
+            assertEquals(setOf(firstIntentId, secondIntentId), request.supportingDocumentUploadIntents)
+        }
+
+        @Test
+        fun `should default an absent supporting document upload intents field to an empty set`() {
+            val request =
+                readRequest(
+                    """
+                    {
+                      "title": "Boiler repair",
+                      "totalAmountInCents": 100,
+                      "allocation": {
+                        "type": "EQUAL",
+                        "participants": ["alice@example.com", "bob@example.com"]
+                      }
+                    }
+                    """.trimIndent(),
+                )
+
+            assertEquals(emptySet<UUID>(), request.supportingDocumentUploadIntents)
+        }
+
         @Test
         fun `should deserialize equal allocation by type`() {
             val request =

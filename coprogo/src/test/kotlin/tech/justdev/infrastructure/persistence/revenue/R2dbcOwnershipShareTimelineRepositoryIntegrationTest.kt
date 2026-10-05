@@ -20,6 +20,7 @@ import tech.justdev.testsupport.memberEmail
 import tech.justdev.testsupport.ownershipShareChangeId
 import java.time.Instant
 import java.time.LocalDate
+import java.util.UUID
 
 @PostgresMicronautTest
 class R2dbcOwnershipShareTimelineRepositoryIntegrationTest {
@@ -80,15 +81,16 @@ class R2dbcOwnershipShareTimelineRepositoryIntegrationTest {
     }
 
     private suspend fun persistedGroupFixture(seed: String): OwnershipShareTimelineFixture {
-        val owner = memberEmail("ownership-repo-$seed-owner")
-        val coOwner = memberEmail("ownership-repo-$seed-co-owner")
+        val uniqueSeed = "${UUID.randomUUID()}-$seed"
+        val owner = memberEmail("ownership-repo-$uniqueSeed-owner")
+        val coOwner = memberEmail("ownership-repo-$uniqueSeed-co-owner")
         memberRepository.persist(Member(email = owner, createdAt = Instant.parse("2026-04-13T10:00:00Z")))
         memberRepository.persist(Member(email = coOwner, createdAt = Instant.parse("2026-04-13T10:01:00Z")))
 
         val group =
             Group
                 .create(
-                    id = groupId("$seed-ownership-repo-group"),
+                    id = groupId("$uniqueSeed-ownership-repo-group"),
                     createdBy = owner,
                     createdAt = Instant.parse("2026-04-13T10:02:00Z"),
                 ).addMember(
@@ -98,7 +100,7 @@ class R2dbcOwnershipShareTimelineRepositoryIntegrationTest {
         groupRepository.persist(group)
 
         return OwnershipShareTimelineFixture(
-            seed = seed,
+            seed = uniqueSeed,
             owner = owner,
             coOwner = coOwner,
             group = group,

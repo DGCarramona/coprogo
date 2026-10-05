@@ -209,6 +209,12 @@ paths:
               $ref: "#/components/schemas/ProposeExpenseRequest"
         required: true
       responses:
+        "409":
+          description: Supporting document upload intent is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
         "204":
           description: proposeExpense 204 response
       security:
@@ -269,6 +275,154 @@ paths:
       responses:
         "204":
           description: recordParticipationDecision 204 response
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/expenses/{expenseId}/supporting-document-audit-entries:
+    get:
+      tags:
+      - Supporting documents
+      summary: List supporting document audit entries for an expense
+      operationId: listExpenseSupportingDocumentAuditTrail
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: expenseId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: Supporting document audit entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExpenseSupportingDocumentAuditEntryResponse"
+        "404":
+          description: Expense is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/expenses/{expenseId}/supporting-documents:
+    get:
+      tags:
+      - Supporting documents
+      summary: List current and historical supporting documents for an expense
+      operationId: listExpenseSupportingDocuments
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: expenseId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: Supporting documents
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseSupportingDocumentsResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/expenses/{expenseId}/supporting-documents/{sourceUploadIntent}:
+    delete:
+      tags:
+      - Supporting documents
+      summary: Delete a supporting document for an expense
+      operationId: deleteExpenseSupportingDocument
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: expenseId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: sourceUploadIntent
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: Supporting document deleted
+        "404":
+          description: Supporting document is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/expenses/{expenseId}/supporting-documents/{sourceUploadIntent}/replacements:
+    post:
+      tags:
+      - Supporting documents
+      summary: Replace a supporting document for an expense
+      operationId: replaceExpenseSupportingDocument
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: expenseId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: sourceUploadIntent
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReplaceExpenseSupportingDocumentRequest"
+        required: true
+      responses:
+        "204":
+          description: Supporting document replaced
+        "404":
+          description: Supporting document is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+        "409":
+          description: Replacement upload intent is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
       security:
       - bearerAuth: []
   /api/groups/{groupId}/invitations:
@@ -340,6 +494,184 @@ paths:
           description: recordOwnershipShareChange 204 response
       security:
       - bearerAuth: []
+  /api/groups/{groupId}/reimbursements:
+    get:
+      tags:
+      - Reimbursements
+      summary: List reimbursements for a group
+      operationId: listReimbursements
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: Reimbursements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReimbursementResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/reimbursements/direct:
+    post:
+      tags:
+      - Reimbursements
+      summary: Record a direct reimbursement
+      operationId: recordDirectReimbursement
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DirectReimbursementRequest"
+        required: true
+      responses:
+        "204":
+          description: Direct reimbursement recorded
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/reimbursements/documented:
+    post:
+      tags:
+      - Reimbursements
+      summary: Declare a documented reimbursement
+      operationId: declareDocumentedReimbursement
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentedReimbursementRequest"
+        required: true
+      responses:
+        "204":
+          description: Documented reimbursement declared
+        "409":
+          description: Supporting document upload intent is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/reimbursements/{reimbursementId}:
+    get:
+      tags:
+      - Reimbursements
+      summary: Get reimbursement details
+      operationId: getReimbursement
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: reimbursementId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: Reimbursement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReimbursementResponse"
+        "404":
+          description: Reimbursement is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/reimbursements/{reimbursementId}/acceptance:
+    post:
+      tags:
+      - Reimbursements
+      summary: Accept a documented reimbursement
+      operationId: acceptReimbursement
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: reimbursementId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: Reimbursement accepted
+        "404":
+          description: Reimbursement is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/reimbursements/{reimbursementId}/rejection:
+    post:
+      tags:
+      - Reimbursements
+      summary: Reject a documented reimbursement
+      operationId: rejectReimbursement
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: reimbursementId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReimbursementRejectionRequest"
+        required: true
+      responses:
+        "204":
+          description: Reimbursement rejected
+        "404":
+          description: Reimbursement is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+      security:
+      - bearerAuth: []
   /api/groups/{groupId}/revenue-distribution/preview:
     post:
       tags:
@@ -368,6 +700,63 @@ paths:
                 $ref: "#/components/schemas/RevenueDistributionAtDatePreviewResponse"
       security:
       - bearerAuth: []
+  /api/groups/{groupId}/supporting-document-uploads:
+    post:
+      tags:
+      - Supporting document uploads
+      summary: Start a supporting document upload
+      operationId: startUpload
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupportingDocumentUploadRequest"
+        required: true
+      responses:
+        "201":
+          description: Supporting document upload target created
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupportingDocumentUploadResponse"
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/supporting-document-uploads/{uploadIntentId}/confirmation:
+    post:
+      tags:
+      - Supporting document uploads
+      summary: Confirm a supporting document upload
+      operationId: confirmUpload
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: uploadIntentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: confirmUpload 204 response
+      security:
+      - bearerAuth: []
   /api/revenue-distribution/preview:
     post:
       tags:
@@ -391,6 +780,16 @@ paths:
       - bearerAuth: []
 components:
   schemas:
+    ApiErrorResponse:
+      required:
+      - message
+      - path
+      type: object
+      properties:
+        message:
+          type: string
+        path:
+          type: string
     CashPoolBalanceResponse:
       required:
       - availableAmountInCents
@@ -474,6 +873,51 @@ components:
           exclusiveMinimum: true
           type: integer
           format: int64
+    DirectReimbursementRequest:
+      required:
+      - amountInCents
+      - paidBy
+      - reimbursedAt
+      type: object
+      properties:
+        paidBy:
+          minLength: 1
+          type: string
+          format: email
+        amountInCents:
+          minimum: 0
+          exclusiveMinimum: true
+          type: integer
+          format: int64
+        reimbursedAt:
+          type: string
+          format: date-time
+    DocumentedReimbursementRequest:
+      required:
+      - amountInCents
+      - receivedBy
+      - reimbursedAt
+      - supportingDocumentUploadIntents
+      type: object
+      properties:
+        receivedBy:
+          minLength: 1
+          type: string
+          format: email
+        amountInCents:
+          minimum: 0
+          exclusiveMinimum: true
+          type: integer
+          format: int64
+        reimbursedAt:
+          type: string
+          format: date-time
+        supportingDocumentUploadIntents:
+          minItems: 1
+          type: array
+          items:
+            type: string
+            format: uuid
     EqualExpenseAllocationRequest:
       required:
       - participants
@@ -652,6 +1096,90 @@ components:
           nullable: true
           allOf:
           - $ref: "#/components/schemas/ExpenseRefusalResponse"
+    ExpenseSupportingDocumentAuditActionResponse:
+      type: string
+      enum:
+      - ATTACHED
+      - REPLACED
+      - DELETED
+    ExpenseSupportingDocumentAuditEntryResponse:
+      required:
+      - action
+      - documentUploadIntent
+      - fileName
+      - occurredAt
+      - performedBy
+      type: object
+      properties:
+        action:
+          $ref: "#/components/schemas/ExpenseSupportingDocumentAuditActionResponse"
+        occurredAt:
+          type: string
+          format: date-time
+        performedBy:
+          type: string
+        documentUploadIntent:
+          type: string
+          format: uuid
+        replacedDocumentUploadIntent:
+          type: string
+          format: uuid
+          nullable: true
+        fileName:
+          type: string
+    ExpenseSupportingDocumentResponse:
+      required:
+      - attachedAt
+      - canDelete
+      - download
+      - fileName
+      - mediaType
+      - sizeBytes
+      - sourceUploadIntent
+      - uploader
+      type: object
+      properties:
+        sourceUploadIntent:
+          type: string
+          format: uuid
+        fileName:
+          type: string
+        mediaType:
+          type: string
+        sizeBytes:
+          type: integer
+          format: int64
+        uploader:
+          type: string
+        attachedAt:
+          type: string
+          format: date-time
+        replacesSourceUploadIntent:
+          type: string
+          format: uuid
+          nullable: true
+        deletion:
+          nullable: true
+          allOf:
+          - $ref: "#/components/schemas/SupportingDocumentDeletionResponse"
+        canDelete:
+          type: boolean
+        download:
+          $ref: "#/components/schemas/SupportingDocumentDownloadResponse"
+    ExpenseSupportingDocumentsResponse:
+      required:
+      - current
+      - history
+      type: object
+      properties:
+        current:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExpenseSupportingDocumentResponse"
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExpenseSupportingDocumentResponse"
     GroupBalancesResponse:
       required:
       - balances
@@ -860,6 +1388,11 @@ components:
           format: int64
         allocation:
           $ref: "#/components/schemas/ExpenseAllocationRequest"
+        supportingDocumentUploadIntents:
+          type: array
+          items:
+            type: string
+            format: uuid
     RecordCashPoolIncomeRequest:
       required:
       - amountInCents
@@ -892,6 +1425,110 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/OwnershipShareInput"
+    ReimbursementDocumentDownloadResponse:
+      required:
+      - expiresAt
+      - url
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        expiresAt:
+          type: string
+          format: date-time
+    ReimbursementRejectionRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          nullable: true
+    ReimbursementResponse:
+      required:
+      - amountInCents
+      - declaredAt
+      - declaredBy
+      - documents
+      - id
+      - paidBy
+      - receivedBy
+      - reimbursedAt
+      - status
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        paidBy:
+          type: string
+        receivedBy:
+          type: string
+        amountInCents:
+          type: integer
+          format: int64
+        reimbursedAt:
+          type: string
+          format: date-time
+        declaredBy:
+          type: string
+        declaredAt:
+          type: string
+          format: date-time
+        status:
+          $ref: "#/components/schemas/ReimbursementStatusResponse"
+        decidedAt:
+          type: string
+          format: date-time
+          nullable: true
+        rejectionReason:
+          type: string
+          nullable: true
+        documents:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReimbursementSupportingDocumentResponse"
+    ReimbursementStatusResponse:
+      type: string
+      enum:
+      - PENDING_REVIEW
+      - ACCEPTED
+      - REJECTED
+    ReimbursementSupportingDocumentResponse:
+      required:
+      - attachedAt
+      - download
+      - fileName
+      - mediaType
+      - sizeBytes
+      - sourceUploadIntent
+      - uploader
+      type: object
+      properties:
+        sourceUploadIntent:
+          type: string
+          format: uuid
+        fileName:
+          type: string
+        mediaType:
+          type: string
+        sizeBytes:
+          type: integer
+          format: int64
+        uploader:
+          type: string
+        attachedAt:
+          type: string
+          format: date-time
+        download:
+          $ref: "#/components/schemas/ReimbursementDocumentDownloadResponse"
+    ReplaceExpenseSupportingDocumentRequest:
+      required:
+      - replacementUploadIntent
+      type: object
+      properties:
+        replacementUploadIntent:
+          type: string
+          format: uuid
     RevenueDistributionAllocation:
       required:
       - amountInCents
@@ -977,3 +1614,69 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RevenueDistributionAllocation"
+    SupportingDocumentDeletionResponse:
+      required:
+      - deletedAt
+      - deletedBy
+      type: object
+      properties:
+        deletedBy:
+          type: string
+        deletedAt:
+          type: string
+          format: date-time
+    SupportingDocumentDownloadResponse:
+      required:
+      - expiresAt
+      - url
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        expiresAt:
+          type: string
+          format: date-time
+    SupportingDocumentUploadRequest:
+      required:
+      - fileName
+      - mediaType
+      - sha256
+      - sizeBytes
+      type: object
+      properties:
+        fileName:
+          minLength: 1
+          type: string
+        mediaType:
+          minLength: 1
+          type: string
+        sizeBytes:
+          minimum: 0
+          exclusiveMinimum: true
+          type: integer
+          format: int64
+        sha256:
+          minLength: 1
+          type: string
+    SupportingDocumentUploadResponse:
+      required:
+      - expiresAt
+      - intentId
+      - requiredHeaders
+      - uploadUrl
+      type: object
+      properties:
+        intentId:
+          type: string
+          format: uuid
+        uploadUrl:
+          type: string
+          format: uri
+        requiredHeaders:
+          type: object
+          additionalProperties:
+            type: string
+        expiresAt:
+          type: string
+          format: date-time
