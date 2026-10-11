@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.21.2")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.21.7")
 
     compileOnly("org.pitest:pitest-entry:1.25.8")
     compileOnly("org.pitest:pitest:1.25.8")
