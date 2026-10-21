@@ -21,7 +21,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 
 ## Ordre de travail actuel
 
-1. BE-LED-008 : exposer l'endpoint REST de retrait de caisse commune.
+1. BE-LED-009 : construire une requete applicative "qu'est-ce qui a reduit la dette d'un membre".
 
 ## Fondations monorepo et DX
 
@@ -110,7 +110,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 - [x] BE-LED-005 Exposer l'endpoint REST de consultation des parts de caisse commune par membre.
 - [x] BE-LED-006 Implementer le cas d'usage de retrait de la caisse commune avec verification de disponibilite.
 - [x] BE-LED-007 Implementer la compensation automatique quand un retrait depasse la part propre de revenu du membre.
-- [ ] BE-LED-008 Exposer l'endpoint REST de retrait de caisse commune.
+- [x] BE-LED-008 Exposer l'endpoint REST de retrait de caisse commune.
 - [ ] BE-LED-009 Construire une requete applicative "qu'est-ce qui a reduit la dette d'un membre".
 - [ ] BE-LED-010 Exposer l'endpoint REST d'historique unifie des reductions de dette.
 - [ ] BE-LED-011 Ajouter des tests d'integration sur projections, retraits et historique unifie.
