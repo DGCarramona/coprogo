@@ -7,7 +7,10 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { provideRouter, RouterLink } from '@angular/router';
 
 import { ExpenseDetailPageComponent } from './expense-detail-page.component';
-import { ExpenseDetailPageViewModel } from './expense-detail-page.view-model';
+import {
+  type ExpenseDetailViewItem,
+  ExpenseDetailPageViewModel,
+} from './expense-detail-page.view-model';
 
 @Component({ selector: 'app-authenticated-shell', template: '<ng-content />' })
 class StubAuthenticatedShellComponent {
@@ -97,6 +100,35 @@ describe('ExpenseDetailPageComponent', () => {
 
     expect((fixture.nativeElement as HTMLElement).querySelector('textarea')).toBeNull();
   });
+
+  it('clearly explains that a refused expense must be replaced with a new one', () => {
+    const viewModel = new StubExpenseDetailPageViewModel();
+    viewModel.detail.update((detail) => ({
+      ...requiredDetail(detail),
+      statusLabel: 'À reprendre',
+      invalidation: {
+        refusedBy: 'charlie@example.com',
+        refusedAt: '2 juil. 2026',
+        reason: 'Montant incorrect',
+      },
+    }));
+    viewModel.canDecide.set(false);
+    const fixture = createFixture(viewModel);
+
+    fixture.detectChanges();
+
+    const notice = (fixture.nativeElement as HTMLElement).querySelector(
+      '[aria-label="Dépense refusée"]',
+    );
+    expect(notice?.textContent).toContain('Cette dépense n’est pas prise en compte');
+    expect(notice?.textContent).toContain('créez une nouvelle dépense');
+    expect(notice?.textContent).toContain('charlie@example.com');
+    expect(notice?.textContent).toContain('2 juil. 2026');
+    expect(notice?.textContent).toContain('Montant incorrect');
+    expect(notice?.querySelector('a[href="/groups/group-1/dashboard"]')?.textContent).toContain(
+      'Créer une nouvelle dépense',
+    );
+  });
 });
 
 const createFixture = (
@@ -132,6 +164,7 @@ class StubExpenseDetailPageViewModel {
     totalAmount: '60,00 €',
     createdAt: '1 juil. 2026',
     statusLabel: 'En attente de validation',
+    invalidation: null,
     participations: [
       {
         member: 'alice@example.com',
@@ -152,7 +185,7 @@ class StubExpenseDetailPageViewModel {
         tone: 'refused' as const,
       },
     ],
-  } as ReturnType<ExpenseDetailPageViewModel['detail']> | null);
+  } as ExpenseDetailViewItem | null);
   readonly isLoading = signal(false);
   readonly hasLoadError = signal(false);
   readonly isReady = signal(true);
@@ -182,4 +215,9 @@ const requiredButton = (host: HTMLElement, selector: string): HTMLButtonElement 
   const button = host.querySelector<HTMLButtonElement>(selector);
   if (button === null) throw new Error(`Bouton absent: ${selector}`);
   return button;
+};
+
+const requiredDetail = (detail: ExpenseDetailViewItem | null): ExpenseDetailViewItem => {
+  if (detail === null) throw new Error('Détail absent');
+  return detail;
 };

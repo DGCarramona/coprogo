@@ -28,7 +28,14 @@ export interface ExpenseDetailViewItem {
   readonly totalAmount: string;
   readonly createdAt: string;
   readonly statusLabel: string;
+  readonly invalidation: ExpenseInvalidationViewItem | null;
   readonly participations: readonly ExpenseParticipationViewItem[];
+}
+
+export interface ExpenseInvalidationViewItem {
+  readonly refusedBy: string;
+  readonly refusedAt: string;
+  readonly reason: string | null;
 }
 
 @Injectable()
@@ -174,8 +181,22 @@ const toViewItem = (detail: ExpenseDetail): ExpenseDetailViewItem => ({
   totalAmount: formatMoneyFromCents(detail.totalAmountInCents),
   createdAt: formatDate(detail.createdAt),
   statusLabel: expenseStatusLabel(detail.status),
+  invalidation: toInvalidationViewItem(detail),
   participations: detail.participations.map(toParticipationViewItem),
 });
+
+const toInvalidationViewItem = (detail: ExpenseDetail): ExpenseInvalidationViewItem | null => {
+  if (detail.status !== 'INVALIDATED') return null;
+  if (detail.refusal === null) {
+    throw new Error('Une dépense invalidée doit contenir son refus.');
+  }
+
+  return {
+    refusedBy: detail.refusal.member,
+    refusedAt: formatDate(detail.refusal.refusedAt),
+    reason: detail.refusal.reason,
+  };
+};
 
 const toParticipationViewItem = (
   participation: ExpenseParticipation,

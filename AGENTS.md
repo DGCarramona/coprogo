@@ -29,7 +29,7 @@ Its primary use case is family members jointly managing an apartment: they can a
   - **cumulative tiers**: strictly increasing cumulative thresholds; each tier is equally shared by its participants and the final tier covers the total;
   - **custom**: specify an exact amount for every participant.
 - The creator records participations agreed outside the application. Each impacted member alone validates or refuses theirs.
-- One refusal invalidates the expense and requires participations to be re-entered. An expense affects balances only once accepted under that rule.
+- One refusal permanently invalidates the expense. It remains in history and must be replaced by a newly created expense; it is never edited or resubmitted. An expense affects balances only once accepted under that rule.
 - Creating an expense “for others only” is not a separate business case for now.
 
 #### Reimbursements

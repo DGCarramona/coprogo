@@ -47,6 +47,7 @@ describe('HttpExpenseDetailGateway', () => {
         totalAmountInCents: 6000,
         createdAt: new Date('2026-07-01T10:00:00Z'),
         status: 'PROPOSED',
+        refusal: null,
         participations: [
           { member: 'alice@example.com', amountInCents: 2000, status: 'APPROVED' },
           { member: 'bob@example.com', amountInCents: 2000, status: 'PENDING' },
@@ -54,6 +55,31 @@ describe('HttpExpenseDetailGateway', () => {
         ],
       };
       await expect(detail).resolves.toEqual(expected);
+    });
+
+    it('maps the refusal that invalidated the expense', async () => {
+      const detail = gateway.get(GROUP_ID, EXPENSE_ID);
+
+      expectDetailRequest().flush(
+        expenseDetailResponse({
+          status: 'INVALIDATED',
+          canDecideParticipation: false,
+          refusal: {
+            member: 'charlie@example.com',
+            refusedAt: '2026-07-02T08:30:00Z',
+            reason: 'Montant incorrect',
+          },
+        }),
+      );
+
+      await expect(detail).resolves.toMatchObject({
+        status: 'INVALIDATED',
+        refusal: {
+          member: 'charlie@example.com',
+          refusedAt: new Date('2026-07-02T08:30:00Z'),
+          reason: 'Montant incorrect',
+        },
+      });
     });
 
     it.each([
@@ -73,6 +99,14 @@ describe('HttpExpenseDetailGateway', () => {
         name: 'invalid creation date',
         response: expenseDetailResponse({ createdAt: 'date-invalide' }),
         message: 'Date de creation de depense invalide: date-invalide.',
+      },
+      {
+        name: 'invalid refusal date',
+        response: expenseDetailResponse({
+          status: 'INVALIDATED',
+          refusal: { member: 'bob@example.com', refusedAt: 'date-invalide' },
+        }),
+        message: 'Date de refus de depense invalide: date-invalide.',
       },
     ])('rejects an $name', async ({ response, message }) => {
       const detail = gateway.get(GROUP_ID, EXPENSE_ID);

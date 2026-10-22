@@ -38,6 +38,7 @@ describe('ExpenseDetailPageViewModel', () => {
         totalAmount: '60,00\u00a0€',
         createdAt: expect.stringContaining('2026'),
         statusLabel: 'En attente de validation',
+        invalidation: null,
         participations: [
           {
             member: 'alice@example.com',
@@ -59,6 +60,40 @@ describe('ExpenseDetailPageViewModel', () => {
           },
         ],
       });
+    });
+
+    it('presents the refusal behind an expense that must be replaced', async () => {
+      port.result = expenseDetail({
+        status: 'INVALIDATED',
+        canDecideParticipation: false,
+        refusal: {
+          member: 'charlie@example.com',
+          refusedAt: new Date('2026-07-02T08:30:00Z'),
+          reason: 'Montant incorrect',
+        },
+      });
+
+      const viewModel = createViewModel(routeWith('group-1', 'expense-1'));
+      await waitFor(() => viewModel.isReady());
+
+      expect(viewModel.detail()?.invalidation).toEqual({
+        refusedBy: 'charlie@example.com',
+        refusedAt: expect.stringContaining('2026'),
+        reason: 'Montant incorrect',
+      });
+    });
+
+    it('rejects an invalidated expense without its mandatory refusal', async () => {
+      port.result = expenseDetail({
+        status: 'INVALIDATED',
+        canDecideParticipation: false,
+        refusal: null,
+      });
+
+      const viewModel = createViewModel(routeWith('group-1', 'expense-1'));
+      await waitFor(() => viewModel.hasLoadError());
+
+      expect(viewModel.errorMessage()).toBe('Une dépense invalidée doit contenir son refus.');
     });
 
     it('reports missing route identifiers without querying', () => {
@@ -207,6 +242,7 @@ const expenseDetail = (overrides: Partial<ExpenseDetail> = {}): ExpenseDetail =>
   totalAmountInCents: 6000,
   createdAt: new Date('2026-07-01T10:00:00Z'),
   status: 'PROPOSED',
+  refusal: null,
   participations: [
     { member: 'alice@example.com', amountInCents: 2000, status: 'APPROVED' },
     { member: 'bob@example.com', amountInCents: 2000, status: 'PENDING' },

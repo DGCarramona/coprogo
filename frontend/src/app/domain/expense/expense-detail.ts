@@ -8,6 +8,12 @@ export interface ExpenseParticipation {
   readonly status: ExpenseParticipationStatus;
 }
 
+export interface ExpenseRefusal {
+  readonly member: string;
+  readonly refusedAt: Date;
+  readonly reason: string | null;
+}
+
 export interface ExpenseDetail {
   readonly id: string;
   readonly title: string;
@@ -16,5 +22,6 @@ export interface ExpenseDetail {
   readonly totalAmountInCents: number;
   readonly createdAt: Date;
   readonly status: ExpenseStatus;
+  readonly refusal: ExpenseRefusal | null;
   readonly participations: readonly ExpenseParticipation[];
 }

@@ -39,6 +39,32 @@
           </div>
         </dl>
 
+        @if (detail.invalidation; as invalidation) {
+          <section
+            class="expense-detail-page__invalidation"
+            aria-label="Dépense refusée"
+            role="alert"
+          >
+            <h2>Dépense refusée</h2>
+            <p>
+              Cette dépense n’est pas prise en compte et reste dans l’historique. Pour la remplacer,
+              créez une nouvelle dépense.
+            </p>
+            <p>
+              Refusée par <strong>{{ invalidation.refusedBy }}</strong> le
+              {{ invalidation.refusedAt }}
+            </p>
+            @if (invalidation.reason !== null) {
+              <p><strong>Motif :</strong> {{ invalidation.reason }}</p>
+            }
+            @if (viewModel.groupId !== null) {
+              <a mat-flat-button [routerLink]="['/groups', viewModel.groupId, 'dashboard']">
+                Créer une nouvelle dépense
+              </a>
+            }
+          </section>
+        }
+
         <h2>Participations</h2>
         <div class="expense-detail-page__participations">
           @for (participation of detail.participations; track participation.member) {

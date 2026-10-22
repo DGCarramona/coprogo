@@ -6,10 +6,12 @@ import type {
   ExpenseDetail,
   ExpenseParticipation,
   ExpenseParticipationStatus,
+  ExpenseRefusal,
 } from '../../domain/expense/expense-detail';
 import type {
   ExpenseDetailParticipationResponseDto,
   ExpenseDetailResponseDto,
+  ExpenseRefusalResponseDto,
 } from '../api/generated';
 import { ExpensesService } from '../api/generated';
 import { toApiClientError } from '../api/api-client.error';
@@ -41,8 +43,27 @@ const toExpenseDetail = (response: ExpenseDetailResponseDto): ExpenseDetail => (
   totalAmountInCents: response.totalAmountCents,
   createdAt: toExpenseCreationDate(response.createdAt),
   status: toExpenseStatus(response.status),
+  refusal:
+    response.refusal === null || response.refusal === undefined
+      ? null
+      : toRefusal(response.refusal),
   participations: response.participations.map(toExpenseParticipation),
 });
+
+const toRefusal = (response: ExpenseRefusalResponseDto): ExpenseRefusal => ({
+  member: response.member,
+  refusedAt: toExpenseRefusalDate(response.refusedAt),
+  reason: response.reason ?? null,
+});
+
+const toExpenseRefusalDate = (value: string): Date => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    throw new Error(`Date de refus de depense invalide: ${value}.`);
+  }
+
+  return date;
+};
 
 const toExpenseParticipation = (
   response: ExpenseDetailParticipationResponseDto,

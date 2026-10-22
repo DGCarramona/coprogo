@@ -30,6 +30,28 @@
   font-weight: 600;
 }
 
+.expense-detail-page__invalidation {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--mat-sys-error);
+  border-radius: 0.75rem;
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.expense-detail-page__invalidation h2,
+.expense-detail-page__invalidation p {
+  margin: 0;
+}
+
+.expense-detail-page__invalidation p + p {
+  margin-top: 0.75rem;
+}
+
+.expense-detail-page__invalidation a {
+  margin-top: 1rem;
+}
+
 .expense-detail-page__participations {
   display: flex;
   flex-direction: column;
