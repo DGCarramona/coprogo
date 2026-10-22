@@ -9,7 +9,22 @@ import org.pitest.mutationtest.engine.MutationDetails
 import org.pitest.mutationtest.engine.MutationIdentifier
 
 class CoprogoEquivalentKotlinMutationFilterTest {
-    private val filter = CoprogoEquivalentKotlinMutationFilter(EquivalentMutationWhitelist.load())
+    private val filter =
+        CoprogoEquivalentKotlinMutationFilter(
+            EquivalentMutationWhitelist.parse(
+                """
+                [
+                  {
+                    "className": "tech.justdev.application.expense.ProposeExpenseUseCaseImpl",
+                    "method": "invoke",
+                    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
+                    "instructionIndex": 463,
+                    "justification": "Test fixture."
+                  }
+                ]
+                """.trimIndent(),
+            ),
+        )
 
     @Test
     fun `filters only the known equivalent Kotlin mutations`() {
@@ -21,31 +36,6 @@ class CoprogoEquivalentKotlinMutationFilterTest {
                 instructionIndex = 463,
             ),
         )
-        assertTrue(
-            filter.isEquivalent(
-                className = "tech.justdev.application.group.InviteMemberToGroupUseCase",
-                method = "invoke",
-                mutator = "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
-                instructionIndex = 195,
-            ),
-        )
-        assertTrue(
-            filter.isEquivalent(
-                className = "tech.justdev.domain.expense.entity.Expense\$Companion",
-                method = "allocateEqualSplitWithCaps-ud-FMjM",
-                mutator = "org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator",
-                instructionIndex = 114,
-            ),
-        )
-        assertTrue(
-            filter.isEquivalent(
-                className = "tech.justdev.domain.expense.entity.Expense\$Companion",
-                method = "proposeCumulativeTiers-EYqWlrs",
-                mutator = "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
-                instructionIndex = 142,
-            ),
-        )
-
         assertFalse(
             filter.isEquivalent(
                 className = "tech.justdev.application.expense.ProposeExpenseUseCaseImpl",

@@ -19,7 +19,3 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
-
-tasks.processResources {
-    from(rootProject.layout.projectDirectory.file("pitest-equivalent-mutations.json"))
-}

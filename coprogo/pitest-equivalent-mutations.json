@@ -47,5 +47,12 @@
     "mutator": "org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator",
     "instructionIndex": 142,
     "justification": "Kotlin's inline all collection fast path is equivalent to its iterator path."
+  },
+  {
+    "className": "tech.justdev.domain.ledger.projection.MemberDebtReductionProjectionKt",
+    "method": "projectMemberDebtReductions-lwYzoNI",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.MathMutator",
+    "instructionIndex": 63,
+    "justification": "Kotlin runningFold changes only the internal ArrayList initial capacity from estimated size plus one to estimated size minus one."
   }
 ]

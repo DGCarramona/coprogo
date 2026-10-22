@@ -14,6 +14,7 @@ plugins {
 val jooqVersion: String by project
 val kotlinVersion: String by project
 val micronautVersion: String by project
+val equivalentMutationWhitelist = layout.projectDirectory.file("pitest-equivalent-mutations.json")
 
 ksp {
     arg("micronaut.openapi.filename", "openapi")
@@ -210,6 +211,11 @@ pitest {
     coverageThreshold.set(90)
     outputFormats.set(setOf("HTML", "XML"))
     timestampedReports.set(false)
+    features.set(
+        setOf(
+            "+FCOPROGO_KOTLIN_EQUIVALENT(whitelist[${equivalentMutationWhitelist.asFile.absolutePath}])",
+        ),
+    )
     threads.set(
         providers
             .gradleProperty("pitest.threads")
