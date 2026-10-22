@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
+import { provideRouter } from '@angular/router';
 
 import { ExpenseListPort } from '../../../application/expense/expense-list.port';
 import {
@@ -23,6 +24,7 @@ describe('ExpenseListWidgetComponent', () => {
     TestBed.configureTestingModule({
       providers: [
         provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
+        provideRouter([]),
         { provide: ExpenseListPort, useValue: expensesPort },
         { provide: ExpenseSupportingDocumentsPort, useValue: documentsPort },
         { provide: ExpenseSupportingDocumentDeletionPort, useValue: new StubDeletionPort() },
@@ -65,6 +67,18 @@ describe('ExpenseListWidgetComponent', () => {
       expect(documentsPort.requests).toEqual([{ groupId: 'group-1', expenseId: 'expense-1' }]);
       expect(host.textContent).toContain('original.pdf');
       expect(host.textContent).toContain('remplacement.pdf');
+    });
+  });
+
+  describe('expense detail navigation', () => {
+    it('links each expense to its group-scoped detail', async () => {
+      const { fixture, host } = createFixture();
+      fixture.detectChanges();
+      await waitFor(() => host.querySelector('a') !== null);
+
+      expect(host.querySelector('a')?.getAttribute('href')).toBe(
+        '/groups/group-1/expenses/expense-1',
+      );
     });
   });
 });

@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 
 import { ExpenseListPort } from './application/expense/expense-list.port';
+import { ExpenseDetailPort } from './application/expense/expense-detail.port';
 import { ExpenseProposalPort } from './application/expense/expense-proposal.port';
 import { ReimbursementListPort } from './application/reimbursement/reimbursement-list.port';
 import { DirectReimbursementRecordingPort } from './application/reimbursement/direct-reimbursement-recording.port';
@@ -28,6 +29,7 @@ import { RouterNavigationAdapter } from './infrastructure/router/router-navigati
 import { BrowserGoogleIdTokenStore } from './infrastructure/auth/google/browser-google-id-token.store';
 import { BrowserGoogleIdentityAdapter } from './infrastructure/auth/google/browser-google-identity.adapter';
 import { HttpExpenseListGateway } from './infrastructure/expense/http-expense-list.gateway';
+import { HttpExpenseDetailGateway } from './infrastructure/expense/http-expense-detail.gateway';
 import { HttpExpenseProposalGateway } from './infrastructure/expense/http-expense-proposal.gateway';
 import { HttpReimbursementListGateway } from './infrastructure/reimbursement/http-reimbursement-list.gateway';
 import { HttpDirectReimbursementRecordingGateway } from './infrastructure/reimbursement/http-direct-reimbursement-recording.gateway';
@@ -84,6 +86,10 @@ export const appConfig: ApplicationConfig = {
     {
       provide: MemberDebtReductionHistoryPort,
       useExisting: HttpMemberDebtReductionHistoryGateway,
+    },
+    {
+      provide: ExpenseDetailPort,
+      useExisting: HttpExpenseDetailGateway,
     },
     {
       provide: ExpenseListPort,

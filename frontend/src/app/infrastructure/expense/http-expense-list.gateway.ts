@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { catchError, firstValueFrom } from 'rxjs';
 
 import { ExpenseListPort } from '../../application/expense/expense-list.port';
-import type { ExpenseStatus, ExpenseSummary } from '../../domain/expense/expense-summary';
+import type { ExpenseSummary } from '../../domain/expense/expense-summary';
 import { mapArray } from '../../shared/rxjs/map-array';
 import { ExpenseResponseDto, ExpensesService } from '../api/generated';
 import { toApiClientError } from '../api/api-client.error';
+import { toExpenseCreationDate, toExpenseStatus } from './expense-response.mapper';
 
 @Injectable({ providedIn: 'root' })
 export class HttpExpenseListGateway extends ExpenseListPort {
@@ -30,26 +31,6 @@ const toExpenseSummary = (response: ExpenseResponseDto): ExpenseSummary => ({
   title: response.title,
   createdBy: response.createdBy,
   totalAmountInCents: response.totalAmountCents,
-  createdAt: toCreationDate(response.createdAt),
+  createdAt: toExpenseCreationDate(response.createdAt),
   status: toExpenseStatus(response.status),
 });
-
-const toExpenseStatus = (status: string): ExpenseStatus => {
-  switch (status) {
-    case 'PROPOSED':
-    case 'ACCEPTED':
-    case 'INVALIDATED':
-      return status;
-    default:
-      throw new Error(`Statut de depense inconnu: ${status}.`);
-  }
-};
-
-const toCreationDate = (value: string): Date => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    throw new Error(`Date de creation de depense invalide: ${value}.`);
-  }
-
-  return date;
-};

@@ -1,0 +1,72 @@
+.expense-detail-page__card {
+  margin-top: 1.5rem;
+}
+
+.expense-detail-page__card > mat-progress-bar {
+  margin-bottom: 1rem;
+}
+
+.expense-detail-page__summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.expense-detail-page__summary div,
+.expense-detail-page__participation div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.expense-detail-page__summary dt,
+.expense-detail-page__participation span {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.expense-detail-page__summary dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.expense-detail-page__participations {
+  display: flex;
+  flex-direction: column;
+}
+
+.expense-detail-page__participation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 70%, transparent);
+}
+
+.expense-detail-page__participation:last-child {
+  border-bottom: 0;
+}
+
+.expense-detail-page__chip--approved {
+  --mdc-chip-elevated-container-color: var(--mat-sys-primary-container);
+}
+
+.expense-detail-page__chip--pending {
+  --mdc-chip-elevated-container-color: var(--mat-sys-secondary-container);
+}
+
+.expense-detail-page__chip--refused {
+  --mdc-chip-elevated-container-color: var(--mat-sys-error-container);
+}
+
+@media (max-width: 680px) {
+  .expense-detail-page__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .expense-detail-page__participation {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
