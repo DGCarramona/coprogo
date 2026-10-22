@@ -15,6 +15,11 @@ class StubAuthenticatedShellComponent {
   @Input() description = '';
 }
 
+@Component({ selector: 'app-ownership-share-change-widget', template: '{{ groupId }}' })
+class StubOwnershipShareChangeWidgetComponent {
+  @Input({ required: true }) groupId = '';
+}
+
 describe('OwnershipShareTimelinePageComponent', () => {
   it('renders each effective ownership-share change in plain language', () => {
     const fixture = createFixture(new StubOwnershipShareTimelinePageViewModel());
@@ -38,6 +43,15 @@ describe('OwnershipShareTimelinePageComponent', () => {
     expect(
       (fixture.nativeElement as HTMLElement).querySelector('a[href="/groups/group-1/dashboard"]'),
     ).not.toBeNull();
+  });
+
+  it('offers to record a new ownership-share change for the selected group', () => {
+    const fixture = createFixture(new StubOwnershipShareTimelinePageViewModel());
+
+    fixture.detectChanges();
+
+    const widget = fixture.nativeElement.querySelector('app-ownership-share-change-widget');
+    expect(widget?.textContent).toContain('group-1');
   });
 
   it('explains when no ownership-share change has been recorded', () => {
@@ -77,6 +91,7 @@ const createFixture = (
     set: {
       imports: [
         StubAuthenticatedShellComponent,
+        StubOwnershipShareChangeWidgetComponent,
         MatButtonModule,
         MatCardModule,
         MatProgressBarModule,

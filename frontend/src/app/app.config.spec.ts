@@ -12,6 +12,7 @@ import { ReimbursementListPort } from './application/reimbursement/reimbursement
 import { DirectReimbursementRecordingPort } from './application/reimbursement/direct-reimbursement-recording.port';
 import { DocumentedReimbursementDeclarationPort } from './application/reimbursement/documented-reimbursement-declaration.port';
 import { OwnershipShareTimelinePort } from './application/revenue/ownership-share-timeline.port';
+import { OwnershipShareChangePort } from './application/revenue/ownership-share-change.port';
 import { ExpenseSupportingDocumentDeletionPort } from './application/supporting-document/expense-supporting-document-deletion.port';
 import { ExpenseSupportingDocumentsPort } from './application/supporting-document/expense-supporting-documents.port';
 import {
@@ -29,6 +30,7 @@ import { HttpReimbursementListGateway } from './infrastructure/reimbursement/htt
 import { HttpDirectReimbursementRecordingGateway } from './infrastructure/reimbursement/http-direct-reimbursement-recording.gateway';
 import { HttpDocumentedReimbursementDeclarationGateway } from './infrastructure/reimbursement/http-documented-reimbursement-declaration.gateway';
 import { HttpOwnershipShareTimelineGateway } from './infrastructure/revenue/http-ownership-share-timeline.gateway';
+import { HttpOwnershipShareChangeGateway } from './infrastructure/revenue/http-ownership-share-change.gateway';
 import { RouterNavigationAdapter } from './infrastructure/router/router-navigation.adapter';
 import { HttpSignedSupportingDocumentUploaderGateway } from './infrastructure/supporting-document/http-signed-supporting-document-uploader.gateway';
 import { HttpSupportingDocumentUploadControlPlaneGateway } from './infrastructure/supporting-document/http-supporting-document-upload-control-plane.gateway';
@@ -91,6 +93,11 @@ const portBindings: readonly {
     name: 'ownership share timeline',
     port: OwnershipShareTimelinePort,
     adapter: HttpOwnershipShareTimelineGateway,
+  },
+  {
+    name: 'ownership share change',
+    port: OwnershipShareChangePort,
+    adapter: HttpOwnershipShareChangeGateway,
   },
   {
     name: 'SHA-256 checksum',

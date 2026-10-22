@@ -5,6 +5,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { RouterLink } from '@angular/router';
 
 import { AuthenticatedShellComponent } from '../shared/authenticated-shell/authenticated-shell.component';
+import { OwnershipShareChangeWidgetComponent } from './ownership-share-change-widget.component';
 import { OwnershipShareTimelinePageViewModel } from './ownership-share-timeline-page.view-model';
 
 @Component({
@@ -14,6 +15,7 @@ import { OwnershipShareTimelinePageViewModel } from './ownership-share-timeline-
     MatButtonModule,
     MatCardModule,
     MatProgressBarModule,
+    OwnershipShareChangeWidgetComponent,
     RouterLink,
   ],
   templateUrl: './ownership-share-timeline-page.component.html',

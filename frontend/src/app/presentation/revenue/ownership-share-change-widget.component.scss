@@ -1,0 +1,14 @@
+:host {
+  display: block;
+  margin-bottom: 1.5rem;
+}
+
+fieldset {
+  border: 0;
+  margin: 1rem 0;
+  padding: 0;
+}
+
+input[inputmode='decimal'] {
+  max-width: 8rem;
+}

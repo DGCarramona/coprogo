@@ -1,0 +1,65 @@
+<mat-card class="material-card" appearance="outlined">
+  <mat-card-header>
+    <mat-card-title>Modifier les quotes-parts</mat-card-title>
+    <mat-card-subtitle>
+      Cette nouvelle répartition s’appliquera aux revenus à partir de la date indiquée.
+    </mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    @if (viewModel.isLoading()) {
+      <p role="status">Chargement des membres…</p>
+    } @else if (viewModel.hasLoadError()) {
+      <p role="alert">{{ viewModel.loadErrorMessage() }}</p>
+      <button matButton="outlined" type="button" aria-label="Réessayer" (click)="viewModel.retry()">
+        Réessayer
+      </button>
+    } @else {
+      @if (viewModel.isRecorded()) {
+        <p role="status">Les nouvelles quotes-parts ont été enregistrées.</p>
+      }
+      @if (viewModel.hasRecordingError()) {
+        <p role="alert">{{ viewModel.recordingErrorMessage() }}</p>
+      }
+
+      <form [formRoot]="viewModel.form">
+        <p>
+          <label for="ownership-share-effective-date">Date d’effet</label>
+          <input
+            id="ownership-share-effective-date"
+            type="date"
+            aria-label="Date d effet"
+            [formField]="viewModel.form.effectiveDate"
+          />
+        </p>
+        <fieldset>
+          <legend>Répartition des revenus</legend>
+          <p>Indiquez une part positive pour chaque membre, pour un total de 100 %.</p>
+          @for (member of viewModel.members(); track member) {
+            <p>
+              <label [for]="'ownership-share-' + member">Quote-part de {{ member }}</label>
+              <input
+                [id]="'ownership-share-' + member"
+                type="text"
+                inputmode="decimal"
+                [attr.aria-label]="'Quote-part de ' + member"
+                [value]="viewModel.percentageFor(member)"
+                (input)="updatePercentage(member, $event)"
+              />
+              <span aria-hidden="true"> %</span>
+            </p>
+          }
+        </fieldset>
+        @if (viewModel.hasInvalidShares()) {
+          <p>Le total doit être exactement égal à 100 %.</p>
+        }
+        <button
+          matButton="filled"
+          type="submit"
+          [disabled]="viewModel.form().invalid() || viewModel.isRecording()"
+        >
+          Enregistrer les quotes-parts
+        </button>
+      </form>
+    }
+  </mat-card-content>
+</mat-card>
