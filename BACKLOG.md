@@ -178,7 +178,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 - [x] FE-DASH-003 Afficher le resume "je dois / on me doit" par membre.
 - [x] FE-DASH-004 Afficher le solde disponible de la caisse commune.
 - [x] FE-DASH-005 Afficher les parts de caisse commune par membre.
-- [ ] FE-DASH-006 Ajouter une vue explicative qui rattache les soldes aux evenements financiers.
+- [x] FE-DASH-006 Ajouter une vue explicative qui rattache les soldes aux evenements financiers.
 - [x] FE-DASH-007 Ajouter les tests de ViewModel et de rendu du dashboard.
 
 ## Frontend - qualite des tests

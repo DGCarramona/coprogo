@@ -1,0 +1,23 @@
+<section class="member-debt-reduction-history" aria-label="Opérations ayant réduit cette dette">
+  @if (!viewModel.isRequested()) {
+    <button mat-button type="button" (click)="load()">Voir ce qui a réduit cette dette</button>
+  } @else if (viewModel.isLoading()) {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    <p>Lecture des opérations...</p>
+  } @else if (viewModel.hasLoadError()) {
+    <p role="alert">{{ viewModel.errorMessage() }}</p>
+    <button mat-button type="button" (click)="viewModel.retry()">Réessayer</button>
+  } @else if (viewModel.reductions().length === 0) {
+    <p>Aucune opération enregistrée n’a réduit la dette de ce membre.</p>
+  } @else {
+    <p class="member-debt-reduction-history__intro">Opérations ayant réduit cette dette :</p>
+    <ul>
+      @for (reduction of viewModel.reductions(); track reduction.operationId) {
+        <li>
+          <span>{{ reduction.label }} · {{ reduction.occurredAt }}</span>
+          <strong>{{ reduction.amount }}</strong>
+        </li>
+      }
+    </ul>
+  }
+</section>

@@ -122,6 +122,36 @@ paths:
           description: recordCashPoolIncome 204 response
       security:
       - bearerAuth: []
+  /api/groups/{groupId}/cash-pool-withdrawals:
+    post:
+      tags:
+      - Ledger
+      summary: Record a common cash-pool withdrawal
+      operationId: withdrawFromCashPool
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CashPoolWithdrawalRequest"
+        required: true
+      responses:
+        "204":
+          description: Cash-pool withdrawal recorded
+        "409":
+          description: Cash-pool balance is insufficient
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+      security:
+      - bearerAuth: []
   /api/groups/{groupId}/cash-pool/balance:
     get:
       tags:
@@ -447,6 +477,33 @@ paths:
       responses:
         "204":
           description: invite 204 response
+      security:
+      - bearerAuth: []
+  /api/groups/{groupId}/members/{memberEmail}/debt-reductions:
+    get:
+      tags:
+      - Ledger
+      summary: Get the operations that reduced a group member's debt
+      operationId: getMemberDebtReductionHistory
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: memberEmail
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: getMemberDebtReductionHistory 200 response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberDebtReductionHistoryResponse"
       security:
       - bearerAuth: []
   /api/groups/{groupId}/ownership-shares:
@@ -802,6 +859,20 @@ components:
         availableAmountInCents:
           type: integer
           format: int64
+    CashPoolWithdrawalRequest:
+      required:
+      - amountInCents
+      - withdrawnAt
+      type: object
+      properties:
+        amountInCents:
+          minimum: 0
+          exclusiveMinimum: true
+          type: integer
+          format: int64
+        withdrawnAt:
+          type: string
+          format: date-time
     CreateGroupResponse:
       required:
       - group
@@ -1290,6 +1361,47 @@ components:
         amountInCents:
           type: integer
           format: int64
+    MemberDebtReductionHistoryResponse:
+      required:
+      - group
+      - member
+      - reductions
+      type: object
+      properties:
+        group:
+          type: string
+          format: uuid
+        member:
+          type: string
+        reductions:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemberDebtReductionResponse"
+    MemberDebtReductionResponse:
+      required:
+      - amountInCents
+      - occurredAt
+      - operationId
+      - type
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/MemberDebtReductionTypeResponse"
+        operationId:
+          type: string
+          format: uuid
+        amountInCents:
+          type: integer
+          format: int64
+        occurredAt:
+          type: string
+          format: date-time
+    MemberDebtReductionTypeResponse:
+      type: string
+      enum:
+      - DIRECT_REIMBURSEMENT
+      - COMPENSATING_EXPENSE
+      - CASH_POOL_WITHDRAWAL
     OwnershipShareChangeResponse:
       required:
       - change

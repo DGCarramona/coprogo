@@ -9,6 +9,7 @@ import { AuthenticatedShellComponent } from '../shared/authenticated-shell/authe
 import { ExpenseListWidgetComponent } from './expense-list-widget/expense-list-widget.component';
 import { ExpenseProposalWidgetComponent } from './expense-proposal-widget/expense-proposal-widget.component';
 import { GroupDashboardPageViewModel } from './group-dashboard-page.view-model';
+import { MemberDebtReductionHistoryWidgetComponent } from './member-debt-reduction-history-widget/member-debt-reduction-history-widget.component';
 
 @Component({
   selector: 'app-group-dashboard-page',
@@ -20,6 +21,7 @@ import { GroupDashboardPageViewModel } from './group-dashboard-page.view-model';
     MatCardModule,
     MatChipsModule,
     MatProgressBarModule,
+    MemberDebtReductionHistoryWidgetComponent,
     RouterLink,
   ],
   templateUrl: './group-dashboard-page.component.html',

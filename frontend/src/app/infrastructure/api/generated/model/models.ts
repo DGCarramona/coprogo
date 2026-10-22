@@ -1,5 +1,6 @@
 export * from './api-error-response';
 export * from './cash-pool-balance-response';
+export * from './cash-pool-withdrawal-request';
 export * from './create-group-response';
 export * from './cumulative-expense-tier-request';
 export * from './cumulative-tiers-expense-allocation-request';
@@ -29,6 +30,9 @@ export * from './group-member-response';
 export * from './group-response';
 export * from './invite-member-request';
 export * from './member-cash-pool-share-response';
+export * from './member-debt-reduction-history-response';
+export * from './member-debt-reduction-response';
+export * from './member-debt-reduction-type-response';
 export * from './ownership-share-change-response';
 export * from './ownership-share-input';
 export * from './ownership-share-response';

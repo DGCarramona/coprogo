@@ -16,6 +16,7 @@ git_push.sh
 index.ts
 model/api-error-response.ts
 model/cash-pool-balance-response.ts
+model/cash-pool-withdrawal-request.ts
 model/create-group-response.ts
 model/cumulative-expense-tier-request.ts
 model/cumulative-tiers-expense-allocation-request.ts
@@ -45,6 +46,9 @@ model/group-member-response.ts
 model/group-response.ts
 model/invite-member-request.ts
 model/member-cash-pool-share-response.ts
+model/member-debt-reduction-history-response.ts
+model/member-debt-reduction-response.ts
+model/member-debt-reduction-type-response.ts
 model/models.ts
 model/ownership-share-change-response.ts
 model/ownership-share-input.ts

@@ -27,6 +27,12 @@ class StubExpenseProposalWidgetComponent {
   @Input({ required: true }) groupId = '';
 }
 
+@Component({ selector: 'app-member-debt-reduction-history-widget', template: '' })
+class StubMemberDebtReductionHistoryWidgetComponent {
+  @Input({ required: true }) groupId = '';
+  @Input({ required: true }) member = '';
+}
+
 describe('GroupDashboardPageComponent', () => {
   it('shows the expense proposal widget for the ready group', () => {
     const viewModel = new StubGroupDashboardPageViewModel();
@@ -50,6 +56,34 @@ describe('GroupDashboardPageComponent', () => {
     );
     expect(link).not.toBeNull();
   });
+
+  it('offers a financial-operation explanation for each member balance', () => {
+    const viewModel = new StubGroupDashboardPageViewModel();
+    viewModel.memberBalances.set([
+      {
+        member: 'alice@example.com',
+        label: 'A recevoir',
+        amount: '+40,00 €',
+        tone: 'credit',
+      },
+      { member: 'bob@example.com', label: 'A payer', amount: '-40,00 €', tone: 'debt' },
+    ]);
+    const fixture = createFixture(viewModel);
+
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement
+        .queryAll(By.directive(StubMemberDebtReductionHistoryWidgetComponent))
+        .map(({ componentInstance }) => ({
+          groupId: componentInstance.groupId,
+          member: componentInstance.member,
+        })),
+    ).toEqual([
+      { groupId: 'group-1', member: 'alice@example.com' },
+      { groupId: 'group-1', member: 'bob@example.com' },
+    ]);
+  });
 });
 
 const createFixture = (
@@ -65,6 +99,7 @@ const createFixture = (
         StubAuthenticatedShellComponent,
         StubExpenseListWidgetComponent,
         StubExpenseProposalWidgetComponent,
+        StubMemberDebtReductionHistoryWidgetComponent,
         MatButtonModule,
         MatCardModule,
         MatChipsModule,
@@ -85,7 +120,9 @@ class StubGroupDashboardPageViewModel {
   readonly isReady = signal(true);
   readonly errorMessage = signal<string | null>(null);
   readonly cashPoolBalance = signal('0,00\u00a0€');
-  readonly memberBalances = signal([]);
+  readonly memberBalances = signal<
+    { member: string; label: string; amount: string; tone: string }[]
+  >([]);
   readonly cashPoolShares = signal([]);
 
   initialize(): Promise<void> {

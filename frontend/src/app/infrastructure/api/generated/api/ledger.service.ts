@@ -22,11 +22,17 @@ import { Observable } from 'rxjs';
 import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 
 // @ts-ignore
+import { ApiErrorResponseDto } from '../model/api-error-response';
+// @ts-ignore
 import { CashPoolBalanceResponseDto } from '../model/cash-pool-balance-response';
+// @ts-ignore
+import { CashPoolWithdrawalRequestDto } from '../model/cash-pool-withdrawal-request';
 // @ts-ignore
 import { GroupBalancesResponseDto } from '../model/group-balances-response';
 // @ts-ignore
 import { GroupMemberCashPoolSharesResponseDto } from '../model/group-member-cash-pool-shares-response';
+// @ts-ignore
+import { MemberDebtReductionHistoryResponseDto } from '../model/member-debt-reduction-history-response';
 
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS } from '../variables';
@@ -321,5 +327,218 @@ export class LedgerService extends BaseService {
         reportProgress: reportProgress,
       },
     );
+  }
+
+  /**
+   * Get the operations that reduced a group member\&#39;s debt
+   * @endpoint get /api/groups/{groupId}/members/{memberEmail}/debt-reductions
+   * @param groupId
+   * @param memberEmail
+   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+   * @param reportProgress flag to report request and response progress.
+   * @param options additional options
+   */
+  public getMemberDebtReductionHistory(
+    groupId: string,
+    memberEmail: string,
+    observe?: 'body',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<MemberDebtReductionHistoryResponseDto>;
+  public getMemberDebtReductionHistory(
+    groupId: string,
+    memberEmail: string,
+    observe?: 'response',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpResponse<MemberDebtReductionHistoryResponseDto>>;
+  public getMemberDebtReductionHistory(
+    groupId: string,
+    memberEmail: string,
+    observe?: 'events',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpEvent<MemberDebtReductionHistoryResponseDto>>;
+  public getMemberDebtReductionHistory(
+    groupId: string,
+    memberEmail: string,
+    observe: any = 'body',
+    reportProgress: boolean = false,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<any> {
+    if (groupId === null || groupId === undefined) {
+      throw new Error(
+        'Required parameter groupId was null or undefined when calling getMemberDebtReductionHistory.',
+      );
+    }
+    if (memberEmail === null || memberEmail === undefined) {
+      throw new Error(
+        'Required parameter memberEmail was null or undefined when calling getMemberDebtReductionHistory.',
+      );
+    }
+
+    let localVarHeaders = this.defaultHeaders;
+
+    const localVarHttpHeaderAcceptSelected: string | undefined =
+      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
+    if (localVarHttpHeaderAcceptSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+    }
+
+    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+    const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+    let responseType_: 'text' | 'json' | 'blob' = 'json';
+    if (localVarHttpHeaderAcceptSelected) {
+      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+        responseType_ = 'text';
+      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+        responseType_ = 'json';
+      } else {
+        responseType_ = 'blob';
+      }
+    }
+
+    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/members/${this.configuration.encodeParam({ name: 'memberEmail', value: memberEmail, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: undefined })}/debt-reductions`;
+    const { basePath, withCredentials } = this.configuration;
+    return this.httpClient.request<MemberDebtReductionHistoryResponseDto>(
+      'get',
+      `${basePath}${localVarPath}`,
+      {
+        context: localVarHttpContext,
+        responseType: <any>responseType_,
+        ...(withCredentials ? { withCredentials } : {}),
+        headers: localVarHeaders,
+        observe: observe,
+        ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+        reportProgress: reportProgress,
+      },
+    );
+  }
+
+  /**
+   * Record a common cash-pool withdrawal
+   * @endpoint post /api/groups/{groupId}/cash-pool-withdrawals
+   * @param groupId
+   * @param cashPoolWithdrawalRequestDto
+   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+   * @param reportProgress flag to report request and response progress.
+   * @param options additional options
+   */
+  public withdrawFromCashPool(
+    groupId: string,
+    cashPoolWithdrawalRequestDto: CashPoolWithdrawalRequestDto,
+    observe?: 'body',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<any>;
+  public withdrawFromCashPool(
+    groupId: string,
+    cashPoolWithdrawalRequestDto: CashPoolWithdrawalRequestDto,
+    observe?: 'response',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpResponse<any>>;
+  public withdrawFromCashPool(
+    groupId: string,
+    cashPoolWithdrawalRequestDto: CashPoolWithdrawalRequestDto,
+    observe?: 'events',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpEvent<any>>;
+  public withdrawFromCashPool(
+    groupId: string,
+    cashPoolWithdrawalRequestDto: CashPoolWithdrawalRequestDto,
+    observe: any = 'body',
+    reportProgress: boolean = false,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<any> {
+    if (groupId === null || groupId === undefined) {
+      throw new Error(
+        'Required parameter groupId was null or undefined when calling withdrawFromCashPool.',
+      );
+    }
+    if (cashPoolWithdrawalRequestDto === null || cashPoolWithdrawalRequestDto === undefined) {
+      throw new Error(
+        'Required parameter cashPoolWithdrawalRequestDto was null or undefined when calling withdrawFromCashPool.',
+      );
+    }
+
+    let localVarHeaders = this.defaultHeaders;
+
+    const localVarHttpHeaderAcceptSelected: string | undefined =
+      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
+    if (localVarHttpHeaderAcceptSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+    }
+
+    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+    const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+    // to determine the Content-Type header
+    const consumes: string[] = ['application/json'];
+    const httpContentTypeSelected: string | undefined =
+      this.configuration.selectHeaderContentType(consumes);
+    if (httpContentTypeSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+    }
+
+    let responseType_: 'text' | 'json' | 'blob' = 'json';
+    if (localVarHttpHeaderAcceptSelected) {
+      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+        responseType_ = 'text';
+      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+        responseType_ = 'json';
+      } else {
+        responseType_ = 'blob';
+      }
+    }
+
+    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/cash-pool-withdrawals`;
+    const { basePath, withCredentials } = this.configuration;
+    return this.httpClient.request<any>('post', `${basePath}${localVarPath}`, {
+      context: localVarHttpContext,
+      body: cashPoolWithdrawalRequestDto,
+      responseType: <any>responseType_,
+      ...(withCredentials ? { withCredentials } : {}),
+      headers: localVarHeaders,
+      observe: observe,
+      ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+      reportProgress: reportProgress,
+    });
   }
 }
