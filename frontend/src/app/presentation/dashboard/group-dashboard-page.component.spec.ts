@@ -1,4 +1,4 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,6 +15,12 @@ class StubAuthenticatedShellComponent {
   @Input() eyebrow = '';
   @Input() title = '';
   @Input() description = '';
+}
+
+@Component({ selector: 'app-cash-pool-income-widget', template: '' })
+class StubCashPoolIncomeWidgetComponent {
+  @Input({ required: true }) groupId = '';
+  @Output() recorded = new EventEmitter<void>();
 }
 
 @Component({ selector: 'app-expense-list-widget', template: '' })
@@ -92,6 +98,22 @@ describe('GroupDashboardPageComponent', () => {
     ).not.toBeNull();
   });
 
+  it('records an income for the ready group and refreshes its financial amounts', () => {
+    const viewModel = new StubGroupDashboardPageViewModel();
+    const fixture = createFixture(viewModel);
+    fixture.detectChanges();
+    const widget = fixture.debugElement.query(By.directive(StubCashPoolIncomeWidgetComponent));
+
+    widget.componentInstance.recorded.emit();
+
+    expect({ groupId: widget.componentInstance.groupId, retryCount: viewModel.retryCount }).toEqual(
+      {
+        groupId: 'group-1',
+        retryCount: 1,
+      },
+    );
+  });
+
   it('offers a financial-operation explanation for each member balance', () => {
     const viewModel = new StubGroupDashboardPageViewModel();
     viewModel.memberBalances.set([
@@ -132,6 +154,7 @@ const createFixture = (
     set: {
       imports: [
         StubAuthenticatedShellComponent,
+        StubCashPoolIncomeWidgetComponent,
         StubExpenseListWidgetComponent,
         StubExpenseProposalWidgetComponent,
         StubMemberDebtReductionHistoryWidgetComponent,
@@ -159,12 +182,14 @@ class StubGroupDashboardPageViewModel {
     { member: string; label: string; amount: string; tone: string }[]
   >([]);
   readonly cashPoolShares = signal([]);
+  retryCount = 0;
 
   initialize(): Promise<void> {
     return Promise.resolve();
   }
 
   retry(): Promise<void> {
+    this.retryCount += 1;
     return Promise.resolve();
   }
 }

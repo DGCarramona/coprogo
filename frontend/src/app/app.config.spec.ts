@@ -14,6 +14,7 @@ import { DocumentedReimbursementDeclarationPort } from './application/reimbursem
 import { OwnershipShareTimelinePort } from './application/revenue/ownership-share-timeline.port';
 import { OwnershipShareChangePort } from './application/revenue/ownership-share-change.port';
 import { RevenueDistributionPreviewPort } from './application/revenue/revenue-distribution-preview.port';
+import { CashPoolIncomeRecordingPort } from './application/revenue/cash-pool-income-recording.port';
 import { ExpenseSupportingDocumentDeletionPort } from './application/supporting-document/expense-supporting-document-deletion.port';
 import { ExpenseSupportingDocumentsPort } from './application/supporting-document/expense-supporting-documents.port';
 import {
@@ -33,6 +34,7 @@ import { HttpDocumentedReimbursementDeclarationGateway } from './infrastructure/
 import { HttpOwnershipShareTimelineGateway } from './infrastructure/revenue/http-ownership-share-timeline.gateway';
 import { HttpOwnershipShareChangeGateway } from './infrastructure/revenue/http-ownership-share-change.gateway';
 import { HttpRevenueDistributionPreviewGateway } from './infrastructure/revenue/http-revenue-distribution-preview.gateway';
+import { HttpCashPoolIncomeRecordingGateway } from './infrastructure/revenue/http-cash-pool-income-recording.gateway';
 import { RouterNavigationAdapter } from './infrastructure/router/router-navigation.adapter';
 import { HttpSignedSupportingDocumentUploaderGateway } from './infrastructure/supporting-document/http-signed-supporting-document-uploader.gateway';
 import { HttpSupportingDocumentUploadControlPlaneGateway } from './infrastructure/supporting-document/http-supporting-document-upload-control-plane.gateway';
@@ -105,6 +107,11 @@ const portBindings: readonly {
     name: 'revenue distribution preview',
     port: RevenueDistributionPreviewPort,
     adapter: HttpRevenueDistributionPreviewGateway,
+  },
+  {
+    name: 'cash-pool income recording',
+    port: CashPoolIncomeRecordingPort,
+    adapter: HttpCashPoolIncomeRecordingGateway,
   },
   {
     name: 'SHA-256 checksum',

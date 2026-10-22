@@ -1,0 +1,55 @@
+<mat-card class="material-card" appearance="outlined">
+  <mat-card-header>
+    <mat-card-title>Enregistrer un revenu</mat-card-title>
+    <mat-card-subtitle>
+      Le montant sera ajouté à la caisse commune et réparti entre les membres.
+    </mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    @if (viewModel.isRecorded()) {
+      <p role="status">Le revenu et sa répartition ont été enregistrés.</p>
+    }
+    @if (viewModel.hasRecordingError()) {
+      <p role="alert">{{ viewModel.recordingErrorMessage() }}</p>
+    }
+
+    <form [formRoot]="viewModel.form">
+      <p>
+        <label for="cash-pool-income-amount">Montant du revenu en euros</label>
+        <input
+          id="cash-pool-income-amount"
+          type="text"
+          inputmode="decimal"
+          aria-label="Montant du revenu en euros"
+          [formField]="viewModel.form.amountInEuros"
+        />
+      </p>
+      <p>
+        <label for="cash-pool-income-received-at">Date de réception</label>
+        <input
+          id="cash-pool-income-received-at"
+          type="datetime-local"
+          aria-label="Date de réception"
+          [formField]="viewModel.form.receivedAt"
+        />
+      </p>
+      <p>
+        <label for="cash-pool-income-effective-date">Date des quotes-parts</label>
+        <input
+          id="cash-pool-income-effective-date"
+          type="date"
+          aria-label="Date des quotes-parts"
+          [formField]="viewModel.form.effectiveDate"
+        />
+      </p>
+      <p>La date des quotes-parts détermine la répartition appliquée à ce revenu.</p>
+      <button
+        mat-flat-button
+        type="submit"
+        [disabled]="viewModel.form().invalid() || viewModel.isRecording()"
+      >
+        Enregistrer le revenu
+      </button>
+    </form>
+  </mat-card-content>
+</mat-card>

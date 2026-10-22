@@ -108,6 +108,11 @@
         </mat-card-content>
       </mat-card>
 
+      <app-cash-pool-income-widget
+        [groupId]="viewModel.groupId()!"
+        (recorded)="viewModel.retry()"
+      />
+
       <app-expense-proposal-widget
         class="group-dashboard-page__proposal-card"
         [groupId]="viewModel.groupId()!"
