@@ -6,6 +6,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { RouterLink } from '@angular/router';
 
 import { AuthenticatedShellComponent } from '../shared/authenticated-shell/authenticated-shell.component';
+import { CashPoolHistoryWidgetComponent } from './cash-pool-history-widget/cash-pool-history-widget.component';
 import { CashPoolIncomeWidgetComponent } from './cash-pool-income-widget/cash-pool-income-widget.component';
 import { CashPoolWithdrawalWidgetComponent } from './cash-pool-withdrawal-widget/cash-pool-withdrawal-widget.component';
 import { ExpenseListWidgetComponent } from './expense-list-widget/expense-list-widget.component';
@@ -17,6 +18,7 @@ import { MemberDebtReductionHistoryWidgetComponent } from './member-debt-reducti
   selector: 'app-group-dashboard-page',
   imports: [
     AuthenticatedShellComponent,
+    CashPoolHistoryWidgetComponent,
     CashPoolIncomeWidgetComponent,
     CashPoolWithdrawalWidgetComponent,
     ExpenseListWidgetComponent,

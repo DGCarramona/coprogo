@@ -118,6 +118,8 @@
         (withdrawn)="viewModel.retry()"
       />
 
+      <app-cash-pool-history-widget [groupId]="viewModel.groupId()!" />
+
       <app-expense-proposal-widget
         class="group-dashboard-page__proposal-card"
         [groupId]="viewModel.groupId()!"

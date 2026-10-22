@@ -1,6 +1,6 @@
 import { computed, Injectable, Injector, signal } from '@angular/core';
 import { FieldTree, TreeValidationResult, form, required, validate } from '@angular/forms/signals';
-import { injectMutation } from '@tanstack/angular-query-experimental';
+import { injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
 
 import {
   CashPoolWithdrawalPort,
@@ -9,6 +9,7 @@ import {
 import { describeError } from '../../../application/shared/describe-error';
 import { parseAmountInCents } from '../../../shared/format/parse-amount-in-cents';
 import { parseLocalDateTime } from '../../../shared/format/parse-local-date-time';
+import { cashPoolHistoryQueryKey } from '../cash-pool-query-keys';
 
 interface CashPoolWithdrawalFormModel {
   amountInEuros: string;
@@ -30,7 +31,11 @@ export class CashPoolWithdrawalWidgetViewModel {
     return error === null ? null : describeError(error, 'Le retrait n a pas pu etre enregistre.');
   });
 
-  constructor(withdrawalPort: CashPoolWithdrawalPort, injector: Injector) {
+  constructor(
+    withdrawalPort: CashPoolWithdrawalPort,
+    private readonly queryClient: QueryClient,
+    injector: Injector,
+  ) {
     this.withdrawalMutation = injectMutation<void, Error, CashPoolWithdrawalCommand>(
       () => ({ mutationFn: (command) => withdrawalPort.withdraw(command) }),
       { injector },
@@ -70,6 +75,9 @@ export class CashPoolWithdrawalWidgetViewModel {
 
             try {
               await this.withdrawalMutation.mutateAsync({ groupId, amountInCents, withdrawnAt });
+              void this.queryClient.invalidateQueries({
+                queryKey: cashPoolHistoryQueryKey(groupId),
+              });
               submittedForm().reset(emptyFormModel());
               return undefined;
             } catch {

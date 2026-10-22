@@ -174,6 +174,28 @@ paths:
                 $ref: "#/components/schemas/CashPoolBalanceResponse"
       security:
       - bearerAuth: []
+  /api/groups/{groupId}/cash-pool/history:
+    get:
+      tags:
+      - Ledger
+      summary: Get common cash-pool income distributions and withdrawals for a group
+      operationId: getCashPoolHistory
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: getCashPoolHistory 200 response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CashPoolHistoryResponse"
+      security:
+      - bearerAuth: []
   /api/groups/{groupId}/cash-pool/shares:
     get:
       tags:
@@ -859,6 +881,75 @@ components:
         availableAmountInCents:
           type: integer
           format: int64
+    CashPoolHistoryResponse:
+      required:
+      - group
+      - operations
+      type: object
+      properties:
+        group:
+          type: string
+          format: uuid
+        operations:
+          type: array
+          items:
+            $ref: "#/components/schemas/CashPoolOperationResponse"
+    CashPoolIncomeAllocationResponse:
+      required:
+      - amountInCents
+      - member
+      type: object
+      properties:
+        member:
+          type: string
+        amountInCents:
+          type: integer
+          format: int64
+    CashPoolIncomeResponse:
+      required:
+      - allocations
+      - amountInCents
+      - occurredAt
+      - operation
+      - type
+      type: object
+      properties:
+        operation:
+          type: string
+          format: uuid
+        occurredAt:
+          type: string
+          format: date-time
+        amountInCents:
+          type: integer
+          format: int64
+        allocations:
+          type: array
+          items:
+            $ref: "#/components/schemas/CashPoolIncomeAllocationResponse"
+        type:
+          type: string
+          enum:
+          - INCOME
+    CashPoolOperationResponse:
+      type: object
+      properties:
+        type:
+          type: string
+        operation:
+          type: string
+          format: uuid
+        occurredAt:
+          type: string
+          format: date-time
+      discriminator:
+        propertyName: type
+        mapping:
+          INCOME: "#/components/schemas/CashPoolIncomeResponse"
+          WITHDRAWAL: "#/components/schemas/CashPoolWithdrawalResponse"
+      oneOf:
+      - $ref: "#/components/schemas/CashPoolIncomeResponse"
+      - $ref: "#/components/schemas/CashPoolWithdrawalResponse"
     CashPoolWithdrawalRequest:
       required:
       - amountInCents
@@ -873,6 +964,34 @@ components:
         withdrawnAt:
           type: string
           format: date-time
+    CashPoolWithdrawalResponse:
+      required:
+      - amountInCents
+      - occurredAt
+      - operation
+      - ownRevenueShareConsumedInCents
+      - type
+      - withdrawnBy
+      type: object
+      properties:
+        operation:
+          type: string
+          format: uuid
+        occurredAt:
+          type: string
+          format: date-time
+        withdrawnBy:
+          type: string
+        amountInCents:
+          type: integer
+          format: int64
+        ownRevenueShareConsumedInCents:
+          type: integer
+          format: int64
+        type:
+          type: string
+          enum:
+          - WITHDRAWAL
     CreateGroupResponse:
       required:
       - group
@@ -1077,9 +1196,9 @@ components:
           type: string
     ExpenseDetailResponse:
       required:
+      - canDecideParticipation
       - createdAt
       - createdBy
-      - canDecideParticipation
       - id
       - participations
       - status

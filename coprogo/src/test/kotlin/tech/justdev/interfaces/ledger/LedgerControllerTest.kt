@@ -7,7 +7,13 @@ import org.junit.jupiter.api.Test
 import tech.justdev.application.auth.AuthenticatedUser
 import tech.justdev.application.auth.AuthenticatedUserProvider
 import tech.justdev.application.group.GroupAccessPolicy
+import tech.justdev.application.ledger.CashPoolHistorySnapshot
+import tech.justdev.application.ledger.CashPoolIncomeAllocationSnapshot
+import tech.justdev.application.ledger.CashPoolIncomeSnapshot
+import tech.justdev.application.ledger.CashPoolWithdrawalSnapshot
 import tech.justdev.application.ledger.GetCashPoolBalanceUseCase
+import tech.justdev.application.ledger.GetCashPoolHistoryQuery
+import tech.justdev.application.ledger.GetCashPoolHistoryUseCase
 import tech.justdev.application.ledger.GetGroupBalancesUseCase
 import tech.justdev.application.ledger.GetMemberCashPoolSharesUseCase
 import tech.justdev.application.ledger.GetMemberDebtReductionHistoryQuery
@@ -27,7 +33,71 @@ import java.time.Instant
 class LedgerControllerTest {
     private val withdrawalUseCase = WithdrawFromCashPoolUseCaseFake()
     private val debtReductionHistoryUseCase = GetMemberDebtReductionHistoryUseCaseFake()
-    private val controller = controller(withdrawalUseCase, debtReductionHistoryUseCase)
+    private val cashPoolHistoryUseCase = GetCashPoolHistoryUseCaseFake()
+    private val controller = controller(withdrawalUseCase, debtReductionHistoryUseCase, cashPoolHistoryUseCase)
+
+    @Nested
+    inner class GetCashPoolHistory {
+        @Test
+        fun `should return income distributions and withdrawals on behalf of the authenticated member`() =
+            runTest {
+                val group = testUuid("cash-pool-history-group")
+                val incomeId = testUuid("cash-pool-history-income")
+                val withdrawalId = testUuid("cash-pool-history-withdrawal")
+                cashPoolHistoryUseCase.result =
+                    CashPoolHistorySnapshot(
+                        group = group,
+                        operations =
+                            listOf(
+                                CashPoolIncomeSnapshot(
+                                    operation = incomeId,
+                                    occurredAt = Instant.parse("2026-10-01T10:00:00Z"),
+                                    amountInCents = 10_000,
+                                    allocations = listOf(CashPoolIncomeAllocationSnapshot("member@example.com", 10_000)),
+                                ),
+                                CashPoolWithdrawalSnapshot(
+                                    operation = withdrawalId,
+                                    occurredAt = Instant.parse("2026-10-02T10:00:00Z"),
+                                    withdrawnBy = "member@example.com",
+                                    amountInCents = 7_000,
+                                    ownRevenueShareConsumedInCents = 6_000,
+                                ),
+                            ),
+                    )
+
+                val response = controller.getCashPoolHistory(group)
+
+                assertEquals(
+                    GetCashPoolHistoryQuery(
+                        group = GroupId(group),
+                        requestedBy = MemberEmail.of("member@example.com"),
+                    ),
+                    cashPoolHistoryUseCase.query,
+                )
+                assertEquals(
+                    CashPoolHistoryResponse(
+                        group = group,
+                        operations =
+                            listOf(
+                                CashPoolIncomeResponse(
+                                    operation = incomeId,
+                                    occurredAt = Instant.parse("2026-10-01T10:00:00Z"),
+                                    amountInCents = 10_000,
+                                    allocations = listOf(CashPoolIncomeAllocationResponse("member@example.com", 10_000)),
+                                ),
+                                CashPoolWithdrawalResponse(
+                                    operation = withdrawalId,
+                                    occurredAt = Instant.parse("2026-10-02T10:00:00Z"),
+                                    withdrawnBy = "member@example.com",
+                                    amountInCents = 7_000,
+                                    ownRevenueShareConsumedInCents = 6_000,
+                                ),
+                            ),
+                    ),
+                    response,
+                )
+            }
+    }
 
     @Nested
     inner class GetMemberDebtReductionHistory {
@@ -87,6 +157,7 @@ class LedgerControllerTest {
     private fun controller(
         withdrawalUseCase: WithdrawFromCashPoolUseCase,
         debtReductionHistoryUseCase: GetMemberDebtReductionHistoryUseCase,
+        cashPoolHistoryUseCase: GetCashPoolHistoryUseCase,
     ): LedgerController {
         val groupAccessPolicy = GroupAccessPolicy(InMemoryGroupRepository())
         val ledgerEventRepository = EmptyLedgerEventRepository()
@@ -97,6 +168,7 @@ class LedgerControllerTest {
             getMemberCashPoolSharesUseCase = GetMemberCashPoolSharesUseCase(groupAccessPolicy, ledgerEventRepository),
             withdrawFromCashPoolUseCase = withdrawalUseCase,
             getMemberDebtReductionHistoryUseCase = debtReductionHistoryUseCase,
+            getCashPoolHistoryUseCase = cashPoolHistoryUseCase,
         )
     }
 
@@ -118,6 +190,16 @@ class LedgerControllerTest {
         override suspend fun invoke(query: GetMemberDebtReductionHistoryQuery): List<MemberDebtReduction> {
             this.query = query
             return emptyList()
+        }
+    }
+
+    private class GetCashPoolHistoryUseCaseFake : GetCashPoolHistoryUseCase {
+        var query: GetCashPoolHistoryQuery? = null
+        lateinit var result: CashPoolHistorySnapshot
+
+        override suspend fun invoke(query: GetCashPoolHistoryQuery): CashPoolHistorySnapshot {
+            this.query = query
+            return result
         }
     }
 

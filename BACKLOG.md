@@ -224,7 +224,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 - [x] FE-REV-004 Creer le formulaire d'enregistrement d'un revenu entrant.
 - [x] FE-REV-005 Creer le formulaire de distribution effective d'un revenu.
 - [x] FE-REV-006 Creer le formulaire de retrait de la caisse commune.
-- [ ] FE-REV-007 Afficher l'historique des revenus, distributions et retraits.
+- [x] FE-REV-007 Afficher l'historique des revenus, distributions et retraits.
 - [ ] FE-REV-008 Ajouter les tests de ViewModel et de composants pour quotes-parts et caisse commune.
 
 ## Frontend - justificatifs et historique audit

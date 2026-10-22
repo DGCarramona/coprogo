@@ -1,6 +1,6 @@
 import { computed, Injectable, Injector, signal } from '@angular/core';
 import { FieldTree, TreeValidationResult, form, required, validate } from '@angular/forms/signals';
-import { injectMutation } from '@tanstack/angular-query-experimental';
+import { injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
 
 import {
   CashPoolIncomeRecordingPort,
@@ -10,6 +10,7 @@ import { describeError } from '../../../application/shared/describe-error';
 import { parseAmountInCents } from '../../../shared/format/parse-amount-in-cents';
 import { parseLocalDate } from '../../../shared/format/local-date';
 import { parseLocalDateTime } from '../../../shared/format/parse-local-date-time';
+import { cashPoolHistoryQueryKey } from '../cash-pool-query-keys';
 
 interface CashPoolIncomeFormModel {
   amountInEuros: string;
@@ -32,7 +33,11 @@ export class CashPoolIncomeWidgetViewModel {
     return error === null ? null : describeError(error, 'Le revenu n a pas pu etre enregistre.');
   });
 
-  constructor(recordingPort: CashPoolIncomeRecordingPort, injector: Injector) {
+  constructor(
+    recordingPort: CashPoolIncomeRecordingPort,
+    private readonly queryClient: QueryClient,
+    injector: Injector,
+  ) {
     this.recordingMutation = injectMutation<void, Error, CashPoolIncomeRecordingCommand>(
       () => ({ mutationFn: (command) => recordingPort.record(command) }),
       { injector },
@@ -88,6 +93,9 @@ export class CashPoolIncomeWidgetViewModel {
                 amountInCents,
                 receivedAt,
                 effectiveDate,
+              });
+              void this.queryClient.invalidateQueries({
+                queryKey: cashPoolHistoryQueryKey(groupId),
               });
               submittedForm().reset(emptyFormModel());
               return undefined;

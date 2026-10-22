@@ -23,6 +23,11 @@ class StubCashPoolIncomeWidgetComponent {
   @Output() recorded = new EventEmitter<void>();
 }
 
+@Component({ selector: 'app-cash-pool-history-widget', template: '' })
+class StubCashPoolHistoryWidgetComponent {
+  @Input({ required: true }) groupId = '';
+}
+
 @Component({ selector: 'app-cash-pool-withdrawal-widget', template: '' })
 class StubCashPoolWithdrawalWidgetComponent {
   @Input({ required: true }) groupId = '';
@@ -120,6 +125,15 @@ describe('GroupDashboardPageComponent', () => {
     );
   });
 
+  it('shows the cash-pool history for the ready group', () => {
+    const fixture = createFixture(new StubGroupDashboardPageViewModel());
+
+    fixture.detectChanges();
+
+    const widget = fixture.debugElement.query(By.directive(StubCashPoolHistoryWidgetComponent));
+    expect(widget.componentInstance.groupId).toBe('group-1');
+  });
+
   it('records a withdrawal for the ready group and refreshes its financial amounts', () => {
     const viewModel = new StubGroupDashboardPageViewModel();
     const fixture = createFixture(viewModel);
@@ -176,6 +190,7 @@ const createFixture = (
     set: {
       imports: [
         StubAuthenticatedShellComponent,
+        StubCashPoolHistoryWidgetComponent,
         StubCashPoolIncomeWidgetComponent,
         StubCashPoolWithdrawalWidgetComponent,
         StubExpenseListWidgetComponent,

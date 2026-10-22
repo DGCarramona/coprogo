@@ -1,0 +1,21 @@
+:host {
+  display: block;
+}
+
+.cash-pool-history__operations {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cash-pool-history__operation {
+  padding-block: 0.5rem;
+}
+
+.cash-pool-history__summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}

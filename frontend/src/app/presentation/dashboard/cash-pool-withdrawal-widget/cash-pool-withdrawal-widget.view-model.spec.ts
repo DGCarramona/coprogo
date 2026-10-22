@@ -13,10 +13,12 @@ import { CashPoolWithdrawalWidgetViewModel } from './cash-pool-withdrawal-widget
 describe('CashPoolWithdrawalWidgetViewModel', () => {
   let port: StubCashPoolWithdrawalPort;
   let injector: Injector;
+  let queryClient: QueryClient;
 
   beforeEach(() => {
     port = new StubCashPoolWithdrawalPort();
-    TestBed.configureTestingModule({ providers: [provideTanStackQuery(new QueryClient())] });
+    queryClient = new QueryClient();
+    TestBed.configureTestingModule({ providers: [provideTanStackQuery(queryClient)] });
     injector = TestBed.inject(Injector);
   });
 
@@ -36,6 +38,7 @@ describe('CashPoolWithdrawalWidgetViewModel', () => {
       const viewModel = createViewModel();
       viewModel.initialize('group-1');
       fillForm(viewModel, validValue());
+      queryClient.setQueryData(['groups', 'group-1', 'cash-pool', 'history'], { existing: true });
 
       await expect(submit(viewModel.form)).resolves.toBe(true);
       await waitFor(() => viewModel.isWithdrawn());
@@ -48,6 +51,9 @@ describe('CashPoolWithdrawalWidgetViewModel', () => {
         },
       ]);
       expect(viewModel.form().value()).toEqual({ amountInEuros: '', withdrawnAt: '' });
+      expect(
+        queryClient.getQueryState(['groups', 'group-1', 'cash-pool', 'history'])?.isInvalidated,
+      ).toBe(true);
     });
 
     it.each([
@@ -83,7 +89,7 @@ describe('CashPoolWithdrawalWidgetViewModel', () => {
   });
 
   const createViewModel = (): CashPoolWithdrawalWidgetViewModel => {
-    const viewModel = new CashPoolWithdrawalWidgetViewModel(port, injector);
+    const viewModel = new CashPoolWithdrawalWidgetViewModel(port, queryClient, injector);
     TestBed.tick();
     return viewModel;
   };

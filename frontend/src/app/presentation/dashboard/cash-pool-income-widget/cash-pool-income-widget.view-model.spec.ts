@@ -12,10 +12,12 @@ import { CashPoolIncomeWidgetViewModel } from './cash-pool-income-widget.view-mo
 describe('CashPoolIncomeWidgetViewModel', () => {
   let port: StubCashPoolIncomeRecordingPort;
   let injector: Injector;
+  let queryClient: QueryClient;
 
   beforeEach(() => {
     port = new StubCashPoolIncomeRecordingPort();
-    TestBed.configureTestingModule({ providers: [provideTanStackQuery(new QueryClient())] });
+    queryClient = new QueryClient();
+    TestBed.configureTestingModule({ providers: [provideTanStackQuery(queryClient)] });
     injector = TestBed.inject(Injector);
   });
 
@@ -39,6 +41,7 @@ describe('CashPoolIncomeWidgetViewModel', () => {
       const viewModel = createViewModel();
       viewModel.initialize('group-1');
       fillForm(viewModel, validValue());
+      queryClient.setQueryData(['groups', 'group-1', 'cash-pool', 'history'], { existing: true });
 
       await expect(submit(viewModel.form)).resolves.toBe(true);
       await waitFor(() => viewModel.isRecorded());
@@ -56,6 +59,9 @@ describe('CashPoolIncomeWidgetViewModel', () => {
         receivedAt: '',
         effectiveDate: '',
       });
+      expect(
+        queryClient.getQueryState(['groups', 'group-1', 'cash-pool', 'history'])?.isInvalidated,
+      ).toBe(true);
     });
 
     it.each([
@@ -93,7 +99,7 @@ describe('CashPoolIncomeWidgetViewModel', () => {
   });
 
   const createViewModel = (): CashPoolIncomeWidgetViewModel => {
-    const viewModel = new CashPoolIncomeWidgetViewModel(port, injector);
+    const viewModel = new CashPoolIncomeWidgetViewModel(port, queryClient, injector);
     TestBed.tick();
     return viewModel;
   };

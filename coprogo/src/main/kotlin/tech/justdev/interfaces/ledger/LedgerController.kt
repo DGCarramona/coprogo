@@ -19,6 +19,8 @@ import tech.justdev.application.auth.AuthenticatedUserProvider
 import tech.justdev.application.ledger.CashPoolBalanceSnapshot
 import tech.justdev.application.ledger.GetCashPoolBalanceQuery
 import tech.justdev.application.ledger.GetCashPoolBalanceUseCase
+import tech.justdev.application.ledger.GetCashPoolHistoryQuery
+import tech.justdev.application.ledger.GetCashPoolHistoryUseCase
 import tech.justdev.application.ledger.GetGroupBalancesQuery
 import tech.justdev.application.ledger.GetGroupBalancesUseCase
 import tech.justdev.application.ledger.GetMemberCashPoolSharesQuery
@@ -49,6 +51,7 @@ class LedgerController(
     private val getMemberCashPoolSharesUseCase: GetMemberCashPoolSharesUseCase,
     private val withdrawFromCashPoolUseCase: WithdrawFromCashPoolUseCase,
     private val getMemberDebtReductionHistoryUseCase: GetMemberDebtReductionHistoryUseCase,
+    private val getCashPoolHistoryUseCase: GetCashPoolHistoryUseCase,
 ) {
     @Get("/groups/{groupId}/balances")
     @Operation(summary = "Get member ledger balances for a group")
@@ -94,6 +97,18 @@ class LedgerController(
             ),
         ).toResponse()
     }
+
+    @Get("/groups/{groupId}/cash-pool/history")
+    @Operation(summary = "Get common cash-pool income distributions and withdrawals for a group")
+    suspend fun getCashPoolHistory(
+        @PathVariable groupId: UUID,
+    ): CashPoolHistoryResponse =
+        getCashPoolHistoryUseCase(
+            GetCashPoolHistoryQuery(
+                group = GroupId(groupId),
+                requestedBy = authenticatedUserProvider.currentAuthenticatedUser().email,
+            ),
+        ).let(CashPoolHistoryPresenter::invoke)
 
     @Get("/groups/{groupId}/members/{memberEmail}/debt-reductions")
     @Operation(summary = "Get the operations that reduced a group member's debt")

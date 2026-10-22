@@ -16,7 +16,12 @@ git_push.sh
 index.ts
 model/api-error-response.ts
 model/cash-pool-balance-response.ts
+model/cash-pool-history-response.ts
+model/cash-pool-income-allocation-response.ts
+model/cash-pool-income-response.ts
+model/cash-pool-operation-response.ts
 model/cash-pool-withdrawal-request.ts
+model/cash-pool-withdrawal-response.ts
 model/create-group-response.ts
 model/cumulative-expense-tier-request.ts
 model/cumulative-tiers-expense-allocation-request.ts

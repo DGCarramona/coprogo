@@ -26,6 +26,8 @@ import { ApiErrorResponseDto } from '../model/api-error-response';
 // @ts-ignore
 import { CashPoolBalanceResponseDto } from '../model/cash-pool-balance-response';
 // @ts-ignore
+import { CashPoolHistoryResponseDto } from '../model/cash-pool-history-response';
+// @ts-ignore
 import { CashPoolWithdrawalRequestDto } from '../model/cash-pool-withdrawal-request';
 // @ts-ignore
 import { GroupBalancesResponseDto } from '../model/group-balances-response';
@@ -131,6 +133,100 @@ export class LedgerService extends BaseService {
     let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/cash-pool/balance`;
     const { basePath, withCredentials } = this.configuration;
     return this.httpClient.request<CashPoolBalanceResponseDto>(
+      'get',
+      `${basePath}${localVarPath}`,
+      {
+        context: localVarHttpContext,
+        responseType: <any>responseType_,
+        ...(withCredentials ? { withCredentials } : {}),
+        headers: localVarHeaders,
+        observe: observe,
+        ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+        reportProgress: reportProgress,
+      },
+    );
+  }
+
+  /**
+   * Get common cash-pool income distributions and withdrawals for a group
+   * @endpoint get /api/groups/{groupId}/cash-pool/history
+   * @param groupId
+   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+   * @param reportProgress flag to report request and response progress.
+   * @param options additional options
+   */
+  public getCashPoolHistory(
+    groupId: string,
+    observe?: 'body',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<CashPoolHistoryResponseDto>;
+  public getCashPoolHistory(
+    groupId: string,
+    observe?: 'response',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpResponse<CashPoolHistoryResponseDto>>;
+  public getCashPoolHistory(
+    groupId: string,
+    observe?: 'events',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpEvent<CashPoolHistoryResponseDto>>;
+  public getCashPoolHistory(
+    groupId: string,
+    observe: any = 'body',
+    reportProgress: boolean = false,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<any> {
+    if (groupId === null || groupId === undefined) {
+      throw new Error(
+        'Required parameter groupId was null or undefined when calling getCashPoolHistory.',
+      );
+    }
+
+    let localVarHeaders = this.defaultHeaders;
+
+    const localVarHttpHeaderAcceptSelected: string | undefined =
+      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
+    if (localVarHttpHeaderAcceptSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+    }
+
+    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+    const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+    let responseType_: 'text' | 'json' | 'blob' = 'json';
+    if (localVarHttpHeaderAcceptSelected) {
+      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+        responseType_ = 'text';
+      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+        responseType_ = 'json';
+      } else {
+        responseType_ = 'blob';
+      }
+    }
+
+    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/cash-pool/history`;
+    const { basePath, withCredentials } = this.configuration;
+    return this.httpClient.request<CashPoolHistoryResponseDto>(
       'get',
       `${basePath}${localVarPath}`,
       {
