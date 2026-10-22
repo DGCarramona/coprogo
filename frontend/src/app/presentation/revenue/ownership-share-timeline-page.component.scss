@@ -1,0 +1,50 @@
+.ownership-share-timeline-page__card {
+  margin-top: 1.5rem;
+}
+
+.ownership-share-timeline-page__card mat-progress-bar {
+  margin-bottom: 1rem;
+}
+
+.ownership-share-timeline-page__timeline {
+  display: grid;
+  gap: 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ownership-share-timeline-page__change {
+  padding-left: 1rem;
+  border-left: 0.25rem solid var(--mat-sys-primary);
+}
+
+.ownership-share-timeline-page__change h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.ownership-share-timeline-page__change > p {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.ownership-share-timeline-page__change dl {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.ownership-share-timeline-page__change dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ownership-share-timeline-page__change dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.ownership-share-timeline-page__change dt {
+  overflow-wrap: anywhere;
+}

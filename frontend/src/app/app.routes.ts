@@ -40,6 +40,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'groups/:groupId/ownership-shares',
+    canActivate: [authenticatedRouteGuard],
+    loadComponent: () =>
+      import('./presentation/revenue/ownership-share-timeline-page.component').then(
+        (module) => module.OwnershipShareTimelinePageComponent,
+      ),
+  },
+  {
     path: 'groups/:groupId/expenses/:expenseId',
     canActivate: [authenticatedRouteGuard],
     loadComponent: () =>

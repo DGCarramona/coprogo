@@ -68,6 +68,18 @@ describe('GroupDashboardPageComponent', () => {
     expect(link).not.toBeNull();
   });
 
+  it('links to the ownership-share history of the ready group', () => {
+    const fixture = createFixture(new StubGroupDashboardPageViewModel());
+
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(
+        'a[href="/groups/group-1/ownership-shares"]',
+      ),
+    ).not.toBeNull();
+  });
+
   it('offers a financial-operation explanation for each member balance', () => {
     const viewModel = new StubGroupDashboardPageViewModel();
     viewModel.memberBalances.set([

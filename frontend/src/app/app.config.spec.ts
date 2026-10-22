@@ -11,6 +11,7 @@ import { NavigationPort } from './application/shared/navigation.port';
 import { ReimbursementListPort } from './application/reimbursement/reimbursement-list.port';
 import { DirectReimbursementRecordingPort } from './application/reimbursement/direct-reimbursement-recording.port';
 import { DocumentedReimbursementDeclarationPort } from './application/reimbursement/documented-reimbursement-declaration.port';
+import { OwnershipShareTimelinePort } from './application/revenue/ownership-share-timeline.port';
 import { ExpenseSupportingDocumentDeletionPort } from './application/supporting-document/expense-supporting-document-deletion.port';
 import { ExpenseSupportingDocumentsPort } from './application/supporting-document/expense-supporting-documents.port';
 import {
@@ -27,6 +28,7 @@ import { HttpGroupMembersGateway } from './infrastructure/group/http-group-membe
 import { HttpReimbursementListGateway } from './infrastructure/reimbursement/http-reimbursement-list.gateway';
 import { HttpDirectReimbursementRecordingGateway } from './infrastructure/reimbursement/http-direct-reimbursement-recording.gateway';
 import { HttpDocumentedReimbursementDeclarationGateway } from './infrastructure/reimbursement/http-documented-reimbursement-declaration.gateway';
+import { HttpOwnershipShareTimelineGateway } from './infrastructure/revenue/http-ownership-share-timeline.gateway';
 import { RouterNavigationAdapter } from './infrastructure/router/router-navigation.adapter';
 import { HttpSignedSupportingDocumentUploaderGateway } from './infrastructure/supporting-document/http-signed-supporting-document-uploader.gateway';
 import { HttpSupportingDocumentUploadControlPlaneGateway } from './infrastructure/supporting-document/http-supporting-document-upload-control-plane.gateway';
@@ -84,6 +86,11 @@ const portBindings: readonly {
     name: 'documented reimbursement declaration',
     port: DocumentedReimbursementDeclarationPort,
     adapter: HttpDocumentedReimbursementDeclarationGateway,
+  },
+  {
+    name: 'ownership share timeline',
+    port: OwnershipShareTimelinePort,
+    adapter: HttpOwnershipShareTimelineGateway,
   },
   {
     name: 'SHA-256 checksum',

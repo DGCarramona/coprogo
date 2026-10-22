@@ -1,0 +1,49 @@
+<app-authenticated-shell
+  eyebrow="Revenus du groupe"
+  title="Historique des quotes-parts"
+  description="Consultez comment les revenus sont répartis entre les membres à chaque date d’effet."
+>
+  @if (viewModel.groupId !== null) {
+    <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId, 'dashboard']">
+      Retour au groupe
+    </a>
+  }
+
+  <mat-card class="material-card ownership-share-timeline-page__card" appearance="outlined">
+    <mat-card-content>
+      @if (viewModel.isLoading()) {
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        <p>Chargement de l’historique...</p>
+      } @else if (viewModel.hasLoadError()) {
+        <p role="alert">{{ viewModel.errorMessage() }}</p>
+        @if (viewModel.groupId !== null) {
+          <button mat-flat-button type="button" (click)="viewModel.retry()">Réessayer</button>
+        }
+      } @else if (viewModel.isReady() && viewModel.changes().length === 0) {
+        <p>Aucune répartition des revenus n’a encore été enregistrée.</p>
+      } @else {
+        <ol class="ownership-share-timeline-page__timeline">
+          @for (change of viewModel.changes(); track change.id) {
+            <li>
+              <article class="ownership-share-timeline-page__change">
+                <h2>Répartition applicable à partir du {{ change.effectiveDate }}</h2>
+                <p>
+                  Enregistrée par <strong>{{ change.recordedBy }}</strong> le
+                  {{ change.recordedAt }}
+                </p>
+                <dl>
+                  @for (share of change.shares; track share.member) {
+                    <div>
+                      <dt>{{ share.member }}</dt>
+                      <dd>{{ share.percentage }}</dd>
+                    </div>
+                  }
+                </dl>
+              </article>
+            </li>
+          }
+        </ol>
+      }
+    </mat-card-content>
+  </mat-card>
+</app-authenticated-shell>

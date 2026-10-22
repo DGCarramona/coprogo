@@ -12,4 +12,8 @@ describe('routes', () => {
   it('exposes the reimbursement history within its group', () => {
     expect(routes.map((route) => route.path)).toContain('groups/:groupId/reimbursements');
   });
+
+  it('exposes the ownership-share timeline within its group', () => {
+    expect(routes.map((route) => route.path)).toContain('groups/:groupId/ownership-shares');
+  });
 });
