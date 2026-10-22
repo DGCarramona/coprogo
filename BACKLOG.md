@@ -21,7 +21,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 
 ## Ordre de travail actuel
 
-1. BE-LED-010 : exposer l'endpoint REST d'historique unifie des reductions de dette.
+1. BE-LED-011 : ajouter des tests d'integration sur projections, retraits et historique unifie.
 
 ## Fondations monorepo et DX
 
@@ -112,7 +112,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 - [x] BE-LED-007 Implementer la compensation automatique quand un retrait depasse la part propre de revenu du membre.
 - [x] BE-LED-008 Exposer l'endpoint REST de retrait de caisse commune.
 - [x] BE-LED-009 Construire une requete applicative "qu'est-ce qui a reduit la dette d'un membre".
-- [ ] BE-LED-010 Exposer l'endpoint REST d'historique unifie des reductions de dette.
+- [x] BE-LED-010 Exposer l'endpoint REST d'historique unifie des reductions de dette.
 - [ ] BE-LED-011 Ajouter des tests d'integration sur projections, retraits et historique unifie.
 
 ## Backend - justificatifs, audit et traceabilite

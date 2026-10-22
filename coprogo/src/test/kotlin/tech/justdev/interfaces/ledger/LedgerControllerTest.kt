@@ -10,11 +10,14 @@ import tech.justdev.application.group.GroupAccessPolicy
 import tech.justdev.application.ledger.GetCashPoolBalanceUseCase
 import tech.justdev.application.ledger.GetGroupBalancesUseCase
 import tech.justdev.application.ledger.GetMemberCashPoolSharesUseCase
+import tech.justdev.application.ledger.GetMemberDebtReductionHistoryQuery
+import tech.justdev.application.ledger.GetMemberDebtReductionHistoryUseCase
 import tech.justdev.application.ledger.WithdrawFromCashPoolCommand
 import tech.justdev.application.ledger.WithdrawFromCashPoolUseCase
 import tech.justdev.application.support.InMemoryGroupRepository
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.ledger.event.LedgerEvent
+import tech.justdev.domain.ledger.projection.MemberDebtReduction
 import tech.justdev.domain.ledger.repository.LedgerEventRepository
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.domain.shared.valueobject.GroupId
@@ -23,7 +26,36 @@ import java.time.Instant
 
 class LedgerControllerTest {
     private val withdrawalUseCase = WithdrawFromCashPoolUseCaseFake()
-    private val controller = controller(withdrawalUseCase)
+    private val debtReductionHistoryUseCase = GetMemberDebtReductionHistoryUseCaseFake()
+    private val controller = controller(withdrawalUseCase, debtReductionHistoryUseCase)
+
+    @Nested
+    inner class GetMemberDebtReductionHistory {
+        @Test
+        fun `should return the requested member history on behalf of the authenticated member`() =
+            runTest {
+                val group = testUuid("debt-reduction-history-group")
+
+                val response = controller.getMemberDebtReductionHistory(group, "target@example.com")
+
+                assertEquals(
+                    GetMemberDebtReductionHistoryQuery(
+                        group = GroupId(group),
+                        member = MemberEmail.of("target@example.com"),
+                        requestedBy = MemberEmail.of("member@example.com"),
+                    ),
+                    debtReductionHistoryUseCase.query,
+                )
+                assertEquals(
+                    MemberDebtReductionHistoryResponse(
+                        group = group,
+                        member = "target@example.com",
+                        reductions = emptyList(),
+                    ),
+                    response,
+                )
+            }
+    }
 
     @Nested
     inner class WithdrawFromCashPool {
@@ -52,7 +84,10 @@ class LedgerControllerTest {
             }
     }
 
-    private fun controller(withdrawalUseCase: WithdrawFromCashPoolUseCase): LedgerController {
+    private fun controller(
+        withdrawalUseCase: WithdrawFromCashPoolUseCase,
+        debtReductionHistoryUseCase: GetMemberDebtReductionHistoryUseCase,
+    ): LedgerController {
         val groupAccessPolicy = GroupAccessPolicy(InMemoryGroupRepository())
         val ledgerEventRepository = EmptyLedgerEventRepository()
         return LedgerController(
@@ -61,6 +96,7 @@ class LedgerControllerTest {
             getCashPoolBalanceUseCase = GetCashPoolBalanceUseCase(groupAccessPolicy, ledgerEventRepository),
             getMemberCashPoolSharesUseCase = GetMemberCashPoolSharesUseCase(groupAccessPolicy, ledgerEventRepository),
             withdrawFromCashPoolUseCase = withdrawalUseCase,
+            getMemberDebtReductionHistoryUseCase = debtReductionHistoryUseCase,
         )
     }
 
@@ -73,6 +109,15 @@ class LedgerControllerTest {
 
         override suspend fun invoke(command: WithdrawFromCashPoolCommand) {
             this.command = command
+        }
+    }
+
+    private class GetMemberDebtReductionHistoryUseCaseFake : GetMemberDebtReductionHistoryUseCase {
+        var query: GetMemberDebtReductionHistoryQuery? = null
+
+        override suspend fun invoke(query: GetMemberDebtReductionHistoryQuery): List<MemberDebtReduction> {
+            this.query = query
+            return emptyList()
         }
     }
 

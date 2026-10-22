@@ -23,12 +23,15 @@ import tech.justdev.application.ledger.GetGroupBalancesQuery
 import tech.justdev.application.ledger.GetGroupBalancesUseCase
 import tech.justdev.application.ledger.GetMemberCashPoolSharesQuery
 import tech.justdev.application.ledger.GetMemberCashPoolSharesUseCase
+import tech.justdev.application.ledger.GetMemberDebtReductionHistoryQuery
+import tech.justdev.application.ledger.GetMemberDebtReductionHistoryUseCase
 import tech.justdev.application.ledger.GroupBalancesSnapshot
 import tech.justdev.application.ledger.GroupMemberBalanceSnapshot
 import tech.justdev.application.ledger.GroupMemberCashPoolSharesSnapshot
 import tech.justdev.application.ledger.MemberCashPoolShareSnapshot
 import tech.justdev.application.ledger.WithdrawFromCashPoolCommand
 import tech.justdev.application.ledger.WithdrawFromCashPoolUseCase
+import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.domain.shared.valueobject.GroupId
 import tech.justdev.interfaces.ApiErrorResponse
@@ -45,6 +48,7 @@ class LedgerController(
     private val getCashPoolBalanceUseCase: GetCashPoolBalanceUseCase,
     private val getMemberCashPoolSharesUseCase: GetMemberCashPoolSharesUseCase,
     private val withdrawFromCashPoolUseCase: WithdrawFromCashPoolUseCase,
+    private val getMemberDebtReductionHistoryUseCase: GetMemberDebtReductionHistoryUseCase,
 ) {
     @Get("/groups/{groupId}/balances")
     @Operation(summary = "Get member ledger balances for a group")
@@ -89,6 +93,24 @@ class LedgerController(
                 requestedBy = authenticatedUser.email,
             ),
         ).toResponse()
+    }
+
+    @Get("/groups/{groupId}/members/{memberEmail}/debt-reductions")
+    @Operation(summary = "Get the operations that reduced a group member's debt")
+    suspend fun getMemberDebtReductionHistory(
+        @PathVariable groupId: UUID,
+        @PathVariable memberEmail: String,
+    ): MemberDebtReductionHistoryResponse {
+        val group = GroupId(groupId)
+        val member = MemberEmail.of(memberEmail)
+
+        return getMemberDebtReductionHistoryUseCase(
+            GetMemberDebtReductionHistoryQuery(
+                group = group,
+                member = member,
+                requestedBy = authenticatedUserProvider.currentAuthenticatedUser().email,
+            ),
+        ).let { reductions -> MemberDebtReductionPresenter(group, member, reductions) }
     }
 
     @Post("/groups/{groupId}/cash-pool-withdrawals")
