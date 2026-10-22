@@ -80,6 +80,18 @@ describe('GroupDashboardPageComponent', () => {
     ).not.toBeNull();
   });
 
+  it('links to the revenue-distribution preview of the ready group', () => {
+    const fixture = createFixture(new StubGroupDashboardPageViewModel());
+
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(
+        'a[href="/groups/group-1/revenue-distribution/preview"]',
+      ),
+    ).not.toBeNull();
+  });
+
   it('offers a financial-operation explanation for each member balance', () => {
     const viewModel = new StubGroupDashboardPageViewModel();
     viewModel.memberBalances.set([

@@ -5,6 +5,7 @@ import {
   OwnershipShareChangePort,
   type OwnershipShareChangeCommand,
 } from '../../application/revenue/ownership-share-change.port';
+import { formatLocalDate } from '../../shared/format/local-date';
 import { RevenueDistributionService } from '../api/generated';
 import { toApiClientError } from '../api/api-client.error';
 
@@ -18,7 +19,7 @@ export class HttpOwnershipShareChangeGateway extends OwnershipShareChangePort {
     await firstValueFrom(
       this.revenueDistributionService
         .recordOwnershipShareChange(command.groupId, {
-          effectiveDate: toLocalDateText(command.effectiveDate),
+          effectiveDate: formatLocalDate(command.effectiveDate),
           shares: [...command.shares],
         })
         .pipe(
@@ -30,8 +31,3 @@ export class HttpOwnershipShareChangeGateway extends OwnershipShareChangePort {
     );
   }
 }
-
-const toLocalDateText = (date: Date): string =>
-  [date.getFullYear(), date.getMonth() + 1, date.getDate()]
-    .map((part, index) => part.toString().padStart(index === 0 ? 4 : 2, '0'))
-    .join('-');

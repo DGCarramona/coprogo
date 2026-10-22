@@ -48,6 +48,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'groups/:groupId/revenue-distribution/preview',
+    canActivate: [authenticatedRouteGuard],
+    loadComponent: () =>
+      import('./presentation/revenue/revenue-distribution-preview-page.component').then(
+        (module) => module.RevenueDistributionPreviewPageComponent,
+      ),
+  },
+  {
     path: 'groups/:groupId/expenses/:expenseId',
     canActivate: [authenticatedRouteGuard],
     loadComponent: () =>

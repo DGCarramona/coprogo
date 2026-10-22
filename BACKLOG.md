@@ -220,7 +220,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 
 - [x] FE-REV-001 Creer la page de timeline des quotes-parts.
 - [x] FE-REV-002 Creer le formulaire de changement de quotes-parts avec date d'effet.
-- [ ] FE-REV-003 Creer la page de preview de distribution de revenus a partir de l'API existante.
+- [x] FE-REV-003 Creer la page de preview de distribution de revenus a partir de l'API existante.
 - [ ] FE-REV-004 Creer le formulaire d'enregistrement d'un revenu entrant.
 - [ ] FE-REV-005 Creer le formulaire de distribution effective d'un revenu.
 - [ ] FE-REV-006 Creer le formulaire de retrait de la caisse commune.

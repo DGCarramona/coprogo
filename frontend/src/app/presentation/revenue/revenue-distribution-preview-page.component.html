@@ -1,0 +1,71 @@
+<app-authenticated-shell
+  eyebrow="Revenus du groupe"
+  title="Prévisualiser une répartition"
+  description="Vérifiez comment un revenu serait réparti selon les quotes-parts applicables à une date donnée."
+>
+  @if (viewModel.groupId === null) {
+    <p role="alert">{{ viewModel.routeErrorMessage }}</p>
+  } @else {
+    <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId, 'dashboard']">
+      Retour au groupe
+    </a>
+
+    <mat-card class="material-card revenue-distribution-preview-page__card" appearance="outlined">
+      <mat-card-content>
+        @if (viewModel.hasPreviewError()) {
+          <p role="alert">{{ viewModel.previewErrorMessage() }}</p>
+        }
+
+        <form [formRoot]="viewModel.form">
+          <p>
+            <label for="revenue-distribution-amount">Montant à répartir en euros</label>
+            <input
+              id="revenue-distribution-amount"
+              type="text"
+              inputmode="decimal"
+              aria-label="Montant à répartir en euros"
+              [formField]="viewModel.form.amountInEuros"
+            />
+          </p>
+          <p>
+            <label for="revenue-distribution-date">Date de répartition</label>
+            <input
+              id="revenue-distribution-date"
+              type="date"
+              aria-label="Date de répartition"
+              [formField]="viewModel.form.effectiveDate"
+            />
+          </p>
+          <button
+            mat-flat-button
+            type="submit"
+            [disabled]="viewModel.form().invalid() || viewModel.isPreviewing()"
+          >
+            Prévisualiser la répartition
+          </button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    @if (viewModel.preview(); as preview) {
+      <mat-card class="material-card revenue-distribution-preview-page__card" appearance="outlined">
+        <mat-card-header>
+          <mat-card-title>Répartition du {{ preview.totalAmount }}</mat-card-title>
+          <mat-card-subtitle
+            >Quotes-parts applicables le {{ preview.effectiveDate }}</mat-card-subtitle
+          >
+        </mat-card-header>
+        <mat-card-content>
+          <dl class="revenue-distribution-preview-page__allocations">
+            @for (allocation of preview.allocations; track allocation.member) {
+              <div>
+                <dt>{{ allocation.member }}</dt>
+                <dd>{{ allocation.amount }}</dd>
+              </div>
+            }
+          </dl>
+        </mat-card-content>
+      </mat-card>
+    }
+  }
+</app-authenticated-shell>

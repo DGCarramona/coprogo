@@ -6,6 +6,7 @@ import type {
   OwnershipShareChange,
   OwnershipShareTimeline,
 } from '../../domain/revenue/ownership-share-timeline';
+import { parseLocalDate } from '../../shared/format/local-date';
 import type {
   OwnershipShareChangeResponseDto,
   OwnershipShareTimelineResponseDto,
@@ -47,7 +48,7 @@ const toTimeline = (
 
 const toChange = (response: OwnershipShareChangeResponseDto): OwnershipShareChange => ({
   id: response.change,
-  effectiveDate: toLocalDate(response.effectiveDate),
+  effectiveDate: requireLocalDate(response.effectiveDate),
   recordedBy: response.recordedBy,
   recordedAt: toDate(response.recordedAt, 'Date d enregistrement des quotes-parts invalide'),
   shares: response.shares.map((share) => ({
@@ -56,19 +57,9 @@ const toChange = (response: OwnershipShareChangeResponseDto): OwnershipShareChan
   })),
 });
 
-const toLocalDate = (value: string): Date => {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (match === null) throw invalidEffectiveDate(value);
-
-  const [, yearText, monthText, dayText] = match;
-  const year = Number(yearText);
-  const month = Number(monthText);
-  const day = Number(dayText);
-  const date = new Date(year, month - 1, day);
-  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
-    throw invalidEffectiveDate(value);
-  }
-
+const requireLocalDate = (value: string): Date => {
+  const date = parseLocalDate(value);
+  if (date === null) throw invalidEffectiveDate(value);
   return date;
 };
 
