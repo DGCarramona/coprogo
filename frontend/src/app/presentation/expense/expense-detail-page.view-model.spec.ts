@@ -163,6 +163,19 @@ describe('ExpenseDetailPageViewModel', () => {
         true,
       );
     });
+
+    it('does not call the decision port when the backend denies the capability', async () => {
+      port.result = expenseDetail({ canDecideParticipation: false });
+      const viewModel = createViewModel(routeWith('group-1', 'expense-1'));
+      await waitFor(() => viewModel.isReady());
+
+      await viewModel.approve();
+
+      expect(decisionPort.approvals).toEqual([]);
+      expect(viewModel.decisionError()).toBe(
+        'Aucune participation en attente ne peut être validée.',
+      );
+    });
   });
 
   describe('refuse', () => {

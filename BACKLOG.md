@@ -203,7 +203,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 - [x] FE-EXP-007B Raccorder l'allocation `Custom` au Signal Form et a l'interface.
 - [x] FE-EXP-008 Ajouter l'action d'approbation ou refus de sa propre participation.
 - [x] FE-EXP-009 Afficher clairement qu'une depense refusee reste invalidee et doit etre remplacee par une nouvelle depense.
-- [ ] FE-EXP-010 Ajouter les tests de ViewModel, mapping et composants critiques des depenses.
+- [x] FE-EXP-010 Ajouter les tests de ViewModel, mapping et composants critiques des depenses.
 
 ## Frontend - remboursements
 
