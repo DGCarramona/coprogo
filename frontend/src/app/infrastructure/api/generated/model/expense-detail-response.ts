@@ -14,6 +14,7 @@ export interface ExpenseDetailResponseDto {
   id: string;
   title: string;
   createdBy: string;
+  canDecideParticipation: boolean;
   totalAmountCents: number;
   createdAt: string;
   status: string;

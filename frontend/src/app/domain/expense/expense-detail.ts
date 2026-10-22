@@ -12,6 +12,7 @@ export interface ExpenseDetail {
   readonly id: string;
   readonly title: string;
   readonly createdBy: string;
+  readonly canDecideParticipation: boolean;
   readonly totalAmountInCents: number;
   readonly createdAt: Date;
   readonly status: ExpenseStatus;

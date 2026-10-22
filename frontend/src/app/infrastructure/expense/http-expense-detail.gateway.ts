@@ -37,6 +37,7 @@ const toExpenseDetail = (response: ExpenseDetailResponseDto): ExpenseDetail => (
   id: response.id,
   title: response.title,
   createdBy: response.createdBy,
+  canDecideParticipation: response.canDecideParticipation,
   totalAmountInCents: response.totalAmountCents,
   createdAt: toExpenseCreationDate(response.createdAt),
   status: toExpenseStatus(response.status),

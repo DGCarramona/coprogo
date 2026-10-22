@@ -201,7 +201,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 - [x] FE-EXP-006R Extraire les modeles et regles pures des formulaires `EqualWithCaps` et `CumulativeTiers`.
 - [x] FE-EXP-007A Ajouter le modele pur, la validation et le mapping de l'allocation `Custom`.
 - [x] FE-EXP-007B Raccorder l'allocation `Custom` au Signal Form et a l'interface.
-- [ ] FE-EXP-008 Ajouter l'action d'approbation ou refus de sa propre participation.
+- [x] FE-EXP-008 Ajouter l'action d'approbation ou refus de sa propre participation.
 - [ ] FE-EXP-009 Afficher clairement l'invalidation d'une depense refusee et la necessite de ressaisie.
 - [ ] FE-EXP-010 Ajouter les tests de ViewModel, mapping et composants critiques des depenses.
 

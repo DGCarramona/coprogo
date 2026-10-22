@@ -2,6 +2,7 @@ package tech.justdev.application.expense
 
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import tech.justdev.application.group.GroupAccessDeniedException
@@ -26,6 +27,7 @@ import java.time.Instant
 class GetExpenseDetailUseCaseTest {
     private val group = groupId("expense-detail-group")
     private val requestedBy = MemberEmail.of("owner@example.com")
+    private val pendingMember = MemberEmail.of("pending@example.com")
     private val outsider = MemberEmail.of("outsider@example.com")
     private val groupRepository = InMemoryGroupRepository(listOf(testGroup()))
     private val groupAccessPolicy = GroupAccessPolicy(groupRepository)
@@ -57,6 +59,7 @@ class GetExpenseDetailUseCaseTest {
                     totalAmount = MoneyAmount.ofCents(6_000),
                     createdAt = Instant.parse("2026-07-01T10:00:00Z"),
                     status = ExpenseStatus.INVALIDATED,
+                    canDecideParticipation = false,
                     refusal =
                         ExpenseRefusalSnapshot(
                             member = MemberEmail.of("refused@example.com"),
@@ -88,6 +91,22 @@ class GetExpenseDetailUseCaseTest {
                 ),
                 snapshot,
             )
+        }
+
+    @Test
+    fun `should expose the authenticated member participation decision capability`() =
+        runTest {
+            val expense = expense(group = group, refusedStatus = ExpenseParticipationStatus.Pending)
+            val useCase =
+                GetExpenseDetailUseCaseImpl(
+                    expenseRepository = InMemoryExpenseRepository(listOf(expense)),
+                    groupAccessPolicy = groupAccessPolicy,
+                )
+
+            val snapshot =
+                useCase(GetExpenseDetailQuery(group = group, id = expense.id, requestedBy = pendingMember))
+
+            assertTrue(snapshot.canDecideParticipation)
         }
 
     @Test
@@ -168,11 +187,15 @@ class GetExpenseDetailUseCaseTest {
     }
 
     private fun testGroup(): Group =
-        Group.create(
-            id = group,
-            createdBy = requestedBy,
-            createdAt = Instant.parse("2026-06-01T08:00:00Z"),
-        )
+        Group
+            .create(
+                id = group,
+                createdBy = requestedBy,
+                createdAt = Instant.parse("2026-06-01T08:00:00Z"),
+            ).addMember(
+                pendingMember,
+                Instant.parse("2026-06-02T08:00:00Z"),
+            )
 
     private fun expense(
         group: GroupId,

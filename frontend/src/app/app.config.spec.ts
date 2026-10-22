@@ -4,6 +4,7 @@ import { QueryClient } from '@tanstack/angular-query-experimental';
 
 import { ExpenseProposalPort } from './application/expense/expense-proposal.port';
 import { ExpenseDetailPort } from './application/expense/expense-detail.port';
+import { ExpenseParticipationDecisionPort } from './application/expense/expense-participation-decision.port';
 import { MemberDebtReductionHistoryPort } from './application/ledger/member-debt-reduction-history.port';
 import { GroupMembersPort } from './application/group/group-members.port';
 import { NavigationPort } from './application/shared/navigation.port';
@@ -20,6 +21,7 @@ import {
 import { UploadSupportingDocument } from './application/supporting-document/upload-supporting-document.use-case';
 import { HttpExpenseProposalGateway } from './infrastructure/expense/http-expense-proposal.gateway';
 import { HttpExpenseDetailGateway } from './infrastructure/expense/http-expense-detail.gateway';
+import { HttpExpenseParticipationDecisionGateway } from './infrastructure/expense/http-expense-participation-decision.gateway';
 import { HttpMemberDebtReductionHistoryGateway } from './infrastructure/ledger/http-member-debt-reduction-history.gateway';
 import { HttpGroupMembersGateway } from './infrastructure/group/http-group-members.gateway';
 import { HttpReimbursementListGateway } from './infrastructure/reimbursement/http-reimbursement-list.gateway';
@@ -47,6 +49,11 @@ const portBindings: readonly {
     name: 'expense detail',
     port: ExpenseDetailPort,
     adapter: HttpExpenseDetailGateway,
+  },
+  {
+    name: 'expense participation decision',
+    port: ExpenseParticipationDecisionPort,
+    adapter: HttpExpenseParticipationDecisionGateway,
   },
   {
     name: 'navigation',

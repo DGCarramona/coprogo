@@ -31,6 +31,7 @@ data class ExpenseDetailSnapshot(
     val totalAmount: MoneyAmount,
     val createdAt: Instant,
     val status: ExpenseStatus,
+    val canDecideParticipation: Boolean,
     val participations: List<ExpenseDetailParticipationSnapshot>,
     val refusal: ExpenseRefusalSnapshot? = null,
 )
@@ -56,11 +57,11 @@ class GetExpenseDetailUseCaseImpl(
             expenseRepository.findByIdAndGroup(query.id, query.group)
                 ?: throw ExpenseNotFoundException(query.id, query.group)
 
-        return expense.toDetailSnapshot()
+        return expense.toDetailSnapshot(query.requestedBy)
     }
 }
 
-internal fun Expense.toDetailSnapshot(): ExpenseDetailSnapshot =
+internal fun Expense.toDetailSnapshot(requestedBy: MemberEmail): ExpenseDetailSnapshot =
     ExpenseDetailSnapshot(
         id = id,
         title = title,
@@ -68,6 +69,7 @@ internal fun Expense.toDetailSnapshot(): ExpenseDetailSnapshot =
         totalAmount = totalAmount,
         createdAt = createdAt,
         status = status,
+        canDecideParticipation = canRecordParticipationDecisionBy(requestedBy),
         refusal = toRefusalSnapshot(),
         participations =
             participations

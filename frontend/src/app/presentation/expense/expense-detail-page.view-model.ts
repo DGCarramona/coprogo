@@ -1,8 +1,9 @@
-import { computed, Injectable, Injector } from '@angular/core';
+import { computed, Injectable, Injector, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { injectQuery } from '@tanstack/angular-query-experimental';
+import { injectMutation, injectQuery, QueryClient } from '@tanstack/angular-query-experimental';
 
 import { ExpenseDetailPort } from '../../application/expense/expense-detail.port';
+import { ExpenseParticipationDecisionPort } from '../../application/expense/expense-participation-decision.port';
 import { describeError } from '../../application/shared/describe-error';
 import type {
   ExpenseDetail,
@@ -23,6 +24,7 @@ export interface ExpenseDetailViewItem {
   readonly id: string;
   readonly title: string;
   readonly createdBy: string;
+  readonly canDecideParticipation: boolean;
   readonly totalAmount: string;
   readonly createdAt: string;
   readonly statusLabel: string;
@@ -34,6 +36,10 @@ export class ExpenseDetailPageViewModel {
   readonly groupId: string | null;
   readonly expenseId: string | null;
   private readonly detailQuery;
+  private readonly approvalMutation;
+  private readonly refusalMutation;
+  private readonly decisionErrorState = signal<string | null>(null);
+  readonly rejectionReason = signal('');
 
   readonly detail = computed<ExpenseDetailViewItem | null>(() => this.detailQuery.data() ?? null);
   readonly isLoading = computed(() => this.hasRouteTarget() && this.detailQuery.isLoading());
@@ -45,10 +51,17 @@ export class ExpenseDetailPageViewModel {
     const error = this.detailQuery.error();
     return error === null ? null : describeError(error, 'La dépense n’a pas pu être chargée.');
   });
+  readonly canDecide = computed(() => this.detail()?.canDecideParticipation ?? false);
+  readonly isDeciding = computed(
+    () => this.approvalMutation.isPending() || this.refusalMutation.isPending(),
+  );
+  readonly decisionError = this.decisionErrorState.asReadonly();
 
   constructor(
     route: ActivatedRoute,
     private readonly detailPort: ExpenseDetailPort,
+    private readonly decisionPort: ExpenseParticipationDecisionPort,
+    private readonly queryClient: QueryClient,
     injector: Injector,
   ) {
     this.groupId = route.snapshot.paramMap.get('groupId');
@@ -69,21 +82,95 @@ export class ExpenseDetailPageViewModel {
       }),
       { injector },
     );
+    this.approvalMutation = injectMutation<void, Error, ExpenseDecisionTarget>(
+      () => ({
+        mutationFn: ({ groupId, expenseId }) => this.decisionPort.approve(groupId, expenseId),
+        onSuccess: (_, target) => this.refreshExpenseQueries(target),
+      }),
+      { injector },
+    );
+    this.refusalMutation = injectMutation<void, Error, ExpenseRefusalTarget>(
+      () => ({
+        mutationFn: ({ groupId, expenseId, reason }) =>
+          this.decisionPort.refuse(groupId, expenseId, reason),
+        onSuccess: (_, target) => this.refreshExpenseQueries(target),
+      }),
+      { injector },
+    );
   }
 
   retry(): void {
     void this.detailQuery.refetch();
   }
 
+  async approve(): Promise<void> {
+    await this.decide((target) => this.approvalMutation.mutateAsync(target));
+  }
+
+  async refuse(): Promise<void> {
+    const enteredReason = this.rejectionReason().trim();
+    await this.decide((target) =>
+      this.refusalMutation.mutateAsync({
+        ...target,
+        reason: enteredReason.length === 0 ? null : enteredReason,
+      }),
+    );
+  }
+
   private hasRouteTarget(): boolean {
     return this.groupId !== null && this.expenseId !== null;
   }
+
+  private async decide(action: (target: ExpenseDecisionTarget) => Promise<void>): Promise<void> {
+    this.decisionErrorState.set(null);
+    const target = this.decisionTarget();
+    if (target === null) {
+      this.decisionErrorState.set('Aucune participation en attente ne peut être validée.');
+      return;
+    }
+
+    try {
+      await action(target);
+    } catch (error) {
+      this.decisionErrorState.set(
+        describeError(error, 'La décision sur la participation n’a pas pu être enregistrée.'),
+      );
+    }
+  }
+
+  private decisionTarget(): ExpenseDecisionTarget | null {
+    if (!this.canDecide() || this.groupId === null || this.expenseId === null) return null;
+    return { groupId: this.groupId, expenseId: this.expenseId };
+  }
+
+  private async refreshExpenseQueries(target: ExpenseDecisionTarget): Promise<void> {
+    await Promise.all([
+      this.queryClient.invalidateQueries({
+        queryKey: ['groups', target.groupId, 'expenses', target.expenseId],
+        exact: true,
+      }),
+      this.queryClient.invalidateQueries({
+        queryKey: ['groups', target.groupId, 'expenses'],
+        exact: true,
+      }),
+    ]);
+  }
+}
+
+interface ExpenseDecisionTarget {
+  readonly groupId: string;
+  readonly expenseId: string;
+}
+
+interface ExpenseRefusalTarget extends ExpenseDecisionTarget {
+  readonly reason: string | null;
 }
 
 const toViewItem = (detail: ExpenseDetail): ExpenseDetailViewItem => ({
   id: detail.id,
   title: detail.title,
   createdBy: detail.createdBy,
+  canDecideParticipation: detail.canDecideParticipation,
   totalAmount: formatMoneyFromCents(detail.totalAmountInCents),
   createdAt: formatDate(detail.createdAt),
   statusLabel: expenseStatusLabel(detail.status),

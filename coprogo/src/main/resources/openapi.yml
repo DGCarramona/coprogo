@@ -1079,6 +1079,7 @@ components:
       required:
       - createdAt
       - createdBy
+      - canDecideParticipation
       - id
       - participations
       - status
@@ -1093,6 +1094,8 @@ components:
           type: string
         createdBy:
           type: string
+        canDecideParticipation:
+          type: boolean
         totalAmountCents:
           type: integer
           format: int64

@@ -501,6 +501,53 @@ class ExpenseTest {
     }
 
     @Nested
+    inner class CanRecordParticipationDecisionBy {
+        @Test
+        fun `should allow a pending participant while the expense is proposed`() {
+            assertTrue(proposedExpense().canRecordParticipationDecisionBy(memberEmail("bob")))
+        }
+
+        @Test
+        fun `should deny the creator and a non participant`() {
+            val expense = proposedExpense()
+
+            assertEquals(
+                listOf(false, false),
+                listOf(
+                    expense.canRecordParticipationDecisionBy(memberEmail("alice")),
+                    expense.canRecordParticipationDecisionBy(memberEmail("outsider")),
+                ),
+            )
+        }
+
+        @Test
+        fun `should deny a pending participant after another participant invalidates the expense`() {
+            val expense =
+                Expense
+                    .propose(
+                        id = expenseId("expense-with-refusal"),
+                        group = groupId("group-1"),
+                        title = "Plumber invoice",
+                        createdBy = memberEmail("alice"),
+                        totalAmount = MoneyAmount.ofCents(100),
+                        createdAt = Instant.parse("2026-04-03T10:00:00Z"),
+                        shares =
+                            setOf(
+                                ExpenseShare(memberEmail("alice"), MoneyAmount.ofCents(40)),
+                                ExpenseShare(memberEmail("bob"), MoneyAmount.ofCents(30)),
+                                ExpenseShare(memberEmail("carol"), MoneyAmount.ofCents(30)),
+                            ),
+                    ).recordParticipationDecision(
+                        member = memberEmail("bob"),
+                        decision = ExpenseParticipationDecision.REFUSE,
+                        decidedAt = Instant.parse("2026-04-03T12:00:00Z"),
+                    )
+
+            assertTrue(!expense.canRecordParticipationDecisionBy(memberEmail("carol")))
+        }
+    }
+
+    @Nested
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     inner class RequireSupportingDocumentChangeBy {
         private fun deniedDocumentChanges() = documentChangeDeniedCases()

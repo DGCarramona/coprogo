@@ -4,6 +4,7 @@ import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-exper
 
 import { ExpenseListPort } from './application/expense/expense-list.port';
 import { ExpenseDetailPort } from './application/expense/expense-detail.port';
+import { ExpenseParticipationDecisionPort } from './application/expense/expense-participation-decision.port';
 import { ExpenseProposalPort } from './application/expense/expense-proposal.port';
 import { ReimbursementListPort } from './application/reimbursement/reimbursement-list.port';
 import { DirectReimbursementRecordingPort } from './application/reimbursement/direct-reimbursement-recording.port';
@@ -30,6 +31,7 @@ import { BrowserGoogleIdTokenStore } from './infrastructure/auth/google/browser-
 import { BrowserGoogleIdentityAdapter } from './infrastructure/auth/google/browser-google-identity.adapter';
 import { HttpExpenseListGateway } from './infrastructure/expense/http-expense-list.gateway';
 import { HttpExpenseDetailGateway } from './infrastructure/expense/http-expense-detail.gateway';
+import { HttpExpenseParticipationDecisionGateway } from './infrastructure/expense/http-expense-participation-decision.gateway';
 import { HttpExpenseProposalGateway } from './infrastructure/expense/http-expense-proposal.gateway';
 import { HttpReimbursementListGateway } from './infrastructure/reimbursement/http-reimbursement-list.gateway';
 import { HttpDirectReimbursementRecordingGateway } from './infrastructure/reimbursement/http-direct-reimbursement-recording.gateway';
@@ -90,6 +92,10 @@ export const appConfig: ApplicationConfig = {
     {
       provide: ExpenseDetailPort,
       useExisting: HttpExpenseDetailGateway,
+    },
+    {
+      provide: ExpenseParticipationDecisionPort,
+      useExisting: HttpExpenseParticipationDecisionGateway,
     },
     {
       provide: ExpenseListPort,

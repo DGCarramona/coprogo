@@ -24,4 +24,8 @@ import { ExpenseDetailPageViewModel } from './expense-detail-page.view-model';
 })
 export class ExpenseDetailPageComponent {
   constructor(protected readonly viewModel: ExpenseDetailPageViewModel) {}
+
+  protected updateRejectionReason(event: Event): void {
+    this.viewModel.rejectionReason.set((event.target as HTMLTextAreaElement).value);
+  }
 }

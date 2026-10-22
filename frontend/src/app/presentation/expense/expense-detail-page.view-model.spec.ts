@@ -4,19 +4,22 @@ import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 
 import { ExpenseDetailPort } from '../../application/expense/expense-detail.port';
+import { ExpenseParticipationDecisionPort } from '../../application/expense/expense-participation-decision.port';
 import type { ExpenseDetail } from '../../domain/expense/expense-detail';
 import { ExpenseDetailPageViewModel } from './expense-detail-page.view-model';
 
 describe('ExpenseDetailPageViewModel', () => {
   let port: StubExpenseDetailPort;
+  let decisionPort: StubExpenseParticipationDecisionPort;
+  let queryClient: QueryClient;
   let injector: Injector;
 
   beforeEach(() => {
     port = new StubExpenseDetailPort();
+    decisionPort = new StubExpenseParticipationDecisionPort();
+    queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     TestBed.configureTestingModule({
-      providers: [
-        provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
-      ],
+      providers: [provideTanStackQuery(queryClient)],
     });
     injector = TestBed.inject(Injector);
   });
@@ -31,6 +34,7 @@ describe('ExpenseDetailPageViewModel', () => {
         id: 'expense-1',
         title: 'Réfection du toit',
         createdBy: 'alice@example.com',
+        canDecideParticipation: true,
         totalAmount: '60,00\u00a0€',
         createdAt: expect.stringContaining('2026'),
         statusLabel: 'En attente de validation',
@@ -92,8 +96,75 @@ describe('ExpenseDetailPageViewModel', () => {
     });
   });
 
+  describe('canDecide', () => {
+    it('uses the decision capability returned by the backend', async () => {
+      const viewModel = createViewModel(routeWith('group-1', 'expense-1'));
+      await waitFor(() => viewModel.isReady());
+
+      expect(viewModel.canDecide()).toBe(true);
+
+      port.result = expenseDetail({ canDecideParticipation: false });
+      viewModel.retry();
+      await waitFor(() => viewModel.detail()?.canDecideParticipation === false);
+
+      expect(viewModel.canDecide()).toBe(false);
+    });
+  });
+
+  describe('approve', () => {
+    it('approves without a refusal reason and refreshes the detail and list', async () => {
+      queryClient.setQueryData(['groups', 'group-1', 'expenses'], ['cached']);
+      const viewModel = createViewModel(routeWith('group-1', 'expense-1'));
+      await waitFor(() => viewModel.isReady());
+
+      await viewModel.approve();
+
+      expect(decisionPort.approvals).toEqual([{ groupId: 'group-1', expenseId: 'expense-1' }]);
+      expect(port.requests).toEqual([
+        { groupId: 'group-1', expenseId: 'expense-1' },
+        { groupId: 'group-1', expenseId: 'expense-1' },
+      ]);
+      expect(queryClient.getQueryState(['groups', 'group-1', 'expenses'])?.isInvalidated).toBe(
+        true,
+      );
+    });
+  });
+
+  describe('refuse', () => {
+    it.each([
+      {
+        name: 'with a trimmed reason',
+        enteredReason: '  Montant incorrect  ',
+        expectedReason: 'Montant incorrect',
+      },
+      { name: 'without a reason', enteredReason: '   ', expectedReason: null },
+    ])('refuses $name', async ({ enteredReason, expectedReason }) => {
+      const viewModel = createViewModel(routeWith('group-1', 'expense-1'));
+      await waitFor(() => viewModel.isReady());
+      viewModel.rejectionReason.set(enteredReason);
+
+      await viewModel.refuse();
+
+      expect(decisionPort.refusals).toEqual([
+        { groupId: 'group-1', expenseId: 'expense-1', reason: expectedReason },
+      ]);
+    });
+
+    it('keeps the reason and exposes a decision failure', async () => {
+      decisionPort.failure = new Error('Décision indisponible');
+      const viewModel = createViewModel(routeWith('group-1', 'expense-1'));
+      await waitFor(() => viewModel.isReady());
+      viewModel.rejectionReason.set('Montant incorrect');
+
+      await viewModel.refuse();
+
+      expect(viewModel.rejectionReason()).toBe('Montant incorrect');
+      expect(viewModel.decisionError()).toBe('Décision indisponible');
+    });
+  });
+
   const createViewModel = (route: ActivatedRoute) =>
-    new ExpenseDetailPageViewModel(route, port, injector);
+    new ExpenseDetailPageViewModel(route, port, decisionPort, queryClient, injector);
 });
 
 class StubExpenseDetailPort extends ExpenseDetailPort {
@@ -108,10 +179,31 @@ class StubExpenseDetailPort extends ExpenseDetailPort {
   }
 }
 
-const expenseDetail = (): ExpenseDetail => ({
+class StubExpenseParticipationDecisionPort extends ExpenseParticipationDecisionPort {
+  readonly approvals: { readonly groupId: string; readonly expenseId: string }[] = [];
+  readonly refusals: {
+    readonly groupId: string;
+    readonly expenseId: string;
+    readonly reason: string | null;
+  }[] = [];
+  failure: Error | null = null;
+
+  override async approve(groupId: string, expenseId: string): Promise<void> {
+    this.approvals.push({ groupId, expenseId });
+    if (this.failure !== null) throw this.failure;
+  }
+
+  override async refuse(groupId: string, expenseId: string, reason: string | null): Promise<void> {
+    this.refusals.push({ groupId, expenseId, reason });
+    if (this.failure !== null) throw this.failure;
+  }
+}
+
+const expenseDetail = (overrides: Partial<ExpenseDetail> = {}): ExpenseDetail => ({
   id: 'expense-1',
   title: 'Réfection du toit',
   createdBy: 'alice@example.com',
+  canDecideParticipation: true,
   totalAmountInCents: 6000,
   createdAt: new Date('2026-07-01T10:00:00Z'),
   status: 'PROPOSED',
@@ -120,6 +212,7 @@ const expenseDetail = (): ExpenseDetail => ({
     { member: 'bob@example.com', amountInCents: 2000, status: 'PENDING' },
     { member: 'charlie@example.com', amountInCents: 2000, status: 'REFUSED' },
   ],
+  ...overrides,
 });
 
 const routeWith = (groupId: string | null, expenseId: string | null): ActivatedRoute =>

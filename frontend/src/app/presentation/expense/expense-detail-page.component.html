@@ -53,6 +53,44 @@
             </div>
           }
         </div>
+
+        @if (viewModel.canDecide()) {
+          <section class="expense-detail-page__decision" aria-label="Valider ma participation">
+            <h2>Ma participation</h2>
+            <label for="expense-rejection-reason">Motif du refus (facultatif)</label>
+            <textarea
+              id="expense-rejection-reason"
+              [value]="viewModel.rejectionReason()"
+              [disabled]="viewModel.isDeciding()"
+              (input)="updateRejectionReason($event)"
+            ></textarea>
+
+            @if (viewModel.decisionError(); as decisionError) {
+              <p role="alert">{{ decisionError }}</p>
+            }
+
+            <div class="expense-detail-page__decision-actions">
+              <button
+                mat-flat-button
+                type="button"
+                aria-label="Approuver ma participation"
+                [disabled]="viewModel.isDeciding()"
+                (click)="viewModel.approve()"
+              >
+                Approuver
+              </button>
+              <button
+                mat-stroked-button
+                type="button"
+                aria-label="Refuser ma participation"
+                [disabled]="viewModel.isDeciding()"
+                (click)="viewModel.refuse()"
+              >
+                Refuser
+              </button>
+            </div>
+          </section>
+        }
       </mat-card-content>
     }
   </mat-card>

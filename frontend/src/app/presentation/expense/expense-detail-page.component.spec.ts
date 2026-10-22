@@ -58,6 +58,45 @@ describe('ExpenseDetailPageComponent', () => {
 
     expect(viewModel.retryCount).toBe(1);
   });
+
+  it('lets the member approve their pending participation', () => {
+    const viewModel = new StubExpenseDetailPageViewModel();
+    const fixture = createFixture(viewModel);
+    fixture.detectChanges();
+
+    requiredButton(
+      fixture.nativeElement as HTMLElement,
+      'button[aria-label="Approuver ma participation"]',
+    ).click();
+
+    expect(viewModel.approvalCount).toBe(1);
+  });
+
+  it('lets the member refuse their pending participation with a reason', () => {
+    const viewModel = new StubExpenseDetailPageViewModel();
+    const fixture = createFixture(viewModel);
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+    const reason = host.querySelector<HTMLTextAreaElement>('textarea');
+    if (reason === null) throw new Error('Motif de refus absent');
+    reason.value = 'Montant incorrect';
+    reason.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    requiredButton(host, 'button[aria-label="Refuser ma participation"]').click();
+
+    expect(viewModel.rejectionReason()).toBe('Montant incorrect');
+    expect(viewModel.refusalCount).toBe(1);
+  });
+
+  it('hides decision actions when the member participation is not pending', () => {
+    const viewModel = new StubExpenseDetailPageViewModel();
+    viewModel.canDecide.set(false);
+    const fixture = createFixture(viewModel);
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('textarea')).toBeNull();
+  });
 });
 
 const createFixture = (
@@ -89,6 +128,7 @@ class StubExpenseDetailPageViewModel {
     id: 'expense-1',
     title: 'Réfection du toit',
     createdBy: 'alice@example.com',
+    canDecideParticipation: true,
     totalAmount: '60,00 €',
     createdAt: '1 juil. 2026',
     statusLabel: 'En attente de validation',
@@ -117,9 +157,29 @@ class StubExpenseDetailPageViewModel {
   readonly hasLoadError = signal(false);
   readonly isReady = signal(true);
   readonly errorMessage = signal<string | null>(null);
+  readonly canDecide = signal(true);
+  readonly isDeciding = signal(false);
+  readonly decisionError = signal<string | null>(null);
+  readonly rejectionReason = signal('');
   retryCount = 0;
+  approvalCount = 0;
+  refusalCount = 0;
 
   retry(): void {
     this.retryCount += 1;
   }
+
+  approve(): void {
+    this.approvalCount += 1;
+  }
+
+  refuse(): void {
+    this.refusalCount += 1;
+  }
 }
+
+const requiredButton = (host: HTMLElement, selector: string): HTMLButtonElement => {
+  const button = host.querySelector<HTMLButtonElement>(selector);
+  if (button === null) throw new Error(`Bouton absent: ${selector}`);
+  return button;
+};
