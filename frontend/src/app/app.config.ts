@@ -22,6 +22,7 @@ import { GroupMembersPort } from './application/group/group-members.port';
 import { PendingGroupInvitationsPort } from './application/group/pending-group-invitations.port';
 import { GroupFinancialDashboardPort } from './application/ledger/group-financial-dashboard.port';
 import { MemberDebtReductionHistoryPort } from './application/ledger/member-debt-reduction-history.port';
+import { CashPoolWithdrawalPort } from './application/ledger/cash-pool-withdrawal.port';
 import {
   Sha256ChecksumPort,
   SignedSupportingDocumentUploaderPort,
@@ -50,6 +51,7 @@ import { HttpGroupInvitationsGateway } from './infrastructure/group/http-group-i
 import { HttpGroupMembersGateway } from './infrastructure/group/http-group-members.gateway';
 import { HttpGroupFinancialDashboardGateway } from './infrastructure/ledger/http-group-financial-dashboard.gateway';
 import { HttpMemberDebtReductionHistoryGateway } from './infrastructure/ledger/http-member-debt-reduction-history.gateway';
+import { HttpCashPoolWithdrawalGateway } from './infrastructure/ledger/http-cash-pool-withdrawal.gateway';
 import { HttpSignedSupportingDocumentUploaderGateway } from './infrastructure/supporting-document/http-signed-supporting-document-uploader.gateway';
 import { HttpSupportingDocumentUploadControlPlaneGateway } from './infrastructure/supporting-document/http-supporting-document-upload-control-plane.gateway';
 import { HttpExpenseSupportingDocumentDeletionGateway } from './infrastructure/supporting-document/http-expense-supporting-document-deletion.gateway';
@@ -96,6 +98,10 @@ export const appConfig: ApplicationConfig = {
     {
       provide: MemberDebtReductionHistoryPort,
       useExisting: HttpMemberDebtReductionHistoryGateway,
+    },
+    {
+      provide: CashPoolWithdrawalPort,
+      useExisting: HttpCashPoolWithdrawalGateway,
     },
     {
       provide: ExpenseDetailPort,

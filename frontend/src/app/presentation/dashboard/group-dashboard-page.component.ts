@@ -7,6 +7,7 @@ import { RouterLink } from '@angular/router';
 
 import { AuthenticatedShellComponent } from '../shared/authenticated-shell/authenticated-shell.component';
 import { CashPoolIncomeWidgetComponent } from './cash-pool-income-widget/cash-pool-income-widget.component';
+import { CashPoolWithdrawalWidgetComponent } from './cash-pool-withdrawal-widget/cash-pool-withdrawal-widget.component';
 import { ExpenseListWidgetComponent } from './expense-list-widget/expense-list-widget.component';
 import { ExpenseProposalWidgetComponent } from './expense-proposal-widget/expense-proposal-widget.component';
 import { GroupDashboardPageViewModel } from './group-dashboard-page.view-model';
@@ -17,6 +18,7 @@ import { MemberDebtReductionHistoryWidgetComponent } from './member-debt-reducti
   imports: [
     AuthenticatedShellComponent,
     CashPoolIncomeWidgetComponent,
+    CashPoolWithdrawalWidgetComponent,
     ExpenseListWidgetComponent,
     ExpenseProposalWidgetComponent,
     MatButtonModule,

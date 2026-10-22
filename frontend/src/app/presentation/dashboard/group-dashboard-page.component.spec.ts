@@ -23,6 +23,12 @@ class StubCashPoolIncomeWidgetComponent {
   @Output() recorded = new EventEmitter<void>();
 }
 
+@Component({ selector: 'app-cash-pool-withdrawal-widget', template: '' })
+class StubCashPoolWithdrawalWidgetComponent {
+  @Input({ required: true }) groupId = '';
+  @Output() withdrawn = new EventEmitter<void>();
+}
+
 @Component({ selector: 'app-expense-list-widget', template: '' })
 class StubExpenseListWidgetComponent {
   @Input() groupId = '';
@@ -114,6 +120,22 @@ describe('GroupDashboardPageComponent', () => {
     );
   });
 
+  it('records a withdrawal for the ready group and refreshes its financial amounts', () => {
+    const viewModel = new StubGroupDashboardPageViewModel();
+    const fixture = createFixture(viewModel);
+    fixture.detectChanges();
+    const widget = fixture.debugElement.query(By.directive(StubCashPoolWithdrawalWidgetComponent));
+
+    widget.componentInstance.withdrawn.emit();
+
+    expect({ groupId: widget.componentInstance.groupId, retryCount: viewModel.retryCount }).toEqual(
+      {
+        groupId: 'group-1',
+        retryCount: 1,
+      },
+    );
+  });
+
   it('offers a financial-operation explanation for each member balance', () => {
     const viewModel = new StubGroupDashboardPageViewModel();
     viewModel.memberBalances.set([
@@ -155,6 +177,7 @@ const createFixture = (
       imports: [
         StubAuthenticatedShellComponent,
         StubCashPoolIncomeWidgetComponent,
+        StubCashPoolWithdrawalWidgetComponent,
         StubExpenseListWidgetComponent,
         StubExpenseProposalWidgetComponent,
         StubMemberDebtReductionHistoryWidgetComponent,

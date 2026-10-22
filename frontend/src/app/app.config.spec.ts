@@ -6,6 +6,7 @@ import { ExpenseProposalPort } from './application/expense/expense-proposal.port
 import { ExpenseDetailPort } from './application/expense/expense-detail.port';
 import { ExpenseParticipationDecisionPort } from './application/expense/expense-participation-decision.port';
 import { MemberDebtReductionHistoryPort } from './application/ledger/member-debt-reduction-history.port';
+import { CashPoolWithdrawalPort } from './application/ledger/cash-pool-withdrawal.port';
 import { GroupMembersPort } from './application/group/group-members.port';
 import { NavigationPort } from './application/shared/navigation.port';
 import { ReimbursementListPort } from './application/reimbursement/reimbursement-list.port';
@@ -27,6 +28,7 @@ import { HttpExpenseProposalGateway } from './infrastructure/expense/http-expens
 import { HttpExpenseDetailGateway } from './infrastructure/expense/http-expense-detail.gateway';
 import { HttpExpenseParticipationDecisionGateway } from './infrastructure/expense/http-expense-participation-decision.gateway';
 import { HttpMemberDebtReductionHistoryGateway } from './infrastructure/ledger/http-member-debt-reduction-history.gateway';
+import { HttpCashPoolWithdrawalGateway } from './infrastructure/ledger/http-cash-pool-withdrawal.gateway';
 import { HttpGroupMembersGateway } from './infrastructure/group/http-group-members.gateway';
 import { HttpReimbursementListGateway } from './infrastructure/reimbursement/http-reimbursement-list.gateway';
 import { HttpDirectReimbursementRecordingGateway } from './infrastructure/reimbursement/http-direct-reimbursement-recording.gateway';
@@ -82,6 +84,11 @@ const portBindings: readonly {
     name: 'member debt reduction history',
     port: MemberDebtReductionHistoryPort,
     adapter: HttpMemberDebtReductionHistoryGateway,
+  },
+  {
+    name: 'cash-pool withdrawal',
+    port: CashPoolWithdrawalPort,
+    adapter: HttpCashPoolWithdrawalGateway,
   },
   {
     name: 'direct reimbursement recording',

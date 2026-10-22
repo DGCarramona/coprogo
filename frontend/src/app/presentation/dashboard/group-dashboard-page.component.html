@@ -113,6 +113,11 @@
         (recorded)="viewModel.retry()"
       />
 
+      <app-cash-pool-withdrawal-widget
+        [groupId]="viewModel.groupId()!"
+        (withdrawn)="viewModel.retry()"
+      />
+
       <app-expense-proposal-widget
         class="group-dashboard-page__proposal-card"
         [groupId]="viewModel.groupId()!"
