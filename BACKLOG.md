@@ -113,7 +113,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 - [x] BE-LED-008 Exposer l'endpoint REST de retrait de caisse commune.
 - [x] BE-LED-009 Construire une requete applicative "qu'est-ce qui a reduit la dette d'un membre".
 - [x] BE-LED-010 Exposer l'endpoint REST d'historique unifie des reductions de dette.
-- [ ] BE-LED-011 Ajouter des tests d'integration sur projections, retraits et historique unifie.
+- [x] BE-LED-011 Ajouter des tests d'integration sur projections, retraits et historique unifie.
 
 ## Backend - justificatifs, audit et traceabilite
 
