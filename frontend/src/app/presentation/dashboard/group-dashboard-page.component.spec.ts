@@ -57,6 +57,17 @@ describe('GroupDashboardPageComponent', () => {
     expect(link).not.toBeNull();
   });
 
+  it('links to the expense list of the ready group', () => {
+    const fixture = createFixture(new StubGroupDashboardPageViewModel());
+
+    fixture.detectChanges();
+
+    const link = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>(
+      'a[href="/groups/group-1/expenses"]',
+    );
+    expect(link).not.toBeNull();
+  });
+
   it('offers a financial-operation explanation for each member balance', () => {
     const viewModel = new StubGroupDashboardPageViewModel();
     viewModel.memberBalances.set([

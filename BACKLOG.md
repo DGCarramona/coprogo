@@ -190,7 +190,7 @@ Backlog derive de l'etat actuel du depot au 2026-09-28.
 
 ## Frontend - depenses
 
-- [ ] FE-EXP-001 Creer la page de liste des depenses d'un groupe.
+- [x] FE-EXP-001 Creer la page de liste des depenses d'un groupe.
 - [ ] FE-EXP-002 Creer la page de detail d'une depense avec statuts de participation.
 - [x] FE-EXP-003 Creer le formulaire de depense a partage egal.
 - [x] FE-EXP-004A Regenerer le client et maintenir le formulaire Equal sur le contrat polymorphe aux discriminants fermes.

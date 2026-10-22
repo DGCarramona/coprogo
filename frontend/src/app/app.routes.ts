@@ -40,6 +40,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'groups/:groupId/expenses',
+    canActivate: [authenticatedRouteGuard],
+    loadComponent: () =>
+      import('./presentation/expense/expense-list-page.component').then(
+        (module) => module.ExpenseListPageComponent,
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'invitations',
   },

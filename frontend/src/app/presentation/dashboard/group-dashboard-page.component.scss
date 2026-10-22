@@ -10,7 +10,10 @@
   margin-top: 1.5rem;
 }
 
-.group-dashboard-page__reimbursements-link {
+.group-dashboard-page__history-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
   margin-top: 1.5rem;
 }
 

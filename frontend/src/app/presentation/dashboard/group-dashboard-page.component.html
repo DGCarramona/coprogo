@@ -26,13 +26,14 @@
       </mat-card-actions>
     </mat-card>
   } @else if (viewModel.isReady()) {
-    <a
-      class="group-dashboard-page__reimbursements-link"
-      mat-stroked-button
-      [routerLink]="['/groups', viewModel.groupId(), 'reimbursements']"
-    >
-      Voir les remboursements
-    </a>
+    <nav class="group-dashboard-page__history-links" aria-label="Historique du groupe">
+      <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId(), 'expenses']">
+        Voir les dépenses
+      </a>
+      <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId(), 'reimbursements']">
+        Voir les remboursements
+      </a>
+    </nav>
     <div class="group-dashboard-page__grid">
       <mat-card class="material-card group-dashboard-page__cash-card" appearance="outlined">
         <mat-card-header>
