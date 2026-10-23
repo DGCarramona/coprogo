@@ -8,10 +8,10 @@ repositories {
 }
 
 dependencies {
-    implementation("org.flywaydb:flyway-core:13.6.0")
-    implementation("org.flywaydb:flyway-database-postgresql:13.6.0")
-    implementation("org.jooq:jooq-codegen:3.21.8")
-    implementation("org.postgresql:postgresql:42.7.13")
+    implementation("org.flywaydb:flyway-core:13.10.0")
+    implementation("org.flywaydb:flyway-database-postgresql:13.10.0")
+    implementation("org.jooq:jooq-codegen:3.21.9")
+    implementation("org.postgresql:postgresql:42.7.14")
 }
 
 gradlePlugin {
