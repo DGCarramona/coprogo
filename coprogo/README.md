@@ -25,6 +25,34 @@ Use a comma-separated list if you want to accept multiple audiences locally.
 The shared database defaults live in `application-runtime.properties` and can still be overridden with
 the deployed-environment variables `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, and `DB_PASSWORD`.
 
+## Backend container
+
+Build from the repository root, not from `coprogo/`:
+
+```sh
+docker build -f coprogo/Dockerfile -t coprogo-backend .
+```
+
+The multi-stage image builds the native executable with GraalVM Java 25 and runs it in a non-root
+distroless image. Base images are pinned by digest; update the tag and digest together when upgrading.
+The final image contains the executable and its native libraries, without Gradle, a JDK, or a shell.
+The Dockerfile-specific context allowlist excludes the frontend, tests, build outputs, machine-local
+configuration, dotenv files, and private keys. Supply credentials only at runtime; do not introduce
+Docker build arguments containing secrets.
+
+BuildKit caches Gradle downloads and build-cache entries. Build configuration is copied before
+application sources so source changes preserve the configuration layer. Packaging uses committed
+jOOQ sources and needs neither PostgreSQL nor S3. It does not replace the tests and mutation checks
+run by CI. Kotlin compilation uses a 1 GiB Gradle heap, then a separate invocation reduces Gradle's
+heap to 512 MiB while native-image uses a 6 GiB heap and two workers. Allow additional memory for
+native allocations and compiler processes; the build requires substantially more RAM than runtime.
+
+Runtime defaults are `MICRONAUT_ENVIRONMENTS=runtime`, host `0.0.0.0`, and port `10000`.
+The image starts the executable directly, with a 256 MiB heap and a 64 MiB direct-memory limit,
+leaving room for other native allocations in a 512 MiB service. These are starting limits, not a
+capacity guarantee under load. Override the port with `MICRONAUT_SERVER_PORT`; command arguments
+after the image name replace the default memory arguments.
+
 ### PostgreSQL-backed tests
 
 When a backend test needs a real database, do not wire a PostgreSQL container manually in the test class.
