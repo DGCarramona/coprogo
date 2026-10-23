@@ -328,7 +328,6 @@ Avant de pusher, la même commande localement vous garantit que la CI passera.
 
 - **Backend** : Voir `coprogo/README.md`
 - **Frontend** : Voir `frontend/README.md`
-- **Backlog** : Voir `BACKLOG.md`
 - **Gradle Wrapper** : `gradle/wrapper/gradle-wrapper.properties`
 
 ## Liens externes
