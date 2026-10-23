@@ -1,0 +1,33 @@
+# This allowlist is relative to the repository-root build context. Docker uses
+# this file instead of the root .dockerignore for coprogo/Dockerfile.
+**
+!gradlew
+!gradle/
+!gradle/wrapper/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+!coprogo/
+!coprogo/settings.gradle.kts
+!coprogo/build.gradle.kts
+!coprogo/gradle.properties
+!coprogo/build-logic/
+!coprogo/build-logic/build.gradle.kts
+!coprogo/build-logic/src/
+!coprogo/build-logic/src/main/
+!coprogo/build-logic/src/main/**
+!coprogo/pitest-support/
+!coprogo/pitest-support/build.gradle.kts
+!coprogo/src/
+!coprogo/src/main/
+!coprogo/src/main/**
+!coprogo/src/generated/
+!coprogo/src/generated/jooq/
+!coprogo/src/generated/jooq/**
+
+# Never package machine overrides, dotenv files, or private key material.
+**/.env*
+**/*.key
+**/*.pem
+**/*.p12
+**/*.jks
+**/secrets/**

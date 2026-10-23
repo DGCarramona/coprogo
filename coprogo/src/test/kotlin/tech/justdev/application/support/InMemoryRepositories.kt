@@ -32,8 +32,6 @@ class InMemoryExpenseRepository(
         group: GroupId,
     ): Expense? = expensesById[id]?.takeIf { expense -> expense.group == group }
 
-    override suspend fun findByGroup(group: GroupId): List<Expense> = expensesById.values.filter { expense -> expense.group == group }
-
     override suspend fun findProposedByIdAndGroup(
         id: ExpenseId,
         group: GroupId,

@@ -26,6 +26,23 @@
       </mat-card-actions>
     </mat-card>
   } @else if (viewModel.isReady()) {
+    <nav class="group-dashboard-page__history-links" aria-label="Historique du groupe">
+      <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId(), 'expenses']">
+        Voir les dépenses
+      </a>
+      <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId(), 'reimbursements']">
+        Voir les remboursements
+      </a>
+      <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId(), 'ownership-shares']">
+        Voir les quotes-parts
+      </a>
+      <a
+        mat-stroked-button
+        [routerLink]="['/groups', viewModel.groupId(), 'revenue-distribution', 'preview']"
+      >
+        Prévisualiser une répartition
+      </a>
+    </nav>
     <div class="group-dashboard-page__grid">
       <mat-card class="material-card group-dashboard-page__cash-card" appearance="outlined">
         <mat-card-header>
@@ -49,14 +66,20 @@
             <div class="group-dashboard-page__list">
               @for (balance of viewModel.memberBalances(); track balance.member) {
                 <div class="group-dashboard-page__row">
-                  <span>{{ balance.member }}</span>
-                  <mat-chip
-                    [class]="
-                      'group-dashboard-page__chip group-dashboard-page__chip--' + balance.tone
-                    "
-                  >
-                    {{ balance.label }} {{ balance.amount }}
-                  </mat-chip>
+                  <div class="group-dashboard-page__row-summary">
+                    <span>{{ balance.member }}</span>
+                    <mat-chip
+                      [class]="
+                        'group-dashboard-page__chip group-dashboard-page__chip--' + balance.tone
+                      "
+                    >
+                      {{ balance.label }} {{ balance.amount }}
+                    </mat-chip>
+                  </div>
+                  <app-member-debt-reduction-history-widget
+                    [groupId]="viewModel.groupId()!"
+                    [member]="balance.member"
+                  />
                 </div>
               }
             </div>
@@ -84,6 +107,18 @@
           }
         </mat-card-content>
       </mat-card>
+
+      <app-cash-pool-income-widget
+        [groupId]="viewModel.groupId()!"
+        (recorded)="viewModel.retry()"
+      />
+
+      <app-cash-pool-withdrawal-widget
+        [groupId]="viewModel.groupId()!"
+        (withdrawn)="viewModel.retry()"
+      />
+
+      <app-cash-pool-history-widget [groupId]="viewModel.groupId()!" />
 
       <app-expense-proposal-widget
         class="group-dashboard-page__proposal-card"

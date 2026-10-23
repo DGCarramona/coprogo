@@ -32,6 +32,46 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'groups/:groupId/reimbursements',
+    canActivate: [authenticatedRouteGuard],
+    loadComponent: () =>
+      import('./presentation/reimbursement/reimbursement-history-page.component').then(
+        (module) => module.ReimbursementHistoryPageComponent,
+      ),
+  },
+  {
+    path: 'groups/:groupId/ownership-shares',
+    canActivate: [authenticatedRouteGuard],
+    loadComponent: () =>
+      import('./presentation/revenue/ownership-share-timeline-page.component').then(
+        (module) => module.OwnershipShareTimelinePageComponent,
+      ),
+  },
+  {
+    path: 'groups/:groupId/revenue-distribution/preview',
+    canActivate: [authenticatedRouteGuard],
+    loadComponent: () =>
+      import('./presentation/revenue/revenue-distribution-preview-page.component').then(
+        (module) => module.RevenueDistributionPreviewPageComponent,
+      ),
+  },
+  {
+    path: 'groups/:groupId/expenses/:expenseId',
+    canActivate: [authenticatedRouteGuard],
+    loadComponent: () =>
+      import('./presentation/expense/expense-detail-page.component').then(
+        (module) => module.ExpenseDetailPageComponent,
+      ),
+  },
+  {
+    path: 'groups/:groupId/expenses',
+    canActivate: [authenticatedRouteGuard],
+    loadComponent: () =>
+      import('./presentation/expense/expense-list-page.component').then(
+        (module) => module.ExpenseListPageComponent,
+      ),
+  },
+  {
     path: '**',
     redirectTo: 'invitations',
   },

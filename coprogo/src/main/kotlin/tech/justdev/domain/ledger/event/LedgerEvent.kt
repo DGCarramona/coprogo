@@ -8,6 +8,7 @@ import tech.justdev.domain.ledger.effect.CashPoolBalanceDelta
 import tech.justdev.domain.ledger.effect.LedgerEffect
 import tech.justdev.domain.ledger.effect.MemberBalanceTransfer
 import tech.justdev.domain.ledger.effect.MemberCashPoolShareDelta
+import tech.justdev.domain.ledger.projection.MemberCashPoolShareBalance
 import tech.justdev.domain.ledger.valueobject.LedgerEventId
 import tech.justdev.domain.reimbursement.entity.Reimbursement
 import tech.justdev.domain.reimbursement.valueobject.ReimbursementId
@@ -16,6 +17,7 @@ import tech.justdev.domain.revenue.valueobject.RevenueDistribution
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.domain.shared.money.sum
 import tech.justdev.domain.shared.valueobject.GroupId
+import java.math.BigInteger
 import java.time.Instant
 
 sealed interface LedgerEvent {
@@ -183,4 +185,108 @@ data class CashPoolWithdrawalLedgerEvent(
                 }
                 addAll(balanceTransfers)
             }
+
+    companion object {
+        fun from(
+            id: LedgerEventId,
+            group: GroupId,
+            withdrawnBy: MemberEmail,
+            withdrawnAmount: MoneyAmount,
+            occurredAt: Instant,
+            memberCashPoolShares: Set<MemberCashPoolShareBalance>,
+        ): CashPoolWithdrawalLedgerEvent {
+            val ownRevenueShareConsumed =
+                memberCashPoolShares
+                    .firstOrNull { share -> share.member == withdrawnBy }
+                    ?.amount
+                    ?.inCents()
+                    ?.coerceAtLeast(0)
+                    ?.coerceAtMost(withdrawnAmount.inCents())
+                    ?.let(MoneyAmount::ofCents)
+                    ?: MoneyAmount.ZERO
+
+            return CashPoolWithdrawalLedgerEvent(
+                id = id,
+                group = group,
+                withdrawnBy = withdrawnBy,
+                withdrawnAmount = withdrawnAmount,
+                ownRevenueShareConsumed = ownRevenueShareConsumed,
+                balanceTransfers =
+                    allocateCompensationTransfers(
+                        withdrawnBy = withdrawnBy,
+                        amount = withdrawnAmount - ownRevenueShareConsumed,
+                        memberCashPoolShares = memberCashPoolShares,
+                    ),
+                occurredAt = occurredAt,
+            )
+        }
+    }
 }
+
+private fun allocateCompensationTransfers(
+    withdrawnBy: MemberEmail,
+    amount: MoneyAmount,
+    memberCashPoolShares: Set<MemberCashPoolShareBalance>,
+): Set<MemberBalanceTransfer> {
+    if (amount.isZero()) return emptySet()
+
+    val weights =
+        memberCashPoolShares
+            .asSequence()
+            .filter { share -> share.member != withdrawnBy && share.amount.inCents() > 0 }
+            .map { share -> CompensationWeight(share.member, share.amount.inCents()) }
+            .toList()
+    val totalWeight = weights.fold(BigInteger.ZERO) { total, weight -> total + weight.amount.toBigInteger() }
+    require(totalWeight >= amount.inCents().toBigInteger()) {
+        "positive cash pool shares of other members must cover the over-withdrawn amount"
+    }
+
+    val allocations =
+        weights.map { weight ->
+            val (quotient, remainder) =
+                amount
+                    .inCents()
+                    .toBigInteger()
+                    .multiply(weight.amount.toBigInteger())
+                    .divideAndRemainder(totalWeight)
+            CompensationAllocation(
+                member = weight.member,
+                amountInCents = quotient.longValueExact(),
+                remainder = remainder,
+            )
+        }
+    val remainingCents = amount.inCents() - allocations.sumOf(CompensationAllocation::amountInCents)
+    val membersReceivingExtraCent =
+        allocations
+            .sortedWith(
+                compareByDescending<CompensationAllocation> { allocation -> allocation.remainder }
+                    .thenBy { allocation -> allocation.member.toPrimitive() },
+            ).take(remainingCents.toInt())
+            .map(CompensationAllocation::member)
+            .toSet()
+
+    return allocations
+        .map { allocation ->
+            allocation.copy(
+                amountInCents = allocation.amountInCents + if (allocation.member in membersReceivingExtraCent) 1 else 0,
+            )
+        }.filter { allocation -> allocation.amountInCents > 0 }
+        .map { allocation ->
+            MemberBalanceTransfer(
+                fromMember = withdrawnBy,
+                toMember = allocation.member,
+                amount = MoneyAmount.ofCents(allocation.amountInCents),
+            )
+        }.toSet()
+}
+
+private data class CompensationWeight(
+    val member: MemberEmail,
+    val amount: Long,
+)
+
+private data class CompensationAllocation(
+    val member: MemberEmail,
+    val amountInCents: Long,
+    val remainder: BigInteger,
+)

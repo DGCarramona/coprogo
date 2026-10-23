@@ -218,8 +218,6 @@ class ListExpenseSupportingDocumentAuditTrailUseCaseTest {
             group: GroupId,
         ): Expense? = expense?.takeIf { it.id == id && it.group == group }
 
-        override suspend fun findByGroup(group: GroupId): List<Expense> = error("not used")
-
         override suspend fun findProposedByIdAndGroup(
             id: ExpenseId,
             group: GroupId,
@@ -233,8 +231,6 @@ class ListExpenseSupportingDocumentAuditTrailUseCaseTest {
             id: ExpenseId,
             group: GroupId,
         ): Expense? = error("expense repository must not be accessed")
-
-        override suspend fun findByGroup(group: GroupId): List<Expense> = error("expense repository must not be accessed")
 
         override suspend fun findProposedByIdAndGroup(
             id: ExpenseId,

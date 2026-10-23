@@ -2,6 +2,8 @@ package tech.justdev.pitest
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import java.nio.file.Files
+import java.nio.file.Path
 
 internal class EquivalentMutationWhitelist private constructor(
     val rules: List<EquivalentMutationRule>,
@@ -11,14 +13,10 @@ internal class EquivalentMutationWhitelist private constructor(
     operator fun contains(signature: MutationSignature): Boolean = signature in signatures
 
     internal companion object {
-        private const val RESOURCE = "/pitest-equivalent-mutations.json"
         private val objectMapper = ObjectMapper()
         private val requiredFields = setOf("className", "method", "mutator", "instructionIndex", "justification")
 
-        fun load(): EquivalentMutationWhitelist =
-            checkNotNull(EquivalentMutationWhitelist::class.java.getResourceAsStream(RESOURCE)) {
-                "Missing equivalent-mutation whitelist resource $RESOURCE"
-            }.bufferedReader().use { reader -> parse(reader.readText()) }
+        fun load(path: Path): EquivalentMutationWhitelist = Files.newBufferedReader(path).use { reader -> parse(reader.readText()) }
 
         fun parse(json: String): EquivalentMutationWhitelist {
             val root =

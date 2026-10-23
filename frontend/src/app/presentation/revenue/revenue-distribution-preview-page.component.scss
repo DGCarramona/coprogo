@@ -1,0 +1,18 @@
+.revenue-distribution-preview-page__card {
+  margin-top: 1.5rem;
+}
+
+.revenue-distribution-preview-page__allocations {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.revenue-distribution-preview-page__allocations div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.revenue-distribution-preview-page__allocations dd {
+  margin: 0;
+  font-weight: 600;
+}

@@ -147,6 +147,7 @@ class ExpenseControllerTest {
                         totalAmount = MoneyAmount.ofCents(6_000),
                         createdAt = createdAt,
                         status = ExpenseStatus.INVALIDATED,
+                        canDecideParticipation = false,
                         refusal =
                             ExpenseRefusalSnapshot(
                                 member = MemberEmail.of("refused@example.com"),
@@ -180,6 +181,7 @@ class ExpenseControllerTest {
                         id = expenseId,
                         title = "Roof repair",
                         createdBy = "creator@example.com",
+                        canDecideParticipation = false,
                         totalAmountCents = 6_000,
                         createdAt = createdAt,
                         status = "INVALIDATED",
@@ -440,6 +442,7 @@ class ExpenseControllerTest {
             totalAmount = MoneyAmount.ofCents(1_000),
             createdAt = Instant.parse("2026-07-01T10:00:00Z"),
             status = ExpenseStatus.PROPOSED,
+            canDecideParticipation = false,
             participations = emptyList(),
         )
 }
@@ -469,6 +472,7 @@ private class FakeGetExpenseDetailUseCase : GetExpenseDetailUseCase {
             totalAmount = MoneyAmount.ofCents(1),
             createdAt = Instant.EPOCH,
             status = ExpenseStatus.PROPOSED,
+            canDecideParticipation = false,
             participations = emptyList(),
         )
     var lastQuery: GetExpenseDetailQuery? = null

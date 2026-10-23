@@ -36,6 +36,7 @@
     "@angular/compiler-cli": "22.1.2",
     "@eslint/js": "^10.0.1",
     "@openapitools/openapi-generator-cli": "^2.40.1",
+    "@vitest/coverage-v8": "^4.1.10",
     "angular-eslint": "22.1.0",
     "eslint": "^10.9.0",
     "jsdom": "^30.0.1",

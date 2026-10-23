@@ -1,0 +1,18 @@
+<app-authenticated-shell
+  eyebrow="Historique des opérations"
+  title="Dépenses"
+  description="Retrouvez les dépenses enregistrées pour ce groupe."
+>
+  @if (viewModel.groupId !== null) {
+    <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId, 'dashboard']">
+      Retour au groupe
+    </a>
+    <app-expense-list-widget [groupId]="viewModel.groupId" />
+  } @else {
+    <mat-card class="material-card expense-list-page__missing-group" appearance="outlined">
+      <mat-card-content>
+        <p role="alert">Aucun groupe n’est sélectionné.</p>
+      </mat-card-content>
+    </mat-card>
+  }
+</app-authenticated-shell>

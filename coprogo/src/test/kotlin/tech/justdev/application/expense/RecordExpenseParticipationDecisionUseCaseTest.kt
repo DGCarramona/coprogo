@@ -381,9 +381,6 @@ class RecordExpenseParticipationDecisionUseCaseTest {
                 group: GroupId,
             ): Expense? = throw AssertionError("expense repository should not be accessed")
 
-            override suspend fun findByGroup(group: GroupId): List<Expense> =
-                throw AssertionError("expense repository should not be accessed")
-
             override suspend fun findProposedByIdAndGroup(
                 id: ExpenseId,
                 group: GroupId,

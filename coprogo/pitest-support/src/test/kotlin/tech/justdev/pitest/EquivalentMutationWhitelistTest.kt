@@ -3,16 +3,29 @@ package tech.justdev.pitest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Files
+import java.nio.file.Path
 
 class EquivalentMutationWhitelistTest {
-    @Test
-    fun `loads documented exact mutation signatures`() {
-        val whitelist = EquivalentMutationWhitelist.load()
+    @TempDir
+    lateinit var temporaryDirectory: Path
 
-        assertEquals(7, whitelist.rules.size)
+    @Test
+    fun `loads documented exact mutation signatures from configured file`() {
+        val whitelistFile = temporaryDirectory.resolve("equivalent-mutations.json")
+        Files.writeString(whitelistFile, validWhitelist)
+
+        val whitelist = EquivalentMutationWhitelist.load(whitelistFile)
+
         assertEquals(
-            "minByOrNull compares two unique MemberEmail values, so equality is impossible.",
-            whitelist.rules.single { rule -> rule.signature.instructionIndex == 463 }.justification,
+            listOf(
+                EquivalentMutationRule(
+                    signature = MutationSignature("example.Class", "method", "example.Mutator", 42),
+                    justification = "Equivalent compiler-generated branch.",
+                ),
+            ),
+            whitelist.rules,
         )
     }
 
@@ -39,5 +52,20 @@ class EquivalentMutationWhitelistTest {
             }
 
         assertEquals(4, errors.size)
+    }
+
+    private companion object {
+        val validWhitelist =
+            """
+            [
+              {
+                "className": "example.Class",
+                "method": "method",
+                "mutator": "example.Mutator",
+                "instructionIndex": 42,
+                "justification": "Equivalent compiler-generated branch."
+              }
+            ]
+            """.trimIndent()
     }
 }

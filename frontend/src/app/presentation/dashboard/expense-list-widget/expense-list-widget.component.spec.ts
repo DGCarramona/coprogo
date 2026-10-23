@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
+import { provideRouter } from '@angular/router';
 
 import { ExpenseListPort } from '../../../application/expense/expense-list.port';
 import {
@@ -23,10 +24,48 @@ describe('ExpenseListWidgetComponent', () => {
     TestBed.configureTestingModule({
       providers: [
         provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
+        provideRouter([]),
         { provide: ExpenseListPort, useValue: expensesPort },
         { provide: ExpenseSupportingDocumentsPort, useValue: documentsPort },
         { provide: ExpenseSupportingDocumentDeletionPort, useValue: new StubDeletionPort() },
       ],
+    });
+  });
+
+  describe('loading feedback', () => {
+    it('shows progress while expenses are loading', async () => {
+      expensesPort.useDeferredResult();
+      const { fixture, host } = createFixture();
+
+      fixture.detectChanges();
+
+      expect(host.querySelector('mat-progress-bar')).not.toBeNull();
+
+      expensesPort.resolveDeferredResult();
+      await waitFor(() => host.querySelector('mat-progress-bar') === null);
+    });
+
+    it('explains when the group has no expense', async () => {
+      expensesPort.result = [];
+      const { fixture, host } = createFixture();
+
+      fixture.detectChanges();
+      await waitFor(() => host.textContent?.includes('Aucune depense enregistree.'));
+
+      expect(host.textContent).toContain('Aucune depense enregistree.');
+    });
+
+    it('lets the user retry after a loading failure', async () => {
+      expensesPort.failure = new Error('Indisponible');
+      const { fixture, host } = createFixture();
+      fixture.detectChanges();
+      await waitFor(() => host.querySelector('button') !== null);
+
+      expensesPort.failure = null;
+      host.querySelector<HTMLButtonElement>('button')?.click();
+      await waitFor(() => host.textContent?.includes('Courses'));
+
+      expect(expensesPort.requests).toEqual(['group-1', 'group-1']);
     });
   });
 
@@ -67,6 +106,18 @@ describe('ExpenseListWidgetComponent', () => {
       expect(host.textContent).toContain('remplacement.pdf');
     });
   });
+
+  describe('expense detail navigation', () => {
+    it('links each expense to its group-scoped detail', async () => {
+      const { fixture, host } = createFixture();
+      fixture.detectChanges();
+      await waitFor(() => host.querySelector('a') !== null);
+
+      expect(host.querySelector('a')?.getAttribute('href')).toBe(
+        '/groups/group-1/expenses/expense-1',
+      );
+    });
+  });
 });
 
 const createFixture = (): {
@@ -79,19 +130,36 @@ const createFixture = (): {
 };
 
 class StubExpenseListPort extends ExpenseListPort {
-  override async listByGroup(groupId: string): Promise<readonly ExpenseSummary[]> {
-    if (groupId !== 'group-1') return [];
+  result: readonly ExpenseSummary[] = [
+    {
+      id: 'expense-1',
+      title: 'Courses',
+      createdBy: 'alice@example.com',
+      totalAmountInCents: 1500,
+      createdAt: new Date('2026-09-20T09:15:00Z'),
+      status: 'PROPOSED',
+    },
+  ];
+  failure: Error | null = null;
+  readonly requests: string[] = [];
+  private deferredResult: Deferred<readonly ExpenseSummary[]> | null = null;
 
-    return [
-      {
-        id: 'expense-1',
-        title: 'Courses',
-        createdBy: 'alice@example.com',
-        totalAmountInCents: 1500,
-        createdAt: new Date('2026-09-20T09:15:00Z'),
-        status: 'PROPOSED',
-      },
-    ];
+  override async listByGroup(groupId: string): Promise<readonly ExpenseSummary[]> {
+    this.requests.push(groupId);
+    if (groupId !== 'group-1') return [];
+    if (this.failure !== null) throw this.failure;
+    if (this.deferredResult !== null) return this.deferredResult.promise;
+
+    return this.result;
+  }
+
+  useDeferredResult(): void {
+    this.deferredResult = deferred<readonly ExpenseSummary[]>();
+  }
+
+  resolveDeferredResult(): void {
+    this.deferredResult?.resolve(this.result);
+    this.deferredResult = null;
   }
 }
 
@@ -148,4 +216,17 @@ const waitFor = async (condition: () => boolean): Promise<void> => {
   }
 
   throw new Error('La condition attendue n a pas ete atteinte.');
+};
+
+interface Deferred<T> {
+  readonly promise: Promise<T>;
+  readonly resolve: (value: T) => void;
+}
+
+const deferred = <T>(): Deferred<T> => {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((resolver) => {
+    resolve = resolver;
+  });
+  return { promise, resolve };
 };

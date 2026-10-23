@@ -1,0 +1,123 @@
+<app-authenticated-shell
+  eyebrow="Dépenses du groupe"
+  title="Détail de la dépense"
+  description="Consultez le montant attribué à chaque membre et son état de validation."
+>
+  @if (viewModel.groupId !== null) {
+    <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId, 'expenses']">
+      Retour aux dépenses
+    </a>
+  }
+
+  <mat-card class="material-card expense-detail-page__card" appearance="outlined">
+    @if (viewModel.isLoading()) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+      <p>Chargement de la dépense...</p>
+    } @else if (viewModel.hasLoadError()) {
+      <p role="alert">{{ viewModel.errorMessage() }}</p>
+      @if (viewModel.groupId !== null && viewModel.expenseId !== null) {
+        <button mat-flat-button type="button" (click)="viewModel.retry()">Réessayer</button>
+      }
+    } @else if (viewModel.detail(); as detail) {
+      <mat-card-header>
+        <mat-card-title>{{ detail.title }}</mat-card-title>
+        <mat-card-subtitle>{{ detail.statusLabel }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <dl class="expense-detail-page__summary">
+          <div>
+            <dt>Montant total</dt>
+            <dd>{{ detail.totalAmount }}</dd>
+          </div>
+          <div>
+            <dt>Enregistrée par</dt>
+            <dd>{{ detail.createdBy }}</dd>
+          </div>
+          <div>
+            <dt>Date</dt>
+            <dd>{{ detail.createdAt }}</dd>
+          </div>
+        </dl>
+
+        @if (detail.invalidation; as invalidation) {
+          <section
+            class="expense-detail-page__invalidation"
+            aria-label="Dépense refusée"
+            role="alert"
+          >
+            <h2>Dépense refusée</h2>
+            <p>
+              Cette dépense n’est pas prise en compte et reste dans l’historique. Pour la remplacer,
+              créez une nouvelle dépense.
+            </p>
+            <p>
+              Refusée par <strong>{{ invalidation.refusedBy }}</strong> le
+              {{ invalidation.refusedAt }}
+            </p>
+            @if (invalidation.reason !== null) {
+              <p><strong>Motif :</strong> {{ invalidation.reason }}</p>
+            }
+            @if (viewModel.groupId !== null) {
+              <a mat-flat-button [routerLink]="['/groups', viewModel.groupId, 'dashboard']">
+                Créer une nouvelle dépense
+              </a>
+            }
+          </section>
+        }
+
+        <h2>Participations</h2>
+        <div class="expense-detail-page__participations">
+          @for (participation of detail.participations; track participation.member) {
+            <div class="expense-detail-page__participation">
+              <div>
+                <strong>{{ participation.member }}</strong>
+                <span>{{ participation.amount }}</span>
+              </div>
+              <mat-chip [class]="'expense-detail-page__chip--' + participation.tone">
+                {{ participation.statusLabel }}
+              </mat-chip>
+            </div>
+          }
+        </div>
+
+        @if (viewModel.canDecide()) {
+          <section class="expense-detail-page__decision" aria-label="Valider ma participation">
+            <h2>Ma participation</h2>
+            <label for="expense-rejection-reason">Motif du refus (facultatif)</label>
+            <textarea
+              id="expense-rejection-reason"
+              [value]="viewModel.rejectionReason()"
+              [disabled]="viewModel.isDeciding()"
+              (input)="updateRejectionReason($event)"
+            ></textarea>
+
+            @if (viewModel.decisionError(); as decisionError) {
+              <p role="alert">{{ decisionError }}</p>
+            }
+
+            <div class="expense-detail-page__decision-actions">
+              <button
+                mat-flat-button
+                type="button"
+                aria-label="Approuver ma participation"
+                [disabled]="viewModel.isDeciding()"
+                (click)="viewModel.approve()"
+              >
+                Approuver
+              </button>
+              <button
+                mat-stroked-button
+                type="button"
+                aria-label="Refuser ma participation"
+                [disabled]="viewModel.isDeciding()"
+                (click)="viewModel.refuse()"
+              >
+                Refuser
+              </button>
+            </div>
+          </section>
+        }
+      </mat-card-content>
+    }
+  </mat-card>
+</app-authenticated-shell>

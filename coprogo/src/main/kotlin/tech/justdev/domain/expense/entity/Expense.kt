@@ -112,6 +112,13 @@ data class Expense(
         )
     }
 
+    fun canRecordParticipationDecisionBy(member: MemberEmail): Boolean =
+        status == ExpenseStatus.PROPOSED &&
+            member != createdBy &&
+            participations.any { participation ->
+                participation.member == member && participation.status is ExpenseParticipationStatus.Pending
+            }
+
     fun acceptedAt(): Instant {
         require(status == ExpenseStatus.ACCEPTED) { "expense must be accepted" }
 

@@ -2,7 +2,6 @@ package tech.justdev.application.expense
 
 import jakarta.inject.Singleton
 import tech.justdev.application.group.GroupAccessPolicy
-import tech.justdev.domain.expense.repository.ExpenseRepository
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.valueobject.GroupId
 import java.time.Instant
@@ -29,25 +28,12 @@ interface ListGroupExpensesUseCase {
 
 @Singleton
 class ListGroupExpensesUseCaseImpl(
-    private val expenseRepository: ExpenseRepository,
+    private val expenseListProjection: ExpenseListProjection,
     private val groupAccessPolicy: GroupAccessPolicy,
 ) : ListGroupExpensesUseCase {
     override suspend operator fun invoke(query: ListGroupExpensesQuery): List<ExpenseSnapshot> {
         groupAccessPolicy.requireMember(query.group, query.requestedBy)
 
-        return expenseRepository
-            .findByGroup(query.group)
-            .sortedBy { expense -> expense.createdAt }
-            .map { expense ->
-                ExpenseSnapshot(
-                    id = expense.id.toPrimitive(),
-                    title = expense.title,
-                    createdBy = expense.createdBy.toPrimitive(),
-                    totalAmountCents = expense.totalAmount.inCents(),
-                    createdAt = expense.createdAt,
-                    status = expense.status.name,
-                    refusal = expense.toRefusalSnapshot(),
-                )
-            }
+        return expenseListProjection.findByGroup(query.group)
     }
 }

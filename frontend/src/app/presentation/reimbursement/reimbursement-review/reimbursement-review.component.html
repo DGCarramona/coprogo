@@ -1,0 +1,36 @@
+<section class="reimbursement-review" aria-label="Vérifier ce remboursement">
+  <label [for]="'reimbursement-rejection-reason-' + reimbursementId()">
+    Motif du refus (facultatif)
+  </label>
+  <textarea
+    [id]="'reimbursement-rejection-reason-' + reimbursementId()"
+    [value]="viewModel.rejectionReason()"
+    [disabled]="viewModel.isReviewing()"
+    (input)="updateRejectionReason($event)"
+  ></textarea>
+
+  @if (viewModel.errorMessage(); as errorMessage) {
+    <p role="alert">{{ errorMessage }}</p>
+  }
+
+  <div class="reimbursement-review__actions">
+    <button
+      matButton="filled"
+      type="button"
+      aria-label="Accepter le remboursement"
+      [disabled]="viewModel.isReviewing()"
+      (click)="viewModel.accept()"
+    >
+      Accepter
+    </button>
+    <button
+      matButton="outlined"
+      type="button"
+      aria-label="Refuser le remboursement"
+      [disabled]="viewModel.isReviewing()"
+      (click)="viewModel.reject()"
+    >
+      Refuser
+    </button>
+  </div>
+</section>

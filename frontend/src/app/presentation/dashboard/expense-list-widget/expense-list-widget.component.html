@@ -16,7 +16,12 @@
         @for (expense of viewModel.expenses(); track expense.id) {
           <div class="expense-list-widget__row">
             <div class="expense-list-widget__info">
-              <span class="expense-list-widget__title">{{ expense.title }}</span>
+              <a
+                class="expense-list-widget__title"
+                [routerLink]="['/groups', groupId, 'expenses', expense.id]"
+              >
+                {{ expense.title }}
+              </a>
               <span class="expense-list-widget__creator">{{ expense.createdBy }}</span>
             </div>
             <strong>{{ expense.amount }}</strong>
