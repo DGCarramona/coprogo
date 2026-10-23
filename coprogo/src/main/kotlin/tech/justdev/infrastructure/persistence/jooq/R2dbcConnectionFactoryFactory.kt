@@ -32,6 +32,7 @@ private fun Environment.fromR2dbcUrl(r2dbcUrl: String): ConnectionFactoryOptions
         database = uri.path.removePrefix("/"),
         username = requiredProperty("r2dbc.datasources.default.username"),
         password = requiredProperty("r2dbc.datasources.default.password"),
+        ssl = requiredProperty("r2dbc.datasources.default.ssl", Boolean::class.java),
     )
 }
 
@@ -43,6 +44,7 @@ private fun Environment.fromMigrationJdbcUrl(jdbcUrl: String): ConnectionFactory
         database = uri.path.removePrefix("/"),
         username = requiredProperty("datasources.migration.username"),
         password = requiredProperty("datasources.migration.password"),
+        ssl = requiredProperty("datasources.migration.ssl", Boolean::class.java),
     )
 }
 
@@ -52,6 +54,7 @@ private fun options(
     database: String,
     username: String,
     password: String,
+    ssl: Boolean,
 ): ConnectionFactoryOptions =
     ConnectionFactoryOptions
         .builder()
@@ -61,6 +64,12 @@ private fun options(
         .option(ConnectionFactoryOptions.DATABASE, database)
         .option(ConnectionFactoryOptions.USER, username)
         .option(ConnectionFactoryOptions.PASSWORD, password)
+        .option(ConnectionFactoryOptions.SSL, ssl)
         .build()
 
 private fun Environment.requiredProperty(name: String): String = getRequiredProperty(name, String::class.java)
+
+private fun <T : Any> Environment.requiredProperty(
+    name: String,
+    type: Class<T>,
+): T = getRequiredProperty(name, type)
