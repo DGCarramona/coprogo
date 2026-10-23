@@ -16,8 +16,7 @@ internal class EquivalentMutationWhitelist private constructor(
         private val objectMapper = ObjectMapper()
         private val requiredFields = setOf("className", "method", "mutator", "instructionIndex", "justification")
 
-        fun load(path: Path): EquivalentMutationWhitelist =
-            Files.newBufferedReader(path).use { reader -> parse(reader.readText()) }
+        fun load(path: Path): EquivalentMutationWhitelist = Files.newBufferedReader(path).use { reader -> parse(reader.readText()) }
 
         fun parse(json: String): EquivalentMutationWhitelist {
             val root =
