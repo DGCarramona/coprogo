@@ -79,8 +79,29 @@ java {
     sourceCompatibility = JavaVersion.toVersion("25")
 }
 
+// Use production resources with only jOOQ, so test/framework metadata cannot hide missing array registrations.
+val nativeSmokeTest =
+    sourceSets.create("nativeSmokeTest") {
+        kotlin.srcDir("src/test/kotlin")
+        kotlin.include("tech/justdev/infrastructure/persistence/jooq/JooqNativeSmokeTest.kt")
+        compileClasspath += sourceSets.main.get().output
+        runtimeClasspath += sourceSets.main.get().output
+    }
+
+dependencies {
+    add(nativeSmokeTest.implementationConfigurationName, "org.jooq:jooq:$jooqVersion")
+}
+
 graalvmNative {
     toolchainDetection = true
+    binaries.create("jooqSmokeTest") {
+        imageName.set("jooq-smoke-test")
+        quickBuild.set(true)
+        mainClass.set("tech.justdev.infrastructure.persistence.jooq.JooqNativeSmokeTestKt")
+        classpath.from(nativeSmokeTest.runtimeClasspath)
+        buildArgs.add("--exact-reachability-metadata=org.jooq")
+        runtimeArgs.add("-XX:MissingRegistrationReportingMode=Exit")
+    }
 }
 
 micronaut {
