@@ -21,6 +21,19 @@ class StubOwnershipShareChangeWidgetComponent {
 }
 
 describe('OwnershipShareTimelinePageComponent', () => {
+  it('shows that the ownership-share history is loading', () => {
+    const viewModel = new StubOwnershipShareTimelinePageViewModel();
+    viewModel.isLoading.set(true);
+    viewModel.isReady.set(false);
+    const fixture = createFixture(viewModel);
+
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
+      'Chargement de l’historique...',
+    );
+  });
+
   it('renders each effective ownership-share change in plain language', () => {
     const fixture = createFixture(new StubOwnershipShareTimelinePageViewModel());
 

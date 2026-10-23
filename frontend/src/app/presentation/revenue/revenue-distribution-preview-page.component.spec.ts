@@ -66,10 +66,53 @@ describe('RevenueDistributionPreviewPageComponent', () => {
 
     expect(host.querySelector('a[href="/groups/group-1/dashboard"]')).not.toBeNull();
   });
+
+  it('explains when no group is selected', () => {
+    const { fixture, host } = createFixture(new StubRevenueDistributionPreviewPort(), null);
+
+    fixture.detectChanges();
+
+    expect(host.querySelector('[role="alert"]')?.textContent).toContain(
+      'Aucun groupe n’est sélectionné.',
+    );
+    expect(host.querySelector('form')).toBeNull();
+  });
+
+  it('keeps the request editable and lets the member adjust it after a preview failure', async () => {
+    const port = new StubRevenueDistributionPreviewPort();
+    port.failure = new Error('Aucune quote-part ne s’applique à cette date.');
+    const { fixture, host } = createFixture(port);
+    fixture.detectChanges();
+    setValue(host, fixture, 'input[aria-label="Montant à répartir en euros"]', '25,50');
+    setValue(host, fixture, 'input[aria-label="Date de répartition"]', '2026-11-01');
+
+    requiredButton(host, 'button[type="submit"]').click();
+    await waitFor(() => {
+      fixture.detectChanges();
+      return host.querySelector('[role="alert"]') !== null;
+    });
+
+    expect(host.textContent).toContain('Aucune quote-part ne s’applique à cette date.');
+    expect(requiredInput(host, 'input[aria-label="Montant à répartir en euros"]').value).toBe(
+      '25,50',
+    );
+    expect(requiredInput(host, 'input[aria-label="Date de répartition"]').value).toBe('2026-11-01');
+
+    port.failure = null;
+    setValue(host, fixture, 'input[aria-label="Date de répartition"]', '2026-10-01');
+    requiredButton(host, 'button[type="submit"]').click();
+    await waitFor(() => {
+      fixture.detectChanges();
+      return host.textContent?.includes('alice@example.com') ?? false;
+    });
+
+    expect(port.queries).toHaveLength(2);
+  });
 });
 
 const createFixture = (
   port: StubRevenueDistributionPreviewPort,
+  groupId: string | null = 'group-1',
 ): { fixture: ComponentFixture<RevenueDistributionPreviewPageComponent>; host: HTMLElement } => {
   TestBed.configureTestingModule({
     imports: [RevenueDistributionPreviewPageComponent],
@@ -79,7 +122,7 @@ const createFixture = (
       {
         provide: ActivatedRoute,
         useValue: {
-          snapshot: { paramMap: convertToParamMap({ groupId: 'group-1' }) },
+          snapshot: { paramMap: convertToParamMap(groupId === null ? {} : { groupId }) },
         },
       },
       { provide: RevenueDistributionPreviewPort, useValue: port },
@@ -103,11 +146,13 @@ const createFixture = (
 
 class StubRevenueDistributionPreviewPort extends RevenueDistributionPreviewPort {
   readonly queries: RevenueDistributionPreviewQuery[] = [];
+  failure: Error | null = null;
 
   override async preview(
     query: RevenueDistributionPreviewQuery,
   ): Promise<RevenueDistributionPreview> {
     this.queries.push(query);
+    if (this.failure !== null) throw this.failure;
     return {
       groupId: query.groupId,
       effectiveDate: query.effectiveDate,
@@ -137,6 +182,12 @@ const requiredButton = (host: HTMLElement, selector: string): HTMLButtonElement 
   const button = host.querySelector<HTMLButtonElement>(selector);
   if (button === null) throw new Error(`Bouton absent: ${selector}`);
   return button;
+};
+
+const requiredInput = (host: HTMLElement, selector: string): HTMLInputElement => {
+  const input = host.querySelector<HTMLInputElement>(selector);
+  if (input === null) throw new Error(`Champ absent: ${selector}`);
+  return input;
 };
 
 const waitFor = async (condition: () => boolean): Promise<void> => {

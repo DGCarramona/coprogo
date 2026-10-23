@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 
 import { GroupMembersPort } from '../../application/group/group-members.port';
 import {
@@ -37,6 +37,11 @@ describe('OwnershipShareChangeWidgetComponent', () => {
         ],
       },
     ]);
+    await waitFor(() => {
+      fixture.detectChanges();
+      return host.querySelector('[role="status"]') !== null;
+    });
+    expect(host.textContent).toContain('Les nouvelles quotes-parts ont été enregistrées.');
   });
 
   it('keeps submission disabled while the shares do not total 100 percent', async () => {
@@ -53,16 +58,66 @@ describe('OwnershipShareChangeWidgetComponent', () => {
     expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
     expect(host.textContent).toContain('Le total doit être exactement égal à 100 %.');
   });
+
+  it('shows a member-loading failure and lets the user retry it', async () => {
+    const membersPort = new StubGroupMembersPort();
+    membersPort.failure = new Error('Membres indisponibles');
+    const { fixture, host } = createFixture(new StubOwnershipShareChangePort(), membersPort);
+
+    await waitFor(() => {
+      fixture.detectChanges();
+      return host.querySelector('[role="alert"]') !== null;
+    });
+    expect(host.textContent).toContain('Membres indisponibles');
+
+    membersPort.failure = null;
+    requiredButton(host, 'button[aria-label="Réessayer"]').click();
+    await waitFor(() => {
+      fixture.detectChanges();
+      return host.querySelectorAll('input[inputmode="decimal"]').length === 2;
+    });
+
+    expect(membersPort.requestedGroupIds).toEqual(['group-1', 'group-1']);
+  });
+
+  it('keeps the entered shares visible after recording fails', async () => {
+    const changePort = new StubOwnershipShareChangePort();
+    changePort.failure = new Error('Seul le créateur peut modifier les quotes-parts.');
+    const { fixture, host } = createFixture(changePort);
+    await waitFor(() => {
+      fixture.detectChanges();
+      return host.querySelectorAll('input[inputmode="decimal"]').length === 2;
+    });
+
+    setValue(host, fixture, 'input[aria-label="Date d effet"]', '2026-11-01');
+    setValue(host, fixture, 'input[aria-label="Quote-part de alice@example.com"]', '60,25');
+    setValue(host, fixture, 'input[aria-label="Quote-part de bob@example.com"]', '39,75');
+    requiredButton(host, 'button[type="submit"]').click();
+    await waitFor(() => {
+      fixture.detectChanges();
+      return host.querySelector('[role="alert"]') !== null;
+    });
+
+    expect(host.textContent).toContain('Seul le créateur peut modifier les quotes-parts.');
+    expect(requiredInput(host, 'input[aria-label="Date d effet"]').value).toBe('2026-11-01');
+    expect(requiredInput(host, 'input[aria-label="Quote-part de alice@example.com"]').value).toBe(
+      '60,25',
+    );
+    expect(requiredInput(host, 'input[aria-label="Quote-part de bob@example.com"]').value).toBe(
+      '39,75',
+    );
+  });
 });
 
 const createFixture = (
   changePort: StubOwnershipShareChangePort,
+  membersPort: StubGroupMembersPort = new StubGroupMembersPort(),
 ): { fixture: ComponentFixture<OwnershipShareChangeWidgetComponent>; host: HTMLElement } => {
   TestBed.configureTestingModule({
     imports: [OwnershipShareChangeWidgetComponent],
     providers: [
       provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
-      { provide: GroupMembersPort, useClass: StubGroupMembersPort },
+      { provide: GroupMembersPort, useValue: membersPort },
       { provide: OwnershipShareChangePort, useValue: changePort },
     ],
   });
@@ -72,19 +127,27 @@ const createFixture = (
 };
 
 class StubGroupMembersPort extends GroupMembersPort {
-  override listByGroup(): Observable<readonly GroupMember[]> {
-    return of([
-      { member: 'alice@example.com', joinedAt: new Date('2026-01-01T00:00:00Z') },
-      { member: 'bob@example.com', joinedAt: new Date('2026-01-02T00:00:00Z') },
-    ]);
+  failure: Error | null = null;
+  readonly requestedGroupIds: string[] = [];
+
+  override listByGroup(groupId: string): Observable<readonly GroupMember[]> {
+    this.requestedGroupIds.push(groupId);
+    return this.failure === null
+      ? of([
+          { member: 'alice@example.com', joinedAt: new Date('2026-01-01T00:00:00Z') },
+          { member: 'bob@example.com', joinedAt: new Date('2026-01-02T00:00:00Z') },
+        ])
+      : throwError(() => this.failure);
   }
 }
 
 class StubOwnershipShareChangePort extends OwnershipShareChangePort {
   readonly commands: OwnershipShareChangeCommand[] = [];
+  failure: Error | null = null;
 
   override async record(command: OwnershipShareChangeCommand): Promise<void> {
     this.commands.push(command);
+    if (this.failure !== null) throw this.failure;
   }
 }
 
@@ -105,6 +168,12 @@ const requiredButton = (host: HTMLElement, selector: string): HTMLButtonElement 
   const button = host.querySelector<HTMLButtonElement>(selector);
   if (button === null) throw new Error(`Bouton absent: ${selector}`);
   return button;
+};
+
+const requiredInput = (host: HTMLElement, selector: string): HTMLInputElement => {
+  const input = host.querySelector<HTMLInputElement>(selector);
+  if (input === null) throw new Error(`Champ absent: ${selector}`);
+  return input;
 };
 
 const waitFor = async (condition: () => boolean): Promise<void> => {

@@ -21,6 +21,7 @@ describe('CashPoolIncomeWidgetComponent', () => {
     requiredButton(host, 'button[type="submit"]').click();
 
     await waitFor(() => recordedCount === 1);
+    fixture.detectChanges();
     expect(port.commands).toEqual([
       {
         groupId: 'group-1',
@@ -29,6 +30,9 @@ describe('CashPoolIncomeWidgetComponent', () => {
         effectiveDate: new Date(2026, 8, 1),
       },
     ]);
+    expect(host.querySelector('[role="status"]')?.textContent).toContain(
+      'Le revenu et sa répartition ont été enregistrés.',
+    );
   });
 
   it('keeps submission disabled until the amount and both dates are valid', () => {
@@ -52,6 +56,41 @@ describe('CashPoolIncomeWidgetComponent', () => {
       'La date des quotes-parts détermine la répartition appliquée à ce revenu.',
     );
   });
+
+  it('keeps the income editable and lets the member adjust it after recording fails', async () => {
+    const port = new StubCashPoolIncomeRecordingPort();
+    port.failure = new Error('Aucune quote-part ne s’applique à cette date.');
+    const { fixture, host } = createFixture(port);
+    fixture.detectChanges();
+    fillValidForm(host, fixture);
+
+    requiredButton(host, 'button[type="submit"]').click();
+    await waitFor(() => {
+      fixture.detectChanges();
+      return host.querySelector('[role="alert"]') !== null;
+    });
+
+    expect(host.textContent).toContain('Aucune quote-part ne s’applique à cette date.');
+    expect(requiredInput(host, 'input[aria-label="Montant du revenu en euros"]').value).toBe(
+      '1250,50',
+    );
+    expect(requiredInput(host, 'input[aria-label="Date de réception"]').value).toBe(
+      '2026-10-01T09:30',
+    );
+    expect(requiredInput(host, 'input[aria-label="Date des quotes-parts"]').value).toBe(
+      '2026-09-01',
+    );
+
+    port.failure = null;
+    setValue(host, fixture, 'input[aria-label="Date des quotes-parts"]', '2026-08-01');
+    requiredButton(host, 'button[type="submit"]').click();
+    await waitFor(() => {
+      fixture.detectChanges();
+      return host.querySelector('[role="status"]') !== null;
+    });
+
+    expect(port.commands).toHaveLength(2);
+  });
 });
 
 const createFixture = (
@@ -71,11 +110,22 @@ const createFixture = (
 
 class StubCashPoolIncomeRecordingPort extends CashPoolIncomeRecordingPort {
   readonly commands: CashPoolIncomeRecordingCommand[] = [];
+  failure: Error | null = null;
 
   override async record(command: CashPoolIncomeRecordingCommand): Promise<void> {
     this.commands.push(command);
+    if (this.failure !== null) throw this.failure;
   }
 }
+
+const fillValidForm = (
+  host: HTMLElement,
+  fixture: ComponentFixture<CashPoolIncomeWidgetComponent>,
+): void => {
+  setValue(host, fixture, 'input[aria-label="Montant du revenu en euros"]', '1250,50');
+  setValue(host, fixture, 'input[aria-label="Date de réception"]', '2026-10-01T09:30');
+  setValue(host, fixture, 'input[aria-label="Date des quotes-parts"]', '2026-09-01');
+};
 
 const setValue = (
   host: HTMLElement,
@@ -94,6 +144,12 @@ const requiredButton = (host: HTMLElement, selector: string): HTMLButtonElement 
   const button = host.querySelector<HTMLButtonElement>(selector);
   if (button === null) throw new Error(`Bouton absent: ${selector}`);
   return button;
+};
+
+const requiredInput = (host: HTMLElement, selector: string): HTMLInputElement => {
+  const input = host.querySelector<HTMLInputElement>(selector);
+  if (input === null) throw new Error(`Champ absent: ${selector}`);
+  return input;
 };
 
 const waitFor = async (condition: () => boolean): Promise<void> => {

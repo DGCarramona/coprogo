@@ -33,6 +33,39 @@ describe('CashPoolHistoryWidgetComponent', () => {
 
     expect(host.textContent).toContain('Aucune opération de caisse commune enregistrée.');
   });
+
+  it('shows that the cash-pool history is loading', async () => {
+    const port = new StubCashPoolHistoryPort();
+    port.pauseNextRequest();
+    const { fixture, host } = createFixture(port);
+
+    await waitFor(fixture, () => host.textContent?.includes('Lecture des opérations...') === true);
+
+    expect(host.querySelector('mat-progress-bar')).not.toBeNull();
+    port.resumeRequest();
+    await waitFor(
+      fixture,
+      () => host.querySelectorAll('li.cash-pool-history__operation').length === 2,
+    );
+  });
+
+  it('shows a loading failure and lets the user retry it', async () => {
+    const port = new StubCashPoolHistoryPort();
+    port.failure = new Error('Historique indisponible');
+    const { fixture, host } = createFixture(port);
+
+    await waitFor(fixture, () => host.querySelector('[role="alert"]') !== null);
+    expect(host.textContent).toContain('Historique indisponible');
+
+    port.failure = null;
+    requiredButton(host, 'button').click();
+    await waitFor(
+      fixture,
+      () => host.querySelectorAll('li.cash-pool-history__operation').length === 2,
+    );
+
+    expect(port.groupIds).toEqual(['group-1', 'group-1']);
+  });
 });
 
 const createFixture = (
@@ -75,13 +108,39 @@ class StubCashPoolHistoryPort extends CashPoolHistoryPort {
       },
     ],
   };
+  failure: Error | null = null;
   readonly groupIds: string[] = [];
+  private resumePendingRequest: (() => void) | null = null;
+  private shouldPauseNextRequest = false;
 
   override async get(groupId: string): Promise<CashPoolHistory> {
     this.groupIds.push(groupId);
+    if (this.failure !== null) throw this.failure;
+    if (this.shouldPauseNextRequest) {
+      this.shouldPauseNextRequest = false;
+      await new Promise<void>((resolve) => {
+        this.resumePendingRequest = resolve;
+      });
+    }
     return this.result;
   }
+
+  pauseNextRequest(): void {
+    this.shouldPauseNextRequest = true;
+  }
+
+  resumeRequest(): void {
+    if (this.resumePendingRequest === null) throw new Error('Aucune requête en attente.');
+    this.resumePendingRequest();
+    this.resumePendingRequest = null;
+  }
 }
+
+const requiredButton = (host: HTMLElement, selector: string): HTMLButtonElement => {
+  const button = host.querySelector<HTMLButtonElement>(selector);
+  if (button === null) throw new Error(`Bouton absent: ${selector}`);
+  return button;
+};
 
 const waitFor = async (
   fixture: ComponentFixture<CashPoolHistoryWidgetComponent>,

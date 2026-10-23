@@ -20,6 +20,7 @@ describe('CashPoolWithdrawalWidgetComponent', () => {
     requiredButton(host, 'button[type="submit"]').click();
 
     await waitFor(() => withdrawnCount === 1);
+    fixture.detectChanges();
     expect(port.commands).toEqual([
       {
         groupId: 'group-1',
@@ -27,6 +28,9 @@ describe('CashPoolWithdrawalWidgetComponent', () => {
         withdrawnAt: new Date('2026-10-03T14:30'),
       },
     ]);
+    expect(host.querySelector('[role="status"]')?.textContent).toContain(
+      'Le retrait a été enregistré.',
+    );
   });
 
   it('keeps submission disabled until the amount and date are valid', () => {
@@ -40,7 +44,7 @@ describe('CashPoolWithdrawalWidgetComponent', () => {
     expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
   });
 
-  it('explains when the requested amount is unavailable', async () => {
+  it('keeps the withdrawal editable and lets the member reduce it when the amount is unavailable', async () => {
     const port = new StubCashPoolWithdrawalPort();
     port.failure = new InsufficientCashPoolBalanceError();
     const { fixture, host } = createFixture(port);
@@ -56,6 +60,22 @@ describe('CashPoolWithdrawalWidgetComponent', () => {
     expect(host.textContent).toContain(
       'Le montant dépasse ce qui est disponible dans la caisse commune.',
     );
+    expect(requiredInput(host, 'input[aria-label="Montant du retrait en euros"]').value).toBe(
+      '25,50',
+    );
+    expect(requiredInput(host, 'input[aria-label="Date du retrait"]').value).toBe(
+      '2026-10-03T14:30',
+    );
+
+    port.failure = null;
+    setValue(host, fixture, 'input[aria-label="Montant du retrait en euros"]', '20,00');
+    requiredButton(host, 'button[type="submit"]').click();
+    await waitFor(() => {
+      fixture.detectChanges();
+      return host.querySelector('[role="status"]') !== null;
+    });
+
+    expect(port.commands).toHaveLength(2);
   });
 });
 
@@ -109,6 +129,12 @@ const requiredButton = (host: HTMLElement, selector: string): HTMLButtonElement 
   const button = host.querySelector<HTMLButtonElement>(selector);
   if (button === null) throw new Error(`Bouton absent: ${selector}`);
   return button;
+};
+
+const requiredInput = (host: HTMLElement, selector: string): HTMLInputElement => {
+  const input = host.querySelector<HTMLInputElement>(selector);
+  if (input === null) throw new Error(`Champ absent: ${selector}`);
+  return input;
 };
 
 const waitFor = async (condition: () => boolean): Promise<void> => {
