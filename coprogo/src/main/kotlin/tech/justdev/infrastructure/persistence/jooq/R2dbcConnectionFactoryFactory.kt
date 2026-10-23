@@ -32,7 +32,7 @@ private fun Environment.fromR2dbcUrl(r2dbcUrl: String): ConnectionFactoryOptions
         database = uri.path.removePrefix("/"),
         username = requiredProperty("r2dbc.datasources.default.username"),
         password = requiredProperty("r2dbc.datasources.default.password"),
-        ssl = requiredProperty("r2dbc.datasources.default.ssl", Boolean::class.java),
+        ssl = getProperty("r2dbc.datasources.default.ssl", Boolean::class.java).orElse(false),
     )
 }
 
@@ -44,7 +44,7 @@ private fun Environment.fromMigrationJdbcUrl(jdbcUrl: String): ConnectionFactory
         database = uri.path.removePrefix("/"),
         username = requiredProperty("datasources.migration.username"),
         password = requiredProperty("datasources.migration.password"),
-        ssl = requiredProperty("datasources.migration.ssl", Boolean::class.java),
+        ssl = getProperty("datasources.migration.ssl", Boolean::class.java).orElse(false),
     )
 }
 
