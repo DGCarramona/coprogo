@@ -36,6 +36,32 @@ ng build
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
+### Public application configuration
+
+The application reads these public configuration values:
+
+| Variable               | Purpose                        | Default when absent        |
+| ---------------------- | ------------------------------ | -------------------------- |
+| `APP_API_BASE_URL`     | Backend origin, without `/api` | `http://localhost:8080`    |
+| `APP_GOOGLE_CLIENT_ID` | Google OAuth web client ID     | Google sign-in unavailable |
+
+Angular CLI does not automatically expose shell variables through Vite's `import.meta.env` API.
+`angular.json` defines an empty object for local defaults. Deployment builds replace that object
+using Angular CLI's native `--define` option; no custom builder or wrapper is required.
+
+Set both variables in the build environment, then run the following command from `frontend/`
+(POSIX shell):
+
+```sh
+npm ci && npm run build -- --define "import.meta.env={\"APP_API_BASE_URL\":\"${APP_API_BASE_URL}\",\"APP_GOOGLE_CLIENT_ID\":\"${APP_GOOGLE_CLIENT_ID}\"}"
+```
+
+Serve the generated static files from `dist/frontend/browser`.
+Both variables must contain their public URL/client ID values without surrounding quotes.
+After changing a variable, trigger a new build and deploy: these values are compiled into the
+JavaScript files, not read from the hosting environment by the browser. Never add passwords or
+storage access keys to the definition.
+
 ## Running unit tests
 
 To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
