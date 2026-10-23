@@ -93,6 +93,22 @@ class MyAuthenticationTest {
 }
 ```
 
+### Local native jOOQ diagnostics
+
+Run this explicitly from the repository root with GraalVM to exercise jOOQ initialization
+and member-lookup SQL construction without PostgreSQL:
+
+```bash
+./gradlew -p coprogo nativeJooqSmokeTest
+```
+
+This builds and runs a separate native executable; CI does not run it. Its
+`--exact-reachability-metadata=org.jooq` and `-XX:MissingRegistrationReportingMode=Exit`
+options make GraalVM report the missing type and the JSON registration to add to
+`src/main/resources/META-INF/native-image/tech.justdev/coprogo/reachability-metadata.json`,
+then exit with an error. Apply the suggested change and rerun the command; the tool does not edit metadata.
+See [GraalVM metadata diagnostics](https://www.graalvm.org/jdk25/reference-manual/native-image/metadata/).
+
 ### Mutation tests
 
 Run PIT from the repository root to check whether the backend test suite detects deliberate code changes:
