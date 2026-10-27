@@ -8,7 +8,7 @@ import {
 } from '../../../application/revenue/cash-pool-income-recording.port';
 import { describeError } from '../../../application/shared/describe-error';
 import { parseAmountInCents } from '../../../shared/format/parse-amount-in-cents';
-import { parseLocalDate } from '../../../shared/format/local-date';
+import { formatLocalDate, parseLocalDate } from '../../../shared/format/local-date';
 import { parseLocalDateTime } from '../../../shared/format/parse-local-date-time';
 import { cashPoolHistoryQueryKey } from '../cash-pool-query-keys';
 
@@ -120,5 +120,5 @@ export class CashPoolIncomeWidgetViewModel {
 const emptyFormModel = (): CashPoolIncomeFormModel => ({
   amountInEuros: '',
   receivedAt: '',
-  effectiveDate: '',
+  effectiveDate: formatLocalDate(new Date()),
 });

@@ -8,6 +8,11 @@ import {
 import { CashPoolIncomeWidgetComponent } from './cash-pool-income-widget.component';
 
 describe('CashPoolIncomeWidgetComponent', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 9, 27, 0, 30));
+  });
+  afterEach(() => vi.useRealTimers());
   it('records the income and notifies its container after success', async () => {
     const port = new StubCashPoolIncomeRecordingPort();
     const { fixture, host } = createFixture(port);
@@ -35,16 +40,19 @@ describe('CashPoolIncomeWidgetComponent', () => {
     );
   });
 
-  it('keeps submission disabled until the amount and both dates are valid', () => {
+  it('prefills today and enables submission after entering only amount and reception date', () => {
     const { fixture, host } = createFixture(new StubCashPoolIncomeRecordingPort());
     fixture.detectChanges();
 
     expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
+    expect(requiredInput(host, 'input[aria-label="Date des quotes-parts"]').value).toBe(
+      '2026-10-27',
+    );
 
     setValue(host, fixture, 'input[aria-label="Montant du revenu en euros"]', '1250,50');
     setValue(host, fixture, 'input[aria-label="Date de réception"]', '2026-10-01T09:30');
 
-    expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
+    expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(false);
   });
 
   it('explains which date controls the applied ownership shares', () => {
