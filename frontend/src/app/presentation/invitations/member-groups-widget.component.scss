@@ -1,0 +1,26 @@
+:host {
+  display: block;
+  margin-top: 1.5rem;
+}
+
+ul {
+  display: grid;
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+li {
+  min-width: 0;
+}
+
+mat-card {
+  height: 100%;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 640px) {
+  ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

@@ -8,6 +8,8 @@ import { ExpenseParticipationDecisionPort } from './application/expense/expense-
 import { MemberDebtReductionHistoryPort } from './application/ledger/member-debt-reduction-history.port';
 import { CashPoolHistoryPort } from './application/ledger/cash-pool-history.port';
 import { CashPoolWithdrawalPort } from './application/ledger/cash-pool-withdrawal.port';
+import { MemberGroupsPort } from './application/group/member-groups.port';
+import { HttpMemberGroupsGateway } from './infrastructure/group/http-member-groups.gateway';
 import { GroupMembersPort } from './application/group/group-members.port';
 import { NavigationPort } from './application/shared/navigation.port';
 import { ReimbursementListPort } from './application/reimbursement/reimbursement-list.port';
@@ -52,6 +54,11 @@ const portBindings: readonly {
   port: ProviderToken<unknown>;
   adapter: ProviderToken<unknown>;
 }[] = [
+  {
+    name: 'member groups',
+    port: MemberGroupsPort,
+    adapter: HttpMemberGroupsGateway,
+  },
   {
     name: 'expense proposal',
     port: ExpenseProposalPort,

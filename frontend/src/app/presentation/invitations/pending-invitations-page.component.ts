@@ -7,6 +7,7 @@ import { CreateFirstGroupCardComponent } from './create-first-group-card.compone
 import { CreateFirstGroupViewModel } from './create-first-group.view-model';
 import { PendingInvitationsListComponent } from './pending-invitations-list.component';
 import { PendingInvitationsViewModel } from './pending-invitations.view-model';
+import { MemberGroupsWidgetComponent } from './member-groups-widget.component';
 
 @Component({
   selector: 'app-pending-invitations-page',
@@ -16,6 +17,7 @@ import { PendingInvitationsViewModel } from './pending-invitations.view-model';
     PendingInvitationsListComponent,
     MatCardModule,
     MatProgressBarModule,
+    MemberGroupsWidgetComponent,
   ],
   templateUrl: './pending-invitations-page.component.html',
   styleUrl: './pending-invitations-page.component.scss',

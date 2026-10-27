@@ -39,6 +39,22 @@ paths:
       security:
       - bearerAuth: []
   /api/groups:
+    get:
+      tags:
+      - Groups
+      summary: List the groups of the authenticated member
+      operationId: listMemberGroups
+      responses:
+        "200":
+          description: listMemberGroups 200 response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MemberGroupResponse"
+      security:
+      - bearerAuth: []
     post:
       tags:
       - Groups
@@ -1524,6 +1540,21 @@ components:
       - DIRECT_REIMBURSEMENT
       - COMPENSATING_EXPENSE
       - CASH_POOL_WITHDRAWAL
+    MemberGroupResponse:
+      required:
+      - createdAt
+      - createdBy
+      - group
+      type: object
+      properties:
+        group:
+          type: string
+          format: uuid
+        createdBy:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
     OwnershipShareChangeResponse:
       required:
       - change

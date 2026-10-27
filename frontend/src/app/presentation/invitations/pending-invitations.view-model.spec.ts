@@ -7,6 +7,7 @@ import {
 import { StubNavigationPort } from '../../../../__test__/app/application/shared/stub-navigation.port';
 import { PendingGroupInvitation } from '../../domain/group/pending-group-invitation';
 import { PendingInvitationsViewModel } from './pending-invitations.view-model';
+import { QueryClient } from '@tanstack/angular-query-experimental';
 
 describe('PendingInvitationsViewModel', () => {
   describe('initialize', () => {
@@ -47,6 +48,15 @@ describe('PendingInvitationsViewModel', () => {
   });
 
   describe('acceptInvitation', () => {
+    it('invalidates the group list after joining a group', async () => {
+      const queryClient = new QueryClient();
+      queryClient.setQueryData(['member-groups'], []);
+      const viewModel = createViewModel({ queryClient });
+
+      await viewModel.acceptInvitation('invitation-1');
+
+      expect(queryClient.getQueryState(['member-groups'])?.isInvalidated).toBe(true);
+    });
     it('accepts an invitation and removes it locally', async () => {
       const invitationsPort = new StubPendingGroupInvitationsPort();
       invitationsPort.invitations = [
@@ -70,12 +80,14 @@ const createViewModel = ({
   authSessionFacade = defaultAuthSessionFacade,
   invitationsPort = new StubPendingGroupInvitationsPort(),
   navigation = defaultNavigation,
+  queryClient = new QueryClient(),
 }: {
   authSessionFacade?: AuthSessionFacade;
   invitationsPort?: StubPendingGroupInvitationsPort;
   navigation?: StubNavigationPort;
+  queryClient?: QueryClient;
 } = {}): PendingInvitationsViewModel =>
-  new PendingInvitationsViewModel(authSessionFacade, invitationsPort, navigation);
+  new PendingInvitationsViewModel(authSessionFacade, invitationsPort, navigation, queryClient);
 
 const pendingInvitation = (invitationId: string): PendingGroupInvitation => ({
   invitationId,

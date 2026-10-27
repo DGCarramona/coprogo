@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { QueryClient } from '@tanstack/angular-query-experimental';
 
 import { AuthSessionFacade } from '../../../application/auth/auth-session.facade';
 import { NavigationPort } from '../../../application/shared/navigation.port';
@@ -19,10 +20,12 @@ export class AuthenticatedShellComponent {
   constructor(
     private readonly authSessionFacade: AuthSessionFacade,
     private readonly navigation: NavigationPort,
+    private readonly queryClient: QueryClient,
   ) {}
 
   async signOut(): Promise<void> {
     this.authSessionFacade.signOut();
+    this.queryClient.clear();
     await this.navigation.navigateByUrl('/connexion');
   }
 }

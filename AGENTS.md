@@ -163,6 +163,7 @@ Repository adapters must be designed for expected data volume and query shape. W
 ### Architecture and presentation
 
 - Keep Angular concerns at the edge. Use standalone components and `bootstrapApplication`; keep transport DTOs distinct from domain/application models and use pure mappings for DTO/domain/view-model/form conversion.
+- Component styles MUST live in separate CSS/SCSS files referenced through `styleUrl` or `styleUrls`, never inline in TypeScript component metadata or HTML templates.
 - Follow frontend Clean Architecture: pure Domain; Application use cases, orchestration, and services; Infrastructure HTTP/auth/storage/DTO mapping; Presentation pages, view models, and presentational components. Presentation depends on Application, never infrastructure details; infrastructure does not leak DTOs into Domain.
 - Application use cases contain real orchestration, validation, workflow decisions, aggregation, or reusable policy. Do not create one-call pass-through use cases; inject the focused port into the ViewModel/application service that owns the workflow instead.
 - Organize presentation as page/container components, explicit ViewModels, and presentational components. Components are thin UI adapters that orchestrate interaction, not core business rules; do not embed HTTP in deeply nested components.

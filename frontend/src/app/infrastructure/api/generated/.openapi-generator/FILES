@@ -54,6 +54,7 @@ model/member-cash-pool-share-response.ts
 model/member-debt-reduction-history-response.ts
 model/member-debt-reduction-response.ts
 model/member-debt-reduction-type-response.ts
+model/member-group-response.ts
 model/models.ts
 model/ownership-share-change-response.ts
 model/ownership-share-input.ts

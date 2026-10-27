@@ -1,0 +1,31 @@
+<section aria-labelledby="member-groups-title">
+  <h2 id="member-groups-title">Mes groupes</h2>
+  @if (viewModel.isLoading()) {
+    <p role="status">Chargement de vos groupes…</p>
+  } @else if (viewModel.hasLoadError()) {
+    <p role="alert">{{ viewModel.errorMessage() }}</p>
+    <button mat-stroked-button type="button" (click)="viewModel.retry()">Réessayer</button>
+  } @else if (viewModel.groups().length === 0) {
+    <p>Vous n’avez pas encore rejoint de groupe.</p>
+  } @else {
+    <ul>
+      @for (group of viewModel.groups(); track group.groupId) {
+        <li>
+          <mat-card appearance="outlined">
+            <mat-card-header>
+              <mat-card-title>Groupe créé par {{ group.createdBy }}</mat-card-title>
+            </mat-card-header>
+            <mat-card-content
+              ><p>Identifiant du groupe : {{ group.groupId }}</p></mat-card-content
+            >
+            <mat-card-actions>
+              <a mat-flat-button [routerLink]="['/groups', group.groupId, 'dashboard']"
+                >Ouvrir le groupe</a
+              >
+            </mat-card-actions>
+          </mat-card>
+        </li>
+      }
+    </ul>
+  }
+</section>

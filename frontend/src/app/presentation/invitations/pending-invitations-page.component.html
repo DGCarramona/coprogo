@@ -1,9 +1,10 @@
 <app-authenticated-shell
   #shell
   eyebrow="Connexion active"
-  title="Invitations en attente"
-  description="Votre compte est cree automatiquement a la premiere connexion. Cette page devient le point d entree pour rejoindre un groupe ou en creer un."
+  title="Vos groupes et invitations"
+  description="Retrouvez vos groupes, acceptez une invitation ou créez un groupe."
 >
+  <app-member-groups-widget />
   @if (invitationsViewModel.isLoading()) {
     <mat-card class="material-card pending-invitations-page__state" appearance="outlined">
       <mat-card-header>
@@ -37,6 +38,7 @@
       (createRequested)="createGroupViewModel.createGroup()"
     />
   } @else {
+    <h2>Invitations en attente</h2>
     <app-pending-invitations-list
       [invitations]="invitationsViewModel.invitations()"
       [busyInvitationId]="invitationsViewModel.busyInvitationId()"

@@ -19,6 +19,8 @@ import { GoogleIdTokenPort } from './application/auth/google-id-token.port';
 import { GoogleIdentityPort } from './application/auth/google-identity.port';
 import { GroupCreationPort } from './application/group/group-creation.port';
 import { GroupMembersPort } from './application/group/group-members.port';
+import { MemberGroupsPort } from './application/group/member-groups.port';
+import { HttpMemberGroupsGateway } from './infrastructure/group/http-member-groups.gateway';
 import { PendingGroupInvitationsPort } from './application/group/pending-group-invitations.port';
 import { GroupFinancialDashboardPort } from './application/ledger/group-financial-dashboard.port';
 import { CashPoolHistoryPort } from './application/ledger/cash-pool-history.port';
@@ -69,6 +71,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideTanStackQuery(new QueryClient()),
     provideApiClient(),
+    { provide: MemberGroupsPort, useExisting: HttpMemberGroupsGateway },
     {
       provide: NavigationPort,
       useExisting: RouterNavigationAdapter,

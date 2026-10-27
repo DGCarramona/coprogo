@@ -38,6 +38,7 @@ export * from './member-cash-pool-share-response';
 export * from './member-debt-reduction-history-response';
 export * from './member-debt-reduction-response';
 export * from './member-debt-reduction-type-response';
+export * from './member-group-response';
 export * from './ownership-share-change-response';
 export * from './ownership-share-input';
 export * from './ownership-share-response';

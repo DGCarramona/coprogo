@@ -27,6 +27,8 @@ import tech.justdev.application.group.GroupMemberSnapshot
 import tech.justdev.application.group.GroupSnapshot
 import tech.justdev.application.group.InviteMemberToGroupCommand
 import tech.justdev.application.group.InviteMemberToGroupUseCase
+import tech.justdev.application.group.ListMemberGroupsQuery
+import tech.justdev.application.group.ListMemberGroupsUseCase
 import tech.justdev.application.group.ListPendingGroupInvitationsQuery
 import tech.justdev.application.group.ListPendingGroupInvitationsUseCase
 import tech.justdev.application.group.PendingGroupInvitationSnapshot
@@ -46,7 +48,23 @@ class GroupController(
     private val inviteMemberToGroupUseCase: InviteMemberToGroupUseCase,
     private val acceptGroupInvitationUseCase: AcceptGroupInvitationUseCase,
     private val listPendingGroupInvitationsUseCase: ListPendingGroupInvitationsUseCase,
+    private val listMemberGroupsUseCase: ListMemberGroupsUseCase,
 ) {
+    @Get("/groups")
+    @Operation(operationId = "listMemberGroups", summary = "List the groups of the authenticated member")
+    suspend fun listMemberGroups(): List<MemberGroupResponse> =
+        listMemberGroupsUseCase(
+            ListMemberGroupsQuery(
+                requestedBy = authenticatedEmailProvider.currentAuthenticatedEmail(),
+            ),
+        ).map { group ->
+            MemberGroupResponse(
+                group = group.group,
+                createdBy = group.createdBy,
+                createdAt = group.createdAt,
+            )
+        }
+
     @Post("/groups")
     @Operation(summary = "Create a new group for the authenticated member")
     suspend fun create(): HttpResponse<CreateGroupResponse> {
@@ -127,6 +145,13 @@ class GroupController(
         ).map(PendingGroupInvitationSnapshot::toResponse)
     }
 }
+
+@Serdeable
+data class MemberGroupResponse(
+    val group: UUID,
+    val createdBy: String,
+    val createdAt: Instant,
+)
 
 @Serdeable
 data class CreateGroupResponse(

@@ -1,8 +1,18 @@
 import { GroupCreationPort } from '../../application/group/group-creation.port';
 import { CreateFirstGroupViewModel } from './create-first-group.view-model';
+import { QueryClient } from '@tanstack/angular-query-experimental';
 
 describe('CreateFirstGroupViewModel', () => {
   describe('createGroup', () => {
+    it('invalidates the member groups after creation', async () => {
+      const queryClient = new QueryClient();
+      queryClient.setQueryData(['member-groups'], []);
+      const viewModel = new CreateFirstGroupViewModel(new StubGroupCreationPort(), queryClient);
+
+      await viewModel.createGroup();
+
+      expect(queryClient.getQueryState(['member-groups'])?.isInvalidated).toBe(true);
+    });
     it('creates a group', async () => {
       const groupCreationPort = new StubGroupCreationPort();
       const viewModel = createViewModel(groupCreationPort);
@@ -29,7 +39,7 @@ describe('CreateFirstGroupViewModel', () => {
 });
 
 const createViewModel = (groupCreationPort: StubGroupCreationPort): CreateFirstGroupViewModel =>
-  new CreateFirstGroupViewModel(groupCreationPort);
+  new CreateFirstGroupViewModel(groupCreationPort, new QueryClient());
 
 class StubGroupCreationPort extends GroupCreationPort {
   createCalls = 0;

@@ -1,4 +1,6 @@
 import { Injectable, signal } from '@angular/core';
+import { QueryClient } from '@tanstack/angular-query-experimental';
+import { memberGroupsQueryKey } from './member-groups-query';
 
 import { AuthSessionFacade } from '../../application/auth/auth-session.facade';
 import { NavigationPort } from '../../application/shared/navigation.port';
@@ -19,6 +21,7 @@ export class PendingInvitationsViewModel {
     private readonly authSessionFacade: AuthSessionFacade,
     private readonly pendingGroupInvitationsPort: PendingGroupInvitationsPort,
     private readonly navigation: NavigationPort,
+    private readonly queryClient: QueryClient,
   ) {}
 
   invitations() {
@@ -81,6 +84,7 @@ export class PendingInvitationsViewModel {
       this.invitationsState.update((invitations) =>
         invitations.filter((invitation) => invitation.invitationId !== invitationId),
       );
+      await this.queryClient.invalidateQueries({ queryKey: memberGroupsQueryKey });
     } catch (error) {
       this.errorMessageState.set(describeError(error, "L'invitation n'a pas pu etre acceptee."));
     } finally {

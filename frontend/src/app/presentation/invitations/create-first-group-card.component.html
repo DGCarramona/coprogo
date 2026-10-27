@@ -1,9 +1,9 @@
 <mat-card appearance="outlined" class="material-card pending-invitations-page__state">
   <mat-card-header>
-    <mat-card-title>Aucune invitation en attente</mat-card-title>
+    <mat-card-title>Créer un groupe</mat-card-title>
   </mat-card-header>
   <mat-card-content>
-    <p>Vous pouvez maintenant creer votre premier groupe.</p>
+    <p>Aucune invitation en attente. Vous pouvez créer un groupe pour partager vos dépenses.</p>
 
     @if (createdGroupId(); as createdGroupIdValue) {
       <div class="pending-invitations-page__message pending-invitations-page__message--success">
@@ -19,7 +19,7 @@
   </mat-card-content>
   <mat-card-actions>
     <button (click)="createRequested.emit()" [disabled]="creating()" mat-flat-button type="button">
-      {{ creating() ? 'Creation...' : 'Creer mon premier groupe' }}
+      {{ creating() ? 'Création…' : 'Créer un groupe' }}
     </button>
     @if (createdGroupId(); as createdGroupIdValue) {
       <a [routerLink]="['/groups', createdGroupIdValue, 'dashboard']" mat-button>
