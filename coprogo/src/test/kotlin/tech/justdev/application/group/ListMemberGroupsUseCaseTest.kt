@@ -12,6 +12,17 @@ class ListMemberGroupsUseCaseTest {
     @Nested
     inner class Invoke {
         @Test
+        fun `exposes names and grants rename only to the creator`() =
+            runTest {
+                val member = MemberEmail.of("alice@example.com")
+                val own = MemberGroupSnapshot(groupId("owned-name").toPrimitive(), "alice@example.com", Instant.EPOCH, "Appartement")
+                val joined = MemberGroupSnapshot(groupId("joined-name").toPrimitive(), "bob@example.com", Instant.EPOCH, "Maison")
+                val useCase = ListMemberGroupsUseCaseImpl(RecordingMemberGroupsProjection(listOf(own, joined)))
+
+                assertEquals(listOf(own.copy(canRename = true), joined.copy(canRename = false)), useCase(ListMemberGroupsQuery(member)))
+            }
+
+        @Test
         fun `returns the summaries for the requesting member`() =
             runTest {
                 val member = MemberEmail.of("alice@example.com")

@@ -18,12 +18,12 @@ class R2dbcMemberGroupsProjection(
     override suspend fun findByMember(member: MemberEmail): List<MemberGroupSnapshot> =
         connectionFactory
             .dsl()
-            .select(GROUPS.ID, GROUPS.CREATED_BY, GROUPS.CREATED_AT)
+            .select(GROUPS.ID, GROUPS.CREATED_BY, GROUPS.CREATED_AT, GROUPS.NAME)
             .from(GROUPS)
             .join(GROUP_MEMBERSHIPS)
             .on(GROUP_MEMBERSHIPS.GROUP.eq(GROUPS.ID))
             .where(GROUP_MEMBERSHIPS.MEMBER_EMAIL.eq(member.toPrimitive()))
             .orderBy(GROUPS.CREATED_AT.asc(), GROUPS.ID.asc())
             .awaitList()
-            .map { row -> MemberGroupSnapshot(row.value1(), row.value2(), row.value3().toInstant()) }
+            .map { row -> MemberGroupSnapshot(row.value1(), row.value2(), row.value3().toInstant(), row.value4()) }
 }

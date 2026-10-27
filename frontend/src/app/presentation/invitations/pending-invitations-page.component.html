@@ -35,7 +35,7 @@
       [createdGroupId]="createGroupViewModel.createdGroupId()"
       [errorMessage]="createGroupViewModel.errorMessage()"
       [creating]="createGroupViewModel.isCreatingGroup()"
-      (createRequested)="createGroupViewModel.createGroup()"
+      (createRequested)="createGroupViewModel.createGroup($event)"
     />
   } @else {
     <h2>Invitations en attente</h2>

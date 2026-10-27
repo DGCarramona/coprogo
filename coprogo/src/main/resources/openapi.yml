@@ -60,6 +60,11 @@ paths:
       - Groups
       summary: Create a new group for the authenticated member
       operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGroupRequest"
       responses:
         "200":
           description: create 200 response
@@ -544,6 +549,30 @@ paths:
                 $ref: "#/components/schemas/MemberDebtReductionHistoryResponse"
       security:
       - bearerAuth: []
+  /api/groups/{groupId}/name:
+    patch:
+      tags:
+      - Groups
+      summary: Rename a group as its creator
+      operationId: renameGroup
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RenameGroupRequest"
+        required: true
+      responses:
+        "204":
+          description: renameGroup 204 response
+      security:
+      - bearerAuth: []
   /api/groups/{groupId}/ownership-shares:
     get:
       tags:
@@ -1008,6 +1037,12 @@ components:
           type: string
           enum:
           - WITHDRAWAL
+    CreateGroupRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
     CreateGroupResponse:
       required:
       - group
@@ -1480,6 +1515,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/GroupInvitationResponse"
+        name:
+          type: string
+          nullable: true
     InviteMemberRequest:
       required:
       - invitedMember
@@ -1542,6 +1580,7 @@ components:
       - CASH_POOL_WITHDRAWAL
     MemberGroupResponse:
       required:
+      - canRename
       - createdAt
       - createdBy
       - group
@@ -1555,6 +1594,11 @@ components:
         createdAt:
           type: string
           format: date-time
+        name:
+          type: string
+          nullable: true
+        canRename:
+          type: boolean
     OwnershipShareChangeResponse:
       required:
       - change
@@ -1786,6 +1830,13 @@ components:
           format: date-time
         download:
           $ref: "#/components/schemas/ReimbursementDocumentDownloadResponse"
+    RenameGroupRequest:
+      required:
+      - name
+      type: object
+      properties:
+        name:
+          type: string
     ReplaceExpenseSupportingDocumentRequest:
       required:
       - replacementUploadIntent

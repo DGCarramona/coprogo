@@ -12,4 +12,6 @@ export interface MemberGroupResponseDto {
   group: string;
   createdBy: string;
   createdAt: string;
+  name?: string | null;
+  canRename: boolean;
 }

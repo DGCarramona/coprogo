@@ -13,4 +13,9 @@ import { MemberGroupsViewModel } from './member-groups.view-model';
 })
 export class MemberGroupsWidgetComponent {
   constructor(readonly viewModel: MemberGroupsViewModel) {}
+
+  submitRename(event: Event): void {
+    event.preventDefault();
+    void this.viewModel.renameGroup();
+  }
 }

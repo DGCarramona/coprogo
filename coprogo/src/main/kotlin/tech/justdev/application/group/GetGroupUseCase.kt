@@ -18,6 +18,7 @@ data class GroupSnapshot(
     val createdAt: Instant,
     val members: List<GroupMemberSnapshot>,
     val pendingInvitations: List<GroupInvitationSnapshot>,
+    val name: String? = null,
 )
 
 data class GroupMemberSnapshot(
@@ -45,6 +46,7 @@ class GetGroupUseCase(
             group = group.id.toPrimitive(),
             createdBy = group.createdBy.toPrimitive(),
             createdAt = group.createdAt,
+            name = group.name?.toPrimitive(),
             members =
                 group.members
                     .sortedBy { member -> member.member.toPrimitive() }

@@ -5,6 +5,7 @@ import tech.justdev.domain.group.entity.Group
 import tech.justdev.domain.group.entity.Member
 import tech.justdev.domain.group.repository.GroupRepository
 import tech.justdev.domain.group.repository.MemberRepository
+import tech.justdev.domain.group.valueobject.GroupName
 import tech.justdev.domain.group.valueobject.MemberEmail
 import java.time.Instant
 import java.util.UUID
@@ -12,6 +13,7 @@ import java.util.UUID
 data class CreateGroupCommand(
     val createdBy: MemberEmail,
     val createdAt: Instant,
+    val name: GroupName? = null,
 )
 
 data class CreatedGroupResult(
@@ -37,6 +39,7 @@ class CreateGroupUseCase(
                 id = groupIdGenerator.next(),
                 createdBy = command.createdBy,
                 createdAt = command.createdAt,
+                name = command.name,
             )
 
         groupRepository.persist(group)

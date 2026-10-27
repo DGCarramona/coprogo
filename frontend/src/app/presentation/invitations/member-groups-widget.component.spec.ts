@@ -5,13 +5,66 @@ import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-exper
 import { MemberGroupsPort } from '../../application/group/member-groups.port';
 import { MemberGroup } from '../../domain/group/member-group';
 import { MemberGroupsWidgetComponent } from './member-groups-widget.component';
+import { GroupRenamingPort } from '../../application/group/group-renaming.port';
+import { StubGroupRenamingPort } from '../../../../__test__/app/application/group/stub-group-renaming.port';
 
 describe('MemberGroupsWidgetComponent', () => {
+  it('displays names and lets only the creator open the rename form', async () => {
+    const port = new StubMemberGroupsPort();
+    port.groups = [
+      {
+        groupId: 'own',
+        createdBy: 'alice@example.com',
+        createdAt: new Date(),
+        name: 'Appartement',
+        canRename: true,
+      },
+      {
+        groupId: 'joined',
+        createdBy: 'bob@example.com',
+        createdAt: new Date(),
+        name: 'Maison',
+        canRename: false,
+      },
+    ];
+    const renamePort = new StubGroupRenamingPort();
+    const { fixture, host } = createFixture(port, renamePort);
+    await waitForResult(fixture);
+    expect(host.textContent).toContain('Appartement');
+    expect(host.textContent).toContain('Maison');
+    const renameButtons = host.querySelectorAll<HTMLButtonElement>(
+      'button[aria-label^="Renommer le groupe"]',
+    );
+    expect(renameButtons.length).toBe(1);
+    renameButtons[0].click();
+    fixture.detectChanges();
+    const input = host.querySelector<HTMLInputElement>('input[aria-label="Nouveau nom du groupe"]');
+    if (!input) throw new Error('Formulaire de renommage absent');
+    expect(input.value).toBe('Appartement');
+    input.value = 'Appartement familial';
+    input.dispatchEvent(new Event('input'));
+    host.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
+    await vi.waitFor(() =>
+      expect(renamePort.commands).toEqual([{ groupId: 'own', name: 'Appartement familial' }]),
+    );
+  });
   it('shows every joined group with a link to its dashboard', async () => {
     const port = new StubMemberGroupsPort();
     port.groups = [
-      { groupId: 'created', createdBy: 'alice@example.com', createdAt: new Date('2026-01-01') },
-      { groupId: 'joined', createdBy: 'bob@example.com', createdAt: new Date('2026-02-01') },
+      {
+        groupId: 'created',
+        createdBy: 'alice@example.com',
+        createdAt: new Date('2026-01-01'),
+        name: null,
+        canRename: true,
+      },
+      {
+        groupId: 'joined',
+        createdBy: 'bob@example.com',
+        createdAt: new Date('2026-02-01'),
+        name: null,
+        canRename: false,
+      },
     ];
     const { fixture, host } = createFixture(port);
     await waitForResult(fixture);
@@ -76,12 +129,13 @@ async function waitForResult(fixture: ComponentFixture<MemberGroupsWidgetCompone
   });
 }
 
-function createFixture(port: StubMemberGroupsPort) {
+function createFixture(port: StubMemberGroupsPort, renaming = new StubGroupRenamingPort()) {
   TestBed.configureTestingModule({
     providers: [
       provideRouter([]),
       provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
       { provide: MemberGroupsPort, useValue: port },
+      { provide: GroupRenamingPort, useValue: renaming },
     ],
   });
   const fixture = TestBed.createComponent(MemberGroupsWidgetComponent);

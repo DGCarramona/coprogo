@@ -27,7 +27,13 @@ describe('HttpMemberGroupsGateway', () => {
       expect(request.request.method).toBe('GET');
       expect(request.request.params.keys()).toEqual([]);
       request.flush([
-        { group: 'group-1', createdBy: 'alice@example.com', createdAt: '2026-01-01T00:00:00Z' },
+        {
+          group: 'group-1',
+          createdBy: 'alice@example.com',
+          createdAt: '2026-01-01T00:00:00Z',
+          name: 'Appartement',
+          canRename: true,
+        },
       ]);
 
       await expect(result).resolves.toEqual([
@@ -35,6 +41,8 @@ describe('HttpMemberGroupsGateway', () => {
           groupId: 'group-1',
           createdBy: 'alice@example.com',
           createdAt: new Date('2026-01-01T00:00:00Z'),
+          name: 'Appartement',
+          canRename: true,
         },
       ]);
     });

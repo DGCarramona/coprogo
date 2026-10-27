@@ -11,6 +11,7 @@ import tech.justdev.domain.group.entity.Group
 import tech.justdev.domain.group.entity.Member
 import tech.justdev.domain.group.repository.GroupRepository
 import tech.justdev.domain.group.repository.MemberRepository
+import tech.justdev.domain.group.valueobject.GroupName
 import tech.justdev.testsupport.PostgresMicronautTest
 import tech.justdev.testsupport.groupId
 import tech.justdev.testsupport.memberEmail
@@ -35,7 +36,14 @@ class R2dbcMemberGroupsProjectionIntegrationTest {
                 val later = Instant.parse("2026-02-01T00:00:00Z")
                 members.persist(Member(alice, earlier))
                 members.persist(Member(bob, earlier))
-                val created = Group.create(groupId("list-created"), alice, later).addMember(bob, later)
+                val created =
+                    Group
+                        .create(
+                            groupId("list-created"),
+                            alice,
+                            later,
+                            GroupName.of("Appartement familial"),
+                        ).addMember(bob, later)
                 val joined = Group.create(groupId("list-joined"), bob, earlier).addMember(alice, later)
                 val sameDate = Group.create(groupId("list-same-date"), alice, later)
                 groups.persist(created)
@@ -46,7 +54,7 @@ class R2dbcMemberGroupsProjectionIntegrationTest {
                 val expected =
                     listOf(joined, created, sameDate)
                         .sortedWith(compareBy({ it.createdAt }, { it.id.toPrimitive().toString() }))
-                        .map { MemberGroupSnapshot(it.id.toPrimitive(), it.createdBy.toPrimitive(), it.createdAt) }
+                        .map { MemberGroupSnapshot(it.id.toPrimitive(), it.createdBy.toPrimitive(), it.createdAt, it.name?.toPrimitive()) }
 
                 assertEquals(expected, projection.findByMember(alice))
             }

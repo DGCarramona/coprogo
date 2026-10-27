@@ -11,9 +11,9 @@ export class HttpGroupCreationGateway extends GroupCreationPort {
     super();
   }
 
-  override async create(): Promise<string> {
+  override async create(name: string): Promise<string> {
     return await firstValueFrom(
-      this.groupsService.create().pipe(
+      this.groupsService.create({ name }).pipe(
         catchError((error) => {
           throw toApiClientError(error, 'Le groupe n a pas pu etre cree.');
         }),

@@ -1,3 +1,3 @@
 export abstract class GroupCreationPort {
-  abstract create(): Promise<string>;
+  abstract create(name: string): Promise<string>;
 }

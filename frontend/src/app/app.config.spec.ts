@@ -9,6 +9,8 @@ import { MemberDebtReductionHistoryPort } from './application/ledger/member-debt
 import { CashPoolHistoryPort } from './application/ledger/cash-pool-history.port';
 import { CashPoolWithdrawalPort } from './application/ledger/cash-pool-withdrawal.port';
 import { MemberGroupsPort } from './application/group/member-groups.port';
+import { GroupRenamingPort } from './application/group/group-renaming.port';
+import { HttpGroupRenamingGateway } from './infrastructure/group/http-group-renaming.gateway';
 import { HttpMemberGroupsGateway } from './infrastructure/group/http-member-groups.gateway';
 import { GroupMembersPort } from './application/group/group-members.port';
 import { NavigationPort } from './application/shared/navigation.port';
@@ -54,6 +56,7 @@ const portBindings: readonly {
   port: ProviderToken<unknown>;
   adapter: ProviderToken<unknown>;
 }[] = [
+  { name: 'group renaming', port: GroupRenamingPort, adapter: HttpGroupRenamingGateway },
   {
     name: 'member groups',
     port: MemberGroupsPort,

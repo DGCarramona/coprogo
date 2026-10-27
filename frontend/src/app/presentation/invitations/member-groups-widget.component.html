@@ -13,15 +13,63 @@
         <li>
           <mat-card appearance="outlined">
             <mat-card-header>
-              <mat-card-title>Groupe créé par {{ group.createdBy }}</mat-card-title>
+              <mat-card-title>{{
+                group.name ?? 'Groupe créé par ' + group.createdBy
+              }}</mat-card-title>
+              @if (group.name) {
+                <mat-card-subtitle>Créé par {{ group.createdBy }}</mat-card-subtitle>
+              }
             </mat-card-header>
-            <mat-card-content
-              ><p>Identifiant du groupe : {{ group.groupId }}</p></mat-card-content
-            >
+            <mat-card-content>
+              <p>Identifiant du groupe : {{ group.groupId }}</p>
+              @if (viewModel.editingGroupId() === group.groupId) {
+                <form (submit)="submitRename($event)">
+                  <label [for]="'rename-group-' + group.groupId">Nouveau nom du groupe</label>
+                  <input
+                    #newName
+                    [id]="'rename-group-' + group.groupId"
+                    name="groupName"
+                    aria-label="Nouveau nom du groupe"
+                    required
+                    maxlength="100"
+                    [value]="viewModel.draftName()"
+                    (input)="viewModel.setName(newName.value)"
+                    [disabled]="viewModel.isSaving()"
+                  />
+                  @if (viewModel.renameError()) {
+                    <p role="alert">{{ viewModel.renameError() }}</p>
+                  }
+                  <div class="member-groups__rename-actions">
+                    <button mat-flat-button type="submit" [disabled]="viewModel.isSaving()">
+                      {{ viewModel.isSaving() ? 'Enregistrement…' : 'Enregistrer le nom' }}
+                    </button>
+                    <button
+                      mat-button
+                      type="button"
+                      (click)="viewModel.cancelRename()"
+                      [disabled]="viewModel.isSaving()"
+                    >
+                      Annuler
+                    </button>
+                  </div>
+                </form>
+              }
+            </mat-card-content>
             <mat-card-actions>
               <a mat-flat-button [routerLink]="['/groups', group.groupId, 'dashboard']"
                 >Ouvrir le groupe</a
               >
+              @if (group.canRename && viewModel.editingGroupId() !== group.groupId) {
+                <button
+                  mat-button
+                  type="button"
+                  [attr.aria-label]="'Renommer le groupe ' + (group.name ?? group.groupId)"
+                  (click)="viewModel.beginRename(group)"
+                  [disabled]="viewModel.isSaving()"
+                >
+                  Renommer
+                </button>
+              }
             </mat-card-actions>
           </mat-card>
         </li>

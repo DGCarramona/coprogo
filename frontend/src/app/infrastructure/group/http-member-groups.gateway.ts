@@ -20,6 +20,8 @@ export class HttpMemberGroupsGateway extends MemberGroupsPort {
             groupId: group.group,
             createdBy: group.createdBy,
             createdAt: new Date(group.createdAt),
+            name: group.name ?? null,
+            canRename: group.canRename ?? false,
           })),
         ),
         catchError((error: unknown) =>

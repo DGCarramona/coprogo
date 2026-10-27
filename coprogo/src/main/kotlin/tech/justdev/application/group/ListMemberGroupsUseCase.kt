@@ -13,6 +13,8 @@ data class MemberGroupSnapshot(
     val group: UUID,
     val createdBy: String,
     val createdAt: Instant,
+    val name: String? = null,
+    val canRename: Boolean = false,
 )
 
 interface ListMemberGroupsUseCase {
@@ -23,5 +25,8 @@ interface ListMemberGroupsUseCase {
 class ListMemberGroupsUseCaseImpl(
     private val projection: MemberGroupsProjection,
 ) : ListMemberGroupsUseCase {
-    override suspend fun invoke(query: ListMemberGroupsQuery): List<MemberGroupSnapshot> = projection.findByMember(query.requestedBy)
+    override suspend fun invoke(query: ListMemberGroupsQuery): List<MemberGroupSnapshot> =
+        projection
+            .findByMember(query.requestedBy)
+            .map { group -> group.copy(canRename = group.createdBy == query.requestedBy.toPrimitive()) }
 }

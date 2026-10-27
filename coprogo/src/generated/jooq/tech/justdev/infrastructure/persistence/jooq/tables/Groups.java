@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import org.jooq.Check;
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -72,6 +73,11 @@ public class Groups extends TableImpl<Record> {
      */
     public final TableField<Record, OffsetDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false), this, "");
 
+    /**
+     * The column <code>public.groups.name</code>.
+     */
+    public final TableField<Record, String> NAME = createField(DSL.name("name"), SQLDataType.CLOB, this, "");
+
     private Groups(Name alias, Table<Record> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }
@@ -114,6 +120,13 @@ public class Groups extends TableImpl<Record> {
     @Override
     public List<ForeignKey<Record, ?>> getReferences() {
         return Arrays.asList(Keys.GROUPS__GROUPS_CREATED_BY_FKEY);
+    }
+
+    @Override
+    public List<Check<Record>> getChecks() {
+        return Arrays.asList(
+            Internal.createCheck(this, DSL.name("groups_name_valid"), "(((name = btrim(name)) AND ((char_length(name) >= 1) AND (char_length(name) <= 100))))", true)
+        );
     }
 
     @Override

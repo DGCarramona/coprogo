@@ -12,6 +12,8 @@ import { NavigationPort } from '../../application/shared/navigation.port';
 import { StubNavigationPort } from '../../../../__test__/app/application/shared/stub-navigation.port';
 import { PendingGroupInvitationsPort } from '../../application/group/pending-group-invitations.port';
 import { GroupCreationPort } from '../../application/group/group-creation.port';
+import { GroupRenamingPort } from '../../application/group/group-renaming.port';
+import { StubGroupRenamingPort } from '../../../../__test__/app/application/group/stub-group-renaming.port';
 
 describe('PendingInvitationsPageComponent', () => {
   it('keeps joined groups accessible when there are no pending invitations', async () => {
@@ -35,6 +37,7 @@ describe('PendingInvitationsPageComponent', () => {
         },
         { provide: PendingGroupInvitationsPort, useValue: { listPending: async () => [] } },
         { provide: GroupCreationPort, useValue: { create: async () => 'new-group' } },
+        { provide: GroupRenamingPort, useClass: StubGroupRenamingPort },
         PendingInvitationsViewModel,
         CreateFirstGroupViewModel,
       ],

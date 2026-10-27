@@ -22,6 +22,8 @@ import { Observable } from 'rxjs';
 import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 
 // @ts-ignore
+import { CreateGroupRequestDto } from '../model/create-group-request';
+// @ts-ignore
 import { CreateGroupResponseDto } from '../model/create-group-response';
 // @ts-ignore
 import { GroupResponseDto } from '../model/group-response';
@@ -31,6 +33,8 @@ import { InviteMemberRequestDto } from '../model/invite-member-request';
 import { MemberGroupResponseDto } from '../model/member-group-response';
 // @ts-ignore
 import { PendingGroupInvitationResponseDto } from '../model/pending-group-invitation-response';
+// @ts-ignore
+import { RenameGroupRequestDto } from '../model/rename-group-request';
 
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS } from '../variables';
@@ -124,11 +128,13 @@ export class GroupsService extends BaseService {
   /**
    * Create a new group for the authenticated member
    * @endpoint post /api/groups
+   * @param createGroupRequestDto
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
   public create(
+    createGroupRequestDto?: CreateGroupRequestDto,
     observe?: 'body',
     reportProgress?: boolean,
     options?: {
@@ -138,6 +144,7 @@ export class GroupsService extends BaseService {
     },
   ): Observable<CreateGroupResponseDto>;
   public create(
+    createGroupRequestDto?: CreateGroupRequestDto,
     observe?: 'response',
     reportProgress?: boolean,
     options?: {
@@ -147,6 +154,7 @@ export class GroupsService extends BaseService {
     },
   ): Observable<HttpResponse<CreateGroupResponseDto>>;
   public create(
+    createGroupRequestDto?: CreateGroupRequestDto,
     observe?: 'events',
     reportProgress?: boolean,
     options?: {
@@ -156,6 +164,7 @@ export class GroupsService extends BaseService {
     },
   ): Observable<HttpEvent<CreateGroupResponseDto>>;
   public create(
+    createGroupRequestDto?: CreateGroupRequestDto,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: {
@@ -176,6 +185,14 @@ export class GroupsService extends BaseService {
 
     const localVarTransferCache: boolean = options?.transferCache ?? true;
 
+    // to determine the Content-Type header
+    const consumes: string[] = ['application/json'];
+    const httpContentTypeSelected: string | undefined =
+      this.configuration.selectHeaderContentType(consumes);
+    if (httpContentTypeSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+    }
+
     let responseType_: 'text' | 'json' | 'blob' = 'json';
     if (localVarHttpHeaderAcceptSelected) {
       if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
@@ -191,6 +208,7 @@ export class GroupsService extends BaseService {
     const { basePath, withCredentials } = this.configuration;
     return this.httpClient.request<CreateGroupResponseDto>('post', `${basePath}${localVarPath}`, {
       context: localVarHttpContext,
+      body: createGroupRequestDto,
       responseType: <any>responseType_,
       ...(withCredentials ? { withCredentials } : {}),
       headers: localVarHeaders,
@@ -543,5 +561,96 @@ export class GroupsService extends BaseService {
         reportProgress: reportProgress,
       },
     );
+  }
+
+  /**
+   * Rename a group as its creator
+   * @endpoint patch /api/groups/{groupId}/name
+   * @param groupId
+   * @param renameGroupRequestDto
+   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+   * @param reportProgress flag to report request and response progress.
+   * @param options additional options
+   */
+  public renameGroup(
+    groupId: string,
+    renameGroupRequestDto: RenameGroupRequestDto,
+    observe?: 'body',
+    reportProgress?: boolean,
+    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+  ): Observable<any>;
+  public renameGroup(
+    groupId: string,
+    renameGroupRequestDto: RenameGroupRequestDto,
+    observe?: 'response',
+    reportProgress?: boolean,
+    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+  ): Observable<HttpResponse<any>>;
+  public renameGroup(
+    groupId: string,
+    renameGroupRequestDto: RenameGroupRequestDto,
+    observe?: 'events',
+    reportProgress?: boolean,
+    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+  ): Observable<HttpEvent<any>>;
+  public renameGroup(
+    groupId: string,
+    renameGroupRequestDto: RenameGroupRequestDto,
+    observe: any = 'body',
+    reportProgress: boolean = false,
+    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+  ): Observable<any> {
+    if (groupId === null || groupId === undefined) {
+      throw new Error('Required parameter groupId was null or undefined when calling renameGroup.');
+    }
+    if (renameGroupRequestDto === null || renameGroupRequestDto === undefined) {
+      throw new Error(
+        'Required parameter renameGroupRequestDto was null or undefined when calling renameGroup.',
+      );
+    }
+
+    let localVarHeaders = this.defaultHeaders;
+
+    const localVarHttpHeaderAcceptSelected: string | undefined =
+      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([]);
+    if (localVarHttpHeaderAcceptSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+    }
+
+    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+    const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+    // to determine the Content-Type header
+    const consumes: string[] = ['application/json'];
+    const httpContentTypeSelected: string | undefined =
+      this.configuration.selectHeaderContentType(consumes);
+    if (httpContentTypeSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+    }
+
+    let responseType_: 'text' | 'json' | 'blob' = 'json';
+    if (localVarHttpHeaderAcceptSelected) {
+      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+        responseType_ = 'text';
+      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+        responseType_ = 'json';
+      } else {
+        responseType_ = 'blob';
+      }
+    }
+
+    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/name`;
+    const { basePath, withCredentials } = this.configuration;
+    return this.httpClient.request<any>('patch', `${basePath}${localVarPath}`, {
+      context: localVarHttpContext,
+      body: renameGroupRequestDto,
+      responseType: <any>responseType_,
+      ...(withCredentials ? { withCredentials } : {}),
+      headers: localVarHeaders,
+      observe: observe,
+      ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+      reportProgress: reportProgress,
+    });
   }
 }

@@ -7,10 +7,16 @@ import { MatCardModule } from '@angular/material/card';
   selector: 'app-create-first-group-card',
   imports: [RouterLink, MatButtonModule, MatCardModule],
   templateUrl: './create-first-group-card.component.html',
+  styleUrl: './create-first-group-card.component.scss',
 })
 export class CreateFirstGroupCardComponent {
   readonly createdGroupId = input<string | null>(null);
   readonly errorMessage = input<string | null>(null);
   readonly creating = input(false);
-  readonly createRequested = output<void>();
+  readonly createRequested = output<string>();
+
+  submitName(event: Event, name: string): void {
+    event.preventDefault();
+    if (!this.creating()) this.createRequested.emit(name);
+  }
 }

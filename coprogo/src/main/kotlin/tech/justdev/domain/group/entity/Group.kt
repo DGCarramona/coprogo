@@ -1,5 +1,6 @@
 package tech.justdev.domain.group.entity
 
+import tech.justdev.domain.group.valueobject.GroupName
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.valueobject.GroupId
 import java.time.Instant
@@ -14,6 +15,7 @@ data class Group(
     val createdBy: MemberEmail,
     val createdAt: Instant,
     val members: Set<GroupMember>,
+    val name: GroupName? = null,
 ) {
     init {
         require(members.isNotEmpty()) { "group members must not be empty" }
@@ -26,6 +28,8 @@ data class Group(
     }
 
     fun contains(member: MemberEmail): Boolean = members.any { groupMember -> groupMember.member == member }
+
+    fun rename(name: GroupName): Group = copy(name = name)
 
     fun addMember(
         member: MemberEmail,
@@ -41,12 +45,14 @@ data class Group(
             id: GroupId,
             createdBy: MemberEmail,
             createdAt: Instant,
+            name: GroupName? = null,
         ): Group =
             Group(
                 id = id,
                 createdBy = createdBy,
                 createdAt = createdAt,
                 members = setOf(GroupMember(member = createdBy, joinedAt = createdAt)),
+                name = name,
             )
     }
 }
