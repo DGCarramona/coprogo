@@ -76,7 +76,7 @@ public class Groups extends TableImpl<Record> {
     /**
      * The column <code>public.groups.name</code>.
      */
-    public final TableField<Record, String> NAME = createField(DSL.name("name"), SQLDataType.CLOB, this, "");
+    public final TableField<Record, String> NAME = createField(DSL.name("name"), SQLDataType.VARCHAR(100), this, "");
 
     private Groups(Name alias, Table<Record> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
@@ -125,7 +125,7 @@ public class Groups extends TableImpl<Record> {
     @Override
     public List<Check<Record>> getChecks() {
         return Arrays.asList(
-            Internal.createCheck(this, DSL.name("groups_name_valid"), "(((name = btrim(name)) AND ((char_length(name) >= 1) AND (char_length(name) <= 100))))", true)
+            Internal.createCheck(this, DSL.name("groups_name_valid"), "((((name)::text = btrim((name)::text)) AND (char_length((name)::text) > 0)))", true)
         );
     }
 
