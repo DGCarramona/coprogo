@@ -8,7 +8,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { provideRouter, RouterLink } from '@angular/router';
 
 import { GroupDashboardPageComponent } from './group-dashboard-page.component';
 import { GroupDashboardPageViewModel } from './group-dashboard-page.view-model';
@@ -83,59 +82,14 @@ describe('GroupDashboardPageComponent', () => {
     expect(widget.componentInstance.groupId).toBe('group-1');
   });
 
-  it('links to the reimbursement history of the ready group', () => {
-    const fixture = createFixture(new StubGroupDashboardPageViewModel());
-
-    fixture.detectChanges();
-
-    const link = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>(
-      'a[href="/groups/group-1/reimbursements"]',
-    );
-    expect(link).not.toBeNull();
-  });
-
-  it('links to the members of the ready group', () => {
-    const fixture = createFixture(new StubGroupDashboardPageViewModel());
-    fixture.detectChanges();
-    expect(
-      (fixture.nativeElement as HTMLElement).querySelector('a[href="/groups/group-1/members"]')
-        ?.textContent,
-    ).toContain('Membres');
-  });
-
-  it('links to the expense list of the ready group', () => {
-    const fixture = createFixture(new StubGroupDashboardPageViewModel());
-
-    fixture.detectChanges();
-
-    const link = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>(
-      'a[href="/groups/group-1/expenses"]',
-    );
-    expect(link).not.toBeNull();
-  });
-
-  it('links to the ownership-share history of the ready group', () => {
+  it('does not repeat primary navigation in dashboard shortcuts', () => {
     const fixture = createFixture(new StubGroupDashboardPageViewModel());
 
     fixture.detectChanges();
 
     expect(
-      (fixture.nativeElement as HTMLElement).querySelector(
-        'a[href="/groups/group-1/ownership-shares"]',
-      ),
-    ).not.toBeNull();
-  });
-
-  it('links to the revenue-distribution preview of the ready group', () => {
-    const fixture = createFixture(new StubGroupDashboardPageViewModel());
-
-    fixture.detectChanges();
-
-    expect(
-      (fixture.nativeElement as HTMLElement).querySelector(
-        'a[href="/groups/group-1/revenue-distribution/preview"]',
-      ),
-    ).not.toBeNull();
+      (fixture.nativeElement as HTMLElement).querySelector('.group-dashboard-page__quick-links'),
+    ).toBeNull();
   });
 
   it('records an income for the ready group and refreshes its financial amounts', () => {
@@ -213,7 +167,7 @@ const createFixture = (
 ): ComponentFixture<GroupDashboardPageComponent> => {
   TestBed.configureTestingModule({
     imports: [GroupDashboardPageComponent],
-    providers: [provideLocalization(), provideRouter([])],
+    providers: [provideLocalization()],
   });
   TestBed.overrideComponent(GroupDashboardPageComponent, {
     set: {
@@ -231,7 +185,6 @@ const createFixture = (
         MatCardModule,
         MatChipsModule,
         MatProgressBarModule,
-        RouterLink,
       ],
       providers: [{ provide: GroupDashboardPageViewModel, useValue: viewModel }],
     },
