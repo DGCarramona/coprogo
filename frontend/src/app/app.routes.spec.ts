@@ -1,6 +1,25 @@
 import { routes } from './app.routes';
+import { forgetGroup, rememberGroup } from './application/shared/remembered-group';
 
 describe('routes', () => {
+  afterEach(() => forgetGroup());
+
+  it('restores the most recently opened group from the home route', () => {
+    rememberGroup('group-1');
+    const redirectTo = routes.find((route) => route.path === '')?.redirectTo;
+
+    expect(typeof redirectTo).toBe('function');
+    if (typeof redirectTo !== 'function') throw new Error('Home redirect is not dynamic.');
+    expect(redirectTo({} as never)).toBe('/groups/group-1/dashboard');
+  });
+
+  it('shows the group selector when no group was previously opened', () => {
+    const redirectTo = routes.find((route) => route.path === '')?.redirectTo;
+
+    expect(typeof redirectTo).toBe('function');
+    if (typeof redirectTo !== 'function') throw new Error('Home redirect is not dynamic.');
+    expect(redirectTo({} as never)).toBe('invitations');
+  });
   it('protects and loads the group members page', async () => {
     const route = routes.find((route) => route.path === 'groups/:groupId/members');
     expect(route?.canActivate).toHaveLength(1);
