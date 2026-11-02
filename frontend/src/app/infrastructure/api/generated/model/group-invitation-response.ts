@@ -13,4 +13,5 @@ export interface GroupInvitationResponseDto {
   invitedMember: string;
   invitedBy: string;
   invitedAt: string;
+  canCancel: boolean;
 }

@@ -1,3 +1,5 @@
+import { GroupInvitationsPort } from './application/group/group-invitations.port';
+import { HttpGroupInvitationsManagementGateway } from './infrastructure/group/http-group-invitations-management.gateway';
 import { GroupMemberInvitationPort } from './application/group/group-member-invitation.port';
 import { HttpGroupMemberInvitationGateway } from './infrastructure/group/http-group-member-invitation.gateway';
 import { provideLocalization } from './presentation/i18n/provide-localization';
@@ -72,6 +74,7 @@ import { routes } from './app.routes';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideLocalization(),
+    { provide: GroupInvitationsPort, useExisting: HttpGroupInvitationsManagementGateway },
     { provide: GroupMemberInvitationPort, useExisting: HttpGroupMemberInvitationGateway },
     provideBrowserGlobalErrorListeners(),
     provideCoprogoHttpClients(),

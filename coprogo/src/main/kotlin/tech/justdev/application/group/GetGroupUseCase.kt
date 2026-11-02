@@ -31,6 +31,7 @@ data class GroupInvitationSnapshot(
     val invitedMember: String,
     val invitedBy: String,
     val invitedAt: Instant,
+    val canCancel: Boolean = false,
 )
 
 @Singleton
@@ -66,6 +67,7 @@ class GetGroupUseCase(
                             invitedMember = invitation.invitedMember.toPrimitive(),
                             invitedBy = invitation.invitedBy.toPrimitive(),
                             invitedAt = invitation.invitedAt,
+                            canCancel = query.requestedBy == invitation.invitedBy || query.requestedBy == group.createdBy,
                         )
                     },
         )

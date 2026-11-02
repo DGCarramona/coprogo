@@ -90,7 +90,9 @@
     },
     "unexpected": "Ocorreu um erro. Tente novamente.",
     "members": {
-      "invite": "Não foi possível criar o convite. Tente novamente."
+      "invite": "Não foi possível criar o convite. Tente novamente.",
+      "loadInvitations": "Não foi possível carregar os convites.",
+      "cancelInvitation": "Não foi possível cancelar o convite. Atualize a lista e tente novamente."
     }
   },
   "app": {
@@ -517,7 +519,13 @@
     "email": "Endereço de email Google",
     "invite": "Criar convite",
     "inviting": "A criar…",
-    "invited": "Convite criado para {{email}}. Esta pessoa precisa de o aceitar no Coprogo para entrar no grupo."
+    "invited": "Convite criado para {{email}}. Esta pessoa precisa de o aceitar no Coprogo para entrar no grupo.",
+    "pendingTitle": "Convites pendentes",
+    "pendingLoading": "A carregar os convites…",
+    "invitationSent": "Enviado por {{email}} em",
+    "cancelInvitation": "Cancelar convite",
+    "cancelInvitationFor": "Cancelar convite de {{email}}",
+    "noPendingInvitations": "Não há convites pendentes."
   },
   "layout": {
     "signIn": {

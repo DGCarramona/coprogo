@@ -1,0 +1,24 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+ul {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+li {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem 0;
+  overflow-wrap: anywhere;
+}
+li + li {
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+button {
+  justify-self: start;
+}
+[role='alert'] {
+  color: var(--mat-sys-error);
+}

@@ -31,6 +31,7 @@ class R2dbcGroupInvitationRepository(
             .dsl()
             .selectInvitation()
             .where(GROUP_INVITATIONS.ID.eq(id.toPrimitive()))
+            .forUpdate()
             .awaitFirstOrNull()
             ?.toDomain()
 
@@ -51,6 +52,14 @@ class R2dbcGroupInvitationRepository(
             .orderBy(GROUP_INVITATIONS.INVITED_AT)
             .awaitList()
             .map { invitation -> invitation.toDomain() }
+
+    override suspend fun deletePending(id: GroupInvitationId) {
+        connectionFactory
+            .dsl()
+            .deleteFrom(GROUP_INVITATIONS)
+            .where(GROUP_INVITATIONS.ID.eq(id.toPrimitive()).and(GROUP_INVITATIONS.ACCEPTED_AT.isNull))
+            .awaitFirstOrNull()
+    }
 
     override suspend fun persist(invitation: GroupInvitation) {
         connectionFactory

@@ -90,7 +90,9 @@
     },
     "unexpected": "Une erreur est survenue. Veuillez réessayer.",
     "members": {
-      "invite": "L’invitation n’a pas pu être créée. Veuillez réessayer."
+      "invite": "L’invitation n’a pas pu être créée. Veuillez réessayer.",
+      "loadInvitations": "Les invitations n’ont pas pu être chargées.",
+      "cancelInvitation": "L’invitation n’a pas pu être annulée. Actualisez la liste et réessayez."
     }
   },
   "app": {
@@ -517,7 +519,13 @@
     "email": "Adresse email Google",
     "invite": "Créer l’invitation",
     "inviting": "Création en cours…",
-    "invited": "Invitation créée pour {{email}}. Cette personne doit l’accepter dans Coprogo pour rejoindre le groupe."
+    "invited": "Invitation créée pour {{email}}. Cette personne doit l’accepter dans Coprogo pour rejoindre le groupe.",
+    "pendingTitle": "Invitations en attente",
+    "pendingLoading": "Chargement des invitations…",
+    "invitationSent": "Envoyée par {{email}} le",
+    "cancelInvitation": "Annuler l’invitation",
+    "cancelInvitationFor": "Annuler l’invitation de {{email}}",
+    "noPendingInvitations": "Aucune invitation en attente."
   },
   "layout": {
     "signIn": {

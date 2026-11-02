@@ -18,6 +18,28 @@ import java.time.Instant
 
 class GetGroupUseCaseTest {
     @Test
+    fun `cancellation is available only to sender and creator`() =
+        runTest {
+            val now = Instant.parse("2026-01-01T00:00:00Z")
+            val group =
+                Group
+                    .create(groupId("rights"), memberEmail("alice"), now)
+                    .addMember(memberEmail("bob"), now)
+                    .addMember(memberEmail("carol"), now)
+            val invitation = GroupInvitation(groupInvitationId("rights"), group.id, memberEmail("dana"), memberEmail("bob"), now)
+            val useCase =
+                GetGroupUseCase(
+                    GroupAccessPolicy(InMemoryGroupRepository(listOf(group))),
+                    InMemoryGroupInvitationRepository(listOf(invitation)),
+                )
+            val permissions =
+                listOf("alice", "bob", "carol").map {
+                    useCase(GetGroupQuery(group.id.toPrimitive(), memberEmail(it))).pendingInvitations.single().canCancel
+                }
+            assertEquals(listOf(true, true, false), permissions)
+        }
+
+    @Test
     fun `invoke should return members and pending invitations for a group member`() {
         runTest {
             val group =

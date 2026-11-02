@@ -1,0 +1,45 @@
+<mat-card class="material-card" appearance="outlined">
+  <mat-card-header
+    ><mat-card-title>{{ 'members.pendingTitle' | translate }}</mat-card-title></mat-card-header
+  >
+  <mat-card-content>
+    @if (viewModel.isLoading()) {
+      <p role="status">{{ 'members.pendingLoading' | translate }}</p>
+    } @else if (viewModel.hasLoadError()) {
+      <p role="alert">{{ viewModel.loadError() | errorMessage }}</p>
+      <button mat-stroked-button type="button" (click)="viewModel.retry()">
+        {{ 'common.retry' | translate }}
+      </button>
+    } @else {
+      <ul>
+        @for (invitation of viewModel.invitations(); track invitation.invitation) {
+          <li>
+            <strong>{{ invitation.invitedMember }}</strong>
+            <span
+              >{{ 'members.invitationSent' | translate: { email: invitation.invitedBy } }}
+              {{ invitation.invitedAt | localizedDate }}</span
+            >
+            @if (invitation.canCancel) {
+              <button
+                mat-stroked-button
+                type="button"
+                [disabled]="viewModel.isCancelling()"
+                (click)="viewModel.cancel(invitation.invitation)"
+                [attr.aria-label]="
+                  'members.cancelInvitationFor' | translate: { email: invitation.invitedMember }
+                "
+              >
+                {{ 'members.cancelInvitation' | translate }}
+              </button>
+            }
+          </li>
+        } @empty {
+          <li>{{ 'members.noPendingInvitations' | translate }}</li>
+        }
+      </ul>
+    }
+    @if (viewModel.cancelError(); as error) {
+      <p role="alert">{{ error | errorMessage }}</p>
+    }
+  </mat-card-content>
+</mat-card>

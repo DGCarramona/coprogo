@@ -125,6 +125,10 @@ class InMemoryGroupInvitationRepository(
     override suspend fun findPendingByInvitedMember(invitedMember: MemberEmail): List<GroupInvitation> =
         invitationsById.values.filter { invitation -> invitation.invitedMember == invitedMember && invitation.isPending() }
 
+    override suspend fun deletePending(id: GroupInvitationId) {
+        if (invitationsById[id]?.isPending() == true) invitationsById.remove(id)
+    }
+
     override suspend fun persist(invitation: GroupInvitation) {
         invitationsById[invitation.id] = invitation
     }

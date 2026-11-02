@@ -12,6 +12,7 @@ import tech.justdev.application.group.GroupCreatorRequiredException
 import tech.justdev.application.group.GroupInvitationAccessDeniedException
 import tech.justdev.application.group.GroupInvitationAlreadyAcceptedException
 import tech.justdev.application.group.GroupInvitationAlreadyExistsException
+import tech.justdev.application.group.GroupInvitationCancellationDeniedException
 import tech.justdev.application.group.GroupInvitationNotFoundException
 import tech.justdev.application.group.GroupNotFoundException
 import tech.justdev.application.group.OwnershipShareChangeForbiddenException
@@ -47,6 +48,7 @@ private fun GroupApplicationException.toStatus(): HttpStatus =
     when (this) {
         is GroupAccessDeniedException -> HttpStatus.FORBIDDEN
         is GroupCreatorRequiredException -> HttpStatus.FORBIDDEN
+        is GroupInvitationCancellationDeniedException -> HttpStatus.FORBIDDEN
         is GroupInvitationAccessDeniedException -> HttpStatus.FORBIDDEN
         is OwnershipShareChangeForbiddenException -> HttpStatus.FORBIDDEN
         is GroupNotFoundException -> HttpStatus.NOT_FOUND

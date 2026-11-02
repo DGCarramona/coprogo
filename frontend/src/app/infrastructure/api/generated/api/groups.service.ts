@@ -126,6 +126,90 @@ export class GroupsService extends BaseService {
   }
 
   /**
+   * Cancel a pending invitation as its sender or the group creator
+   * @endpoint delete /api/groups/{groupId}/invitations/{invitationId}
+   * @param groupId
+   * @param invitationId
+   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+   * @param reportProgress flag to report request and response progress.
+   * @param options additional options
+   */
+  public cancelGroupInvitation(
+    groupId: string,
+    invitationId: string,
+    observe?: 'body',
+    reportProgress?: boolean,
+    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+  ): Observable<any>;
+  public cancelGroupInvitation(
+    groupId: string,
+    invitationId: string,
+    observe?: 'response',
+    reportProgress?: boolean,
+    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+  ): Observable<HttpResponse<any>>;
+  public cancelGroupInvitation(
+    groupId: string,
+    invitationId: string,
+    observe?: 'events',
+    reportProgress?: boolean,
+    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+  ): Observable<HttpEvent<any>>;
+  public cancelGroupInvitation(
+    groupId: string,
+    invitationId: string,
+    observe: any = 'body',
+    reportProgress: boolean = false,
+    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
+  ): Observable<any> {
+    if (groupId === null || groupId === undefined) {
+      throw new Error(
+        'Required parameter groupId was null or undefined when calling cancelGroupInvitation.',
+      );
+    }
+    if (invitationId === null || invitationId === undefined) {
+      throw new Error(
+        'Required parameter invitationId was null or undefined when calling cancelGroupInvitation.',
+      );
+    }
+
+    let localVarHeaders = this.defaultHeaders;
+
+    const localVarHttpHeaderAcceptSelected: string | undefined =
+      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([]);
+    if (localVarHttpHeaderAcceptSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+    }
+
+    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+    const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+    let responseType_: 'text' | 'json' | 'blob' = 'json';
+    if (localVarHttpHeaderAcceptSelected) {
+      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+        responseType_ = 'text';
+      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+        responseType_ = 'json';
+      } else {
+        responseType_ = 'blob';
+      }
+    }
+
+    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/invitations/${this.configuration.encodeParam({ name: 'invitationId', value: invitationId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}`;
+    const { basePath, withCredentials } = this.configuration;
+    return this.httpClient.request<any>('delete', `${basePath}${localVarPath}`, {
+      context: localVarHttpContext,
+      responseType: <any>responseType_,
+      ...(withCredentials ? { withCredentials } : {}),
+      headers: localVarHeaders,
+      observe: observe,
+      ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+      reportProgress: reportProgress,
+    });
+  }
+
+  /**
    * Create a new group for the authenticated member
    * @endpoint post /api/groups
    * @param createGroupRequestDto
