@@ -1,3 +1,5 @@
+import type { GroupName } from '../../domain/group/group-name';
+
 import { Injectable } from '@angular/core';
 import { catchError, firstValueFrom, map, throwError } from 'rxjs';
 import { GroupRenamingPort } from '../../application/group/group-renaming.port';
@@ -10,7 +12,7 @@ export class HttpGroupRenamingGateway extends GroupRenamingPort {
     super();
   }
 
-  override rename(groupId: string, name: string): Promise<void> {
+  override rename(groupId: string, name: GroupName): Promise<void> {
     return firstValueFrom(
       this.groupsService.renameGroup(groupId, { name }).pipe(
         catchError((error: unknown) =>

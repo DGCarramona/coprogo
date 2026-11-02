@@ -5,7 +5,7 @@ import { MemberGroupsPort } from '../../application/group/member-groups.port';
 import { describeError } from '../../application/shared/describe-error';
 import { memberGroupsQueryKey } from './member-groups-query';
 import { GroupRenamingPort } from '../../application/group/group-renaming.port';
-import { parseGroupName } from '../../domain/group/group-name';
+import { GroupName } from '../../domain/group/group-name';
 import type { MemberGroup } from '../../domain/group/member-group';
 
 @Injectable()
@@ -39,7 +39,7 @@ export class MemberGroupsViewModel {
       }),
       { injector },
     );
-    this.renameMutation = injectMutation<void, Error, { groupId: string; name: string }>(
+    this.renameMutation = injectMutation<void, Error, { groupId: string; name: GroupName }>(
       () => ({ mutationFn: ({ groupId, name }) => renamingPort.rename(groupId, name) }),
       { injector },
     );
@@ -65,13 +65,9 @@ export class MemberGroupsViewModel {
   async renameGroup(): Promise<void> {
     const groupId = this.editingGroupIdState();
     if (groupId === null || this.isSaving()) return;
-    const name = parseGroupName(this.draftNameState());
-    if (name === null) {
-      this.renameErrorState.set('validation.groups.nameLength');
-      return;
-    }
     this.renameErrorState.set(null);
     try {
+      const name = GroupName(this.draftNameState());
       await this.renameMutation.mutateAsync({ groupId, name });
       await this.queryClient.invalidateQueries({ queryKey: memberGroupsQueryKey });
       this.editingGroupIdState.set(null);

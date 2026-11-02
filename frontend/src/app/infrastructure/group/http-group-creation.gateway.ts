@@ -1,3 +1,5 @@
+import type { GroupName } from '../../domain/group/group-name';
+
 import { Injectable } from '@angular/core';
 import { catchError, firstValueFrom, map } from 'rxjs';
 
@@ -11,7 +13,7 @@ export class HttpGroupCreationGateway extends GroupCreationPort {
     super();
   }
 
-  override async create(name: string): Promise<string> {
+  override async create(name: GroupName): Promise<string> {
     return await firstValueFrom(
       this.groupsService.create({ name }).pipe(
         catchError((error) => {

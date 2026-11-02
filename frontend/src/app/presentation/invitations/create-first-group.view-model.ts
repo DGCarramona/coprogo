@@ -4,7 +4,7 @@ import { memberGroupsQueryKey } from './member-groups-query';
 
 import { GroupCreationPort } from '../../application/group/group-creation.port';
 import { describeError } from '../../application/shared/describe-error';
-import { parseGroupName } from '../../domain/group/group-name';
+import { GroupName } from '../../domain/group/group-name';
 
 @Injectable()
 export class CreateFirstGroupViewModel {
@@ -30,17 +30,12 @@ export class CreateFirstGroupViewModel {
   }
 
   async createGroup(rawName: string): Promise<void> {
-    const name = parseGroupName(rawName);
-    if (name === null) {
-      this.errorMessageState.set('validation.groups.nameLength');
-      return;
-    }
     if (this.creatingGroupState()) return;
-    this.creatingGroupState.set(true);
-    this.errorMessageState.set(null);
-    this.createdGroupIdState.set(null);
-
     try {
+      const name = GroupName(rawName);
+      this.creatingGroupState.set(true);
+      this.errorMessageState.set(null);
+      this.createdGroupIdState.set(null);
       this.createdGroupIdState.set(await this.groupCreationPort.create(name));
       await this.queryClient.invalidateQueries({ queryKey: memberGroupsQueryKey });
     } catch (error) {

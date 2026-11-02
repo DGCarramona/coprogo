@@ -1,3 +1,4 @@
+import { GroupName } from '../../domain/group/group-name';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
@@ -20,7 +21,7 @@ describe('HttpGroupRenamingGateway', () => {
     it('sends the new name to the group', async () => {
       const result = TestBed.inject(HttpGroupRenamingGateway).rename(
         'group-1',
-        'Appartement familial',
+        GroupName('Appartement familial'),
       );
       const request = TestBed.inject(HttpTestingController).expectOne(
         'http://localhost:8080/api/groups/group-1/name',
@@ -31,7 +32,10 @@ describe('HttpGroupRenamingGateway', () => {
       await expect(result).resolves.toBeUndefined();
     });
     it('exposes a forbidden rename as an API error', async () => {
-      const result = TestBed.inject(HttpGroupRenamingGateway).rename('group-1', 'Maison');
+      const result = TestBed.inject(HttpGroupRenamingGateway).rename(
+        'group-1',
+        GroupName('Maison'),
+      );
       TestBed.inject(HttpTestingController)
         .expectOne('http://localhost:8080/api/groups/group-1/name')
         .flush({ message: 'Réservé au créateur' }, { status: 403, statusText: 'Forbidden' });
