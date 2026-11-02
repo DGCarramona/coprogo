@@ -120,6 +120,27 @@ describe('ExpenseListWidgetComponent', () => {
       );
     });
   });
+
+  describe('expense summary presentation', () => {
+    it('groups each expense into a semantic row with its creator and amount', async () => {
+      const { fixture, host } = createFixture();
+      fixture.detectChanges();
+      await waitFor(() => host.querySelector('article.expense-list-widget__row') !== null);
+
+      const row = host.querySelector('article.expense-list-widget__row');
+
+      expect(host.querySelectorAll('.expense-list-widget__list > li')).toHaveLength(1);
+      expect(row?.querySelector('.expense-list-widget__title')?.textContent?.trim()).toBe(
+        'Courses',
+      );
+      expect(row?.querySelector('.expense-list-widget__creator')?.textContent).toContain(
+        'alice@example.com',
+      );
+      expect(row?.querySelector('.expense-list-widget__amount')?.textContent?.trim()).toBe(
+        '15,00 €',
+      );
+    });
+  });
 });
 
 const createFixture = (): {

@@ -518,5 +518,80 @@
     "invite": "Criar convite",
     "inviting": "A criar…",
     "invited": "Convite criado para {{email}}. Esta pessoa precisa de o aceitar no Coprogo para entrar no grupo."
+  },
+  "layout": {
+    "signIn": {
+      "eyebrow": "A vida em grupo, mais clara",
+      "title": "Despesas partilhadas, mais simples.",
+      "lead": "Acompanhe as despesas, os reembolsos e as receitas do seu grupo num espaço comum.",
+      "invitationsTitle": "Consulte os seus convites",
+      "invitationsHelp": "Entre facilmente no grupo que o convidou.",
+      "expensesTitle": "Acompanhe as despesas",
+      "expensesHelp": "Consulte os montantes, os comprovativos e o que falta pagar.",
+      "revenueTitle": "Partilhe as receitas",
+      "revenueHelp": "Consulte a distribuição aplicada a cada membro.",
+      "welcome": "Bem-vindo",
+      "accountHelp": "A sua conta é criada automaticamente no primeiro início de sessão.",
+      "unavailable": "O início de sessão com Google não está disponível neste ambiente. Contacte o administrador.",
+      "footer": "Depois de iniciar sessão, pode aceitar um convite ou criar o seu primeiro grupo.",
+      "googleButton": "Botão de início de sessão com Google"
+    },
+    "expenses": {
+      "recordedAmounts": "Montantes registados neste grupo",
+      "documents": "Ver os comprovativos",
+      "amount": "Montante da despesa",
+      "summary": "Resumo da despesa",
+      "allocations": "Distribuição por membro"
+    },
+    "dashboard": {
+      "quickLinks": "Acessos diretos",
+      "overviewKicker": "Num relance",
+      "overview": "Visão geral",
+      "overviewHelp": "Os montantes que resumem a situação atual do grupo.",
+      "cashCaption": "Receitas e levantamentos registados para o grupo.",
+      "operations": "Operações",
+      "cashTitle": "Gerir a caixa comum",
+      "cashHelp": "Registe as receitas e os levantamentos e consulte os movimentos.",
+      "activityKicker": "Acompanhamento do grupo",
+      "activityTitle": "Atividade do grupo",
+      "activityHelp": "Consulte as despesas recentes e as receitas atribuídas a cada membro.",
+      "proposalHelp": "Registe uma despesa acordada fora da aplicação."
+    },
+    "newOperation": "Nova operação",
+    "invitations": {
+      "getStarted": "Para começar",
+      "createTitle": "Começar com um grupo",
+      "createHelp": "Crie um espaço para acompanhar em conjunto as despesas e as receitas partilhadas.",
+      "joinKicker": "Para aderir",
+      "joinTitle": "Grupos para os quais foi convidado",
+      "joinHelp": "Verifique os detalhes antes de aceitar um convite."
+    },
+    "reimbursements": {
+      "recordTitle": "Registar um reembolso",
+      "recordHelp": "Escolha a forma como o reembolso foi efetuado.",
+      "historyKicker": "Acompanhamento",
+      "historyHelp": "Os movimentos e os comprovativos continuam disponíveis após o registo."
+    },
+    "ownership": {
+      "manage": "Gestão das receitas",
+      "changeHelp": "Uma nova distribuição aplica-se às receitas a partir da sua data de entrada em vigor.",
+      "historyKicker": "Histórico",
+      "historyTitle": "Distribuições registadas",
+      "historyHelp": "Cada alteração permanece visível com a data de aplicação e o seu autor."
+    },
+    "preview": {
+      "simulation": "Simulação",
+      "requestTitle": "Montante e data de aplicação",
+      "requestHelp": "A data determina as quotas utilizadas nesta estimativa.",
+      "result": "Resultado",
+      "total": "Montante distribuído: {{p0}}"
+    },
+    "navigation": {
+      "home": "Coprogo, início",
+      "label": "Navegação principal",
+      "shares": "Quotas",
+      "distribution": "Distribuição",
+      "invitations": "Convites"
+    }
   }
 }

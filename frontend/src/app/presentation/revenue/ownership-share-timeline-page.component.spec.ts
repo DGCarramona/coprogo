@@ -24,6 +24,20 @@ class StubOwnershipShareChangeWidgetComponent {
 }
 
 describe('OwnershipShareTimelinePageComponent', () => {
+  it('separates share changes from their historical record', () => {
+    const fixture = createFixture(new StubOwnershipShareTimelinePageViewModel());
+
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(
+      host.querySelector('section[aria-labelledby="ownership-share-change-title"]'),
+    ).not.toBeNull();
+    expect(
+      host.querySelector('section[aria-labelledby="ownership-share-history-title"]'),
+    ).not.toBeNull();
+  });
+
   it('shows that the ownership-share history is loading', () => {
     const viewModel = new StubOwnershipShareTimelinePageViewModel();
     viewModel.isLoading.set(true);

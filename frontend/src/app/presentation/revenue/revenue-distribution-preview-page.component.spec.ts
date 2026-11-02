@@ -49,6 +49,12 @@ describe('RevenueDistributionPreviewPageComponent', () => {
     expect(host.textContent).toContain('15,30 €');
     expect(host.textContent).toContain('bob@example.com');
     expect(host.textContent).toContain('10,20 €');
+    expect(
+      host.querySelector('section[aria-labelledby="revenue-distribution-request-title"]'),
+    ).not.toBeNull();
+    expect(
+      host.querySelector('section[aria-labelledby="revenue-distribution-result-title"]'),
+    ).not.toBeNull();
   });
 
   it('keeps preview disabled until the amount and date are valid', () => {

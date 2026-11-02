@@ -1,101 +1,79 @@
 <section class="sign-in-page material-page">
-  <div class="material-page__content material-page__grid">
-    <mat-card class="material-card sign-in-page__hero" appearance="outlined">
-      <mat-card-content>
-        <p class="sign-in-page__eyebrow">Coprogo</p>
-        <h1 class="material-section-title">
-          {{ 'auth.signIn.title' | translate }}
-        </h1>
-        <p class="sign-in-page__lead material-section-subtitle">
-          {{ 'auth.signIn.description' | translate }}
-        </p>
+  <div class="material-page__content material-page__grid sign-in-page__layout">
+    <section class="sign-in-page__hero" aria-labelledby="sign-in-title">
+      <p class="sign-in-page__brand">{{ 'app.name' | translate }}</p>
+      <p class="sign-in-page__eyebrow">{{ 'layout.signIn.eyebrow' | translate }}</p>
+      <h1 id="sign-in-title">{{ 'layout.signIn.title' | translate }}</h1>
+      <p class="sign-in-page__lead">{{ 'layout.signIn.lead' | translate }}</p>
 
-        <mat-chip-set
-          [attr.aria-label]="'auth.signIn.principles' | translate"
-          class="sign-in-page__chip-set"
-        >
-          <mat-chip>{{ 'auth.signIn.accountCreationChip' | translate }}</mat-chip>
-          <mat-chip>{{ 'auth.signIn.identityChip' | translate }}</mat-chip>
-          <mat-chip>{{ 'auth.signIn.invitationsChip' | translate }}</mat-chip>
-        </mat-chip-set>
+      <ol class="sign-in-page__steps">
+        <li>
+          <span class="sign-in-page__step-index" aria-hidden="true">01</span>
+          <div>
+            <h2>{{ 'layout.signIn.invitationsTitle' | translate }}</h2>
+            <p>{{ 'layout.signIn.invitationsHelp' | translate }}</p>
+          </div>
+        </li>
+        <li>
+          <span class="sign-in-page__step-index" aria-hidden="true">02</span>
+          <div>
+            <h2>{{ 'layout.signIn.expensesTitle' | translate }}</h2>
+            <p>{{ 'layout.signIn.expensesHelp' | translate }}</p>
+          </div>
+        </li>
+        <li>
+          <span class="sign-in-page__step-index" aria-hidden="true">03</span>
+          <div>
+            <h2>{{ 'layout.signIn.revenueTitle' | translate }}</h2>
+            <p>{{ 'layout.signIn.revenueHelp' | translate }}</p>
+          </div>
+        </li>
+      </ol>
+    </section>
 
-        <div class="sign-in-page__steps">
-          <mat-card class="material-card sign-in-page__step" appearance="outlined">
-            <mat-card-content>
-              <p class="sign-in-page__step-index">01</p>
-              <h2>{{ 'auth.signIn.steps.connect.title' | translate }}</h2>
-              <p>
-                {{ 'auth.signIn.steps.connect.description' | translate }}
-              </p>
-            </mat-card-content>
-          </mat-card>
-
-          <mat-card class="material-card sign-in-page__step" appearance="outlined">
-            <mat-card-content>
-              <p class="sign-in-page__step-index">02</p>
-              <h2>{{ 'auth.signIn.steps.invitations.title' | translate }}</h2>
-              <p>
-                {{ 'auth.signIn.steps.invitations.description' | translate }}
-              </p>
-            </mat-card-content>
-          </mat-card>
-
-          <mat-card class="material-card sign-in-page__step" appearance="outlined">
-            <mat-card-content>
-              <p class="sign-in-page__step-index">03</p>
-              <h2>{{ 'auth.signIn.steps.createGroup.title' | translate }}</h2>
-              <p>
-                {{ 'auth.signIn.steps.createGroup.description' | translate }}
-              </p>
-            </mat-card-content>
-          </mat-card>
-        </div>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card class="material-card sign-in-page__panel" appearance="raised">
+    <mat-card class="material-card sign-in-page__panel" appearance="outlined">
       <mat-card-header>
-        <mat-card-subtitle>{{ 'auth.signIn.personalAccount' | translate }}</mat-card-subtitle>
-        <mat-card-title>{{ 'auth.signIn.continueWithGoogle' | translate }}</mat-card-title>
+        <mat-card-subtitle> {{ 'layout.signIn.welcome' | translate }} </mat-card-subtitle>
+        <mat-card-title> {{ 'auth.signIn.continueWithGoogle' | translate }} </mat-card-title>
       </mat-card-header>
 
       <mat-card-content>
-        <p class="material-section-subtitle">
-          {{ 'auth.signIn.accountSetupHelp' | translate }}
-        </p>
+        <p class="sign-in-page__panel-copy">{{ 'layout.signIn.accountHelp' | translate }}</p>
 
-        <div #googleButtonHost class="sign-in-page__button-host"></div>
+        <div
+          #googleButtonHost
+          class="sign-in-page__button-host"
+          [attr.aria-label]="'layout.signIn.googleButton' | translate"
+        ></div>
 
         @if (isBusy()) {
-          <div class="sign-in-page__feedback">
+          <div class="sign-in-page__feedback" role="status">
             <mat-progress-bar mode="indeterminate"></mat-progress-bar>
             <p>{{ 'auth.signIn.loading' | translate }}</p>
           </div>
         }
 
         @if (!hasGoogleConfiguration()) {
-          <div class="sign-in-page__message sign-in-page__message--warn">
-            {{ 'errors.auth.googleNotConfigured' | translate }}
+          <div class="sign-in-page__message sign-in-page__message--warn" role="status">
+            {{ 'layout.signIn.unavailable' | translate }}
           </div>
         }
 
         @if (renderErrorMessage(); as renderErrorMessage) {
-          <div class="sign-in-page__message sign-in-page__message--error">
+          <div class="sign-in-page__message sign-in-page__message--error" role="alert">
             {{ renderErrorMessage | errorMessage }}
           </div>
         }
 
         @if (sessionErrorMessage(); as sessionErrorMessage) {
-          <div class="sign-in-page__message sign-in-page__message--error">
+          <div class="sign-in-page__message sign-in-page__message--error" role="alert">
             {{ sessionErrorMessage | errorMessage }}
           </div>
         }
       </mat-card-content>
 
-      <mat-divider></mat-divider>
-
       <mat-card-footer class="sign-in-page__footer">
-        {{ 'auth.signIn.footer' | translate }}
+        {{ 'layout.signIn.footer' | translate }}
       </mat-card-footer>
     </mat-card>
   </div>

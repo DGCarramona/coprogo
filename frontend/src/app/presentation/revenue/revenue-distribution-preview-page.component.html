@@ -7,69 +7,95 @@
     <p role="alert">{{ viewModel.routeErrorMessage | errorMessage }}</p>
   } @else {
     <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId, 'dashboard']">
-      {{ 'common.backToGroup' | translate }}
+      {{ 'members.back' | translate }}
     </a>
 
-    <mat-card class="material-card revenue-distribution-preview-page__card" appearance="outlined">
-      <mat-card-content>
-        @if (viewModel.hasPreviewError()) {
-          <p role="alert">{{ viewModel.previewErrorMessage() | errorMessage }}</p>
-        }
+    <section
+      class="revenue-distribution-preview-page__request"
+      aria-labelledby="revenue-distribution-request-title"
+    >
+      <div class="revenue-distribution-preview-page__section-heading">
+        <p class="revenue-distribution-preview-page__section-kicker">
+          {{ 'layout.preview.simulation' | translate }}
+        </p>
+        <h2 id="revenue-distribution-request-title">
+          {{ 'layout.preview.requestTitle' | translate }}
+        </h2>
+        <p>{{ 'layout.preview.requestHelp' | translate }}</p>
+      </div>
 
-        <form [formRoot]="viewModel.form">
-          <p>
-            <label for="revenue-distribution-amount">{{
-              'revenue.preview.amount' | translate
-            }}</label>
-            <input
-              id="revenue-distribution-amount"
-              type="text"
-              inputmode="decimal"
-              [attr.aria-label]="'revenue.preview.amount' | translate"
-              [formField]="viewModel.form.amountInEuros"
-            />
-          </p>
-          <p>
-            <label for="revenue-distribution-date">{{ 'revenue.preview.date' | translate }}</label>
-            <input
-              id="revenue-distribution-date"
-              type="date"
-              [attr.aria-label]="'revenue.preview.date' | translate"
-              [formField]="viewModel.form.effectiveDate"
-            />
-          </p>
-          <button
-            mat-flat-button
-            type="submit"
-            [disabled]="viewModel.form().invalid() || viewModel.isPreviewing()"
-          >
-            {{ 'revenue.preview.submit' | translate }}
-          </button>
-        </form>
-      </mat-card-content>
-    </mat-card>
-
-    @if (viewModel.preview(); as preview) {
       <mat-card class="material-card revenue-distribution-preview-page__card" appearance="outlined">
-        <mat-card-header>
-          <mat-card-title>{{
-            'revenue.preview.distributionOf' | translate: { p0: preview.totalAmount }
-          }}</mat-card-title>
-          <mat-card-subtitle>{{
-            'ownership.applicableOn' | translate: { p0: preview.effectiveDate }
-          }}</mat-card-subtitle>
-        </mat-card-header>
         <mat-card-content>
-          <dl class="revenue-distribution-preview-page__allocations">
-            @for (allocation of preview.allocations; track allocation.member) {
-              <div>
-                <dt>{{ allocation.member }}</dt>
-                <dd>{{ allocation.amount }}</dd>
-              </div>
-            }
-          </dl>
+          @if (viewModel.hasPreviewError()) {
+            <p role="alert">{{ viewModel.previewErrorMessage() | errorMessage }}</p>
+          }
+
+          <form [formRoot]="viewModel.form">
+            <p>
+              <label for="revenue-distribution-amount">
+                {{ 'revenue.preview.amount' | translate }}
+              </label>
+              <input
+                id="revenue-distribution-amount"
+                type="text"
+                inputmode="decimal"
+                [attr.aria-label]="'revenue.preview.amount' | translate"
+                [formField]="viewModel.form.amountInEuros"
+              />
+            </p>
+            <p>
+              <label for="revenue-distribution-date">
+                {{ 'revenue.preview.date' | translate }}
+              </label>
+              <input
+                id="revenue-distribution-date"
+                type="date"
+                [attr.aria-label]="'revenue.preview.date' | translate"
+                [formField]="viewModel.form.effectiveDate"
+              />
+            </p>
+            <button
+              mat-flat-button
+              type="submit"
+              [disabled]="viewModel.form().invalid() || viewModel.isPreviewing()"
+            >
+              {{ 'revenue.preview.submit' | translate }}
+            </button>
+          </form>
         </mat-card-content>
       </mat-card>
+    </section>
+
+    @if (viewModel.preview(); as preview) {
+      <section
+        class="revenue-distribution-preview-page__result"
+        aria-labelledby="revenue-distribution-result-title"
+      >
+        <div class="revenue-distribution-preview-page__section-heading">
+          <p class="revenue-distribution-preview-page__section-kicker">
+            {{ 'layout.preview.result' | translate }}
+          </p>
+          <h2 id="revenue-distribution-result-title">
+            {{ 'layout.preview.total' | translate: { p0: preview.totalAmount } }}
+          </h2>
+          <p>{{ 'ownership.applicableOn' | translate: { p0: preview.effectiveDate } }}</p>
+        </div>
+        <mat-card
+          class="material-card revenue-distribution-preview-page__card"
+          appearance="outlined"
+        >
+          <mat-card-content>
+            <dl class="revenue-distribution-preview-page__allocations">
+              @for (allocation of preview.allocations; track allocation.member) {
+                <div>
+                  <dt>{{ allocation.member }}</dt>
+                  <dd>{{ allocation.amount }}</dd>
+                </div>
+              }
+            </dl>
+          </mat-card-content>
+        </mat-card>
+      </section>
     }
   }
 </app-authenticated-shell>

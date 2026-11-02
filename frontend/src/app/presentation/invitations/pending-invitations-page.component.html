@@ -8,19 +8,17 @@
   @if (invitationsViewModel.isLoading()) {
     <mat-card class="material-card pending-invitations-page__state" appearance="outlined">
       <mat-card-header>
-        <mat-card-title>{{ 'invitations.loading' | translate }}</mat-card-title>
+        <mat-card-title> {{ 'invitations.loading' | translate }} </mat-card-title>
       </mat-card-header>
       <mat-card-content>
         <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-        <p>
-          {{ 'invitations.initializingSession' | translate }}
-        </p>
+        <p>{{ 'invitations.initializingSession' | translate }}</p>
       </mat-card-content>
     </mat-card>
   } @else if (invitationsViewModel.hasLoadError()) {
     <mat-card class="material-card pending-invitations-page__state" appearance="outlined">
       <mat-card-header>
-        <mat-card-title>{{ 'invitations.loadFailed' | translate }}</mat-card-title>
+        <mat-card-title> {{ 'invitations.loadFailed' | translate }} </mat-card-title>
       </mat-card-header>
       <mat-card-content>
         <p>{{ invitationsViewModel.errorMessage() | errorMessage }}</p>
@@ -35,19 +33,36 @@
       </mat-card-actions>
     </mat-card>
   } @else if (invitationsViewModel.isEmpty()) {
-    <app-create-first-group-card
-      [createdGroupId]="createGroupViewModel.createdGroupId()"
-      [errorMessage]="createGroupViewModel.errorMessage()"
-      [creating]="createGroupViewModel.isCreatingGroup()"
-      (createRequested)="createGroupViewModel.createGroup($event)"
-    />
+    <section class="pending-invitations-page__section" aria-labelledby="first-group-title">
+      <div class="pending-invitations-page__section-heading">
+        <p class="pending-invitations-page__section-kicker">
+          {{ 'layout.invitations.getStarted' | translate }}
+        </p>
+        <h2 id="first-group-title">{{ 'layout.invitations.createTitle' | translate }}</h2>
+        <p>{{ 'layout.invitations.createHelp' | translate }}</p>
+      </div>
+      <app-create-first-group-card
+        [createdGroupId]="createGroupViewModel.createdGroupId()"
+        [errorMessage]="createGroupViewModel.errorMessage()"
+        [creating]="createGroupViewModel.isCreatingGroup()"
+        (createRequested)="createGroupViewModel.createGroup($event)"
+      />
+    </section>
   } @else {
-    <h2>{{ 'invitations.pending' | translate }}</h2>
-    <app-pending-invitations-list
-      [invitations]="invitationsViewModel.invitations()"
-      [busyInvitationId]="invitationsViewModel.busyInvitationId()"
-      [errorMessage]="invitationsViewModel.errorMessage()"
-      (invitationAccepted)="invitationsViewModel.acceptInvitation($event)"
-    />
+    <section class="pending-invitations-page__section" aria-labelledby="pending-invitations-title">
+      <div class="pending-invitations-page__section-heading">
+        <p class="pending-invitations-page__section-kicker">
+          {{ 'layout.invitations.joinKicker' | translate }}
+        </p>
+        <h2 id="pending-invitations-title">{{ 'layout.invitations.joinTitle' | translate }}</h2>
+        <p>{{ 'layout.invitations.joinHelp' | translate }}</p>
+      </div>
+      <app-pending-invitations-list
+        [invitations]="invitationsViewModel.invitations()"
+        [busyInvitationId]="invitationsViewModel.busyInvitationId()"
+        [errorMessage]="invitationsViewModel.errorMessage()"
+        (invitationAccepted)="invitationsViewModel.acceptInvitation($event)"
+      />
+    </section>
   }
 </app-authenticated-shell>

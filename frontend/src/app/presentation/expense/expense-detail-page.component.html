@@ -26,20 +26,28 @@
         <mat-card-subtitle>{{ detail.statusLabel | translate }}</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
-        <dl class="expense-detail-page__summary">
-          <div>
-            <dt>{{ 'common.totalAmount' | translate }}</dt>
-            <dd>{{ detail.totalAmount }}</dd>
-          </div>
-          <div>
-            <dt>{{ 'common.recordedBy' | translate }}</dt>
-            <dd>{{ detail.createdBy }}</dd>
-          </div>
-          <div>
-            <dt>{{ 'common.date' | translate }}</dt>
-            <dd>{{ detail.createdAt }}</dd>
-          </div>
-        </dl>
+        <section
+          class="expense-detail-page__summary-section"
+          aria-labelledby="expense-summary-title"
+        >
+          <h2 id="expense-summary-title" class="sr-only">
+            {{ 'layout.expenses.summary' | translate }}
+          </h2>
+          <dl class="expense-detail-page__summary">
+            <div>
+              <dt>{{ 'common.totalAmount' | translate }}</dt>
+              <dd>{{ detail.totalAmount }}</dd>
+            </div>
+            <div>
+              <dt>{{ 'common.recordedBy' | translate }}</dt>
+              <dd>{{ detail.createdBy }}</dd>
+            </div>
+            <div>
+              <dt>{{ 'common.date' | translate }}</dt>
+              <dd>{{ detail.createdAt }}</dd>
+            </div>
+          </dl>
+        </section>
 
         @if (detail.invalidation; as invalidation) {
           <section
@@ -48,9 +56,7 @@
             role="alert"
           >
             <h2>{{ 'expenses.detail.refusedTitle' | translate }}</h2>
-            <p>
-              {{ 'expenses.detail.refusedHelp' | translate }}
-            </p>
+            <p>{{ 'expenses.detail.refusedHelp' | translate }}</p>
             <p>
               {{ 'expenses.detail.refusedBy' | translate }}
               <strong>{{ invalidation.refusedBy }}</strong>
@@ -58,7 +64,7 @@
             </p>
             @if (invalidation.reason !== null) {
               <p>
-                <strong>{{ 'common.reason' | translate }}</strong> {{ invalidation.reason }}
+                <strong> {{ 'common.reason' | translate }} </strong> {{ invalidation.reason }}
               </p>
             }
             @if (viewModel.groupId !== null) {
@@ -69,20 +75,25 @@
           </section>
         }
 
-        <h2>{{ 'expenses.participations.title' | translate }}</h2>
-        <div class="expense-detail-page__participations">
-          @for (participation of detail.participations; track participation.member) {
-            <div class="expense-detail-page__participation">
-              <div>
-                <strong>{{ participation.member }}</strong>
-                <span>{{ participation.amount }}</span>
+        <section
+          class="expense-detail-page__participations-section"
+          aria-labelledby="expense-participations-title"
+        >
+          <h2 id="expense-participations-title">{{ 'layout.expenses.allocations' | translate }}</h2>
+          <div class="expense-detail-page__participations">
+            @for (participation of detail.participations; track participation.member) {
+              <div class="expense-detail-page__participation">
+                <div>
+                  <strong>{{ participation.member }}</strong>
+                  <span>{{ participation.amount }}</span>
+                </div>
+                <mat-chip [class]="'expense-detail-page__chip--' + participation.tone">
+                  {{ participation.statusLabel | translate }}
+                </mat-chip>
               </div>
-              <mat-chip [class]="'expense-detail-page__chip--' + participation.tone">
-                {{ participation.statusLabel | translate }}
-              </mat-chip>
-            </div>
-          }
-        </div>
+            }
+          </div>
+        </section>
 
         @if (viewModel.canDecide()) {
           <section
@@ -90,9 +101,9 @@
             [attr.aria-label]="'expenses.participation.validateLabel' | translate"
           >
             <h2>{{ 'expenses.participation.mine' | translate }}</h2>
-            <label for="expense-rejection-reason">{{
-              'common.optionalRefusalReason' | translate
-            }}</label>
+            <label for="expense-rejection-reason">
+              {{ 'common.optionalRefusalReason' | translate }}
+            </label>
             <textarea
               id="expense-rejection-reason"
               [value]="viewModel.rejectionReason()"

@@ -1,7 +1,7 @@
 <mat-card class="material-card" appearance="outlined">
   <mat-card-header>
-    <mat-card-title>{{ 'expenses.list.title' | translate }}</mat-card-title>
-    <mat-card-subtitle>{{ 'expenses.list.recent' | translate }}</mat-card-subtitle>
+    <mat-card-title> {{ 'expenses.list.title' | translate }} </mat-card-title>
+    <mat-card-subtitle> {{ 'layout.expenses.recordedAmounts' | translate }} </mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
     @if (viewModel.isLoading()) {
@@ -14,36 +14,46 @@
     } @else if (viewModel.expenses().length === 0) {
       <p class="expense-list-widget__empty">{{ 'expenses.list.empty' | translate }}</p>
     } @else {
-      <div class="expense-list-widget__list">
+      <ul class="expense-list-widget__list" [attr.aria-label]="'expenses.eyebrow' | translate">
         @for (expense of viewModel.expenses(); track expense.id) {
-          <div class="expense-list-widget__row">
-            <div class="expense-list-widget__info">
-              <a
-                class="expense-list-widget__title"
-                [routerLink]="['/groups', groupId, 'expenses', expense.id]"
+          <li class="expense-list-widget__item">
+            <article class="expense-list-widget__row">
+              <div class="expense-list-widget__info">
+                <a
+                  class="expense-list-widget__title"
+                  [routerLink]="['/groups', groupId, 'expenses', expense.id]"
+                >
+                  {{ expense.title }}
+                </a>
+                <p class="expense-list-widget__creator">
+                  {{ 'common.recordedBy' | translate }} <span>{{ expense.createdBy }}</span>
+                </p>
+              </div>
+              <strong
+                class="expense-list-widget__amount"
+                [attr.aria-label]="'layout.expenses.amount' | translate"
               >
-                {{ expense.title }}
-              </a>
-              <span class="expense-list-widget__creator">{{ expense.createdBy }}</span>
-            </div>
-            <strong>{{ expense.amount }}</strong>
-          </div>
-          <details
-            #supportingDocumentsDetails
-            (toggle)="
-              viewModel.setSupportingDocumentsOpen(expense.id, supportingDocumentsDetails.open)
-            "
-          >
-            <summary>{{ 'documents.title' | translate }}</summary>
-            @if (viewModel.isSupportingDocumentsOpen(expense.id)) {
-              <app-expense-supporting-documents-widget
-                [groupId]="groupId"
-                [expenseId]="expense.id"
-              />
-            }
-          </details>
+                {{ expense.amount }}
+              </strong>
+            </article>
+            <details
+              class="expense-list-widget__documents"
+              #supportingDocumentsDetails
+              (toggle)="
+                viewModel.setSupportingDocumentsOpen(expense.id, supportingDocumentsDetails.open)
+              "
+            >
+              <summary>{{ 'layout.expenses.documents' | translate }}</summary>
+              @if (viewModel.isSupportingDocumentsOpen(expense.id)) {
+                <app-expense-supporting-documents-widget
+                  [groupId]="groupId"
+                  [expenseId]="expense.id"
+                />
+              }
+            </details>
+          </li>
         }
-      </div>
+      </ul>
     }
   </mat-card-content>
 </mat-card>

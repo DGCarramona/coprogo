@@ -54,6 +54,23 @@ class StubMemberDebtReductionHistoryWidgetComponent {
 }
 
 describe('GroupDashboardPageComponent', () => {
+  it('organizes the dashboard by financial priority and activity', () => {
+    const fixture = createFixture(new StubGroupDashboardPageViewModel());
+
+    fixture.detectChanges();
+
+    expect(
+      Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('h2')).map((heading) =>
+        heading.textContent?.trim(),
+      ),
+    ).toEqual([
+      'Vue d’ensemble',
+      'Gérer la caisse commune',
+      'Activité du groupe',
+      'Proposer une dépense',
+    ]);
+  });
+
   it('shows the expense proposal widget for the ready group', () => {
     const viewModel = new StubGroupDashboardPageViewModel();
     const fixture = createFixture(viewModel);

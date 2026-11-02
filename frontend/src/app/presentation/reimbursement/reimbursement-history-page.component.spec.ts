@@ -37,6 +37,20 @@ class StubReimbursementReviewComponent {
 }
 
 describe('ReimbursementHistoryPageComponent', () => {
+  it('separates reimbursement entry actions from the reviewable history', () => {
+    const fixture = createFixture(new StubReimbursementHistoryPageViewModel());
+
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(
+      host.querySelector('section[aria-labelledby="reimbursement-actions-title"]'),
+    ).not.toBeNull();
+    expect(
+      host.querySelector('section[aria-labelledby="reimbursement-history-title"]'),
+    ).not.toBeNull();
+  });
+
   it('renders the reimbursement history without exposing technical status labels', () => {
     const viewModel = new StubReimbursementHistoryPageViewModel();
     const fixture = createFixture(viewModel);

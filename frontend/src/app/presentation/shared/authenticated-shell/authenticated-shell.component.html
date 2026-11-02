@@ -1,18 +1,85 @@
 <section class="authenticated-shell material-page">
   <div class="material-page__content">
-    <mat-toolbar class="authenticated-shell__toolbar material-card">
-      <div class="authenticated-shell__toolbar-copy">
-        <p class="authenticated-shell__eyebrow">{{ eyebrow }}</p>
-        <h1>{{ title }}</h1>
-        @if (description) {
-          <p>{{ description }}</p>
+    <div class="authenticated-shell__topbar">
+      <a
+        class="authenticated-shell__brand"
+        routerLink="/invitations"
+        [attr.aria-label]="'layout.navigation.home' | translate"
+      >
+        <span class="authenticated-shell__brand-mark" aria-hidden="true">C</span>
+        <span> {{ 'app.name' | translate }} </span>
+      </a>
+
+      <nav
+        class="authenticated-shell__navigation"
+        [attr.aria-label]="'layout.navigation.label' | translate"
+      >
+        @if (groupId; as currentGroupId) {
+          <a
+            [routerLink]="['/groups', currentGroupId, 'dashboard']"
+            routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            ariaCurrentWhenActive="page"
+          >
+            {{ 'layout.dashboard.overview' | translate }}
+          </a>
+          <a
+            [routerLink]="['/groups', currentGroupId, 'members']"
+            routerLinkActive="is-active"
+            ariaCurrentWhenActive="page"
+            >{{ 'members.link' | translate }}</a
+          >
+          <a
+            [routerLink]="['/groups', currentGroupId, 'expenses']"
+            routerLinkActive="is-active"
+            ariaCurrentWhenActive="page"
+          >
+            {{ 'expenses.list.title' | translate }}
+          </a>
+          <a
+            [routerLink]="['/groups', currentGroupId, 'reimbursements']"
+            routerLinkActive="is-active"
+            ariaCurrentWhenActive="page"
+          >
+            {{ 'reimbursements.title' | translate }}
+          </a>
+          <a
+            [routerLink]="['/groups', currentGroupId, 'ownership-shares']"
+            routerLinkActive="is-active"
+            ariaCurrentWhenActive="page"
+          >
+            {{ 'layout.navigation.shares' | translate }}
+          </a>
+          <a
+            [routerLink]="['/groups', currentGroupId, 'revenue-distribution', 'preview']"
+            routerLinkActive="is-active"
+            ariaCurrentWhenActive="page"
+          >
+            {{ 'layout.navigation.distribution' | translate }}
+          </a>
         }
-      </div>
-      <span class="authenticated-shell__toolbar-spacer"></span>
+        <a
+          routerLink="/invitations"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          ariaCurrentWhenActive="page"
+        >
+          {{ 'layout.navigation.invitations' | translate }}
+        </a>
+      </nav>
+
       <button mat-stroked-button type="button" (click)="signOut()">
         {{ 'auth.signOut' | translate }}
       </button>
-    </mat-toolbar>
+    </div>
+
+    <header class="authenticated-shell__page-header">
+      <p class="authenticated-shell__eyebrow">{{ eyebrow }}</p>
+      <h1>{{ title }}</h1>
+      @if (description) {
+        <p class="authenticated-shell__description">{{ description }}</p>
+      }
+    </header>
     <ng-content />
   </div>
 </section>
