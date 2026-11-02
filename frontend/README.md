@@ -93,3 +93,29 @@ npm run generate:api
 ```
 
 By default, the generator reads the public backend endpoint `http://localhost:8080/openapi.yml`. Ensure the backend is running before generating the client.
+
+## Languages
+
+The SPA supports French (`fr-FR`, the default) and European Portuguese (`pt-PT`).
+The language selector switches the current screen without navigation and remembers the choice
+under `coprogo.language` in browser storage. Blocked storage does not prevent switching languages.
+
+Translation sources are plain JSON files: `src/app/presentation/i18n/catalogs/fr.json` and
+`pt.json`. Angular imports them through its native build pipeline (`resolveJsonModule`):
+`npm start` recompiles the changed catalog and reloads the page during development;
+`npm run build` embeds the catalogs in the optimized production JavaScript bundles under
+`dist/frontend/browser/`. No separate generation command or runtime catalog request is needed.
+
+Use stable technical ASCII keys in English, grouped by feature, for example
+`expenses.proposal.title`, `cashPool.withdrawal.submit` and `errors.expenses.loadList`.
+Accents and punctuation belong in translated values, never in keys. Changing display copy does
+not require renaming its key. The loader checks Portuguese keys against the French catalog at
+compile time. Keep interpolation parameters consistent between both catalogs.
+Translate complete sentences with parameters rather than concatenating translated fragments.
+Group names, expense titles, member addresses, filenames and rejection reasons remain user data.
+
+Use `TranslatePipe` for application copy, `ErrorMessagePipe` for errors (unknown server messages
+receive a translated fallback), and `FinancialFormatter` / `LocalizedDatePipe` for localized display.
+Keep raw server data in TanStack Query and derive formatted values in computed Signals, so a language
+change updates cached results without fetching them again. Amounts, currency and date input values
+remain unchanged.

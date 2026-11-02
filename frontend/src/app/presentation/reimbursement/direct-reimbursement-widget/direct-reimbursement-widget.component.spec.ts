@@ -1,3 +1,4 @@
+import { provideLocalization } from '../../i18n/provide-localization';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 import { Observable, of } from 'rxjs';
@@ -19,8 +20,13 @@ describe('DirectReimbursementWidgetComponent', () => {
       return host.querySelector('option[value="bob@example.com"]') !== null;
     });
 
-    setValue(host, fixture, 'select[aria-label="Personne qui a rembourse"]', 'bob@example.com');
-    setValue(host, fixture, 'input[aria-label="Montant rembourse en euros"]', '25,50');
+    setValue(
+      host,
+      fixture,
+      'select[aria-label="Personne qui vous a remboursé"]',
+      'bob@example.com',
+    );
+    setValue(host, fixture, 'input[aria-label="Montant remboursé en euros"]', '25,50');
     setValue(host, fixture, 'input[aria-label="Date du remboursement"]', '2026-10-01T09:30');
     expect(fixture.componentInstance.viewModel.form().value()).toEqual({
       paidBy: 'bob@example.com',
@@ -51,8 +57,13 @@ describe('DirectReimbursementWidgetComponent', () => {
 
     expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
 
-    setValue(host, fixture, 'select[aria-label="Personne qui a rembourse"]', 'bob@example.com');
-    setValue(host, fixture, 'input[aria-label="Montant rembourse en euros"]', '25,555');
+    setValue(
+      host,
+      fixture,
+      'select[aria-label="Personne qui vous a remboursé"]',
+      'bob@example.com',
+    );
+    setValue(host, fixture, 'input[aria-label="Montant remboursé en euros"]', '25,555');
     setValue(host, fixture, 'input[aria-label="Date du remboursement"]', '2026-10-01T09:30');
 
     expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
@@ -66,8 +77,13 @@ describe('DirectReimbursementWidgetComponent', () => {
       fixture.detectChanges();
       return host.querySelector('option[value="bob@example.com"]') !== null;
     });
-    setValue(host, fixture, 'select[aria-label="Personne qui a rembourse"]', 'bob@example.com');
-    setValue(host, fixture, 'input[aria-label="Montant rembourse en euros"]', '25,50');
+    setValue(
+      host,
+      fixture,
+      'select[aria-label="Personne qui vous a remboursé"]',
+      'bob@example.com',
+    );
+    setValue(host, fixture, 'input[aria-label="Montant remboursé en euros"]', '25,50');
     setValue(host, fixture, 'input[aria-label="Date du remboursement"]', '2026-10-01T09:30');
 
     requiredButton(host, 'button[type="submit"]').click();
@@ -78,8 +94,8 @@ describe('DirectReimbursementWidgetComponent', () => {
 
     expect({
       formIsVisible: host.querySelector('form') !== null,
-      payer: requiredField(host, 'select[aria-label="Personne qui a rembourse"]').value,
-      amount: requiredField(host, 'input[aria-label="Montant rembourse en euros"]').value,
+      payer: requiredField(host, 'select[aria-label="Personne qui vous a remboursé"]').value,
+      amount: requiredField(host, 'input[aria-label="Montant remboursé en euros"]').value,
       date: requiredField(host, 'input[aria-label="Date du remboursement"]').value,
     }).toEqual({
       formIsVisible: true,
@@ -96,6 +112,7 @@ const createFixture = (
   TestBed.configureTestingModule({
     imports: [DirectReimbursementWidgetComponent],
     providers: [
+      provideLocalization(),
       provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
       { provide: GroupMembersPort, useClass: StubGroupMembersPort },
       { provide: DirectReimbursementRecordingPort, useValue: recordingPort },

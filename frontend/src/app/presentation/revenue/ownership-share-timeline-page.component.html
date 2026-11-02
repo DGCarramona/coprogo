@@ -1,11 +1,11 @@
 <app-authenticated-shell
-  eyebrow="Revenus du groupe"
-  title="Historique des quotes-parts"
-  description="Consultez comment les revenus sont répartis entre les membres à chaque date d’effet."
+  [eyebrow]="'revenue.eyebrow' | translate"
+  [title]="'ownership.history.title' | translate"
+  [description]="'ownership.history.description' | translate"
 >
   @if (viewModel.groupId !== null) {
     <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId, 'dashboard']">
-      Retour au groupe
+      {{ 'common.backToGroup' | translate }}
     </a>
 
     <app-ownership-share-change-widget [groupId]="viewModel.groupId" />
@@ -15,23 +15,27 @@
     <mat-card-content>
       @if (viewModel.isLoading()) {
         <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-        <p>Chargement de l’historique...</p>
+        <p>{{ 'common.loadingHistory' | translate }}</p>
       } @else if (viewModel.hasLoadError()) {
-        <p role="alert">{{ viewModel.errorMessage() }}</p>
+        <p role="alert">{{ viewModel.errorMessage() | errorMessage }}</p>
         @if (viewModel.groupId !== null) {
-          <button mat-flat-button type="button" (click)="viewModel.retry()">Réessayer</button>
+          <button mat-flat-button type="button" (click)="viewModel.retry()">
+            {{ 'common.retry' | translate }}
+          </button>
         }
       } @else if (viewModel.isReady() && viewModel.changes().length === 0) {
-        <p>Aucune répartition des revenus n’a encore été enregistrée.</p>
+        <p>{{ 'ownership.history.empty' | translate }}</p>
       } @else {
         <ol class="ownership-share-timeline-page__timeline">
           @for (change of viewModel.changes(); track change.id) {
             <li>
               <article class="ownership-share-timeline-page__change">
-                <h2>Répartition applicable à partir du {{ change.effectiveDate }}</h2>
+                <h2>
+                  {{ 'ownership.effectiveFrom' | translate: { p0: change.effectiveDate } }}
+                </h2>
                 <p>
-                  Enregistrée par <strong>{{ change.recordedBy }}</strong> le
-                  {{ change.recordedAt }}
+                  {{ 'common.recordedBy' | translate }} <strong>{{ change.recordedBy }}</strong>
+                  {{ 'common.onDate' | translate: { p0: change.recordedAt } }}
                 </p>
                 <dl>
                   @for (share of change.shares; track share.member) {

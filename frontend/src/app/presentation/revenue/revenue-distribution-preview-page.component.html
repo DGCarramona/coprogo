@@ -1,38 +1,40 @@
 <app-authenticated-shell
-  eyebrow="Revenus du groupe"
-  title="Prévisualiser une répartition"
-  description="Vérifiez comment un revenu serait réparti selon les quotes-parts applicables à une date donnée."
+  [eyebrow]="'revenue.eyebrow' | translate"
+  [title]="'revenue.preview.title' | translate"
+  [description]="'revenue.preview.description' | translate"
 >
   @if (viewModel.groupId === null) {
-    <p role="alert">{{ viewModel.routeErrorMessage }}</p>
+    <p role="alert">{{ viewModel.routeErrorMessage | errorMessage }}</p>
   } @else {
     <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId, 'dashboard']">
-      Retour au groupe
+      {{ 'common.backToGroup' | translate }}
     </a>
 
     <mat-card class="material-card revenue-distribution-preview-page__card" appearance="outlined">
       <mat-card-content>
         @if (viewModel.hasPreviewError()) {
-          <p role="alert">{{ viewModel.previewErrorMessage() }}</p>
+          <p role="alert">{{ viewModel.previewErrorMessage() | errorMessage }}</p>
         }
 
         <form [formRoot]="viewModel.form">
           <p>
-            <label for="revenue-distribution-amount">Montant à répartir en euros</label>
+            <label for="revenue-distribution-amount">{{
+              'revenue.preview.amount' | translate
+            }}</label>
             <input
               id="revenue-distribution-amount"
               type="text"
               inputmode="decimal"
-              aria-label="Montant à répartir en euros"
+              [attr.aria-label]="'revenue.preview.amount' | translate"
               [formField]="viewModel.form.amountInEuros"
             />
           </p>
           <p>
-            <label for="revenue-distribution-date">Date de répartition</label>
+            <label for="revenue-distribution-date">{{ 'revenue.preview.date' | translate }}</label>
             <input
               id="revenue-distribution-date"
               type="date"
-              aria-label="Date de répartition"
+              [attr.aria-label]="'revenue.preview.date' | translate"
               [formField]="viewModel.form.effectiveDate"
             />
           </p>
@@ -41,7 +43,7 @@
             type="submit"
             [disabled]="viewModel.form().invalid() || viewModel.isPreviewing()"
           >
-            Prévisualiser la répartition
+            {{ 'revenue.preview.submit' | translate }}
           </button>
         </form>
       </mat-card-content>
@@ -50,10 +52,12 @@
     @if (viewModel.preview(); as preview) {
       <mat-card class="material-card revenue-distribution-preview-page__card" appearance="outlined">
         <mat-card-header>
-          <mat-card-title>Répartition du {{ preview.totalAmount }}</mat-card-title>
-          <mat-card-subtitle
-            >Quotes-parts applicables le {{ preview.effectiveDate }}</mat-card-subtitle
-          >
+          <mat-card-title>{{
+            'revenue.preview.distributionOf' | translate: { p0: preview.totalAmount }
+          }}</mat-card-title>
+          <mat-card-subtitle>{{
+            'ownership.applicableOn' | translate: { p0: preview.effectiveDate }
+          }}</mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
           <dl class="revenue-distribution-preview-page__allocations">

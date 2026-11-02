@@ -1,27 +1,15 @@
-const euroFormatter = new Intl.NumberFormat('fr-FR', {
-  style: 'currency',
-  currency: 'EUR',
-});
+export const formatMoneyFromCents = (amountInCents: number, locale = 'fr-FR'): string =>
+  new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(amountInCents / 100);
 
-const percentageFormatter = new Intl.NumberFormat('fr-FR', {
-  style: 'percent',
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 2,
-});
+export const formatSignedMoneyFromCents = (amountInCents: number, locale = 'fr-FR'): string =>
+  `${amountInCents > 0 ? '+' : ''}${formatMoneyFromCents(amountInCents, locale)}`;
 
-const dateFormatter = new Intl.DateTimeFormat('fr-FR', {
-  dateStyle: 'medium',
-});
+export const formatPercentage = (percentage: number, locale = 'fr-FR'): string =>
+  new Intl.NumberFormat(locale, {
+    style: 'percent',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(percentage / 100);
 
-export const formatMoneyFromCents = (amountInCents: number): string =>
-  euroFormatter.format(amountInCents / 100);
-
-export const formatSignedMoneyFromCents = (amountInCents: number): string =>
-  amountInCents > 0
-    ? `+${formatMoneyFromCents(amountInCents)}`
-    : formatMoneyFromCents(amountInCents);
-
-export const formatPercentage = (percentage: number): string =>
-  percentageFormatter.format(percentage / 100);
-
-export const formatDate = (date: Date): string => dateFormatter.format(date);
+export const formatDate = (date: Date, locale = 'fr-FR'): string =>
+  new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(date);

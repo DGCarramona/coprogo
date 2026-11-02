@@ -26,7 +26,7 @@ export class HttpExpenseSupportingDocumentsGateway extends ExpenseSupportingDocu
     return await firstValueFrom(
       this.supportingDocumentsService.listExpenseSupportingDocuments(groupId, expenseId).pipe(
         catchError((error) => {
-          throw toApiClientError(error, 'Les justificatifs n ont pas pu etre charges.');
+          throw toApiClientError(error, 'errors.documents.load');
         }),
         map(toExpenseSupportingDocuments),
       ),
@@ -49,22 +49,19 @@ const toExpenseSupportingDocument = (
   mediaType: response.mediaType,
   sizeBytes: response.sizeBytes,
   uploader: response.uploader,
-  attachedAt: toDate(response.attachedAt, 'Date d ajout du justificatif invalide'),
+  attachedAt: toDate(response.attachedAt, 'errors.documents.invalidAttachmentDate'),
   replacesSourceUploadIntent: response.replacesSourceUploadIntent ?? null,
   deletion:
     response.deletion === null || response.deletion === undefined
       ? null
       : {
           deletedBy: response.deletion.deletedBy,
-          deletedAt: toDate(
-            response.deletion.deletedAt,
-            'Date de retrait du justificatif invalide',
-          ),
+          deletedAt: toDate(response.deletion.deletedAt, 'errors.documents.invalidRemovalDate'),
         },
   canDelete: response.canDelete,
   downloadTarget: {
     url: response.download.url,
-    expiresAt: toDate(response.download.expiresAt, 'Date d expiration du lien invalide'),
+    expiresAt: toDate(response.download.expiresAt, 'errors.documents.invalidLinkExpiration'),
   },
 });
 

@@ -9,7 +9,9 @@
         }
       </div>
       <span class="authenticated-shell__toolbar-spacer"></span>
-      <button mat-stroked-button type="button" (click)="signOut()">Se deconnecter</button>
+      <button mat-stroked-button type="button" (click)="signOut()">
+        {{ 'auth.signOut' | translate }}
+      </button>
     </mat-toolbar>
     <ng-content />
   </div>

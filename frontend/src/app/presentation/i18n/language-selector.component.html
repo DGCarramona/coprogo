@@ -1,0 +1,7 @@
+<label>
+  <span>{{ 'common.language' | translate }}</span>
+  <select [value]="localization.language()" (change)="select($event)">
+    <option value="fr" lang="fr">Français</option>
+    <option value="pt" lang="pt-PT">Português</option>
+  </select>
+</label>

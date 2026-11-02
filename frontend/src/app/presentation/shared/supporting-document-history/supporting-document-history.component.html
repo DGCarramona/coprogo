@@ -1,19 +1,19 @@
 <section>
-  <h3>Historique des versions du justificatif</h3>
+  <h3>{{ 'documents.history.title' | translate }}</h3>
 
   @if (versions().length === 0) {
-    <p>Aucun justificatif n’a été ajouté.</p>
+    <p>{{ 'documents.noneAdded' | translate }}</p>
   } @else {
-    <ol aria-label="Versions du justificatif, de la plus ancienne à la plus récente">
+    <ol [attr.aria-label]="'documents.history.chronologicalLabel' | translate">
       @for (version of versions(); track version.sourceUploadIntent) {
         <li>
           <p>
             <strong>{{ version.fileName }}</strong>
           </p>
           <p>
-            Ajouté par {{ version.uploader }} le
+            {{ 'documents.addedBy' | translate: { p0: version.uploader } }}
             <time [attr.datetime]="version.attachedAt.toISOString()">{{
-              version.attachedAt | date: 'd MMM y, HH:mm'
+              version.attachedAt | localizedDate
             }}</time
             >.
           </p>
@@ -24,19 +24,19 @@
               rel="noopener noreferrer"
               referrerpolicy="no-referrer"
             >
-              Consulter ou télécharger {{ version.fileName }}
+              {{ 'documents.openNamed' | translate: { p0: version.fileName } }}
             </a>
           </p>
 
           @if (version.replacesSourceUploadIntent !== null) {
-            <p>Remplace une version précédente.</p>
+            <p>{{ 'documents.history.replacesVersion' | translate }}</p>
           }
 
           @if (version.deletion; as deletion) {
             <p>
-              Supprimé par {{ deletion.deletedBy }} le
+              {{ 'documents.removedBy' | translate: { p0: deletion.deletedBy } }}
               <time [attr.datetime]="deletion.deletedAt.toISOString()">{{
-                deletion.deletedAt | date: 'd MMM y, HH:mm'
+                deletion.deletedAt | localizedDate
               }}</time
               >.
             </p>
@@ -47,10 +47,12 @@
               <button
                 type="button"
                 [disabled]="viewModel.isDeleting()"
-                [attr.aria-label]="'Retirer le justificatif ' + version.fileName"
+                [attr.aria-label]="
+                  'documents.removeAttachmentNamed' | translate: { p0: version.fileName }
+                "
                 (click)="remove(version)"
               >
-                Retirer
+                {{ 'common.remove' | translate }}
               </button>
             </p>
           }
@@ -60,12 +62,14 @@
   }
 
   @if (viewModel.isDeleting()) {
-    <p role="status">Retrait du justificatif en cours…</p>
+    <p role="status">{{ 'documents.removing' | translate }}</p>
   } @else if (viewModel.isDeleted()) {
-    <p role="status">Le justificatif a été retiré. Il reste visible dans l’historique.</p>
+    <p role="status">
+      {{ 'documents.removalSuccess' | translate }}
+    </p>
   }
 
   @if (viewModel.hasDeletionError()) {
-    <p role="alert">{{ viewModel.deletionErrorMessage() }}</p>
+    <p role="alert">{{ viewModel.deletionErrorMessage() | errorMessage }}</p>
   }
 </section>

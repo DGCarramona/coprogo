@@ -1,3 +1,5 @@
+import { FinancialFormatter } from '../i18n/financial-formatter';
+import { provideLocalization } from '../i18n/provide-localization';
 import { Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
@@ -15,6 +17,7 @@ describe('OwnershipShareTimelinePageViewModel', () => {
     port = new StubOwnershipShareTimelinePort();
     TestBed.configureTestingModule({
       providers: [
+        provideLocalization(),
         provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
       ],
     });
@@ -45,7 +48,7 @@ describe('OwnershipShareTimelinePageViewModel', () => {
       const viewModel = createViewModel(routeWith(null));
 
       expect(viewModel.hasLoadError()).toBe(true);
-      expect(viewModel.errorMessage()).toBe('Aucun groupe n’est sélectionné.');
+      expect(viewModel.errorMessage()).toBe('errors.groups.noneSelected');
       expect(port.requests).toEqual([]);
     });
 
@@ -65,7 +68,12 @@ describe('OwnershipShareTimelinePageViewModel', () => {
   });
 
   const createViewModel = (route: ActivatedRoute) =>
-    new OwnershipShareTimelinePageViewModel(route, port, injector);
+    new OwnershipShareTimelinePageViewModel(
+      route,
+      port,
+      injector,
+      TestBed.inject(FinancialFormatter),
+    );
 });
 
 class StubOwnershipShareTimelinePort extends OwnershipShareTimelinePort {

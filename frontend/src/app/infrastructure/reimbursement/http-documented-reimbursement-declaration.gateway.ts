@@ -20,7 +20,7 @@ export class HttpDocumentedReimbursementDeclarationGateway extends DocumentedRei
         .declareDocumentedReimbursement(command.groupId, toRequest(command))
         .pipe(
           catchError((error) => {
-            throw toApiClientError(error, 'Le remboursement n a pas pu etre declare.');
+            throw toApiClientError(error, 'errors.reimbursements.declare');
           }),
           map(() => undefined),
         ),

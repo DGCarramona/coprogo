@@ -1,3 +1,5 @@
+import { FinancialFormatter } from '../../i18n/financial-formatter';
+import { provideLocalization } from '../../i18n/provide-localization';
 import { Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
@@ -14,6 +16,7 @@ describe('CashPoolHistoryWidgetViewModel', () => {
     port = new StubCashPoolHistoryPort();
     TestBed.configureTestingModule({
       providers: [
+        provideLocalization(),
         provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
       ],
     });
@@ -33,7 +36,8 @@ describe('CashPoolHistoryWidgetViewModel', () => {
           type: 'WITHDRAWAL',
           operationId: 'withdrawal-1',
           occurredAt: expect.stringContaining('2026'),
-          label: 'Retrait par alice@example.com',
+          label: 'cashPool.history.withdrawalBy',
+          withdrawnBy: 'alice@example.com',
           amount: '70,00\u00a0€',
           ownRevenueShareConsumed: '60,00\u00a0€',
           debtReduction: '10,00\u00a0€',
@@ -43,7 +47,7 @@ describe('CashPoolHistoryWidgetViewModel', () => {
           type: 'INCOME',
           operationId: 'income-1',
           occurredAt: expect.stringContaining('2026'),
-          label: 'Revenu ajouté',
+          label: 'cashPool.history.incomeAdded',
           amount: '100,00\u00a0€',
           allocations: [
             { member: 'alice@example.com', amount: '60,00\u00a0€' },
@@ -78,7 +82,7 @@ describe('CashPoolHistoryWidgetViewModel', () => {
   });
 
   const createViewModel = (): CashPoolHistoryWidgetViewModel =>
-    new CashPoolHistoryWidgetViewModel(port, injector);
+    new CashPoolHistoryWidgetViewModel(port, injector, TestBed.inject(FinancialFormatter));
 });
 
 class StubCashPoolHistoryPort extends CashPoolHistoryPort {

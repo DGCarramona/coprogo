@@ -1,3 +1,5 @@
+import { ErrorMessagePipe } from '../../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component, OnInit, input } from '@angular/core';
 import { FormField, FormRoot } from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,7 +9,7 @@ import { DirectReimbursementWidgetViewModel } from './direct-reimbursement-widge
 
 @Component({
   selector: 'app-direct-reimbursement-widget',
-  imports: [FormField, FormRoot, MatButtonModule, MatCardModule],
+  imports: [ErrorMessagePipe, TranslatePipe, FormField, FormRoot, MatButtonModule, MatCardModule],
   providers: [DirectReimbursementWidgetViewModel],
   templateUrl: './direct-reimbursement-widget.component.html',
   styleUrl: './direct-reimbursement-widget.component.scss',

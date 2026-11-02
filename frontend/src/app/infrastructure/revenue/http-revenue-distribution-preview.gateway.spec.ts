@@ -62,7 +62,7 @@ describe('HttpRevenueDistributionPreviewGateway', () => {
       {
         name: 'another group',
         body: response({ group: 'another-group' }),
-        message: 'Prévisualisation incohérente avec le groupe demandé.',
+        message: 'errors.revenue.inconsistentPreview',
       },
       {
         name: 'an invalid effective date',

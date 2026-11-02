@@ -75,16 +75,14 @@ export class ReimbursementReviewViewModel {
     this.errorMessageState.set(null);
     const target = this.targetState();
     if (target === null) {
-      this.errorMessageState.set('Le remboursement a verifier est manquant.');
+      this.errorMessageState.set('errors.reimbursements.missingReviewTarget');
       return;
     }
 
     try {
       await action(target);
     } catch (error) {
-      this.errorMessageState.set(
-        describeError(error, 'La decision sur le remboursement n a pas pu etre enregistree.'),
-      );
+      this.errorMessageState.set(describeError(error, 'errors.reimbursements.recordReview'));
     }
   }
 

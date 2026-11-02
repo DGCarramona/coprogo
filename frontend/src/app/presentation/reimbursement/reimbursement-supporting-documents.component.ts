@@ -1,8 +1,10 @@
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component, input } from '@angular/core';
 
 import type { ReimbursementSupportingDocumentViewItem } from './reimbursement-history-page.view-model';
 
 @Component({
+  imports: [TranslatePipe],
   selector: 'app-reimbursement-supporting-documents',
   templateUrl: './reimbursement-supporting-documents.component.html',
   styleUrl: './reimbursement-supporting-documents.component.scss',

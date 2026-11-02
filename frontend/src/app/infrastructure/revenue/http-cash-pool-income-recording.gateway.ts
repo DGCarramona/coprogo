@@ -26,7 +26,7 @@ export class HttpCashPoolIncomeRecordingGateway extends CashPoolIncomeRecordingP
         .pipe(
           map(() => undefined),
           catchError((error) => {
-            throw toApiClientError(error, 'Le revenu n a pas pu etre enregistre.');
+            throw toApiClientError(error, 'errors.cashPool.recordIncome');
           }),
         ),
     );

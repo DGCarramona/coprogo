@@ -32,7 +32,7 @@ export class CreateFirstGroupViewModel {
   async createGroup(rawName: string): Promise<void> {
     const name = parseGroupName(rawName);
     if (name === null) {
-      this.errorMessageState.set('Indiquez un nom de groupe de 1 à 100 caractères.');
+      this.errorMessageState.set('validation.groups.nameLength');
       return;
     }
     if (this.creatingGroupState()) return;
@@ -44,7 +44,7 @@ export class CreateFirstGroupViewModel {
       this.createdGroupIdState.set(await this.groupCreationPort.create(name));
       await this.queryClient.invalidateQueries({ queryKey: memberGroupsQueryKey });
     } catch (error) {
-      this.errorMessageState.set(describeError(error, 'Le groupe n a pas pu etre cree.'));
+      this.errorMessageState.set(describeError(error, 'errors.groups.create'));
     } finally {
       this.creatingGroupState.set(false);
     }

@@ -1,3 +1,5 @@
+import { ErrorMessagePipe } from '../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component, input, OnInit } from '@angular/core';
 import { FormField, FormRoot } from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,7 +9,7 @@ import { OwnershipShareChangeWidgetViewModel } from './ownership-share-change-wi
 
 @Component({
   selector: 'app-ownership-share-change-widget',
-  imports: [FormField, FormRoot, MatButtonModule, MatCardModule],
+  imports: [ErrorMessagePipe, TranslatePipe, FormField, FormRoot, MatButtonModule, MatCardModule],
   providers: [OwnershipShareChangeWidgetViewModel],
   templateUrl: './ownership-share-change-widget.component.html',
   styleUrl: './ownership-share-change-widget.component.scss',

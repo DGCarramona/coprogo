@@ -15,7 +15,7 @@ export class HttpGroupCreationGateway extends GroupCreationPort {
     return await firstValueFrom(
       this.groupsService.create({ name }).pipe(
         catchError((error) => {
-          throw toApiClientError(error, 'Le groupe n a pas pu etre cree.');
+          throw toApiClientError(error, 'errors.groups.create');
         }),
         map((response) => response.group),
       ),

@@ -1,3 +1,5 @@
+import { FinancialFormatter } from '../../i18n/financial-formatter';
+import { provideLocalization } from '../../i18n/provide-localization';
 import { Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
@@ -14,6 +16,7 @@ describe('MemberDebtReductionHistoryWidgetViewModel', () => {
     port = new StubMemberDebtReductionHistoryPort();
     TestBed.configureTestingModule({
       providers: [
+        provideLocalization(),
         provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
       ],
     });
@@ -37,19 +40,19 @@ describe('MemberDebtReductionHistoryWidgetViewModel', () => {
       expect(viewModel.reductions()).toEqual([
         {
           operationId: 'reimbursement-1',
-          label: 'Remboursement effectué',
+          label: 'debtReduction.types.reimbursement',
           amount: '12,50\u00a0€',
           occurredAt: expect.stringContaining('2026'),
         },
         {
           operationId: 'expense-1',
-          label: 'Dépense ayant réduit la dette',
+          label: 'debtReduction.types.expense',
           amount: '5,00\u00a0€',
           occurredAt: expect.stringContaining('2026'),
         },
         {
           operationId: 'withdrawal-1',
-          label: 'Retrait de caisse commune',
+          label: 'debtReduction.types.withdrawal',
           amount: '3,00\u00a0€',
           occurredAt: expect.stringContaining('2026'),
         },
@@ -85,7 +88,12 @@ describe('MemberDebtReductionHistoryWidgetViewModel', () => {
     });
   });
 
-  const createViewModel = () => new MemberDebtReductionHistoryWidgetViewModel(port, injector);
+  const createViewModel = () =>
+    new MemberDebtReductionHistoryWidgetViewModel(
+      port,
+      injector,
+      TestBed.inject(FinancialFormatter),
+    );
 });
 
 class StubMemberDebtReductionHistoryPort extends MemberDebtReductionHistoryPort {

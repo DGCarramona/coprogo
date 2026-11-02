@@ -1,3 +1,5 @@
+import { ErrorMessagePipe } from '../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,7 +8,7 @@ import { MemberGroupsViewModel } from './member-groups.view-model';
 
 @Component({
   selector: 'app-member-groups-widget',
-  imports: [RouterLink, MatButtonModule, MatCardModule],
+  imports: [ErrorMessagePipe, TranslatePipe, RouterLink, MatButtonModule, MatCardModule],
   providers: [MemberGroupsViewModel],
   templateUrl: './member-groups-widget.component.html',
   styleUrl: './member-groups-widget.component.scss',

@@ -1,3 +1,5 @@
+import { ErrorMessagePipe } from '../../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component, OnInit, input } from '@angular/core';
 import { FormField, FormRoot } from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,6 +11,8 @@ import { DocumentedReimbursementWidgetViewModel } from './documented-reimburseme
 @Component({
   selector: 'app-documented-reimbursement-widget',
   imports: [
+    ErrorMessagePipe,
+    TranslatePipe,
     FormField,
     FormRoot,
     MatButtonModule,

@@ -21,9 +21,7 @@ export class HttpGroupMembersGateway extends GroupMembersPort {
         joinedAt: new Date(joinedAt),
       })),
       catchError((error: unknown) =>
-        throwError(() =>
-          toApiClientError(error, 'Les membres du groupe n ont pas pu etre charges.'),
-        ),
+        throwError(() => toApiClientError(error, 'errors.groups.loadMembers')),
       ),
     );
   }

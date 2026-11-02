@@ -116,3 +116,59 @@ code {
     grid-template-columns: 1fr;
   }
 }
+
+/* Text grows differently in each language, and member/file names can be long. */
+.material-page__content {
+  overflow-wrap: anywhere;
+}
+
+.material-page__grid > *,
+mat-card,
+.mat-mdc-card-header-text {
+  min-inline-size: 0;
+}
+
+fieldset {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+input,
+select,
+textarea {
+  max-inline-size: 100%;
+}
+
+mat-card-actions {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.material-page .mat-mdc-button-base {
+  max-inline-size: 100%;
+  block-size: auto;
+  min-block-size: 2.75rem;
+  padding-block: 0.65rem;
+  white-space: normal;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.material-page .mat-mdc-standard-chip {
+  max-inline-size: 100%;
+  block-size: auto;
+  min-block-size: 2rem;
+}
+
+.material-page .mat-mdc-standard-chip .mdc-evolution-chip__action {
+  min-inline-size: 0;
+  block-size: auto;
+  min-block-size: 2rem;
+  padding-block: 0.35rem;
+}
+
+.material-page .mat-mdc-standard-chip .mdc-evolution-chip__text-label {
+  min-inline-size: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

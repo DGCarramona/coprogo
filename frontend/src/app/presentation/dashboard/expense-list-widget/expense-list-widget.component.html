@@ -1,16 +1,18 @@
 <mat-card class="material-card" appearance="outlined">
   <mat-card-header>
-    <mat-card-title>Depenses</mat-card-title>
-    <mat-card-subtitle>Dernieres depenses enregistrees</mat-card-subtitle>
+    <mat-card-title>{{ 'expenses.list.title' | translate }}</mat-card-title>
+    <mat-card-subtitle>{{ 'expenses.list.recent' | translate }}</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
     @if (viewModel.isLoading()) {
       <mat-progress-bar mode="indeterminate"></mat-progress-bar>
     } @else if (viewModel.hasLoadError()) {
-      <p>Impossible de charger les depenses.</p>
-      <button mat-flat-button type="button" (click)="viewModel.retry()">Reessayer</button>
+      <p>{{ 'expenses.list.loadFailed' | translate }}</p>
+      <button mat-flat-button type="button" (click)="viewModel.retry()">
+        {{ 'common.retry' | translate }}
+      </button>
     } @else if (viewModel.expenses().length === 0) {
-      <p class="expense-list-widget__empty">Aucune depense enregistree.</p>
+      <p class="expense-list-widget__empty">{{ 'expenses.list.empty' | translate }}</p>
     } @else {
       <div class="expense-list-widget__list">
         @for (expense of viewModel.expenses(); track expense.id) {
@@ -32,7 +34,7 @@
               viewModel.setSupportingDocumentsOpen(expense.id, supportingDocumentsDetails.open)
             "
           >
-            <summary>Justificatifs</summary>
+            <summary>{{ 'documents.title' | translate }}</summary>
             @if (viewModel.isSupportingDocumentsOpen(expense.id)) {
               <app-expense-supporting-documents-widget
                 [groupId]="groupId"

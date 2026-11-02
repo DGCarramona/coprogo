@@ -23,7 +23,7 @@ export class MemberGroupsViewModel {
   readonly isLoading = computed(() => this.groupsQuery.isPending());
   readonly hasLoadError = computed(() => this.groupsQuery.isError());
   readonly errorMessage = computed(() =>
-    describeError(this.groupsQuery.error(), 'Vos groupes n’ont pas pu être chargés.'),
+    describeError(this.groupsQuery.error(), 'errors.groups.loadList'),
   );
 
   constructor(
@@ -67,7 +67,7 @@ export class MemberGroupsViewModel {
     if (groupId === null || this.isSaving()) return;
     const name = parseGroupName(this.draftNameState());
     if (name === null) {
-      this.renameErrorState.set('Indiquez un nom de groupe de 1 à 100 caractères.');
+      this.renameErrorState.set('validation.groups.nameLength');
       return;
     }
     this.renameErrorState.set(null);
@@ -76,7 +76,7 @@ export class MemberGroupsViewModel {
       await this.queryClient.invalidateQueries({ queryKey: memberGroupsQueryKey });
       this.editingGroupIdState.set(null);
     } catch (error: unknown) {
-      this.renameErrorState.set(describeError(error, 'Le groupe n’a pas pu être renommé.'));
+      this.renameErrorState.set(describeError(error, 'errors.groups.rename'));
     }
   }
 

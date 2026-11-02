@@ -1,57 +1,62 @@
 <mat-card>
-  <h2>Proposer une dépense</h2>
+  <h2>{{ 'expenses.proposal.title' | translate }}</h2>
 
   @if (viewModel.isLoading()) {
-    <p role="status">Chargement des membres…</p>
+    <p role="status">{{ 'groups.loadingMembers' | translate }}</p>
   } @else if (viewModel.hasLoadError()) {
-    <p role="alert">{{ viewModel.errorMessage() }}</p>
-    <button matButton="outlined" type="button" aria-label="Réessayer" (click)="viewModel.retry()">
-      Réessayer
+    <p role="alert">{{ viewModel.errorMessage() | errorMessage }}</p>
+    <button
+      matButton="outlined"
+      type="button"
+      [attr.aria-label]="'common.retry' | translate"
+      (click)="viewModel.retry()"
+    >
+      {{ 'common.retry' | translate }}
     </button>
   } @else {
     @if (viewModel.isProposed()) {
-      <p role="status">La dépense a été proposée.</p>
+      <p role="status">{{ 'expenses.proposal.success' | translate }}</p>
     }
     @if (viewModel.hasProposalError()) {
-      <p role="alert">{{ viewModel.proposalErrorMessage() }}</p>
+      <p role="alert">{{ viewModel.proposalErrorMessage() | errorMessage }}</p>
     }
 
     <form [formRoot]="viewModel.proposalForm">
       <p>
-        <label for="expense-title">Titre</label>
+        <label for="expense-title">{{ 'expenses.fields.title' | translate }}</label>
         <input
           id="expense-title"
           type="text"
-          aria-label="Titre"
+          [attr.aria-label]="'expenses.fields.title' | translate"
           [formField]="viewModel.proposalForm.title"
         />
       </p>
       <p>
-        <label for="expense-amount">Montant en euros</label>
+        <label for="expense-amount">{{ 'common.amountInEuros' | translate }}</label>
         <input
           id="expense-amount"
           type="text"
           inputmode="decimal"
-          aria-label="Montant en euros"
+          [attr.aria-label]="'common.amountInEuros' | translate"
           [formField]="viewModel.proposalForm.amountInEuros"
         />
       </p>
       <p>
-        <label for="expense-allocation-mode">Mode de répartition</label>
+        <label for="expense-allocation-mode">{{ 'allocation.mode' | translate }}</label>
         <select
           id="expense-allocation-mode"
-          aria-label="Mode de répartition"
+          [attr.aria-label]="'allocation.mode' | translate"
           [formField]="viewModel.proposalForm.allocationMode"
         >
-          <option value="EQUAL">Parts égales</option>
-          <option value="EQUAL_WITH_CAPS">Parts égales avec plafonds</option>
-          <option value="CUMULATIVE_TIERS">Répartition par tranches</option>
-          <option value="CUSTOM">Montants personnalisés</option>
+          <option value="EQUAL">{{ 'allocation.equal' | translate }}</option>
+          <option value="EQUAL_WITH_CAPS">{{ 'allocation.equalWithCaps' | translate }}</option>
+          <option value="CUMULATIVE_TIERS">{{ 'allocation.cumulativeTiers' | translate }}</option>
+          <option value="CUSTOM">{{ 'allocation.custom' | translate }}</option>
         </select>
       </p>
       @if (viewModel.proposalForm().value().allocationMode === 'EQUAL') {
         <fieldset>
-          <legend>Participants</legend>
+          <legend>{{ 'allocation.participants' | translate }}</legend>
           @for (member of viewModel.members(); track member) {
             <p>
               <input
@@ -66,9 +71,9 @@
         </fieldset>
       } @else if (viewModel.proposalForm().value().allocationMode === 'EQUAL_WITH_CAPS') {
         <fieldset>
-          <legend>Participants et montants maximums</legend>
+          <legend>{{ 'allocation.caps.participants' | translate }}</legend>
           <p id="equal-with-caps-help">
-            Un montant maximum est facultatif. Laissez au moins un participant sans maximum.
+            {{ 'allocation.caps.help' | translate }}
           </p>
           @for (member of viewModel.members(); track member) {
             <p>
@@ -85,13 +90,13 @@
             @if (viewModel.proposalForm().value().equalWithCaps.participants.includes(member)) {
               <p>
                 <label [for]="'equal-with-caps-maximum-' + member">
-                  Montant maximum pour {{ member }}
+                  {{ 'allocation.caps.maximumForMember' | translate: { p0: member } }}
                 </label>
                 <input
                   [id]="'equal-with-caps-maximum-' + member"
                   type="text"
                   inputmode="decimal"
-                  [attr.aria-label]="'Montant maximum pour ' + member"
+                  [attr.aria-label]="'allocation.caps.maximumForMember' | translate: { p0: member }"
                   aria-describedby="equal-with-caps-help"
                   [value]="
                     viewModel.proposalForm().value().equalWithCaps.maximumAmountsInEuros[member] ??
@@ -105,10 +110,9 @@
         </fieldset>
       } @else if (viewModel.proposalForm().value().allocationMode === 'CUMULATIVE_TIERS') {
         <section>
-          <h3>Répartition par tranches</h3>
+          <h3>{{ 'allocation.cumulativeTiers' | translate }}</h3>
           <p id="cumulative-tiers-help">
-            Ajoutez des seuils intermédiaires. La dernière tranche va toujours jusqu’au montant
-            total.
+            {{ 'allocation.tiers.help' | translate }}
           </p>
           @for (
             tier of viewModel.proposalForm().value().cumulativeTiers.intermediateTiers;
@@ -116,23 +120,27 @@
             let tierIndex = $index
           ) {
             <section>
-              <h4>Tranche {{ tierIndex + 1 }}</h4>
+              <h4>{{ 'allocation.tiers.number' | translate: { p0: tierIndex + 1 } }}</h4>
               <p>
                 <label [for]="'cumulative-tier-threshold-' + tierIndex">
-                  Seuil de la tranche {{ tierIndex + 1 }} en euros
+                  {{ 'allocation.tiers.thresholdInEuros' | translate: { p0: tierIndex + 1 } }}
                 </label>
                 <input
                   [id]="'cumulative-tier-threshold-' + tierIndex"
                   type="text"
                   inputmode="decimal"
-                  [attr.aria-label]="'Seuil de la tranche ' + (tierIndex + 1) + ' en euros'"
+                  [attr.aria-label]="
+                    'allocation.tiers.thresholdInEuros' | translate: { p0: tierIndex + 1 }
+                  "
                   aria-describedby="cumulative-tiers-help"
                   [value]="tier.upToAmountInEuros"
                   (input)="updateCumulativeIntermediateThreshold(tierIndex, $event)"
                 />
               </p>
               <fieldset>
-                <legend>Participants de la tranche {{ tierIndex + 1 }}</legend>
+                <legend>
+                  {{ 'allocation.tiers.participants' | translate: { p0: tierIndex + 1 } }}
+                </legend>
                 @for (member of viewModel.members(); track member) {
                   <p>
                     <input
@@ -152,23 +160,25 @@
               <button
                 matButton="outlined"
                 type="button"
-                [attr.aria-label]="'Supprimer la tranche ' + (tierIndex + 1)"
+                [attr.aria-label]="
+                  'allocation.tiers.removeLabel' | translate: { p0: tierIndex + 1 }
+                "
                 (click)="viewModel.removeCumulativeIntermediateTier(tierIndex)"
               >
-                Supprimer cette tranche
+                {{ 'allocation.tiers.removeCurrent' | translate }}
               </button>
             </section>
           }
           <button
             matButton="outlined"
             type="button"
-            aria-label="Ajouter une tranche"
+            [attr.aria-label]="'allocation.tiers.add' | translate"
             (click)="viewModel.addCumulativeIntermediateTier()"
           >
-            Ajouter une tranche
+            {{ 'allocation.tiers.add' | translate }}
           </button>
           <fieldset>
-            <legend>Tranche finale jusqu’au montant total</legend>
+            <legend>{{ 'allocation.tiers.final' | translate }}</legend>
             @for (member of viewModel.members(); track member) {
               <p>
                 <input
@@ -189,19 +199,20 @@
         </section>
       } @else if (viewModel.proposalForm().value().allocationMode === 'CUSTOM') {
         <fieldset>
-          <legend>Montants personnalisés</legend>
+          <legend>{{ 'allocation.custom' | translate }}</legend>
           <p id="custom-allocation-help">
-            Saisissez des montants positifs. Leur somme doit correspondre exactement au montant
-            total. Le créateur doit inclure sa propre part.
+            {{ 'allocation.customHelp' | translate }}
           </p>
           @for (member of viewModel.members(); track member) {
             <p>
-              <label [for]="'custom-amount-' + member">Montant pour {{ member }}</label>
+              <label [for]="'custom-amount-' + member">{{
+                'allocation.customAmountForMember' | translate: { p0: member }
+              }}</label>
               <input
                 [id]="'custom-amount-' + member"
                 type="text"
                 inputmode="decimal"
-                [attr.aria-label]="'Montant pour ' + member"
+                [attr.aria-label]="'allocation.customAmountForMember' | translate: { p0: member }"
                 aria-describedby="custom-allocation-help"
                 [value]="
                   viewModel.proposalForm().value().custom.amountsInEurosByMember[member] ?? ''
@@ -213,8 +224,8 @@
         </fieldset>
       }
       <section>
-        <h3>Justificatifs</h3>
-        <p>Un justificatif est facultatif.</p>
+        <h3>{{ 'documents.title' | translate }}</h3>
+        <p>{{ 'documents.optionalHelp' | translate }}</p>
         <app-supporting-document-upload-widget
           [groupId]="groupId"
           (confirmed)="addSupportingDocument($event)"
@@ -228,10 +239,10 @@
                 <button
                   matButton="text"
                   type="button"
-                  [attr.aria-label]="'Retirer ' + document.fileName"
+                  [attr.aria-label]="'documents.removeNamed' | translate: { p0: document.fileName }"
                   (click)="viewModel.removeSupportingDocument(document.intentId)"
                 >
-                  Retirer
+                  {{ 'common.remove' | translate }}
                 </button>
               </li>
             }
@@ -239,10 +250,10 @@
           <button
             matButton="text"
             type="button"
-            aria-label="Ne pas joindre de justificatif"
+            [attr.aria-label]="'documents.omitAttachment' | translate"
             (click)="viewModel.clearSupportingDocuments()"
           >
-            Ne pas joindre de justificatif
+            {{ 'documents.omitAttachment' | translate }}
           </button>
         }
       </section>
@@ -255,7 +266,7 @@
           viewModel.isSupportingDocumentUploadPending()
         "
       >
-        Proposer la dépense
+        {{ 'expenses.proposal.submit' | translate }}
       </button>
     </form>
   }

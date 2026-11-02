@@ -1,3 +1,4 @@
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component, Input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -8,7 +9,7 @@ import { NavigationPort } from '../../../application/shared/navigation.port';
 
 @Component({
   selector: 'app-authenticated-shell',
-  imports: [MatButtonModule, MatToolbarModule],
+  imports: [TranslatePipe, MatButtonModule, MatToolbarModule],
   templateUrl: './authenticated-shell.component.html',
   styleUrl: './authenticated-shell.component.scss',
 })

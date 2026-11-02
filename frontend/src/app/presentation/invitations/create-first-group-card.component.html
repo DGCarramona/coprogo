@@ -1,17 +1,19 @@
 <mat-card appearance="outlined" class="material-card pending-invitations-page__state">
   <mat-card-header>
-    <mat-card-title>Créer un groupe</mat-card-title>
+    <mat-card-title>{{ 'groups.create.title' | translate }}</mat-card-title>
   </mat-card-header>
   <form (submit)="submitName($event, groupName.value)">
     <mat-card-content>
-      <p>Aucune invitation en attente. Vous pouvez créer un groupe pour partager vos dépenses.</p>
-      <label for="new-group-name">Nom du groupe</label>
+      <p>
+        {{ 'groups.create.emptyInvitationsHelp' | translate }}
+      </p>
+      <label for="new-group-name">{{ 'groups.fields.name' | translate }}</label>
       <input
         #groupName
         id="new-group-name"
         name="groupName"
         type="text"
-        aria-label="Nom du groupe"
+        [attr.aria-label]="'groups.fields.name' | translate"
         required
         maxlength="100"
         [disabled]="creating()"
@@ -19,23 +21,24 @@
 
       @if (createdGroupId(); as createdGroupIdValue) {
         <div class="pending-invitations-page__message pending-invitations-page__message--success">
-          Groupe cree avec succes. Identifiant du groupe : <code>{{ createdGroupIdValue }}</code>
+          {{ 'groups.create.success' | translate }}
+          <code>{{ createdGroupIdValue }}</code>
         </div>
       }
 
       @if (errorMessage(); as errorMessageValue) {
         <div class="pending-invitations-page__message pending-invitations-page__message--error">
-          {{ errorMessageValue }}
+          {{ errorMessageValue | errorMessage }}
         </div>
       }
     </mat-card-content>
     <mat-card-actions>
       <button [disabled]="creating()" mat-flat-button type="submit">
-        {{ creating() ? 'Création…' : 'Créer un groupe' }}
+        {{ (creating() ? 'groups.create.loading' : 'groups.create.title') | translate }}
       </button>
       @if (createdGroupId(); as createdGroupIdValue) {
         <a [routerLink]="['/groups', createdGroupIdValue, 'dashboard']" mat-button>
-          Ouvrir le groupe
+          {{ 'common.openGroup' | translate }}
         </a>
       }
     </mat-card-actions>

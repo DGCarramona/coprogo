@@ -1,3 +1,4 @@
+import { provideLocalization } from '../i18n/provide-localization';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 import { Observable, of, throwError } from 'rxjs';
@@ -19,7 +20,7 @@ describe('OwnershipShareChangeWidgetComponent', () => {
       return host.querySelectorAll('input[inputmode="decimal"]').length === 2;
     });
 
-    setValue(host, fixture, 'input[aria-label="Date d effet"]', '2026-11-01');
+    setValue(host, fixture, 'input[aria-label="Date d’effet"]', '2026-11-01');
     setValue(host, fixture, 'input[aria-label="Quote-part de alice@example.com"]', '60,25');
     setValue(host, fixture, 'input[aria-label="Quote-part de bob@example.com"]', '39,75');
     const submitButton = requiredButton(host, 'button[type="submit"]');
@@ -51,7 +52,7 @@ describe('OwnershipShareChangeWidgetComponent', () => {
       return host.querySelectorAll('input[inputmode="decimal"]').length === 2;
     });
 
-    setValue(host, fixture, 'input[aria-label="Date d effet"]', '2026-11-01');
+    setValue(host, fixture, 'input[aria-label="Date d’effet"]', '2026-11-01');
     setValue(host, fixture, 'input[aria-label="Quote-part de alice@example.com"]', '60');
     setValue(host, fixture, 'input[aria-label="Quote-part de bob@example.com"]', '30');
 
@@ -68,7 +69,7 @@ describe('OwnershipShareChangeWidgetComponent', () => {
       fixture.detectChanges();
       return host.querySelector('[role="alert"]') !== null;
     });
-    expect(host.textContent).toContain('Membres indisponibles');
+    expect(host.textContent).toContain('Une erreur est survenue. Veuillez réessayer.');
 
     membersPort.failure = null;
     requiredButton(host, 'button[aria-label="Réessayer"]').click();
@@ -89,7 +90,7 @@ describe('OwnershipShareChangeWidgetComponent', () => {
       return host.querySelectorAll('input[inputmode="decimal"]').length === 2;
     });
 
-    setValue(host, fixture, 'input[aria-label="Date d effet"]', '2026-11-01');
+    setValue(host, fixture, 'input[aria-label="Date d’effet"]', '2026-11-01');
     setValue(host, fixture, 'input[aria-label="Quote-part de alice@example.com"]', '60,25');
     setValue(host, fixture, 'input[aria-label="Quote-part de bob@example.com"]', '39,75');
     requiredButton(host, 'button[type="submit"]').click();
@@ -99,7 +100,7 @@ describe('OwnershipShareChangeWidgetComponent', () => {
     });
 
     expect(host.textContent).toContain('Seul le créateur peut modifier les quotes-parts.');
-    expect(requiredInput(host, 'input[aria-label="Date d effet"]').value).toBe('2026-11-01');
+    expect(requiredInput(host, 'input[aria-label="Date d’effet"]').value).toBe('2026-11-01');
     expect(requiredInput(host, 'input[aria-label="Quote-part de alice@example.com"]').value).toBe(
       '60,25',
     );
@@ -116,6 +117,7 @@ const createFixture = (
   TestBed.configureTestingModule({
     imports: [OwnershipShareChangeWidgetComponent],
     providers: [
+      provideLocalization(),
       provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
       { provide: GroupMembersPort, useValue: membersPort },
       { provide: OwnershipShareChangePort, useValue: changePort },

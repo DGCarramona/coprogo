@@ -24,7 +24,7 @@ export class HttpOwnershipShareTimelineGateway extends OwnershipShareTimelinePor
     return await firstValueFrom(
       this.revenueDistributionService.getOwnershipShareTimeline(groupId).pipe(
         catchError((error) => {
-          throw toApiClientError(error, 'L historique des quotes-parts n a pas pu etre charge.');
+          throw toApiClientError(error, 'errors.ownership.loadHistory');
         }),
         map((response) => toTimeline(response, groupId)),
       ),
@@ -37,7 +37,7 @@ const toTimeline = (
   expectedGroupId: string,
 ): OwnershipShareTimeline => {
   if (response.group !== expectedGroupId) {
-    throw new Error('Historique des quotes-parts incoherent.');
+    throw new Error('errors.ownership.inconsistentHistory');
   }
 
   return {
@@ -50,7 +50,7 @@ const toChange = (response: OwnershipShareChangeResponseDto): OwnershipShareChan
   id: response.change,
   effectiveDate: requireLocalDate(response.effectiveDate),
   recordedBy: response.recordedBy,
-  recordedAt: toDate(response.recordedAt, 'Date d enregistrement des quotes-parts invalide'),
+  recordedAt: toDate(response.recordedAt, 'errors.ownership.invalidRecordedDate'),
   shares: response.shares.map((share) => ({
     member: share.member,
     percentage: share.percentage,

@@ -1,10 +1,11 @@
+import { provideLocalization } from '../i18n/provide-localization';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { CreateFirstGroupCardComponent } from './create-first-group-card.component';
 
 describe('CreateFirstGroupCardComponent', () => {
   it('requests creation with the entered group name', () => {
-    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    TestBed.configureTestingModule({ providers: [provideLocalization(), provideRouter([])] });
     const fixture = TestBed.createComponent(CreateFirstGroupCardComponent);
     const names: string[] = [];
     fixture.componentInstance.createRequested.subscribe((name) => names.push(name));

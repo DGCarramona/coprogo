@@ -4,7 +4,7 @@ import { injectQuery } from '@tanstack/angular-query-experimental';
 import { CashPoolHistoryPort } from '../../../application/ledger/cash-pool-history.port';
 import { describeError } from '../../../application/shared/describe-error';
 import type { CashPoolOperation } from '../../../domain/ledger/cash-pool-history';
-import { formatDate, formatMoneyFromCents } from '../../../shared/format/financial-format';
+import { FinancialFormatter } from '../../i18n/financial-formatter';
 import { cashPoolHistoryQueryKey } from '../cash-pool-query-keys';
 
 interface CashPoolOperationViewItemBase {
@@ -21,6 +21,7 @@ export interface CashPoolIncomeViewItem extends CashPoolOperationViewItemBase {
 
 export interface CashPoolWithdrawalViewItem extends CashPoolOperationViewItemBase {
   readonly type: 'WITHDRAWAL';
+  readonly withdrawnBy: string;
   readonly ownRevenueShareConsumed: string;
   readonly debtReduction: string;
   readonly hasDebtReduction: boolean;
@@ -34,29 +35,31 @@ export class CashPoolHistoryWidgetViewModel {
   private readonly historyQuery;
 
   readonly operations = computed<readonly CashPoolOperationViewItem[]>(
-    () => this.historyQuery.data() ?? [],
+    () => this.historyQuery.data()?.map((operation) => toViewItem(operation, this.formatter)) ?? [],
   );
   readonly isLoading = computed(() => this.historyQuery.isLoading());
   readonly hasLoadError = computed(() => this.historyQuery.isError());
   readonly isReady = computed(() => this.historyQuery.isSuccess());
   readonly errorMessage = computed(() => {
     const error = this.historyQuery.error();
-    return error === null
-      ? null
-      : describeError(error, 'L’historique de la caisse commune n’a pas pu être chargé.');
+    return error === null ? null : describeError(error, 'errors.cashPool.loadHistory');
   });
 
-  constructor(historyPort: CashPoolHistoryPort, injector: Injector) {
+  constructor(
+    historyPort: CashPoolHistoryPort,
+    injector: Injector,
+    private readonly formatter: FinancialFormatter,
+  ) {
     this.historyQuery = injectQuery(
       () => {
         const groupId = this.groupIdState();
         return {
           queryKey: cashPoolHistoryQueryKey(groupId),
-          queryFn: async (): Promise<readonly CashPoolOperationViewItem[]> => {
+          queryFn: async (): Promise<readonly CashPoolOperation[]> => {
             if (groupId === null) {
-              throw new Error('Un groupe doit être choisi avant de charger son historique.');
+              throw new Error('errors.cashPool.missingHistoryGroup');
             }
-            return (await historyPort.get(groupId)).operations.map(toViewItem);
+            return (await historyPort.get(groupId)).operations;
           },
           enabled: groupId !== null,
           staleTime: 30_000,
@@ -75,11 +78,14 @@ export class CashPoolHistoryWidgetViewModel {
   }
 }
 
-const toViewItem = (operation: CashPoolOperation): CashPoolOperationViewItem => {
+const toViewItem = (
+  operation: CashPoolOperation,
+  formatter: FinancialFormatter,
+): CashPoolOperationViewItem => {
   const common = {
     operationId: operation.operationId,
-    occurredAt: formatDate(operation.occurredAt),
-    amount: formatMoneyFromCents(operation.amountInCents),
+    occurredAt: formatter.date(operation.occurredAt),
+    amount: formatter.money(operation.amountInCents),
   };
 
   switch (operation.type) {
@@ -87,19 +93,20 @@ const toViewItem = (operation: CashPoolOperation): CashPoolOperationViewItem => 
       return {
         ...common,
         type: operation.type,
-        label: 'Revenu ajouté',
+        label: 'cashPool.history.incomeAdded',
         allocations: operation.allocations.map((allocation) => ({
           member: allocation.member,
-          amount: formatMoneyFromCents(allocation.amountInCents),
+          amount: formatter.money(allocation.amountInCents),
         })),
       };
     case 'WITHDRAWAL':
       return {
         ...common,
         type: operation.type,
-        label: `Retrait par ${operation.withdrawnBy}`,
-        ownRevenueShareConsumed: formatMoneyFromCents(operation.ownRevenueShareConsumedInCents),
-        debtReduction: formatMoneyFromCents(
+        label: 'cashPool.history.withdrawalBy',
+        withdrawnBy: operation.withdrawnBy,
+        ownRevenueShareConsumed: formatter.money(operation.ownRevenueShareConsumedInCents),
+        debtReduction: formatter.money(
           operation.amountInCents - operation.ownRevenueShareConsumedInCents,
         ),
         hasDebtReduction: operation.amountInCents > operation.ownRevenueShareConsumedInCents,

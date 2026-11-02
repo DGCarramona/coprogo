@@ -35,7 +35,7 @@ export const validateCustomAllocationForm = (
   if (amounts.length === 0) {
     return {
       kind: 'participations',
-      message: 'Indiquez un montant pour au moins un participant.',
+      message: 'validation.allocation.customParticipantRequired',
     };
   }
 
@@ -46,7 +46,7 @@ export const validateCustomAllocationForm = (
   if (validAmountsInCents.length !== amounts.length) {
     return {
       kind: 'amount',
-      message: 'Indiquez des montants positifs avec deux decimales au plus.',
+      message: 'validation.allocation.positiveAmounts',
     };
   }
 
@@ -55,7 +55,7 @@ export const validateCustomAllocationForm = (
     ? undefined
     : {
         kind: 'total',
-        message: 'La somme des montants doit correspondre au montant total.',
+        message: 'validation.allocation.totalMismatch',
       };
 };
 

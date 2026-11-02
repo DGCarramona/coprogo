@@ -1,3 +1,5 @@
+import { ErrorMessagePipe } from '../../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component, input, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -7,7 +9,7 @@ import { CashPoolHistoryWidgetViewModel } from './cash-pool-history-widget.view-
 
 @Component({
   selector: 'app-cash-pool-history-widget',
-  imports: [MatButtonModule, MatCardModule, MatProgressBarModule],
+  imports: [ErrorMessagePipe, TranslatePipe, MatButtonModule, MatCardModule, MatProgressBarModule],
   providers: [CashPoolHistoryWidgetViewModel],
   templateUrl: './cash-pool-history-widget.component.html',
   styleUrl: './cash-pool-history-widget.component.scss',

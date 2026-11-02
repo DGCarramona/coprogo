@@ -20,7 +20,7 @@ export class HttpGroupFinancialDashboardGateway extends GroupFinancialDashboardP
         cashPoolShares: this.ledgerService.getMemberCashPoolShares(groupId),
       }).pipe(
         catchError((error) => {
-          throw toApiClientError(error, 'Le dashboard financier n a pas pu etre charge.');
+          throw toApiClientError(error, 'errors.dashboard.load');
         }),
         map(({ balances, cashPoolBalance, cashPoolShares }) => ({
           groupId: balances.group,

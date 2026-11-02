@@ -5,6 +5,8 @@
 
 .authenticated-shell__toolbar {
   height: auto;
+  white-space: normal;
+  flex-wrap: wrap;
   align-items: start;
   gap: 1rem;
   padding: 1.25rem 1.5rem;

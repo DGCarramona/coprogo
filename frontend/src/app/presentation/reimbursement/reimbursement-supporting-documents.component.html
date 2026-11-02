@@ -1,8 +1,8 @@
-<section aria-label="Justificatifs joints au remboursement">
-  <h3>Justificatifs joints</h3>
+<section [attr.aria-label]="'reimbursements.documents.label' | translate">
+  <h3>{{ 'documents.attachedTitle' | translate }}</h3>
 
   @if (documents().length === 0) {
-    <p role="status">Aucun justificatif joint.</p>
+    <p role="status">{{ 'documents.noneAttached' | translate }}</p>
   } @else {
     <ol>
       @for (document of documents(); track document.sourceUploadIntent) {
@@ -10,14 +10,18 @@
           <p>
             <strong>{{ document.fileName }}</strong>
           </p>
-          <p>Ajoute par {{ document.uploader }} le {{ document.attachedAt }}.</p>
+          <p>
+            {{
+              'documents.addedByAt' | translate: { p0: document.uploader, p1: document.attachedAt }
+            }}
+          </p>
           <a
             [href]="document.downloadUrl"
             target="_blank"
             rel="noopener noreferrer"
             referrerpolicy="no-referrer"
           >
-            Consulter ou telecharger {{ document.fileName }}
+            {{ 'documents.openNamed' | translate: { p0: document.fileName } }}
           </a>
         </li>
       }

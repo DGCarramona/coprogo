@@ -1,3 +1,4 @@
+import { provideLocalization } from '../../i18n/provide-localization';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 import { provideRouter } from '@angular/router';
@@ -23,6 +24,7 @@ describe('ExpenseListWidgetComponent', () => {
     documentsPort = new StubExpenseSupportingDocumentsPort();
     TestBed.configureTestingModule({
       providers: [
+        provideLocalization(),
         provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
         provideRouter([]),
         { provide: ExpenseListPort, useValue: expensesPort },
@@ -50,9 +52,9 @@ describe('ExpenseListWidgetComponent', () => {
       const { fixture, host } = createFixture();
 
       fixture.detectChanges();
-      await waitFor(() => host.textContent?.includes('Aucune depense enregistree.'));
+      await waitFor(() => host.textContent?.includes('Aucune dépense enregistrée.'));
 
-      expect(host.textContent).toContain('Aucune depense enregistree.');
+      expect(host.textContent).toContain('Aucune dépense enregistrée.');
     });
 
     it('lets the user retry after a loading failure', async () => {

@@ -1,56 +1,65 @@
 <mat-card class="material-card" appearance="outlined">
   <mat-card-header>
-    <mat-card-title>Déclarer un remboursement envoyé</mat-card-title>
+    <mat-card-title>{{ 'reimbursements.sent.title' | translate }}</mat-card-title>
     <mat-card-subtitle>
-      Ajoutez un justificatif pour que la personne remboursée puisse vérifier votre déclaration.
+      {{ 'reimbursements.sent.description' | translate }}
     </mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
     @if (viewModel.isLoading()) {
-      <p role="status">Chargement des membres…</p>
+      <p role="status">{{ 'groups.loadingMembers' | translate }}</p>
     } @else if (viewModel.hasLoadError()) {
-      <p role="alert">{{ viewModel.loadErrorMessage() }}</p>
-      <button matButton="outlined" type="button" aria-label="Réessayer" (click)="viewModel.retry()">
-        Réessayer
+      <p role="alert">{{ viewModel.loadErrorMessage() | errorMessage }}</p>
+      <button
+        matButton="outlined"
+        type="button"
+        [attr.aria-label]="'common.retry' | translate"
+        (click)="viewModel.retry()"
+      >
+        {{ 'common.retry' | translate }}
       </button>
     } @else {
       @if (viewModel.isDeclared()) {
-        <p role="status">Le remboursement a été déclaré.</p>
+        <p role="status">{{ 'reimbursements.sent.success' | translate }}</p>
       }
       @if (viewModel.hasDeclarationError()) {
-        <p role="alert">{{ viewModel.declarationErrorMessage() }}</p>
+        <p role="alert">{{ viewModel.declarationErrorMessage() | errorMessage }}</p>
       }
 
       <form [formRoot]="viewModel.form">
         <p>
-          <label for="documented-reimbursement-receiver">Personne remboursée</label>
+          <label for="documented-reimbursement-receiver">{{
+            'reimbursements.sent.recipient' | translate
+          }}</label>
           <select
             id="documented-reimbursement-receiver"
-            aria-label="Personne remboursee"
+            [attr.aria-label]="'reimbursements.sent.recipient' | translate"
             [formField]="viewModel.form.receivedBy"
           >
-            <option value="">Choisir un membre</option>
+            <option value="">{{ 'common.chooseMember' | translate }}</option>
             @for (member of viewModel.members(); track member) {
               <option [value]="member">{{ member }}</option>
             }
           </select>
         </p>
         <p>
-          <label for="documented-reimbursement-amount">Montant remboursé en euros</label>
+          <label for="documented-reimbursement-amount">{{
+            'reimbursements.amount' | translate
+          }}</label>
           <input
             id="documented-reimbursement-amount"
             type="text"
             inputmode="decimal"
-            aria-label="Montant rembourse en euros"
+            [attr.aria-label]="'reimbursements.amount' | translate"
             [formField]="viewModel.form.amountInEuros"
           />
         </p>
         <p>
-          <label for="documented-reimbursement-date">Date du remboursement</label>
+          <label for="documented-reimbursement-date">{{ 'reimbursements.date' | translate }}</label>
           <input
             id="documented-reimbursement-date"
             type="datetime-local"
-            aria-label="Date du remboursement"
+            [attr.aria-label]="'reimbursements.date' | translate"
             [formField]="viewModel.form.reimbursedAt"
           />
         </p>
@@ -69,10 +78,10 @@
                 <button
                   matButton="outlined"
                   type="button"
-                  [attr.aria-label]="'Retirer ' + document.fileName"
+                  [attr.aria-label]="'documents.removeNamed' | translate: { p0: document.fileName }"
                   (click)="viewModel.removeSupportingDocument(document.intentId)"
                 >
-                  Retirer
+                  {{ 'common.remove' | translate }}
                 </button>
               </li>
             }
@@ -88,7 +97,7 @@
             viewModel.isSupportingDocumentUploadPending()
           "
         >
-          Déclarer le remboursement
+          {{ 'reimbursements.sent.submit' | translate }}
         </button>
       </form>
     }

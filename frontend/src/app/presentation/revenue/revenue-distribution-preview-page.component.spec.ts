@@ -1,3 +1,6 @@
+import { ErrorMessagePipe } from '../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
+import { provideLocalization } from '../i18n/provide-localization';
 import { Component, Input } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormField, FormRoot } from '@angular/forms/signals';
@@ -117,6 +120,7 @@ const createFixture = (
   TestBed.configureTestingModule({
     imports: [RevenueDistributionPreviewPageComponent],
     providers: [
+      provideLocalization(),
       provideRouter([]),
       provideTanStackQuery(new QueryClient()),
       {
@@ -131,6 +135,8 @@ const createFixture = (
   TestBed.overrideComponent(RevenueDistributionPreviewPageComponent, {
     set: {
       imports: [
+        ErrorMessagePipe,
+        TranslatePipe,
         StubAuthenticatedShellComponent,
         FormField,
         FormRoot,

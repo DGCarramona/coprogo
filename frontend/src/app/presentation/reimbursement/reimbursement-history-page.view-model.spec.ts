@@ -1,3 +1,5 @@
+import { FinancialFormatter } from '../i18n/financial-formatter';
+import { provideLocalization } from '../i18n/provide-localization';
 import { Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
@@ -17,6 +19,7 @@ describe('ReimbursementHistoryPageViewModel', () => {
     port = new StubReimbursementListPort();
     TestBed.configureTestingModule({
       providers: [
+        provideLocalization(),
         provideTanStackQuery(queryClient),
         { provide: ActivatedRoute, useValue: routeWithGroup('group-1') },
       ],
@@ -39,7 +42,7 @@ describe('ReimbursementHistoryPageViewModel', () => {
           amount: '25,00\u00a0€',
           reimbursedAt: '1 oct. 2026',
           awaitsReview: false,
-          reviewStatusLabel: 'Accepté',
+          reviewStatusLabel: 'statuses.accepted',
           rejectionReason: null,
           documents: [
             {
@@ -66,7 +69,9 @@ describe('ReimbursementHistoryPageViewModel', () => {
           awaitsReview,
           reviewStatusLabel,
         })),
-      ).toEqual([{ id: 'reimbursement-1', awaitsReview: true, reviewStatusLabel: 'À revoir' }]);
+      ).toEqual([
+        { id: 'reimbursement-1', awaitsReview: true, reviewStatusLabel: 'statuses.pendingReview' },
+      ]);
     });
 
     it('presents a rejected documented reimbursement and its reason', async () => {
@@ -81,7 +86,10 @@ describe('ReimbursementHistoryPageViewModel', () => {
           rejectionReason,
         })),
       ).toEqual([
-        { reviewStatusLabel: 'Refusé', rejectionReason: 'Le montant ne correspond pas.' },
+        {
+          reviewStatusLabel: 'statuses.rejected',
+          rejectionReason: 'Le montant ne correspond pas.',
+        },
       ]);
     });
 
@@ -107,7 +115,7 @@ describe('ReimbursementHistoryPageViewModel', () => {
       const viewModel = createViewModel(routeWithGroup(null));
 
       expect(viewModel.hasLoadError()).toBe(true);
-      expect(viewModel.errorMessage()).toBe('Aucun groupe n est selectionne.');
+      expect(viewModel.errorMessage()).toBe('errors.groups.noneSelected');
       expect(port.requestedGroupIds).toEqual([]);
     });
   });
@@ -129,7 +137,12 @@ describe('ReimbursementHistoryPageViewModel', () => {
   const createViewModel = (
     route: ActivatedRoute = TestBed.inject(ActivatedRoute),
   ): ReimbursementHistoryPageViewModel => {
-    const viewModel = new ReimbursementHistoryPageViewModel(route, port, injector);
+    const viewModel = new ReimbursementHistoryPageViewModel(
+      route,
+      port,
+      injector,
+      TestBed.inject(FinancialFormatter),
+    );
     TestBed.tick();
     return viewModel;
   };

@@ -77,14 +77,14 @@ describe('cumulative tiers allocation form', () => {
     it('requires participants in every tier', () => {
       expect(validateCumulativeTiersForm(emptyCumulativeTiersForm(), 10_100)).toEqual({
         kind: 'tier-participants',
-        message: 'Choisissez au moins un participant pour chaque tranche.',
+        message: 'validation.allocation.tierParticipantsRequired',
       });
     });
 
     it.each([['40,555'], ['0'], ['-1']])('rejects the invalid threshold %s', (threshold) => {
       expect(validateCumulativeTiersForm(formWithThresholds([threshold]), 10_100)).toEqual({
         kind: 'tier-threshold',
-        message: 'Indiquez des seuils positifs avec deux decimales au plus.',
+        message: 'validation.allocation.positiveThresholds',
       });
     });
 
@@ -97,7 +97,7 @@ describe('cumulative tiers allocation form', () => {
         validateCumulativeTiersForm(formWithThresholds(thresholds), totalAmountInCents),
       ).toEqual({
         kind: 'tier-order',
-        message: 'Les seuils doivent augmenter et rester inferieurs au montant total.',
+        message: 'validation.allocation.increasingThresholds',
       });
     });
 
@@ -112,7 +112,7 @@ describe('cumulative tiers allocation form', () => {
         ),
       ).toEqual({
         kind: 'tier-share',
-        message: 'Chaque participant doit participer pour au moins un centime dans chaque tranche.',
+        message: 'validation.allocation.minimumTierContribution',
       });
     });
   });

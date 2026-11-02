@@ -29,10 +29,7 @@ export class HttpExpenseParticipationDecisionGateway extends ExpenseParticipatio
     await firstValueFrom(
       this.expensesService.recordParticipationDecision(groupId, expenseId, request).pipe(
         catchError((error) => {
-          throw toApiClientError(
-            error,
-            'La decision sur la participation n a pas pu etre enregistree.',
-          );
+          throw toApiClientError(error, 'errors.expenses.recordDecision');
         }),
         map(() => undefined),
       ),

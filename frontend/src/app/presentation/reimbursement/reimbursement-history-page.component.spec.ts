@@ -1,3 +1,6 @@
+import { ErrorMessagePipe } from '../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
+import { provideLocalization } from '../i18n/provide-localization';
 import { Component, Input, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -59,7 +62,7 @@ describe('ReimbursementHistoryPageComponent', () => {
 
     const retryButton = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>('button'),
-    ).find((button) => button.textContent?.includes('Reessayer'));
+    ).find((button) => button.textContent?.includes('Réessayer'));
     retryButton?.click();
 
     expect(viewModel.retryCount).toBe(1);
@@ -106,7 +109,7 @@ describe('ReimbursementHistoryPageComponent', () => {
       reimbursements.map((reimbursement) => ({
         ...reimbursement,
         awaitsReview: false,
-        reviewStatusLabel: 'Refusé',
+        reviewStatusLabel: 'statuses.rejected',
         rejectionReason: 'Le montant ne correspond pas.',
       })),
     );
@@ -124,11 +127,13 @@ const createFixture = (
 ): ComponentFixture<ReimbursementHistoryPageComponent> => {
   TestBed.configureTestingModule({
     imports: [ReimbursementHistoryPageComponent],
-    providers: [provideRouter([])],
+    providers: [provideLocalization(), provideRouter([])],
   });
   TestBed.overrideComponent(ReimbursementHistoryPageComponent, {
     set: {
       imports: [
+        ErrorMessagePipe,
+        TranslatePipe,
         StubAuthenticatedShellComponent,
         StubDirectReimbursementWidgetComponent,
         StubDocumentedReimbursementWidgetComponent,
@@ -155,7 +160,7 @@ class StubReimbursementHistoryPageViewModel {
       amount: '25,00\u00a0€',
       reimbursedAt: '1 oct. 2026',
       awaitsReview: true,
-      reviewStatusLabel: 'À revoir',
+      reviewStatusLabel: 'statuses.pendingReview',
       rejectionReason: null as string | null,
       documents: [
         {

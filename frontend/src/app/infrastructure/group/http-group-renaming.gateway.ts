@@ -14,7 +14,7 @@ export class HttpGroupRenamingGateway extends GroupRenamingPort {
     return firstValueFrom(
       this.groupsService.renameGroup(groupId, { name }).pipe(
         catchError((error: unknown) =>
-          throwError(() => toApiClientError(error, 'Le groupe n’a pas pu être renommé.')),
+          throwError(() => toApiClientError(error, 'errors.groups.rename')),
         ),
         map(() => undefined),
       ),

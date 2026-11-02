@@ -1,3 +1,5 @@
+import { ErrorMessagePipe } from '../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component } from '@angular/core';
 import { FormField, FormRoot } from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,6 +12,8 @@ import { RevenueDistributionPreviewPageViewModel } from './revenue-distribution-
 @Component({
   selector: 'app-revenue-distribution-preview-page',
   imports: [
+    ErrorMessagePipe,
+    TranslatePipe,
     AuthenticatedShellComponent,
     FormField,
     FormRoot,

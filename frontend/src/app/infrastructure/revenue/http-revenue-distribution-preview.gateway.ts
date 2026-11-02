@@ -30,7 +30,7 @@ export class HttpRevenueDistributionPreviewGateway extends RevenueDistributionPr
         })
         .pipe(
           catchError((error) => {
-            throw toApiClientError(error, 'La repartition des revenus n a pas pu etre calculee.');
+            throw toApiClientError(error, 'errors.revenue.preview');
           }),
           map((response) => toPreview(response, query.groupId)),
         ),
@@ -43,7 +43,7 @@ const toPreview = (
   expectedGroupId: string,
 ): RevenueDistributionPreview => {
   if (response.group !== expectedGroupId) {
-    throw new Error('Prévisualisation incohérente avec le groupe demandé.');
+    throw new Error('errors.revenue.inconsistentPreview');
   }
 
   const effectiveDate = parseLocalDate(response.effectiveDate);

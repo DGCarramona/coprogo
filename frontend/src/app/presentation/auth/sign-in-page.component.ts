@@ -1,4 +1,7 @@
-import { Component, ElementRef, OnInit, afterNextRender, viewChild } from '@angular/core';
+import { LocalizationService } from '../i18n/localization.service';
+import { ErrorMessagePipe } from '../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
+import { Component, ElementRef, OnInit, afterRenderEffect, viewChild } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
@@ -8,7 +11,14 @@ import { SignInPageViewModel } from './sign-in-page.view-model';
 
 @Component({
   selector: 'app-sign-in-page',
-  imports: [MatCardModule, MatChipsModule, MatDividerModule, MatProgressBarModule],
+  imports: [
+    ErrorMessagePipe,
+    TranslatePipe,
+    MatCardModule,
+    MatChipsModule,
+    MatDividerModule,
+    MatProgressBarModule,
+  ],
   templateUrl: './sign-in-page.component.html',
   styleUrl: './sign-in-page.component.scss',
   providers: [SignInPageViewModel],
@@ -17,9 +27,15 @@ export class SignInPageComponent implements OnInit {
   protected readonly googleButtonHost =
     viewChild.required<ElementRef<HTMLDivElement>>('googleButtonHost');
 
-  constructor(private readonly viewModel: SignInPageViewModel) {
-    afterNextRender(() => {
-      this.viewModel.mountGoogleButton(this.googleButtonHost().nativeElement);
+  constructor(
+    private readonly viewModel: SignInPageViewModel,
+    private readonly localization: LocalizationService,
+  ) {
+    afterRenderEffect(() => {
+      this.viewModel.mountGoogleButton(
+        this.googleButtonHost().nativeElement,
+        this.localization.locale(),
+      );
     });
   }
 

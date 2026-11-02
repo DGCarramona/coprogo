@@ -9,7 +9,7 @@ import {
 } from '../../application/revenue/revenue-distribution-preview.port';
 import { describeError } from '../../application/shared/describe-error';
 import type { RevenueDistributionPreview } from '../../domain/revenue/revenue-distribution-preview';
-import { formatDate, formatMoneyFromCents } from '../../shared/format/financial-format';
+import { FinancialFormatter } from '../i18n/financial-formatter';
 import { parseAmountInCents } from '../../shared/format/parse-amount-in-cents';
 import { parseLocalDate } from '../../shared/format/local-date';
 
@@ -39,24 +39,23 @@ export class RevenueDistributionPreviewPageViewModel {
   private readonly previewMutation;
   readonly preview = computed<RevenueDistributionPreviewViewItem | null>(() => {
     const preview = this.previewMutation.data();
-    return preview === undefined ? null : toViewItem(preview);
+    return preview === undefined ? null : toViewItem(preview, this.formatter);
   });
   readonly isPreviewing = computed(() => this.form().submitting());
   readonly hasPreviewError = computed(() => this.previewMutation.isError());
   readonly previewErrorMessage = computed(() => {
     const error = this.previewMutation.error();
-    return error === null
-      ? null
-      : describeError(error, 'La repartition des revenus n a pas pu etre calculee.');
+    return error === null ? null : describeError(error, 'errors.revenue.preview');
   });
 
   constructor(
     route: ActivatedRoute,
     previewPort: RevenueDistributionPreviewPort,
     injector: Injector,
+    private readonly formatter: FinancialFormatter,
   ) {
     this.groupId = route.snapshot.paramMap.get('groupId');
-    this.routeErrorMessage = this.groupId === null ? 'Aucun groupe n’est sélectionné.' : null;
+    this.routeErrorMessage = this.groupId === null ? 'errors.groups.noneSelected' : null;
     this.previewMutation = injectMutation<
       RevenueDistributionPreview,
       Error,
@@ -69,14 +68,14 @@ export class RevenueDistributionPreviewPageViewModel {
           parseAmountInCents(value()) === null
             ? {
                 kind: 'amount',
-                message: 'Indiquez un montant positif avec deux decimales au plus.',
+                message: 'validation.amount.positiveTwoDecimals',
               }
             : undefined,
         );
-        required(preview.effectiveDate, { message: 'Indiquez la date de repartition.' });
+        required(preview.effectiveDate, { message: 'validation.revenue.distributionDateRequired' });
         validate(preview.effectiveDate, ({ value }) =>
           parseLocalDate(value()) === null
-            ? { kind: 'effective-date', message: 'Indiquez une date valide.' }
+            ? { kind: 'effective-date', message: 'validation.date.invalid' }
             : undefined,
         );
       },
@@ -90,7 +89,7 @@ export class RevenueDistributionPreviewPageViewModel {
             if (this.groupId === null || amountInCents === null || effectiveDate === null) {
               return {
                 kind: 'revenue-distribution-preview',
-                message: 'Completez le montant et la date de repartition.',
+                message: 'validation.revenue.completePreview',
               };
             }
 
@@ -104,7 +103,7 @@ export class RevenueDistributionPreviewPageViewModel {
             } catch {
               return {
                 kind: 'revenue-distribution-preview',
-                message: 'La repartition des revenus n a pas pu etre calculee.',
+                message: 'errors.revenue.preview',
               };
             }
           },
@@ -119,11 +118,14 @@ const emptyFormModel = (): RevenueDistributionPreviewFormModel => ({
   effectiveDate: '',
 });
 
-const toViewItem = (preview: RevenueDistributionPreview): RevenueDistributionPreviewViewItem => ({
-  effectiveDate: formatDate(preview.effectiveDate),
-  totalAmount: formatMoneyFromCents(preview.totalAmountInCents),
+const toViewItem = (
+  preview: RevenueDistributionPreview,
+  formatter: FinancialFormatter,
+): RevenueDistributionPreviewViewItem => ({
+  effectiveDate: formatter.date(preview.effectiveDate),
+  totalAmount: formatter.money(preview.totalAmountInCents),
   allocations: preview.allocations.map((allocation) => ({
     member: allocation.member,
-    amount: formatMoneyFromCents(allocation.amountInCents),
+    amount: formatter.money(allocation.amountInCents),
   })),
 });

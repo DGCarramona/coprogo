@@ -11,7 +11,7 @@ import type {
   ExpenseParticipationStatus,
 } from '../../domain/expense/expense-detail';
 import type { ExpenseStatus } from '../../domain/expense/expense-summary';
-import { formatDate, formatMoneyFromCents } from '../../shared/format/financial-format';
+import { FinancialFormatter } from '../i18n/financial-formatter';
 
 export interface ExpenseParticipationViewItem {
   readonly member: string;
@@ -48,15 +48,18 @@ export class ExpenseDetailPageViewModel {
   private readonly decisionErrorState = signal<string | null>(null);
   readonly rejectionReason = signal('');
 
-  readonly detail = computed<ExpenseDetailViewItem | null>(() => this.detailQuery.data() ?? null);
+  readonly detail = computed<ExpenseDetailViewItem | null>(() => {
+    const detail = this.detailQuery.data();
+    return detail === undefined ? null : toViewItem(detail, this.formatter);
+  });
   readonly isLoading = computed(() => this.hasRouteTarget() && this.detailQuery.isLoading());
   readonly hasLoadError = computed(() => !this.hasRouteTarget() || this.detailQuery.isError());
   readonly isReady = computed(() => this.hasRouteTarget() && this.detailQuery.isSuccess());
   readonly errorMessage = computed(() => {
-    if (!this.hasRouteTarget()) return 'La dépense demandée est incomplète.';
+    if (!this.hasRouteTarget()) return 'errors.expenses.incompleteTarget';
 
     const error = this.detailQuery.error();
-    return error === null ? null : describeError(error, 'La dépense n’a pas pu être chargée.');
+    return error === null ? null : describeError(error, 'errors.expenses.loadDetail');
   });
   readonly canDecide = computed(() => this.detail()?.canDecideParticipation ?? false);
   readonly isDeciding = computed(
@@ -70,6 +73,7 @@ export class ExpenseDetailPageViewModel {
     private readonly decisionPort: ExpenseParticipationDecisionPort,
     private readonly queryClient: QueryClient,
     injector: Injector,
+    private readonly formatter: FinancialFormatter,
   ) {
     this.groupId = route.snapshot.paramMap.get('groupId');
     this.expenseId = route.snapshot.paramMap.get('expenseId');
@@ -78,14 +82,17 @@ export class ExpenseDetailPageViewModel {
         queryKey: ['groups', this.groupId, 'expenses', this.expenseId] as const,
         queryFn: async (): Promise<ExpenseDetail> => {
           if (this.groupId === null || this.expenseId === null) {
-            throw new Error('Une dépense complète doit être sélectionnée avant son chargement.');
+            throw new Error('errors.expenses.missingDetailTarget');
           }
 
           return this.detailPort.get(this.groupId, this.expenseId);
         },
         enabled: this.hasRouteTarget(),
         staleTime: 30_000,
-        select: toViewItem,
+        select: (detail) => {
+          requireCompleteRefusal(detail);
+          return detail;
+        },
       }),
       { injector },
     );
@@ -132,16 +139,14 @@ export class ExpenseDetailPageViewModel {
     this.decisionErrorState.set(null);
     const target = this.decisionTarget();
     if (target === null) {
-      this.decisionErrorState.set('Aucune participation en attente ne peut être validée.');
+      this.decisionErrorState.set('errors.expenses.noPendingParticipation');
       return;
     }
 
     try {
       await action(target);
     } catch (error) {
-      this.decisionErrorState.set(
-        describeError(error, 'La décision sur la participation n’a pas pu être enregistrée.'),
-      );
+      this.decisionErrorState.set(describeError(error, 'errors.expenses.recordDecision'));
     }
   }
 
@@ -173,36 +178,44 @@ interface ExpenseRefusalTarget extends ExpenseDecisionTarget {
   readonly reason: string | null;
 }
 
-const toViewItem = (detail: ExpenseDetail): ExpenseDetailViewItem => ({
+const toViewItem = (
+  detail: ExpenseDetail,
+  formatter: FinancialFormatter,
+): ExpenseDetailViewItem => ({
   id: detail.id,
   title: detail.title,
   createdBy: detail.createdBy,
   canDecideParticipation: detail.canDecideParticipation,
-  totalAmount: formatMoneyFromCents(detail.totalAmountInCents),
-  createdAt: formatDate(detail.createdAt),
+  totalAmount: formatter.money(detail.totalAmountInCents),
+  createdAt: formatter.date(detail.createdAt),
   statusLabel: expenseStatusLabel(detail.status),
-  invalidation: toInvalidationViewItem(detail),
-  participations: detail.participations.map(toParticipationViewItem),
+  invalidation: toInvalidationViewItem(detail, formatter),
+  participations: detail.participations.map((participation) =>
+    toParticipationViewItem(participation, formatter),
+  ),
 });
 
-const toInvalidationViewItem = (detail: ExpenseDetail): ExpenseInvalidationViewItem | null => {
+const toInvalidationViewItem = (
+  detail: ExpenseDetail,
+  formatter: FinancialFormatter,
+): ExpenseInvalidationViewItem | null => {
   if (detail.status !== 'INVALIDATED') return null;
-  if (detail.refusal === null) {
-    throw new Error('Une dépense invalidée doit contenir son refus.');
-  }
+  const refusal = requireCompleteRefusal(detail);
+  if (refusal === null) return null;
 
   return {
-    refusedBy: detail.refusal.member,
-    refusedAt: formatDate(detail.refusal.refusedAt),
-    reason: detail.refusal.reason,
+    refusedBy: refusal.member,
+    refusedAt: formatter.date(refusal.refusedAt),
+    reason: refusal.reason,
   };
 };
 
 const toParticipationViewItem = (
   participation: ExpenseParticipation,
+  formatter: FinancialFormatter,
 ): ExpenseParticipationViewItem => ({
   member: participation.member,
-  amount: formatMoneyFromCents(participation.amountInCents),
+  amount: formatter.money(participation.amountInCents),
   statusLabel: participationStatusLabel(participation.status),
   tone: participationTone(participation.status),
 });
@@ -210,22 +223,22 @@ const toParticipationViewItem = (
 const expenseStatusLabel = (status: ExpenseStatus): string => {
   switch (status) {
     case 'PROPOSED':
-      return 'En attente de validation';
+      return 'statuses.pendingApproval';
     case 'ACCEPTED':
-      return 'Validée';
+      return 'statuses.approved';
     case 'INVALIDATED':
-      return 'À reprendre';
+      return 'statuses.needsReplacement';
   }
 };
 
 const participationStatusLabel = (status: ExpenseParticipationStatus): string => {
   switch (status) {
     case 'PENDING':
-      return 'À valider';
+      return 'statuses.pendingValidation';
     case 'APPROVED':
-      return 'Validée';
+      return 'statuses.approved';
     case 'REFUSED':
-      return 'Refusée';
+      return 'statuses.refused';
   }
 };
 
@@ -240,4 +253,11 @@ const participationTone = (
     case 'REFUSED':
       return 'refused';
   }
+};
+
+const requireCompleteRefusal = (detail: ExpenseDetail) => {
+  if (detail.status === 'INVALIDATED' && detail.refusal === null) {
+    throw new Error('errors.expenses.missingRefusal');
+  }
+  return detail.refusal;
 };

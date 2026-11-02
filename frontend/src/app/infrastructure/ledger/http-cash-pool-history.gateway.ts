@@ -20,10 +20,7 @@ export class HttpCashPoolHistoryGateway extends CashPoolHistoryPort {
           operations: response.operations.map(toOperation),
         })),
         catchError((error) => {
-          throw toApiClientError(
-            error,
-            'L’historique de la caisse commune n’a pas pu être chargé.',
-          );
+          throw toApiClientError(error, 'errors.cashPool.loadHistory');
         }),
       ),
     );

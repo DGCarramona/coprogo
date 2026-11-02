@@ -18,7 +18,7 @@ export class SupportingDocumentUploadWidgetViewModel {
     const state = this.uploadState();
 
     return state.status === 'error'
-      ? describeError(state.error, 'Le fichier n a pas pu etre envoye.')
+      ? describeError(state.error, 'errors.documents.sendFile')
       : null;
   });
 
@@ -31,7 +31,7 @@ export class SupportingDocumentUploadWidgetViewModel {
         mutationFn: (file) => {
           const groupId = this.groupIdState();
           if (groupId === null) {
-            throw new Error('Un groupe doit etre initialise avant d envoyer un justificatif.');
+            throw new Error('errors.documents.missingUploadGroup');
           }
 
           return this.uploadSupportingDocument.upload(groupId, file);

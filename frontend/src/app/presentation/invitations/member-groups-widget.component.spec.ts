@@ -1,3 +1,4 @@
+import { provideLocalization } from '../i18n/provide-localization';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
@@ -108,7 +109,9 @@ describe('MemberGroupsWidgetComponent', () => {
     port.failure = new Error('Groupes indisponibles');
     const { fixture, host } = createFixture(port);
     await waitForResult(fixture);
-    expect(host.querySelector('[role="alert"]')?.textContent).toContain('Groupes indisponibles');
+    expect(host.querySelector('[role="alert"]')?.textContent).toContain(
+      'Une erreur est survenue. Veuillez réessayer.',
+    );
 
     port.failure = null;
     host.querySelector<HTMLButtonElement>('button')!.click();
@@ -132,6 +135,7 @@ async function waitForResult(fixture: ComponentFixture<MemberGroupsWidgetCompone
 function createFixture(port: StubMemberGroupsPort, renaming = new StubGroupRenamingPort()) {
   TestBed.configureTestingModule({
     providers: [
+      provideLocalization(),
       provideRouter([]),
       provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
       { provide: MemberGroupsPort, useValue: port },

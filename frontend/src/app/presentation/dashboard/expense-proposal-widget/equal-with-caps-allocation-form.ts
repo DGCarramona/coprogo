@@ -48,7 +48,7 @@ export const validateEqualWithCapsForm = (
   form: EqualWithCapsFormModel,
 ): AllocationValidationError | undefined => {
   if (form.participants.length === 0) {
-    return { kind: 'participants', message: 'Choisissez au moins un participant.' };
+    return { kind: 'participants', message: 'validation.allocation.participantRequired' };
   }
 
   const hasInvalidMaximum = form.participants.some((member) => {
@@ -58,7 +58,7 @@ export const validateEqualWithCapsForm = (
   if (hasInvalidMaximum) {
     return {
       kind: 'maximum-amount',
-      message: 'Indiquez un montant maximum positif avec deux decimales au plus.',
+      message: 'validation.allocation.positiveMaximum',
     };
   }
 
@@ -69,7 +69,7 @@ export const validateEqualWithCapsForm = (
     ? undefined
     : {
         kind: 'uncapped-participant',
-        message: 'Laissez au moins un participant sans montant maximum.',
+        message: 'validation.allocation.uncappedParticipantRequired',
       };
 };
 

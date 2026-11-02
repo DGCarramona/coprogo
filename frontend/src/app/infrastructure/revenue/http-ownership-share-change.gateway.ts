@@ -25,7 +25,7 @@ export class HttpOwnershipShareChangeGateway extends OwnershipShareChangePort {
         .pipe(
           map(() => undefined),
           catchError((error) => {
-            throw toApiClientError(error, 'Les quotes-parts n ont pas pu etre enregistrees.');
+            throw toApiClientError(error, 'errors.ownership.recordShares');
           }),
         ),
     );

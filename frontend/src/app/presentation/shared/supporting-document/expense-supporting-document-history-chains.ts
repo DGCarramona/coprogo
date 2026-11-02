@@ -12,14 +12,14 @@ export const reconstructSupportingDocumentHistoryChains = (
     history.map((document) => [document.sourceUploadIntent, document] as const),
   );
   if (documentsBySource.size !== history.length) {
-    throw new Error('L historique contient plusieurs versions avec la meme origine.');
+    throw new Error('errors.documents.duplicateOrigin');
   }
 
   const replacementBySource = history.reduce((replacements, document) => {
     const source = document.replacesSourceUploadIntent;
     if (source === null) return replacements;
     if (replacements.has(source)) {
-      throw new Error('Une version de justificatif ne peut avoir qu un seul remplacement.');
+      throw new Error('errors.documents.multipleReplacements');
     }
 
     return replacements.set(source, document);
@@ -41,7 +41,7 @@ export const reconstructSupportingDocumentHistoryChains = (
   }));
 
   if (chains.flatMap((chain) => chain.versions).length !== history.length) {
-    throw new Error('La chaine de justificatifs contient un cycle.');
+    throw new Error('errors.documents.historyCycle');
   }
 
   return chains;
@@ -57,7 +57,7 @@ const chainFrom = (
 
   while (current !== undefined) {
     if (seen.has(current.sourceUploadIntent)) {
-      throw new Error('La chaine de justificatifs contient un cycle.');
+      throw new Error('errors.documents.historyCycle');
     }
 
     chain.push(current);

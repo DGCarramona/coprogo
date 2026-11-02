@@ -1,3 +1,4 @@
+import { ErrorMessagePipe } from '../i18n/error-message.pipe';
 import { Component, input, output } from '@angular/core';
 
 import { PendingGroupInvitation } from '../../domain/group/pending-group-invitation';
@@ -5,7 +6,7 @@ import { InvitationCardComponent } from './invitation-card.component';
 
 @Component({
   selector: 'app-pending-invitations-list',
-  imports: [InvitationCardComponent],
+  imports: [ErrorMessagePipe, InvitationCardComponent],
   templateUrl: './pending-invitations-list.component.html',
 })
 export class PendingInvitationsListComponent {

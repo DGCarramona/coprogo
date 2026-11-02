@@ -28,10 +28,7 @@ export class HttpSupportingDocumentUploadControlPlaneGateway extends SupportingD
         })
         .pipe(
           catchError((error) => {
-            throw toApiClientError(
-              error,
-              'Le televersement du justificatif n a pas pu etre demarre.',
-            );
+            throw toApiClientError(error, 'errors.documents.startUpload');
           }),
           map(({ intentId, uploadUrl, requiredHeaders }): SupportingDocumentUploadTarget => ({
             intentId,
@@ -46,7 +43,7 @@ export class HttpSupportingDocumentUploadControlPlaneGateway extends SupportingD
     await firstValueFrom(
       this.supportingDocumentUploadsService.confirmUpload(groupId, intentId).pipe(
         catchError((error) => {
-          throw toApiClientError(error, 'La confirmation du justificatif a echoue.');
+          throw toApiClientError(error, 'errors.documents.confirmUpload');
         }),
         map(() => undefined),
       ),

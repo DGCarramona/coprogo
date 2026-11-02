@@ -1,3 +1,4 @@
+import { provideLocalization } from '../../i18n/provide-localization';
 import { TestBed } from '@angular/core/testing';
 import { QueryClient } from '@tanstack/angular-query-experimental';
 import { AuthSessionFacade } from '../../../application/auth/auth-session.facade';
@@ -14,6 +15,7 @@ describe('AuthenticatedShellComponent', () => {
     const navigation = new StubNavigationPort();
     TestBed.configureTestingModule({
       providers: [
+        provideLocalization(),
         { provide: QueryClient, useValue: queryClient },
         { provide: AuthSessionFacade, useValue: auth },
         { provide: NavigationPort, useValue: navigation },

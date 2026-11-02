@@ -86,7 +86,7 @@ export class PendingInvitationsViewModel {
       );
       await this.queryClient.invalidateQueries({ queryKey: memberGroupsQueryKey });
     } catch (error) {
-      this.errorMessageState.set(describeError(error, "L'invitation n'a pas pu etre acceptee."));
+      this.errorMessageState.set(describeError(error, 'errors.invitations.accept'));
     } finally {
       this.busyInvitationIdState.set(null);
     }
@@ -102,9 +102,7 @@ export class PendingInvitationsViewModel {
     } catch (error) {
       this.invitationsState.set([]);
       this.statusState.set('load-failed');
-      this.errorMessageState.set(
-        describeError(error, 'Les invitations en attente n ont pas pu etre chargees.'),
-      );
+      this.errorMessageState.set(describeError(error, 'errors.invitations.load'));
     }
   }
 }

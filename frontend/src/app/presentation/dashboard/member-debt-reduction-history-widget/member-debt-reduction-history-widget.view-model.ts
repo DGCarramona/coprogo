@@ -7,7 +7,7 @@ import type {
   MemberDebtReduction,
   MemberDebtReductionType,
 } from '../../../domain/ledger/member-debt-reduction-history';
-import { formatDate, formatMoneyFromCents } from '../../../shared/format/financial-format';
+import { FinancialFormatter } from '../../i18n/financial-formatter';
 
 interface MemberDebtReductionTarget {
   readonly groupId: string;
@@ -28,7 +28,7 @@ export class MemberDebtReductionHistoryWidgetViewModel {
 
   readonly isRequested = computed(() => this.targetState() !== null);
   readonly reductions = computed<readonly MemberDebtReductionViewItem[]>(
-    () => this.historyQuery.data() ?? [],
+    () => this.historyQuery.data()?.map((reduction) => toViewItem(reduction, this.formatter)) ?? [],
   );
   readonly isLoading = computed(() => this.historyQuery.isLoading());
   readonly hasLoadError = computed(() => this.historyQuery.isError());
@@ -36,17 +36,13 @@ export class MemberDebtReductionHistoryWidgetViewModel {
   readonly errorMessage = computed(() => {
     const error = this.historyQuery.error();
 
-    return error === null
-      ? null
-      : describeError(
-          error,
-          'Les operations qui ont reduit cette dette n ont pas pu etre chargees.',
-        );
+    return error === null ? null : describeError(error, 'errors.debtReduction.loadHistory');
   });
 
   constructor(
     private readonly historyPort: MemberDebtReductionHistoryPort,
     injector: Injector,
+    private readonly formatter: FinancialFormatter,
   ) {
     this.historyQuery = injectQuery(
       () => {
@@ -60,14 +56,12 @@ export class MemberDebtReductionHistoryWidgetViewModel {
             target?.member,
             'debt-reductions',
           ] as const,
-          queryFn: async (): Promise<readonly MemberDebtReductionViewItem[]> => {
+          queryFn: async (): Promise<readonly MemberDebtReduction[]> => {
             if (target === null) {
-              throw new Error('Un membre doit etre choisi avant de charger son historique.');
+              throw new Error('errors.debtReduction.missingMember');
             }
 
-            return (await this.historyPort.get(target.groupId, target.member)).reductions.map(
-              toViewItem,
-            );
+            return (await this.historyPort.get(target.groupId, target.member)).reductions;
           },
           enabled: target !== null,
           staleTime: 30_000,
@@ -86,20 +80,23 @@ export class MemberDebtReductionHistoryWidgetViewModel {
   }
 }
 
-const toViewItem = (reduction: MemberDebtReduction): MemberDebtReductionViewItem => ({
+const toViewItem = (
+  reduction: MemberDebtReduction,
+  formatter: FinancialFormatter,
+): MemberDebtReductionViewItem => ({
   operationId: reduction.operationId,
   label: labelFor(reduction.type),
-  amount: formatMoneyFromCents(reduction.amountInCents),
-  occurredAt: formatDate(reduction.occurredAt),
+  amount: formatter.money(reduction.amountInCents),
+  occurredAt: formatter.date(reduction.occurredAt),
 });
 
 const labelFor = (type: MemberDebtReductionType): string => {
   switch (type) {
     case 'DIRECT_REIMBURSEMENT':
-      return 'Remboursement effectué';
+      return 'debtReduction.types.reimbursement';
     case 'COMPENSATING_EXPENSE':
-      return 'Dépense ayant réduit la dette';
+      return 'debtReduction.types.expense';
     case 'CASH_POOL_WITHDRAWAL':
-      return 'Retrait de caisse commune';
+      return 'debtReduction.types.withdrawal';
   }
 };

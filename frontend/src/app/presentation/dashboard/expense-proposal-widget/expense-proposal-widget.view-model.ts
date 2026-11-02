@@ -82,9 +82,7 @@ export class ExpenseProposalWidgetViewModel {
   readonly errorMessage = computed(() => {
     const error = this.membersQuery.error();
 
-    return error === null
-      ? null
-      : describeError(error, 'Les membres du groupe n ont pas pu etre charges.');
+    return error === null ? null : describeError(error, 'errors.groups.loadMembers');
   });
 
   private readonly proposalMutation;
@@ -94,7 +92,7 @@ export class ExpenseProposalWidgetViewModel {
   readonly proposalErrorMessage = computed(() => {
     const error = this.proposalMutation.error();
 
-    return error === null ? null : describeError(error, 'La depense n a pas pu etre proposee.');
+    return error === null ? null : describeError(error, 'errors.expenses.propose');
   });
 
   constructor(
@@ -120,23 +118,23 @@ export class ExpenseProposalWidgetViewModel {
     this.proposalForm = form(
       this.proposalModel,
       (proposal) => {
-        required(proposal.title, { message: 'Le titre est obligatoire.' });
+        required(proposal.title, { message: 'validation.expenses.titleRequired' });
         validate(proposal.title, ({ value }) =>
           value().trim().length > 0
             ? undefined
-            : { kind: 'blank-title', message: 'Le titre ne peut pas etre vide.' },
+            : { kind: 'blank-title', message: 'validation.expenses.titleBlank' },
         );
         validate(proposal.amountInEuros, ({ value }) =>
           parseAmountInCents(value()) === null
             ? {
                 kind: 'amount',
-                message: 'Indiquez un montant positif avec deux decimales au plus.',
+                message: 'validation.amount.positiveTwoDecimals',
               }
             : undefined,
         );
         validate(proposal.equal.participants, ({ value, valueOf }) =>
           valueOf(proposal.allocationMode) === 'EQUAL' && value().length === 0
-            ? { kind: 'participants', message: 'Choisissez au moins un participant.' }
+            ? { kind: 'participants', message: 'validation.allocation.participantRequired' }
             : undefined,
         );
         validate(proposal.equalWithCaps, ({ value, valueOf }) =>
@@ -168,7 +166,7 @@ export class ExpenseProposalWidgetViewModel {
             if (this.isSupportingDocumentUploadPending()) {
               return {
                 kind: 'supporting-document-upload',
-                message: 'Attendez la fin de l envoi du justificatif avant de proposer la depense.',
+                message: 'validation.expenses.waitForUpload',
               };
             }
 
@@ -178,7 +176,7 @@ export class ExpenseProposalWidgetViewModel {
             if (totalAmountInCents === null) {
               return {
                 kind: 'amount',
-                message: 'Indiquez un montant positif avec deux decimales au plus.',
+                message: 'validation.amount.positiveTwoDecimals',
               };
             }
 
@@ -229,7 +227,7 @@ export class ExpenseProposalWidgetViewModel {
             } catch {
               return {
                 kind: 'proposal',
-                message: 'La depense n a pas pu etre proposee.',
+                message: 'errors.expenses.propose',
               };
             }
           },
@@ -265,7 +263,7 @@ export class ExpenseProposalWidgetViewModel {
   private commandFor(input: ExpenseProposalInput): ExpenseProposalCommand {
     const groupId = this.groupIdState();
     if (groupId === null) {
-      throw new Error('Un groupe doit etre initialise avant de proposer une depense.');
+      throw new Error('errors.expenses.missingProposalGroup');
     }
 
     return {

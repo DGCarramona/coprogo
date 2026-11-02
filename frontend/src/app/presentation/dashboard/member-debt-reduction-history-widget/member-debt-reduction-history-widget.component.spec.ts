@@ -1,3 +1,4 @@
+import { provideLocalization } from '../../i18n/provide-localization';
 import { TestBed } from '@angular/core/testing';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 
@@ -12,6 +13,7 @@ describe('MemberDebtReductionHistoryWidgetComponent', () => {
     port = new StubMemberDebtReductionHistoryPort();
     TestBed.configureTestingModule({
       providers: [
+        provideLocalization(),
         provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
         { provide: MemberDebtReductionHistoryPort, useValue: port },
       ],

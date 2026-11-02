@@ -1,3 +1,4 @@
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -10,6 +11,7 @@ import { ExpenseListPageViewModel } from './expense-list-page.view-model';
 @Component({
   selector: 'app-expense-list-page',
   imports: [
+    TranslatePipe,
     AuthenticatedShellComponent,
     ExpenseListWidgetComponent,
     MatButtonModule,

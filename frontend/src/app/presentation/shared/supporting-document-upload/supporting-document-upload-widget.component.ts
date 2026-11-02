@@ -1,3 +1,5 @@
+import { ErrorMessagePipe } from '../../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component, Input, output } from '@angular/core';
 
 import type { SupportingDocumentFile } from '../../../application/supporting-document/supporting-document-upload.port';
@@ -5,6 +7,7 @@ import type { SupportingDocumentUploadResult } from './supporting-document-uploa
 import { SupportingDocumentUploadWidgetViewModel } from './supporting-document-upload-widget.view-model';
 
 @Component({
+  imports: [ErrorMessagePipe, TranslatePipe],
   selector: 'app-supporting-document-upload-widget',
   standalone: true,
   providers: [SupportingDocumentUploadWidgetViewModel],

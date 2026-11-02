@@ -1,3 +1,4 @@
+import { provideLocalization } from '../i18n/provide-localization';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
@@ -19,6 +20,7 @@ describe('PendingInvitationsPageComponent', () => {
   it('keeps joined groups accessible when there are no pending invitations', async () => {
     TestBed.configureTestingModule({
       providers: [
+        provideLocalization(),
         provideRouter([]),
         provideTanStackQuery(new QueryClient()),
         { provide: AuthSessionFacade, useValue: defaultAuthSessionFacade },

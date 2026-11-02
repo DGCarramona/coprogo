@@ -30,7 +30,7 @@ export class CashPoolIncomeWidgetViewModel {
   readonly hasRecordingError = computed(() => this.recordingMutation.isError());
   readonly recordingErrorMessage = computed(() => {
     const error = this.recordingMutation.error();
-    return error === null ? null : describeError(error, 'Le revenu n a pas pu etre enregistre.');
+    return error === null ? null : describeError(error, 'errors.cashPool.recordIncome');
   });
 
   constructor(
@@ -49,20 +49,20 @@ export class CashPoolIncomeWidgetViewModel {
           parseAmountInCents(value()) === null
             ? {
                 kind: 'amount',
-                message: 'Indiquez un montant positif avec deux decimales au plus.',
+                message: 'validation.amount.positiveTwoDecimals',
               }
             : undefined,
         );
-        required(income.receivedAt, { message: 'Indiquez la date de reception.' });
+        required(income.receivedAt, { message: 'validation.income.receivedDateRequired' });
         validate(income.receivedAt, ({ value }) =>
           parseLocalDateTime(value()) === null
-            ? { kind: 'received-at', message: 'Indiquez une date de reception valide.' }
+            ? { kind: 'received-at', message: 'validation.income.receivedDateInvalid' }
             : undefined,
         );
-        required(income.effectiveDate, { message: 'Indiquez la date des quotes-parts.' });
+        required(income.effectiveDate, { message: 'validation.ownership.sharesDateRequired' });
         validate(income.effectiveDate, ({ value }) =>
           parseLocalDate(value()) === null
-            ? { kind: 'effective-date', message: 'Indiquez une date de quotes-parts valide.' }
+            ? { kind: 'effective-date', message: 'validation.ownership.sharesDateInvalid' }
             : undefined,
         );
       },
@@ -83,7 +83,7 @@ export class CashPoolIncomeWidgetViewModel {
             ) {
               return {
                 kind: 'cash-pool-income',
-                message: 'Completez le montant et les dates du revenu.',
+                message: 'validation.income.completeForm',
               };
             }
 
@@ -102,7 +102,7 @@ export class CashPoolIncomeWidgetViewModel {
             } catch {
               return {
                 kind: 'cash-pool-income',
-                message: 'Le revenu n a pas pu etre enregistre.',
+                message: 'errors.cashPool.recordIncome',
               };
             }
           },

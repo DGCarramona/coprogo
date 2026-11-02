@@ -1,3 +1,5 @@
+import { TranslatePipe } from '@ngx-translate/core';
+import { provideLocalization } from '../i18n/provide-localization';
 import { Component, Input } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -57,11 +59,12 @@ const createFixture = (
 ): ComponentFixture<ExpenseListPageComponent> => {
   TestBed.configureTestingModule({
     imports: [ExpenseListPageComponent],
-    providers: [provideRouter([])],
+    providers: [provideLocalization(), provideRouter([])],
   });
   TestBed.overrideComponent(ExpenseListPageComponent, {
     set: {
       imports: [
+        TranslatePipe,
         StubAuthenticatedShellComponent,
         StubExpenseListWidgetComponent,
         MatButtonModule,

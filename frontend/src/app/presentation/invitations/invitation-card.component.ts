@@ -1,4 +1,5 @@
-import { DatePipe } from '@angular/common';
+import { LocalizedDatePipe } from '../i18n/localized-date.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component, computed, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -8,7 +9,7 @@ import { PendingGroupInvitation } from '../../domain/group/pending-group-invitat
 
 @Component({
   selector: 'app-invitation-card',
-  imports: [DatePipe, MatButtonModule, MatCardModule, MatChipsModule],
+  imports: [LocalizedDatePipe, TranslatePipe, MatButtonModule, MatCardModule, MatChipsModule],
   templateUrl: './invitation-card.component.html',
   styleUrl: './invitation-card.component.scss',
 })

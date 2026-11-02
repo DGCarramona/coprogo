@@ -25,7 +25,7 @@ export class HttpMemberGroupsGateway extends MemberGroupsPort {
           })),
         ),
         catchError((error: unknown) =>
-          throwError(() => toApiClientError(error, 'Vos groupes n’ont pas pu être chargés.')),
+          throwError(() => toApiClientError(error, 'errors.groups.loadList')),
         ),
       ),
     );

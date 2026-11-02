@@ -5,7 +5,7 @@ import { injectQuery } from '@tanstack/angular-query-experimental';
 import { OwnershipShareTimelinePort } from '../../application/revenue/ownership-share-timeline.port';
 import { describeError } from '../../application/shared/describe-error';
 import type { OwnershipShareChange } from '../../domain/revenue/ownership-share-timeline';
-import { formatDate, formatPercentage } from '../../shared/format/financial-format';
+import { FinancialFormatter } from '../i18n/financial-formatter';
 
 export interface OwnershipShareChangeViewItem {
   readonly id: string;
@@ -26,24 +26,23 @@ export class OwnershipShareTimelinePageViewModel {
   private readonly timelineQuery;
 
   readonly changes = computed<readonly OwnershipShareChangeViewItem[]>(
-    () => this.timelineQuery.data() ?? [],
+    () => this.timelineQuery.data()?.map((change) => toViewItem(change, this.formatter)) ?? [],
   );
   readonly isLoading = computed(() => this.groupId !== null && this.timelineQuery.isLoading());
   readonly hasLoadError = computed(() => this.groupId === null || this.timelineQuery.isError());
   readonly isReady = computed(() => this.groupId !== null && this.timelineQuery.isSuccess());
   readonly errorMessage = computed(() => {
-    if (this.groupId === null) return 'Aucun groupe n’est sélectionné.';
+    if (this.groupId === null) return 'errors.groups.noneSelected';
 
     const error = this.timelineQuery.error();
-    return error === null
-      ? null
-      : describeError(error, 'L’historique des quotes-parts n’a pas pu être chargé.');
+    return error === null ? null : describeError(error, 'errors.ownership.loadHistory');
   });
 
   constructor(
     route: ActivatedRoute,
     private readonly timelinePort: OwnershipShareTimelinePort,
     injector: Injector,
+    private readonly formatter: FinancialFormatter,
   ) {
     this.groupId = route.snapshot.paramMap.get('groupId');
     this.timelineQuery = injectQuery(
@@ -51,14 +50,13 @@ export class OwnershipShareTimelinePageViewModel {
         queryKey: ['groups', this.groupId, 'ownership-shares'] as const,
         queryFn: async (): Promise<readonly OwnershipShareChange[]> => {
           if (this.groupId === null) {
-            throw new Error('Un groupe doit être sélectionné avant de charger les quotes-parts.');
+            throw new Error('errors.ownership.missingHistoryGroup');
           }
 
           return (await this.timelinePort.getByGroup(this.groupId)).changes;
         },
         enabled: this.groupId !== null,
         staleTime: 30_000,
-        select: (changes) => changes.map(toViewItem),
       }),
       { injector },
     );
@@ -69,13 +67,16 @@ export class OwnershipShareTimelinePageViewModel {
   }
 }
 
-const toViewItem = (change: OwnershipShareChange): OwnershipShareChangeViewItem => ({
+const toViewItem = (
+  change: OwnershipShareChange,
+  formatter: FinancialFormatter,
+): OwnershipShareChangeViewItem => ({
   id: change.id,
-  effectiveDate: formatDate(change.effectiveDate),
+  effectiveDate: formatter.date(change.effectiveDate),
   recordedBy: change.recordedBy,
-  recordedAt: formatDate(change.recordedAt),
+  recordedAt: formatter.date(change.recordedAt),
   shares: change.shares.map((share) => ({
     member: share.member,
-    percentage: formatPercentage(share.percentage),
+    percentage: formatter.percentage(share.percentage),
   })),
 });

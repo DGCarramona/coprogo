@@ -19,9 +19,7 @@ export class SupportingDocumentHistoryViewModel {
   readonly deletionErrorMessage = computed(() => {
     const state = this.deletionState();
 
-    return state.status === 'error'
-      ? describeError(state.error, 'Le justificatif n a pas pu etre retire.')
-      : null;
+    return state.status === 'error' ? describeError(state.error, 'errors.documents.remove') : null;
   });
 
   constructor(

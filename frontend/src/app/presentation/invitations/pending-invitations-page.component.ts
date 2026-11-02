@@ -1,3 +1,5 @@
+import { ErrorMessagePipe } from '../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -12,6 +14,8 @@ import { MemberGroupsWidgetComponent } from './member-groups-widget.component';
 @Component({
   selector: 'app-pending-invitations-page',
   imports: [
+    ErrorMessagePipe,
+    TranslatePipe,
     AuthenticatedShellComponent,
     CreateFirstGroupCardComponent,
     PendingInvitationsListComponent,

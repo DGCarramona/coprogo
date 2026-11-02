@@ -25,7 +25,7 @@ export class HttpCashPoolWithdrawalGateway extends CashPoolWithdrawalPort {
         .pipe(
           map(() => undefined),
           catchError((error) => {
-            const apiError = toApiClientError(error, 'Le retrait n a pas pu etre enregistre.');
+            const apiError = toApiClientError(error, 'errors.cashPool.withdraw');
             if (apiError.status === 409) throw new InsufficientCashPoolBalanceError();
             throw apiError;
           }),

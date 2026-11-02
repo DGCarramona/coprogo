@@ -1,3 +1,6 @@
+import { ErrorMessagePipe } from '../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
+import { provideLocalization } from '../i18n/provide-localization';
 import { Component, Input, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonModule } from '@angular/material/button';
@@ -105,7 +108,7 @@ describe('ExpenseDetailPageComponent', () => {
     const viewModel = new StubExpenseDetailPageViewModel();
     viewModel.detail.update((detail) => ({
       ...requiredDetail(detail),
-      statusLabel: 'À reprendre',
+      statusLabel: 'statuses.needsReplacement',
       invalidation: {
         refusedBy: 'charlie@example.com',
         refusedAt: '2 juil. 2026',
@@ -136,11 +139,13 @@ const createFixture = (
 ): ComponentFixture<ExpenseDetailPageComponent> => {
   TestBed.configureTestingModule({
     imports: [ExpenseDetailPageComponent],
-    providers: [provideRouter([])],
+    providers: [provideLocalization(), provideRouter([])],
   });
   TestBed.overrideComponent(ExpenseDetailPageComponent, {
     set: {
       imports: [
+        ErrorMessagePipe,
+        TranslatePipe,
         StubAuthenticatedShellComponent,
         MatButtonModule,
         MatCardModule,
@@ -163,25 +168,25 @@ class StubExpenseDetailPageViewModel {
     canDecideParticipation: true,
     totalAmount: '60,00 €',
     createdAt: '1 juil. 2026',
-    statusLabel: 'En attente de validation',
+    statusLabel: 'statuses.pendingApproval',
     invalidation: null,
     participations: [
       {
         member: 'alice@example.com',
         amount: '20,00 €',
-        statusLabel: 'Validée',
+        statusLabel: 'statuses.approved',
         tone: 'approved' as const,
       },
       {
         member: 'bob@example.com',
         amount: '20,00 €',
-        statusLabel: 'À valider',
+        statusLabel: 'statuses.pendingValidation',
         tone: 'pending' as const,
       },
       {
         member: 'charlie@example.com',
         amount: '20,00 €',
-        statusLabel: 'Refusée',
+        statusLabel: 'statuses.refused',
         tone: 'refused' as const,
       },
     ],

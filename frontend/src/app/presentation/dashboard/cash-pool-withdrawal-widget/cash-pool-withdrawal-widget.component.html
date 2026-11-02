@@ -1,48 +1,49 @@
 <mat-card class="material-card" appearance="outlined">
   <mat-card-header>
-    <mat-card-title>Retirer de la caisse commune</mat-card-title>
+    <mat-card-title>{{ 'cashPool.withdrawal.title' | translate }}</mat-card-title>
     <mat-card-subtitle>
-      Le retrait sera enregistré dans l’historique des opérations du groupe.
+      {{ 'cashPool.withdrawal.description' | translate }}
     </mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
     @if (viewModel.isWithdrawn()) {
-      <p role="status">Le retrait a été enregistré.</p>
+      <p role="status">{{ 'cashPool.withdrawal.success' | translate }}</p>
     }
     @if (viewModel.hasWithdrawalError()) {
-      <p role="alert">{{ viewModel.withdrawalErrorMessage() }}</p>
+      <p role="alert">{{ viewModel.withdrawalErrorMessage() | errorMessage }}</p>
     }
 
     <form [formRoot]="viewModel.form">
       <p>
-        <label for="cash-pool-withdrawal-amount">Montant du retrait en euros</label>
+        <label for="cash-pool-withdrawal-amount">{{
+          'cashPool.withdrawal.amount' | translate
+        }}</label>
         <input
           id="cash-pool-withdrawal-amount"
           type="text"
           inputmode="decimal"
-          aria-label="Montant du retrait en euros"
+          [attr.aria-label]="'cashPool.withdrawal.amount' | translate"
           [formField]="viewModel.form.amountInEuros"
         />
       </p>
       <p>
-        <label for="cash-pool-withdrawal-date">Date du retrait</label>
+        <label for="cash-pool-withdrawal-date">{{ 'cashPool.withdrawal.date' | translate }}</label>
         <input
           id="cash-pool-withdrawal-date"
           type="datetime-local"
-          aria-label="Date du retrait"
+          [attr.aria-label]="'cashPool.withdrawal.date' | translate"
           [formField]="viewModel.form.withdrawnAt"
         />
       </p>
       <p>
-        Vous ne pouvez pas retirer plus que le montant disponible. Si le retrait dépasse votre
-        propre part, le surplus réduit ce que les autres membres vous doivent.
+        {{ 'cashPool.withdrawal.balanceHelp' | translate }}
       </p>
       <button
         mat-flat-button
         type="submit"
         [disabled]="viewModel.form().invalid() || viewModel.isWithdrawing()"
       >
-        Enregistrer le retrait
+        {{ 'cashPool.withdrawal.submit' | translate }}
       </button>
     </form>
   </mat-card-content>

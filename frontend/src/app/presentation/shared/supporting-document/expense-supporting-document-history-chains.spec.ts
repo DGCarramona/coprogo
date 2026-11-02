@@ -36,7 +36,7 @@ describe('reconstructSupportingDocumentHistoryChains', () => {
         document({ sourceUploadIntent: 'first', replacesSourceUploadIntent: 'second' }),
         document({ sourceUploadIntent: 'second', replacesSourceUploadIntent: 'first' }),
       ],
-      'La chaine de justificatifs contient un cycle.',
+      'errors.documents.historyCycle',
     ],
     [
       'two versions replace the same source',
@@ -45,7 +45,7 @@ describe('reconstructSupportingDocumentHistoryChains', () => {
         document({ sourceUploadIntent: 'first', replacesSourceUploadIntent: 'root' }),
         document({ sourceUploadIntent: 'second', replacesSourceUploadIntent: 'root' }),
       ],
-      'Une version de justificatif ne peut avoir qu un seul remplacement.',
+      'errors.documents.multipleReplacements',
     ],
   ])('fails fast when %s', (_description, history, message) => {
     expect(() => reconstructSupportingDocumentHistoryChains(history)).toThrow(message);
