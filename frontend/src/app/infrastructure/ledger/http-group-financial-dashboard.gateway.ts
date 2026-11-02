@@ -19,17 +19,28 @@ export class HttpGroupFinancialDashboardGateway extends GroupFinancialDashboardP
         cashPoolBalance: this.ledgerService.getCashPoolBalance(groupId),
         cashPoolShares: this.ledgerService.getMemberCashPoolShares(groupId),
       }).pipe(
+        map(({ balances, cashPoolBalance, cashPoolShares }) => {
+          if (
+            balances?.group !== groupId ||
+            !Array.isArray(balances.balances) ||
+            !Array.isArray(cashPoolShares?.shares) ||
+            !Number.isSafeInteger(cashPoolBalance?.availableAmountInCents)
+          ) {
+            throw new Error('Invalid dashboard response');
+          }
+
+          return {
+            groupId: balances.group,
+            memberBalances: balances.balances,
+            cashPoolBalance: {
+              availableAmountInCents: cashPoolBalance.availableAmountInCents,
+            },
+            cashPoolShares: cashPoolShares.shares,
+          };
+        }),
         catchError((error) => {
           throw toApiClientError(error, 'errors.dashboard.load');
         }),
-        map(({ balances, cashPoolBalance, cashPoolShares }) => ({
-          groupId: balances.group,
-          memberBalances: balances.balances,
-          cashPoolBalance: {
-            availableAmountInCents: cashPoolBalance.availableAmountInCents,
-          },
-          cashPoolShares: cashPoolShares.shares,
-        })),
       ),
     );
   }
