@@ -1,20 +1,29 @@
-<section class="member-debt-reduction-history" aria-label="Opérations ayant réduit cette dette">
+<section
+  class="member-debt-reduction-history"
+  [attr.aria-label]="'debtReduction.title' | translate"
+>
   @if (!viewModel.isRequested()) {
-    <button mat-button type="button" (click)="load()">Voir ce qui a réduit cette dette</button>
+    <button mat-button type="button" (click)="load()">
+      {{ 'debtReduction.showHistory' | translate }}
+    </button>
   } @else if (viewModel.isLoading()) {
     <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-    <p>Lecture des opérations...</p>
+    <p>{{ 'common.loadingOperations' | translate }}</p>
   } @else if (viewModel.hasLoadError()) {
-    <p role="alert">{{ viewModel.errorMessage() }}</p>
-    <button mat-button type="button" (click)="viewModel.retry()">Réessayer</button>
+    <p role="alert">{{ viewModel.errorMessage() | errorMessage }}</p>
+    <button mat-button type="button" (click)="viewModel.retry()">
+      {{ 'common.retry' | translate }}
+    </button>
   } @else if (viewModel.reductions().length === 0) {
-    <p>Aucune opération enregistrée n’a réduit la dette de ce membre.</p>
+    <p>{{ 'debtReduction.empty' | translate }}</p>
   } @else {
-    <p class="member-debt-reduction-history__intro">Opérations ayant réduit cette dette :</p>
+    <p class="member-debt-reduction-history__intro">
+      {{ 'debtReduction.listLabel' | translate }}
+    </p>
     <ul>
       @for (reduction of viewModel.reductions(); track reduction.operationId) {
         <li>
-          <span>{{ reduction.label }} · {{ reduction.occurredAt }}</span>
+          <span>{{ reduction.label | translate }} · {{ reduction.occurredAt }}</span>
           <strong>{{ reduction.amount }}</strong>
         </li>
       }

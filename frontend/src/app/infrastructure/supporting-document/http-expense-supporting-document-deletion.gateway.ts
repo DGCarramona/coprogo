@@ -24,7 +24,7 @@ export class HttpExpenseSupportingDocumentDeletionGateway extends ExpenseSupport
         )
         .pipe(
           catchError((error) => {
-            throw toApiClientError(error, 'Le justificatif n a pas pu etre retire.');
+            throw toApiClientError(error, 'errors.documents.remove');
           }),
           map(() => undefined),
         ),

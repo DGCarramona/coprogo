@@ -6,6 +6,7 @@ import io.micronaut.http.HttpStatus
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
+import io.micronaut.http.annotation.Patch
 import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.Post
 import io.micronaut.http.annotation.Status
@@ -27,10 +28,16 @@ import tech.justdev.application.group.GroupMemberSnapshot
 import tech.justdev.application.group.GroupSnapshot
 import tech.justdev.application.group.InviteMemberToGroupCommand
 import tech.justdev.application.group.InviteMemberToGroupUseCase
+import tech.justdev.application.group.ListMemberGroupsQuery
+import tech.justdev.application.group.ListMemberGroupsUseCase
 import tech.justdev.application.group.ListPendingGroupInvitationsQuery
 import tech.justdev.application.group.ListPendingGroupInvitationsUseCase
 import tech.justdev.application.group.PendingGroupInvitationSnapshot
+import tech.justdev.application.group.RenameGroupCommand
+import tech.justdev.application.group.RenameGroupUseCase
+import tech.justdev.domain.group.valueobject.GroupName
 import tech.justdev.domain.group.valueobject.MemberEmail
+import tech.justdev.domain.shared.valueobject.GroupId
 import tech.justdev.interfaces.openapi.AuthenticatedApi
 import java.time.Instant
 import java.util.UUID
@@ -46,16 +53,38 @@ class GroupController(
     private val inviteMemberToGroupUseCase: InviteMemberToGroupUseCase,
     private val acceptGroupInvitationUseCase: AcceptGroupInvitationUseCase,
     private val listPendingGroupInvitationsUseCase: ListPendingGroupInvitationsUseCase,
+    private val listMemberGroupsUseCase: ListMemberGroupsUseCase,
+    private val renameGroupUseCase: RenameGroupUseCase,
 ) {
+    @Get("/groups")
+    @Operation(operationId = "listMemberGroups", summary = "List the groups of the authenticated member")
+    suspend fun listMemberGroups(): List<MemberGroupResponse> =
+        listMemberGroupsUseCase(
+            ListMemberGroupsQuery(
+                requestedBy = authenticatedEmailProvider.currentAuthenticatedEmail(),
+            ),
+        ).map { group ->
+            MemberGroupResponse(
+                group = group.group,
+                createdBy = group.createdBy,
+                createdAt = group.createdAt,
+                name = group.name,
+                canRename = group.canRename,
+            )
+        }
+
     @Post("/groups")
     @Operation(summary = "Create a new group for the authenticated member")
-    suspend fun create(): HttpResponse<CreateGroupResponse> {
+    suspend fun create(
+        @Body request: CreateGroupRequest? = null,
+    ): HttpResponse<CreateGroupResponse> {
         val authenticatedUser = authenticatedUserProvider.currentAuthenticatedUser()
         val createdGroup =
             createGroupUseCase(
                 CreateGroupCommand(
                     createdBy = authenticatedUser.email,
                     createdAt = Instant.now(),
+                    name = request?.name?.let(GroupName::of),
                 ),
             )
 
@@ -80,6 +109,22 @@ class GroupController(
             )
 
         return group.toResponse()
+    }
+
+    @Patch("/groups/{groupId}/name")
+    @Status(HttpStatus.NO_CONTENT)
+    @Operation(operationId = "renameGroup", summary = "Rename a group as its creator")
+    suspend fun renameGroup(
+        @PathVariable groupId: UUID,
+        @Body request: RenameGroupRequest,
+    ) {
+        renameGroupUseCase(
+            RenameGroupCommand(
+                group = GroupId(groupId),
+                renamedBy = authenticatedEmailProvider.currentAuthenticatedEmail(),
+                name = GroupName.of(request.name),
+            ),
+        )
     }
 
     @Post("/groups/{groupId}/invitations")
@@ -129,6 +174,25 @@ class GroupController(
 }
 
 @Serdeable
+data class MemberGroupResponse(
+    val group: UUID,
+    val createdBy: String,
+    val createdAt: Instant,
+    val name: String? = null,
+    val canRename: Boolean = false,
+)
+
+@Serdeable
+data class CreateGroupRequest(
+    val name: String? = null,
+)
+
+@Serdeable
+data class RenameGroupRequest(
+    val name: String,
+)
+
+@Serdeable
 data class CreateGroupResponse(
     val group: UUID,
 )
@@ -146,6 +210,7 @@ data class GroupResponse(
     val createdAt: Instant,
     val members: List<GroupMemberResponse>,
     val pendingInvitations: List<GroupInvitationResponse>,
+    val name: String? = null,
 )
 
 @Serdeable
@@ -178,6 +243,7 @@ private fun GroupSnapshot.toResponse(): GroupResponse =
         createdAt = createdAt,
         members = members.map(GroupMemberSnapshot::toResponse),
         pendingInvitations = pendingInvitations.map(GroupInvitationSnapshot::toResponse),
+        name = name,
     )
 
 private fun GroupMemberSnapshot.toResponse(): GroupMemberResponse =

@@ -1,3 +1,5 @@
+import { ErrorMessagePipe } from '../../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component, effect, input, OnInit, output } from '@angular/core';
 import { FormField, FormRoot } from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,7 +9,7 @@ import { CashPoolWithdrawalWidgetViewModel } from './cash-pool-withdrawal-widget
 
 @Component({
   selector: 'app-cash-pool-withdrawal-widget',
-  imports: [FormField, FormRoot, MatButtonModule, MatCardModule],
+  imports: [ErrorMessagePipe, TranslatePipe, FormField, FormRoot, MatButtonModule, MatCardModule],
   providers: [CashPoolWithdrawalWidgetViewModel],
   templateUrl: './cash-pool-withdrawal-widget.component.html',
   styleUrl: './cash-pool-withdrawal-widget.component.scss',

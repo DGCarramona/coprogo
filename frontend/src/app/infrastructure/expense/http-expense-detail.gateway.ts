@@ -27,7 +27,7 @@ export class HttpExpenseDetailGateway extends ExpenseDetailPort {
     return await firstValueFrom(
       this.expensesService.getExpenseDetail(groupId, expenseId).pipe(
         catchError((error) => {
-          throw toApiClientError(error, 'La depense n a pas pu etre chargee.');
+          throw toApiClientError(error, 'errors.expenses.loadDetail');
         }),
         map(toExpenseDetail),
       ),

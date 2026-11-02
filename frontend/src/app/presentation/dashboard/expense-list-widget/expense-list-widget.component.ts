@@ -1,3 +1,4 @@
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component, Input, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,6 +11,7 @@ import { ExpenseSupportingDocumentsWidgetComponent } from '../../shared/expense-
 @Component({
   selector: 'app-expense-list-widget',
   imports: [
+    TranslatePipe,
     MatCardModule,
     MatProgressBarModule,
     MatButtonModule,

@@ -1,3 +1,4 @@
+import { provideLocalization } from '../../i18n/provide-localization';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 import { provideRouter } from '@angular/router';
@@ -23,6 +24,7 @@ describe('ExpenseListWidgetComponent', () => {
     documentsPort = new StubExpenseSupportingDocumentsPort();
     TestBed.configureTestingModule({
       providers: [
+        provideLocalization(),
         provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
         provideRouter([]),
         { provide: ExpenseListPort, useValue: expensesPort },

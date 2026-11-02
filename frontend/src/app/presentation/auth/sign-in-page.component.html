@@ -1,34 +1,31 @@
 <section class="sign-in-page material-page">
   <div class="material-page__content material-page__grid sign-in-page__layout">
     <section class="sign-in-page__hero" aria-labelledby="sign-in-title">
-      <p class="sign-in-page__brand">Coprogo</p>
-      <p class="sign-in-page__eyebrow">La vie de groupe, plus claire</p>
-      <h1 id="sign-in-title">Les dépenses partagées, plus simples.</h1>
-      <p class="sign-in-page__lead">
-        Suivez les dépenses, les remboursements et les revenus de votre groupe dans un espace
-        commun.
-      </p>
+      <p class="sign-in-page__brand">{{ 'app.name' | translate }}</p>
+      <p class="sign-in-page__eyebrow">{{ 'layout.signIn.eyebrow' | translate }}</p>
+      <h1 id="sign-in-title">{{ 'layout.signIn.title' | translate }}</h1>
+      <p class="sign-in-page__lead">{{ 'layout.signIn.lead' | translate }}</p>
 
       <ol class="sign-in-page__steps">
         <li>
           <span class="sign-in-page__step-index" aria-hidden="true">01</span>
           <div>
-            <h2>Retrouvez vos invitations</h2>
-            <p>Rejoignez facilement le groupe qui vous a invité.</p>
+            <h2>{{ 'layout.signIn.invitationsTitle' | translate }}</h2>
+            <p>{{ 'layout.signIn.invitationsHelp' | translate }}</p>
           </div>
         </li>
         <li>
           <span class="sign-in-page__step-index" aria-hidden="true">02</span>
           <div>
-            <h2>Suivez les dépenses</h2>
-            <p>Consultez les montants, les justificatifs et ce qui reste à régler.</p>
+            <h2>{{ 'layout.signIn.expensesTitle' | translate }}</h2>
+            <p>{{ 'layout.signIn.expensesHelp' | translate }}</p>
           </div>
         </li>
         <li>
           <span class="sign-in-page__step-index" aria-hidden="true">03</span>
           <div>
-            <h2>Partagez les revenus</h2>
-            <p>Retrouvez la répartition appliquée à chaque membre.</p>
+            <h2>{{ 'layout.signIn.revenueTitle' | translate }}</h2>
+            <p>{{ 'layout.signIn.revenueHelp' | translate }}</p>
           </div>
         </li>
       </ol>
@@ -36,50 +33,47 @@
 
     <mat-card class="material-card sign-in-page__panel" appearance="outlined">
       <mat-card-header>
-        <mat-card-subtitle>Bienvenue</mat-card-subtitle>
-        <mat-card-title>Continuer avec Google</mat-card-title>
+        <mat-card-subtitle> {{ 'layout.signIn.welcome' | translate }} </mat-card-subtitle>
+        <mat-card-title> {{ 'auth.signIn.continueWithGoogle' | translate }} </mat-card-title>
       </mat-card-header>
 
       <mat-card-content>
-        <p class="sign-in-page__panel-copy">
-          Votre compte est créé automatiquement lors de votre première connexion.
-        </p>
+        <p class="sign-in-page__panel-copy">{{ 'layout.signIn.accountHelp' | translate }}</p>
 
         <div
           #googleButtonHost
           class="sign-in-page__button-host"
-          aria-label="Bouton de connexion Google"
+          [attr.aria-label]="'layout.signIn.googleButton' | translate"
         ></div>
 
         @if (isBusy()) {
           <div class="sign-in-page__feedback" role="status">
             <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-            <p>Connexion en cours…</p>
+            <p>{{ 'auth.signIn.loading' | translate }}</p>
           </div>
         }
 
         @if (!hasGoogleConfiguration()) {
           <div class="sign-in-page__message sign-in-page__message--warn" role="status">
-            La connexion Google n’est pas disponible dans cet environnement. Contactez
-            l’administrateur.
+            {{ 'layout.signIn.unavailable' | translate }}
           </div>
         }
 
         @if (renderErrorMessage(); as renderErrorMessage) {
           <div class="sign-in-page__message sign-in-page__message--error" role="alert">
-            {{ renderErrorMessage }}
+            {{ renderErrorMessage | errorMessage }}
           </div>
         }
 
         @if (sessionErrorMessage(); as sessionErrorMessage) {
           <div class="sign-in-page__message sign-in-page__message--error" role="alert">
-            {{ sessionErrorMessage }}
+            {{ sessionErrorMessage | errorMessage }}
           </div>
         }
       </mat-card-content>
 
       <mat-card-footer class="sign-in-page__footer">
-        Après la connexion, vous pourrez accepter une invitation ou créer votre premier groupe.
+        {{ 'layout.signIn.footer' | translate }}
       </mat-card-footer>
     </mat-card>
   </div>

@@ -1,3 +1,6 @@
+import { TestBed } from '@angular/core/testing';
+import { FinancialFormatter } from '../i18n/financial-formatter';
+import { provideLocalization } from '../i18n/provide-localization';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 
 import { AuthSessionFacade } from '../../application/auth/auth-session.facade';
@@ -10,6 +13,7 @@ import { StubNavigationPort } from '../../../../__test__/app/application/shared/
 import { GroupDashboardPageViewModel } from './group-dashboard-page.view-model';
 
 describe('GroupDashboardPageViewModel', () => {
+  beforeEach(() => TestBed.configureTestingModule({ providers: [provideLocalization()] }));
   describe('initialize', () => {
     it('loads the group financial dashboard', async () => {
       const dashboardPort = new StubGroupFinancialDashboardPort();
@@ -23,11 +27,16 @@ describe('GroupDashboardPageViewModel', () => {
       expect(viewModel.memberBalances()).toEqual([
         {
           member: 'alice@example.com',
-          label: 'A recevoir',
+          label: 'balances.toReceive',
           amount: '+40,00\u00a0€',
           tone: 'credit',
         },
-        { member: 'bob@example.com', label: 'A payer', amount: '-40,00\u00a0€', tone: 'debt' },
+        {
+          member: 'bob@example.com',
+          label: 'balances.toPay',
+          amount: '-40,00\u00a0€',
+          tone: 'debt',
+        },
       ]);
       expect(viewModel.cashPoolShares()).toEqual([
         { member: 'alice@example.com', amount: '35,00\u00a0€' },
@@ -76,6 +85,7 @@ const createViewModel = ({
     navigation,
     authSessionFacade,
     dashboardPort,
+    TestBed.inject(FinancialFormatter),
   );
 };
 

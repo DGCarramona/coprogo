@@ -1,3 +1,5 @@
+import { ErrorMessagePipe } from '../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -11,6 +13,8 @@ import { ExpenseDetailPageViewModel } from './expense-detail-page.view-model';
 @Component({
   selector: 'app-expense-detail-page',
   imports: [
+    ErrorMessagePipe,
+    TranslatePipe,
     AuthenticatedShellComponent,
     MatButtonModule,
     MatCardModule,

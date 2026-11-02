@@ -139,14 +139,14 @@ describe('HttpExpenseSupportingDocumentsGateway', () => {
       [
         'attachment date',
         documentResponse({ attachedAt: 'not-an-attachment-date' }),
-        'Date d ajout du justificatif invalide: not-an-attachment-date.',
+        'errors.documents.invalidAttachmentDate: not-an-attachment-date.',
       ],
       [
         'deletion date',
         documentResponse({
           deletion: { deletedBy: 'bob@example.com', deletedAt: 'not-a-deletion-date' },
         }),
-        'Date de retrait du justificatif invalide: not-a-deletion-date.',
+        'errors.documents.invalidRemovalDate: not-a-deletion-date.',
       ],
       [
         'download expiration date',
@@ -156,7 +156,7 @@ describe('HttpExpenseSupportingDocumentsGateway', () => {
             expiresAt: 'not-an-expiration-date',
           },
         }),
-        'Date d expiration du lien invalide: not-an-expiration-date.',
+        'errors.documents.invalidLinkExpiration: not-an-expiration-date.',
       ],
     ])('fails fast when the %s is invalid', async (_description, document, message) => {
       const documents = gateway.listByExpense(GROUP_ID, EXPENSE_ID);

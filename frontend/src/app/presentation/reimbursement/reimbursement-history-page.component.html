@@ -1,7 +1,7 @@
 <app-authenticated-shell
-  eyebrow="Historique des opérations"
-  title="Remboursements"
-  description="Retrouvez les montants versés, les justificatifs et les opérations à vérifier."
+  [eyebrow]="'common.operationHistory' | translate"
+  [title]="'reimbursements.title' | translate"
+  [description]="'reimbursements.history.description' | translate"
 >
   @if (viewModel.groupId !== null) {
     <a
@@ -9,7 +9,7 @@
       mat-stroked-button
       [routerLink]="['/groups', viewModel.groupId, 'dashboard']"
     >
-      Retour au groupe
+      {{ 'members.back' | translate }}
     </a>
 
     <section
@@ -17,9 +17,13 @@
       aria-labelledby="reimbursement-actions-title"
     >
       <div class="reimbursement-history-page__section-heading">
-        <p class="reimbursement-history-page__section-kicker">Nouvelle opération</p>
-        <h2 id="reimbursement-actions-title">Enregistrer un remboursement</h2>
-        <p>Choisissez la façon dont le remboursement a été effectué.</p>
+        <p class="reimbursement-history-page__section-kicker">
+          {{ 'layout.newOperation' | translate }}
+        </p>
+        <h2 id="reimbursement-actions-title">
+          {{ 'layout.reimbursements.recordTitle' | translate }}
+        </h2>
+        <p>{{ 'layout.reimbursements.recordHelp' | translate }}</p>
       </div>
       <div class="reimbursement-history-page__forms">
         <app-direct-reimbursement-widget [groupId]="viewModel.groupId" />
@@ -33,9 +37,11 @@
     aria-labelledby="reimbursement-history-title"
   >
     <div class="reimbursement-history-page__section-heading">
-      <p class="reimbursement-history-page__section-kicker">Suivi</p>
-      <h2 id="reimbursement-history-title">Historique des remboursements</h2>
-      <p>Les mouvements et justificatifs restent consultables après leur enregistrement.</p>
+      <p class="reimbursement-history-page__section-kicker">
+        {{ 'layout.reimbursements.historyKicker' | translate }}
+      </p>
+      <h2 id="reimbursement-history-title">{{ 'reimbursements.history.title' | translate }}</h2>
+      <p>{{ 'layout.reimbursements.historyHelp' | translate }}</p>
     </div>
 
     <mat-card class="material-card reimbursement-history-page__card" appearance="outlined">
@@ -43,12 +49,16 @@
         @if (viewModel.isLoading()) {
           <mat-progress-bar mode="indeterminate"></mat-progress-bar>
         } @else if (viewModel.hasLoadError()) {
-          <p>{{ viewModel.errorMessage() }}</p>
+          <p>{{ viewModel.errorMessage() | errorMessage }}</p>
           @if (viewModel.groupId !== null) {
-            <button mat-flat-button type="button" (click)="viewModel.retry()">Réessayer</button>
+            <button mat-flat-button type="button" (click)="viewModel.retry()">
+              {{ 'common.retry' | translate }}
+            </button>
           }
         } @else if (viewModel.isReady() && viewModel.reimbursements().length === 0) {
-          <p class="reimbursement-history-page__empty">Aucun remboursement enregistré.</p>
+          <p class="reimbursement-history-page__empty">
+            {{ 'reimbursements.history.empty' | translate }}
+          </p>
         } @else {
           <ol class="reimbursement-history-page__list">
             @for (reimbursement of viewModel.reimbursements(); track reimbursement.id) {
@@ -60,22 +70,25 @@
                   </div>
                   <dl>
                     <div>
-                      <dt>Payé par</dt>
+                      <dt>{{ 'reimbursements.paidBy' | translate }}</dt>
                       <dd>{{ reimbursement.paidBy }}</dd>
                     </div>
                     <div>
-                      <dt>Reçu par</dt>
+                      <dt>{{ 'reimbursements.receivedBy' | translate }}</dt>
                       <dd>{{ reimbursement.receivedBy }}</dd>
                     </div>
                   </dl>
                   @if (reimbursement.reviewStatusLabel; as reviewStatusLabel) {
                     <p class="reimbursement-history-page__review-status">
-                      Vérification : <strong>{{ reviewStatusLabel }}</strong>
+                      {{ 'reimbursements.review.statusLabel' | translate }}
+                      <strong>{{ reviewStatusLabel | translate }}</strong>
                     </p>
                   }
                   @if (reimbursement.rejectionReason; as rejectionReason) {
                     <p class="reimbursement-history-page__rejection">
-                      Motif du refus : {{ rejectionReason }}
+                      {{
+                        'reimbursements.review.refusalReason' | translate: { p0: rejectionReason }
+                      }}
                     </p>
                   }
                   <app-reimbursement-supporting-documents [documents]="reimbursement.documents" />

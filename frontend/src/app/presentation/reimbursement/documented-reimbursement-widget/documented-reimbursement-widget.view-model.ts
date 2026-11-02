@@ -33,9 +33,7 @@ export class DocumentedReimbursementWidgetViewModel {
   readonly hasLoadError = computed(() => this.membersQuery.isError());
   readonly loadErrorMessage = computed(() => {
     const error = this.membersQuery.error();
-    return error === null
-      ? null
-      : describeError(error, 'Les membres du groupe n ont pas pu etre charges.');
+    return error === null ? null : describeError(error, 'errors.groups.loadMembers');
   });
 
   private readonly declarationMutation;
@@ -46,9 +44,7 @@ export class DocumentedReimbursementWidgetViewModel {
   readonly hasDeclarationError = computed(() => this.declarationMutation.isError());
   readonly declarationErrorMessage = computed(() => {
     const error = this.declarationMutation.error();
-    return error === null
-      ? null
-      : describeError(error, 'Le remboursement n a pas pu etre declare.');
+    return error === null ? null : describeError(error, 'errors.reimbursements.declare');
   });
 
   constructor(
@@ -79,25 +75,25 @@ export class DocumentedReimbursementWidgetViewModel {
       this.formModel,
       (reimbursement) => {
         required(reimbursement.receivedBy, {
-          message: 'Choisissez la personne que vous avez remboursee.',
+          message: 'validation.reimbursements.recipientRequired',
         });
         validate(reimbursement.amountInEuros, ({ value }) =>
           parseAmountInCents(value()) === null
             ? {
                 kind: 'amount',
-                message: 'Indiquez un montant positif avec deux decimales au plus.',
+                message: 'validation.amount.positiveTwoDecimals',
               }
             : undefined,
         );
-        required(reimbursement.reimbursedAt, { message: 'Indiquez la date du remboursement.' });
+        required(reimbursement.reimbursedAt, { message: 'validation.reimbursements.dateRequired' });
         validate(reimbursement.reimbursedAt, ({ value }) =>
           parseLocalDateTime(value()) === null
-            ? { kind: 'date', message: 'Indiquez une date de remboursement valide.' }
+            ? { kind: 'date', message: 'validation.reimbursements.dateInvalid' }
             : undefined,
         );
         validate(reimbursement.documents, ({ value }) =>
           value().length === 0
-            ? { kind: 'documents', message: 'Ajoutez au moins un justificatif.' }
+            ? { kind: 'documents', message: 'validation.reimbursements.documentRequired' }
             : undefined,
         );
       },
@@ -108,7 +104,7 @@ export class DocumentedReimbursementWidgetViewModel {
             if (this.isSupportingDocumentUploadPending()) {
               return {
                 kind: 'supporting-document-upload',
-                message: 'Attendez la fin de l envoi du justificatif.',
+                message: 'validation.reimbursements.waitForUpload',
               };
             }
 
@@ -124,7 +120,7 @@ export class DocumentedReimbursementWidgetViewModel {
             ) {
               return {
                 kind: 'documented-reimbursement',
-                message: 'Completez les informations et ajoutez un justificatif.',
+                message: 'validation.reimbursements.completeSent',
               };
             }
 
@@ -144,7 +140,7 @@ export class DocumentedReimbursementWidgetViewModel {
             } catch {
               return {
                 kind: 'documented-reimbursement',
-                message: 'Le remboursement n a pas pu etre declare.',
+                message: 'errors.reimbursements.declare',
               };
             }
           },

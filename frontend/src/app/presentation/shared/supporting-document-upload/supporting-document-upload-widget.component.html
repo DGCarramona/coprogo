@@ -1,5 +1,5 @@
 <p>
-  <label for="supporting-document-file">Ajouter un justificatif</label>
+  <label for="supporting-document-file">{{ 'documents.add' | translate }}</label>
   <input
     id="supporting-document-file"
     type="file"
@@ -9,11 +9,11 @@
 </p>
 
 @if (viewModel.isUploading()) {
-  <p role="status">Envoi du justificatif en cours…</p>
+  <p role="status">{{ 'documents.uploading' | translate }}</p>
 } @else if (viewModel.isUploaded()) {
-  <p role="status">Le justificatif a été ajouté.</p>
+  <p role="status">{{ 'documents.uploadSuccess' | translate }}</p>
 }
 
 @if (viewModel.hasUploadError()) {
-  <p role="alert">{{ viewModel.uploadErrorMessage() }}</p>
+  <p role="alert">{{ viewModel.uploadErrorMessage() | errorMessage }}</p>
 }

@@ -1,3 +1,6 @@
+import { GroupMemberInvitationPort } from './application/group/group-member-invitation.port';
+import { HttpGroupMemberInvitationGateway } from './infrastructure/group/http-group-member-invitation.gateway';
+import { provideLocalization } from './presentation/i18n/provide-localization';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
@@ -19,6 +22,10 @@ import { GoogleIdTokenPort } from './application/auth/google-id-token.port';
 import { GoogleIdentityPort } from './application/auth/google-identity.port';
 import { GroupCreationPort } from './application/group/group-creation.port';
 import { GroupMembersPort } from './application/group/group-members.port';
+import { MemberGroupsPort } from './application/group/member-groups.port';
+import { GroupRenamingPort } from './application/group/group-renaming.port';
+import { HttpGroupRenamingGateway } from './infrastructure/group/http-group-renaming.gateway';
+import { HttpMemberGroupsGateway } from './infrastructure/group/http-member-groups.gateway';
 import { PendingGroupInvitationsPort } from './application/group/pending-group-invitations.port';
 import { GroupFinancialDashboardPort } from './application/ledger/group-financial-dashboard.port';
 import { CashPoolHistoryPort } from './application/ledger/cash-pool-history.port';
@@ -64,11 +71,15 @@ import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideLocalization(),
+    { provide: GroupMemberInvitationPort, useExisting: HttpGroupMemberInvitationGateway },
     provideBrowserGlobalErrorListeners(),
     provideCoprogoHttpClients(),
     provideRouter(routes),
     provideTanStackQuery(new QueryClient()),
     provideApiClient(),
+    { provide: MemberGroupsPort, useExisting: HttpMemberGroupsGateway },
+    { provide: GroupRenamingPort, useExisting: HttpGroupRenamingGateway },
     {
       provide: NavigationPort,
       useExisting: RouterNavigationAdapter,

@@ -1,0 +1,597 @@
+{
+  "errors": {
+    "cashPool": {
+      "insufficientBalance": "Le montant dépasse ce qui est disponible dans la caisse commune.",
+      "loadHistory": "L’historique de la caisse commune n’a pas pu être chargé.",
+      "withdraw": "Le retrait n’a pas pu être enregistré.",
+      "recordIncome": "Le revenu n’a pas pu être enregistré.",
+      "missingHistoryGroup": "Un groupe doit être choisi avant de charger son historique."
+    },
+    "auth": {
+      "googleNotConfigured": "La connexion Google n’est pas configurée.",
+      "googleUnavailable": "La connexion Google est indisponible dans ce navigateur.",
+      "signInUnavailable": "La connexion Google n’est pas disponible pour le moment."
+    },
+    "expenses": {
+      "loadDetail": "La dépense n’a pas pu être chargée.",
+      "loadList": "Les dépenses n’ont pas pu être chargées.",
+      "recordDecision": "La décision sur la participation n’a pas pu être enregistrée.",
+      "propose": "La dépense n’a pas pu être proposée.",
+      "missingListGroup": "Un groupe doit être initialisé avant de charger ses dépenses.",
+      "missingProposalGroup": "Un groupe doit être initialisé avant de proposer une dépense.",
+      "incompleteTarget": "La dépense demandée est incomplète.",
+      "missingDetailTarget": "Une dépense complète doit être sélectionnée avant son chargement.",
+      "noPendingParticipation": "Aucune participation en attente ne peut être validée.",
+      "missingRefusal": "Une dépense invalidée doit contenir son refus."
+    },
+    "groups": {
+      "create": "Le groupe n’a pas pu être créé.",
+      "loadMembers": "Les membres du groupe n’ont pas pu être chargés.",
+      "rename": "Le groupe n’a pas pu être renommé.",
+      "loadList": "Vos groupes n’ont pas pu être chargés.",
+      "noneSelected": "Aucun groupe n’est sélectionné.",
+      "missingMembersGroup": "Un groupe doit être initialisé avant de charger ses membres."
+    },
+    "invitations": {
+      "load": "Les invitations en attente n’ont pas pu être chargées.",
+      "accept": "L’invitation n’a pas pu être acceptée."
+    },
+    "dashboard": {
+      "load": "Le résumé du groupe n’a pas pu être chargé."
+    },
+    "debtReduction": {
+      "loadHistory": "Les opérations qui ont réduit cette dette n’ont pas pu être chargées.",
+      "missingMember": "Un membre doit être choisi avant de charger son historique."
+    },
+    "reimbursements": {
+      "record": "Le remboursement n’a pas pu être enregistré.",
+      "declare": "Le remboursement n’a pas pu être déclaré.",
+      "loadHistory": "Les remboursements n’ont pas pu être chargés.",
+      "invalidDate": "Date de remboursement invalide",
+      "invalidDeclarationDate": "Date de déclaration du remboursement invalide",
+      "inconsistentReview": "Décision de remboursement incohérente pour le statut à revoir.",
+      "missingReviewDate": "Date de décision du remboursement manquante.",
+      "invalidReviewDate": "Date de décision du remboursement invalide",
+      "accept": "Le remboursement n’a pas pu être accepté.",
+      "reject": "Le remboursement n’a pas pu être refusé.",
+      "missingHistoryGroup": "Un groupe doit être sélectionné avant de charger ses remboursements.",
+      "missingReviewTarget": "Le remboursement à vérifier est manquant.",
+      "recordReview": "La décision sur le remboursement n’a pas pu être enregistrée."
+    },
+    "documents": {
+      "invalidAttachmentDate": "Date d’ajout du justificatif invalide",
+      "invalidDownloadExpiration": "Date d’expiration du téléchargement invalide",
+      "remove": "Le justificatif n’a pas pu être retiré.",
+      "load": "Les justificatifs n’ont pas pu être chargés.",
+      "invalidRemovalDate": "Date de retrait du justificatif invalide",
+      "invalidLinkExpiration": "Date d’expiration du lien invalide",
+      "upload": "L’envoi direct du justificatif a échoué.",
+      "startUpload": "L’envoi du justificatif n’a pas pu être démarré.",
+      "confirmUpload": "La confirmation du justificatif a échoué.",
+      "missingExpense": "Une dépense doit être initialisée avant de charger ses justificatifs.",
+      "duplicateOrigin": "L’historique contient plusieurs versions avec la même origine.",
+      "multipleReplacements": "Une version de justificatif ne peut avoir qu’un seul remplacement.",
+      "historyCycle": "La chaîne de justificatifs contient un cycle.",
+      "sendFile": "Le fichier n’a pas pu être envoyé.",
+      "missingUploadGroup": "Un groupe doit être initialisé avant d’envoyer un justificatif."
+    },
+    "ownership": {
+      "recordShares": "Les quotes-parts n’ont pas pu être enregistrées.",
+      "loadHistory": "L’historique des quotes-parts n’a pas pu être chargé.",
+      "inconsistentHistory": "Historique des quotes-parts incohérent.",
+      "invalidRecordedDate": "Date d’enregistrement des quotes-parts invalide",
+      "missingHistoryGroup": "Un groupe doit être sélectionné avant de charger les quotes-parts.",
+      "noApplicableShares": "Aucune quote-part ne s’applique à cette date.",
+      "creatorOnly": "Seul le créateur peut modifier les quotes-parts."
+    },
+    "revenue": {
+      "preview": "La répartition des revenus n’a pas pu être calculée.",
+      "inconsistentPreview": "Prévisualisation incohérente avec le groupe demandé."
+    },
+    "unexpected": "Une erreur est survenue. Veuillez réessayer.",
+    "members": {
+      "invite": "L’invitation n’a pas pu être créée. Veuillez réessayer."
+    }
+  },
+  "app": {
+    "name": "Coprogo"
+  },
+  "auth": {
+    "signIn": {
+      "title": "Connexion et inscription en une seule étape.",
+      "description": "La première connexion Google crée automatiquement votre compte. Ensuite, vous retrouvez vos invitations en attente ou vous pouvez créer votre premier groupe.",
+      "principles": "Comment se connecter",
+      "accountCreationChip": "Compte créé à la première connexion",
+      "identityChip": "Compte associé à votre adresse e-mail Google vérifiée",
+      "invitationsChip": "Invitations en attente chargées ensuite",
+      "steps": {
+        "connect": {
+          "title": "Connectez-vous",
+          "description": "Votre compte est reconnu grâce à votre adresse e-mail Google vérifiée."
+        },
+        "invitations": {
+          "title": "Consultez vos invitations",
+          "description": "Les invitations reçues s’affichent dès la première connexion."
+        },
+        "createGroup": {
+          "title": "Créez votre groupe si besoin",
+          "description": "Sans invitation, vous pouvez enchaîner directement sur la création de groupe."
+        }
+      },
+      "personalAccount": "Compte personnel",
+      "continueWithGoogle": "Continuer avec Google",
+      "accountSetupHelp": "Aucun formulaire supplémentaire pour l’instant. Votre email suffit à l’initialisation du compte.",
+      "loading": "Connexion en cours...",
+      "footer": "L’inscription ne nécessite pas de formulaire distinct. La connexion crée directement votre compte."
+    },
+    "googleClientIdSetting": "APP_GOOGLE_CLIENT_ID",
+    "sessionActive": "Connexion active",
+    "backToSignIn": "Revenir à la connexion",
+    "signOut": "Se déconnecter"
+  },
+  "cashPool": {
+    "history": {
+      "title": "Historique de la caisse commune",
+      "description": "Revenus, répartitions entre membres et retraits",
+      "empty": "Aucune opération de caisse commune enregistrée.",
+      "incomeAdded": "Revenu ajouté",
+      "incomeDistribution": "Répartition du revenu :",
+      "ownShareConsumed": "{{p0}} pris sur sa part.",
+      "debtReduction": "{{p0}} ont réduit ce que les autres membres lui doivent.",
+      "withdrawalBy": "Retrait par {{p0}}"
+    },
+    "income": {
+      "title": "Enregistrer un revenu",
+      "description": "Le montant sera ajouté à la caisse commune et réparti entre les membres.",
+      "success": "Le revenu et sa répartition ont été enregistrés.",
+      "amount": "Montant du revenu en euros",
+      "receivedDate": "Date de réception",
+      "sharesDateHelp": "La date des quotes-parts détermine la répartition appliquée à ce revenu.",
+      "submit": "Enregistrer le revenu"
+    },
+    "withdrawal": {
+      "title": "Retirer de la caisse commune",
+      "description": "Le retrait sera enregistré dans l’historique des opérations du groupe.",
+      "success": "Le retrait a été enregistré.",
+      "amount": "Montant du retrait en euros",
+      "date": "Date du retrait",
+      "balanceHelp": "Vous ne pouvez pas retirer plus que le montant disponible. Si le retrait dépasse votre propre part, le surplus réduit ce que les autres membres vous doivent.",
+      "submit": "Enregistrer le retrait"
+    },
+    "title": "Caisse commune",
+    "availableBalance": "Solde disponible"
+  },
+  "common": {
+    "loadingOperations": "Lecture des opérations...",
+    "retry": "Réessayer",
+    "amountInEuros": "Montant en euros",
+    "remove": "Retirer",
+    "totalAmount": "Montant total",
+    "recordedBy": "Enregistrée par",
+    "date": "Date",
+    "onDate": "le {{p0}}",
+    "reason": "Motif :",
+    "optionalRefusalReason": "Motif du refus (facultatif)",
+    "approve": "Approuver",
+    "refuse": "Refuser",
+    "operationHistory": "Historique des opérations",
+    "backToGroup": "Retour au groupe",
+    "openGroup": "Ouvrir le groupe",
+    "cancel": "Annuler",
+    "rename": "Renommer",
+    "chooseMember": "Choisir un membre",
+    "accept": "Accepter",
+    "loadingHistory": "Chargement de l’historique...",
+    "language": "Langue",
+    "saving": "Enregistrement…"
+  },
+  "ownership": {
+    "sharesDate": "Date des quotes-parts",
+    "change": {
+      "title": "Modifier les quotes-parts",
+      "description": "Cette nouvelle répartition s’appliquera aux revenus à partir de la date indiquée.",
+      "success": "Les nouvelles quotes-parts ont été enregistrées.",
+      "submit": "Enregistrer les quotes-parts"
+    },
+    "effectiveDate": "Date d’effet",
+    "distribution": {
+      "title": "Répartition des revenus",
+      "help": "Indiquez une part positive pour chaque membre, pour un total de 100 %."
+    },
+    "memberShare": "Quote-part de {{p0}}",
+    "totalMustEqualHundred": "Le total doit être exactement égal à 100 %.",
+    "history": {
+      "title": "Historique des quotes-parts",
+      "description": "Consultez comment les revenus sont répartis entre les membres à chaque date d’effet.",
+      "empty": "Aucune répartition des revenus n’a encore été enregistrée."
+    },
+    "effectiveFrom": "Répartition applicable à partir du {{p0}}",
+    "applicableOn": "Quotes-parts applicables le {{p0}}"
+  },
+  "validation": {
+    "amount": {
+      "positiveTwoDecimals": "Indiquez un montant positif avec deux décimales au plus."
+    },
+    "income": {
+      "receivedDateRequired": "Indiquez la date de réception.",
+      "receivedDateInvalid": "Indiquez une date de réception valide.",
+      "completeForm": "Complétez le montant et les dates du revenu."
+    },
+    "ownership": {
+      "sharesDateRequired": "Indiquez la date des quotes-parts.",
+      "sharesDateInvalid": "Indiquez une date de quotes-parts valide.",
+      "effectiveDateRequired": "Indiquez la date d’effet.",
+      "effectiveDateInvalid": "Indiquez une date d’effet valide.",
+      "totalMustEqualHundred": "Le total doit être exactement égal à 100 %.",
+      "completeForm": "Complétez la date et les quotes-parts de chaque membre."
+    },
+    "withdrawal": {
+      "dateRequired": "Indiquez la date du retrait.",
+      "dateInvalid": "Indiquez une date de retrait valide.",
+      "completeForm": "Complétez le montant et la date du retrait."
+    },
+    "allocation": {
+      "tierParticipantsRequired": "Choisissez au moins un participant pour chaque tranche.",
+      "positiveThresholds": "Indiquez des seuils positifs avec deux décimales au plus.",
+      "increasingThresholds": "Les seuils doivent augmenter et rester inférieurs au montant total.",
+      "minimumTierContribution": "Chaque participant doit contribuer pour au moins un centime dans chaque tranche.",
+      "customParticipantRequired": "Indiquez un montant pour au moins un participant.",
+      "positiveAmounts": "Indiquez des montants positifs avec deux décimales au plus.",
+      "totalMismatch": "La somme des montants doit correspondre au montant total.",
+      "participantRequired": "Choisissez au moins un participant.",
+      "positiveMaximum": "Indiquez un montant maximum positif avec deux décimales au plus.",
+      "uncappedParticipantRequired": "Laissez au moins un participant sans montant maximum."
+    },
+    "expenses": {
+      "titleRequired": "Le titre est obligatoire.",
+      "titleBlank": "Le titre ne peut pas être vide.",
+      "waitForUpload": "Attendez la fin de l’envoi du justificatif avant de proposer la dépense."
+    },
+    "groups": {
+      "nameLength": "Indiquez un nom de groupe de 1 à 100 caractères."
+    },
+    "reimbursements": {
+      "payerRequired": "Choisissez la personne qui vous a remboursé.",
+      "dateRequired": "Indiquez la date du remboursement.",
+      "dateInvalid": "Indiquez une date de remboursement valide.",
+      "completeReceived": "Complétez les informations du remboursement.",
+      "recipientRequired": "Choisissez la personne que vous avez remboursée.",
+      "documentRequired": "Ajoutez au moins un justificatif.",
+      "waitForUpload": "Attendez la fin de l’envoi du justificatif.",
+      "completeSent": "Complétez les informations et ajoutez un justificatif."
+    },
+    "revenue": {
+      "distributionDateRequired": "Indiquez la date de répartition.",
+      "completePreview": "Complétez le montant et la date de répartition."
+    },
+    "date": {
+      "invalid": "Indiquez une date valide."
+    },
+    "members": {
+      "email": "Saisissez une adresse email valide."
+    }
+  },
+  "expenses": {
+    "list": {
+      "title": "Dépenses",
+      "recent": "Dernières dépenses enregistrées",
+      "loadFailed": "Impossible de charger les dépenses.",
+      "empty": "Aucune dépense enregistrée.",
+      "description": "Retrouvez les dépenses enregistrées pour ce groupe."
+    },
+    "proposal": {
+      "title": "Proposer une dépense",
+      "success": "La dépense a été proposée.",
+      "submit": "Proposer la dépense"
+    },
+    "fields": {
+      "title": "Titre"
+    },
+    "eyebrow": "Dépenses du groupe",
+    "detail": {
+      "title": "Détail de la dépense",
+      "description": "Consultez le montant attribué à chaque membre et son état de validation.",
+      "loading": "Chargement de la dépense...",
+      "refusedTitle": "Dépense refusée",
+      "refusedHelp": "Cette dépense n’est pas prise en compte et reste dans l’historique. Pour la remplacer, créez une nouvelle dépense.",
+      "refusedBy": "Refusée par"
+    },
+    "backToList": "Retour aux dépenses",
+    "createReplacement": "Créer une nouvelle dépense",
+    "participations": {
+      "title": "Participations"
+    },
+    "participation": {
+      "validateLabel": "Valider ma participation",
+      "mine": "Ma participation",
+      "approveLabel": "Approuver ma participation",
+      "refuseLabel": "Refuser ma participation"
+    },
+    "documents": {
+      "title": "Justificatifs de la dépense"
+    }
+  },
+  "documents": {
+    "title": "Justificatifs",
+    "optionalHelp": "Un justificatif est facultatif.",
+    "omitAttachment": "Ne pas joindre de justificatif",
+    "attachedTitle": "Justificatifs joints",
+    "noneAttached": "Aucun justificatif joint.",
+    "addedByAt": "Ajouté par {{p0}} le {{p1}}.",
+    "openNamed": "Consulter ou télécharger {{p0}}",
+    "loading": "Chargement des justificatifs…",
+    "noneAdded": "Aucun justificatif n’a été ajouté.",
+    "history": {
+      "title": "Historique des versions du justificatif",
+      "chronologicalLabel": "Versions du justificatif, de la plus ancienne à la plus récente",
+      "replacesVersion": "Remplace une version précédente."
+    },
+    "addedBy": "Ajouté par {{p0}} le",
+    "removedBy": "Supprimé par {{p0}} le",
+    "removing": "Retrait du justificatif en cours…",
+    "removalSuccess": "Le justificatif a été retiré. Il reste visible dans l’historique.",
+    "add": "Ajouter un justificatif",
+    "uploading": "Envoi du justificatif en cours…",
+    "uploadSuccess": "Le justificatif a été ajouté.",
+    "removeNamed": "Retirer {{p0}}",
+    "removeAttachmentNamed": "Retirer le justificatif {{p0}}"
+  },
+  "groups": {
+    "loadingMembers": "Chargement des membres…",
+    "historyLabel": "Historique du groupe",
+    "create": {
+      "title": "Créer un groupe",
+      "emptyInvitationsHelp": "Aucune invitation en attente. Vous pouvez créer un groupe pour partager vos dépenses.",
+      "success": "Groupe créé avec succès. Identifiant du groupe :",
+      "loading": "Création…"
+    },
+    "fields": {
+      "name": "Nom du groupe"
+    },
+    "shortIdentifier": "Groupe {{p0}}",
+    "mine": {
+      "title": "Mes groupes",
+      "loading": "Chargement de vos groupes…",
+      "empty": "Vous n’avez pas encore rejoint de groupe."
+    },
+    "createdBy": "Créé par {{p0}}",
+    "identifier": "Identifiant du groupe : {{p0}}",
+    "rename": {
+      "newName": "Nouveau nom du groupe",
+      "submit": "Enregistrer le nom",
+      "accessibleLabel": "Renommer le groupe {{p0}}"
+    },
+    "unnamedByCreator": "Groupe créé par {{p0}}"
+  },
+  "allocation": {
+    "mode": "Mode de répartition",
+    "equal": "Parts égales",
+    "equalWithCaps": "Parts égales avec plafonds",
+    "cumulativeTiers": "Répartition par tranches",
+    "custom": "Montants personnalisés",
+    "participants": "Participants",
+    "caps": {
+      "participants": "Participants et montants maximums",
+      "help": "Un montant maximum est facultatif. Laissez au moins un participant sans maximum.",
+      "maximumForMember": "Montant maximum pour {{p0}}"
+    },
+    "tiers": {
+      "help": "Ajoutez des seuils intermédiaires. La dernière tranche va toujours jusqu’au montant total.",
+      "number": "Tranche {{p0}}",
+      "thresholdInEuros": "Seuil de la tranche {{p0}} en euros",
+      "participants": "Participants de la tranche {{p0}}",
+      "removeCurrent": "Supprimer cette tranche",
+      "add": "Ajouter une tranche",
+      "final": "Tranche finale jusqu’au montant total",
+      "removeLabel": "Supprimer la tranche {{p0}}"
+    },
+    "customHelp": "Saisissez des montants positifs. Leur somme doit correspondre exactement au montant total. Le créateur doit inclure sa propre part.",
+    "customAmountForMember": "Montant pour {{p0}}"
+  },
+  "dashboard": {
+    "eyebrow": "Résumé du groupe",
+    "title": "Vue du groupe",
+    "description": "Les montants affichés sont calculés à partir de l'historique des opérations du groupe.",
+    "loadingTitle": "Chargement du résumé...",
+    "loadingDescription": "Lecture des soldes, du solde de caisse commune et des parts par membre.",
+    "loadFailed": "Impossible de charger le résumé",
+    "links": {
+      "expenses": "Voir les dépenses",
+      "reimbursements": "Voir les remboursements",
+      "ownershipShares": "Voir les quotes-parts"
+    },
+    "memberBalances": {
+      "title": "Soldes des membres",
+      "description": "Ce qui reste à payer ou recevoir",
+      "empty": "Aucune dette ou créance ouverte."
+    },
+    "cashPoolShares": {
+      "title": "Parts de caisse",
+      "description": "Revenus restant attribués à chaque membre",
+      "empty": "Aucune part de caisse commune en cours."
+    }
+  },
+  "revenue": {
+    "preview": {
+      "title": "Prévisualiser une répartition",
+      "description": "Vérifiez comment un revenu serait réparti selon les quotes-parts applicables à une date donnée.",
+      "amount": "Montant à répartir en euros",
+      "date": "Date de répartition",
+      "submit": "Prévisualiser la répartition",
+      "distributionOf": "Répartition du {{p0}}"
+    },
+    "eyebrow": "Revenus du groupe"
+  },
+  "balances": {
+    "toReceive": "À recevoir",
+    "toPay": "À payer"
+  },
+  "debtReduction": {
+    "title": "Opérations ayant réduit cette dette",
+    "showHistory": "Voir ce qui a réduit cette dette",
+    "empty": "Aucune opération enregistrée n’a réduit la dette de ce membre.",
+    "listLabel": "Opérations ayant réduit cette dette :",
+    "types": {
+      "reimbursement": "Remboursement effectué",
+      "expense": "Dépense ayant réduit la dette",
+      "withdrawal": "Retrait de caisse commune"
+    }
+  },
+  "statuses": {
+    "pendingApproval": "En attente de validation",
+    "needsReplacement": "À reprendre",
+    "pendingValidation": "À valider",
+    "pendingReview": "À revoir",
+    "approved": "Validée",
+    "refused": "Refusée",
+    "accepted": "Accepté",
+    "rejected": "Refusé"
+  },
+  "invitations": {
+    "sentBy": "Invitation envoyée par {{p0}}",
+    "informationLabel": "Informations de l’invitation",
+    "joinGroupHelp": "Cette invitation vous permet de rejoindre le groupe",
+    "page": {
+      "title": "Vos groupes et invitations",
+      "description": "Retrouvez vos groupes, acceptez une invitation ou créez un groupe."
+    },
+    "loading": "Chargement de vos invitations...",
+    "initializingSession": "Initialisation de votre session et chargement des invitations en attente.",
+    "loadFailed": "Impossible de charger vos invitations",
+    "pending": "Invitations en attente",
+    "accepting": "Acceptation...",
+    "accept": "Accepter l’invitation"
+  },
+  "reimbursements": {
+    "received": {
+      "title": "Enregistrer un remboursement reçu",
+      "description": "Indiquez qui vous a remboursé, sans confirmation nécessaire.",
+      "success": "Le remboursement a été enregistré.",
+      "payer": "Personne qui vous a remboursé",
+      "submit": "Enregistrer le remboursement"
+    },
+    "amount": "Montant remboursé en euros",
+    "date": "Date du remboursement",
+    "sent": {
+      "title": "Déclarer un remboursement envoyé",
+      "description": "Ajoutez un justificatif pour que la personne remboursée puisse vérifier votre déclaration.",
+      "success": "Le remboursement a été déclaré.",
+      "recipient": "Personne remboursée",
+      "submit": "Déclarer le remboursement"
+    },
+    "title": "Remboursements",
+    "history": {
+      "description": "Retrouvez les remboursements enregistrés pour ce groupe.",
+      "title": "Historique des remboursements",
+      "empty": "Aucun remboursement enregistré."
+    },
+    "paidBy": "Payé par",
+    "receivedBy": "Reçu par",
+    "review": {
+      "statusLabel": "Vérification :",
+      "refusalReason": "Motif du refus : {{p0}}",
+      "title": "Vérifier ce remboursement",
+      "acceptLabel": "Accepter le remboursement",
+      "refuseLabel": "Refuser le remboursement"
+    },
+    "documents": {
+      "label": "Justificatifs joints au remboursement"
+    }
+  },
+  "languages": {
+    "french": "Français",
+    "portuguese": "Português"
+  },
+  "members": {
+    "link": "Membres",
+    "eyebrow": "Votre groupe",
+    "title": "Membres du groupe",
+    "description": "Retrouvez les membres du groupe et invitez vos proches à vous rejoindre.",
+    "back": "Retour au groupe",
+    "listTitle": "Membres actuels",
+    "joinedAt": "Membre depuis le",
+    "empty": "Aucun membre à afficher.",
+    "loading": "Chargement des membres…",
+    "inviteTitle": "Inviter un membre",
+    "inviteHelp": "Tous les membres peuvent inviter un proche. Utilisez l’adresse email de son compte Google. La personne retrouvera son invitation en se connectant à Coprogo.",
+    "email": "Adresse email Google",
+    "invite": "Créer l’invitation",
+    "inviting": "Création en cours…",
+    "invited": "Invitation créée pour {{email}}. Cette personne doit l’accepter dans Coprogo pour rejoindre le groupe."
+  },
+  "layout": {
+    "signIn": {
+      "eyebrow": "La vie de groupe, plus claire",
+      "title": "Les dépenses partagées, plus simples.",
+      "lead": "Suivez les dépenses, les remboursements et les revenus de votre groupe dans un espace commun.",
+      "invitationsTitle": "Retrouvez vos invitations",
+      "invitationsHelp": "Rejoignez facilement le groupe qui vous a invité.",
+      "expensesTitle": "Suivez les dépenses",
+      "expensesHelp": "Consultez les montants, les justificatifs et ce qui reste à régler.",
+      "revenueTitle": "Partagez les revenus",
+      "revenueHelp": "Retrouvez la répartition appliquée à chaque membre.",
+      "welcome": "Bienvenue",
+      "accountHelp": "Votre compte est créé automatiquement lors de votre première connexion.",
+      "unavailable": "La connexion Google n’est pas disponible dans cet environnement. Contactez l’administrateur.",
+      "footer": "Après la connexion, vous pourrez accepter une invitation ou créer votre premier groupe.",
+      "googleButton": "Bouton de connexion Google"
+    },
+    "expenses": {
+      "recordedAmounts": "Montants enregistrés dans ce groupe",
+      "documents": "Voir les justificatifs",
+      "amount": "Montant de la dépense",
+      "summary": "Résumé de la dépense",
+      "allocations": "Répartition par membre"
+    },
+    "dashboard": {
+      "quickLinks": "Accès directs",
+      "overviewKicker": "En un coup d’œil",
+      "overview": "Vue d’ensemble",
+      "overviewHelp": "Les montants qui résument la situation actuelle du groupe.",
+      "cashCaption": "Revenus et retraits enregistrés pour le groupe.",
+      "operations": "Opérations",
+      "cashTitle": "Gérer la caisse commune",
+      "cashHelp": "Enregistrez les revenus et les retraits, puis consultez les mouvements.",
+      "activityKicker": "Suivi du groupe",
+      "activityTitle": "Activité du groupe",
+      "activityHelp": "Consultez les dépenses récentes et les revenus attribués à chacun.",
+      "proposalHelp": "Enregistrez une dépense convenue en dehors de l’application."
+    },
+    "newOperation": "Nouvelle opération",
+    "invitations": {
+      "getStarted": "Pour commencer",
+      "createTitle": "Commencer avec un groupe",
+      "createHelp": "Créez un espace pour suivre ensemble les dépenses et les revenus partagés.",
+      "joinKicker": "À rejoindre",
+      "joinTitle": "Groupes auxquels vous êtes invité",
+      "joinHelp": "Vérifiez les détails avant d’accepter une invitation."
+    },
+    "reimbursements": {
+      "recordTitle": "Enregistrer un remboursement",
+      "recordHelp": "Choisissez la façon dont le remboursement a été effectué.",
+      "historyKicker": "Suivi",
+      "historyHelp": "Les mouvements et justificatifs restent consultables après leur enregistrement."
+    },
+    "ownership": {
+      "manage": "Gestion des revenus",
+      "changeHelp": "Une nouvelle répartition s’applique aux revenus à partir de sa date d’effet.",
+      "historyKicker": "Historique",
+      "historyTitle": "Répartitions enregistrées",
+      "historyHelp": "Chaque changement reste visible avec sa date d’application et son auteur."
+    },
+    "preview": {
+      "simulation": "Simulation",
+      "requestTitle": "Montant et date d’application",
+      "requestHelp": "La date détermine les quotes-parts utilisées pour cette estimation.",
+      "result": "Résultat",
+      "total": "Montant réparti : {{p0}}"
+    },
+    "navigation": {
+      "home": "Coprogo, accueil",
+      "label": "Navigation principale",
+      "shares": "Quotes-parts",
+      "distribution": "Répartition",
+      "invitations": "Invitations"
+    }
+  }
+}

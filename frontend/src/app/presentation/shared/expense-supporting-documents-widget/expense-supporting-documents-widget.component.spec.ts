@@ -1,3 +1,4 @@
+import { provideLocalization } from '../../i18n/provide-localization';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 
@@ -18,6 +19,7 @@ describe('ExpenseSupportingDocumentsWidgetComponent', () => {
     documentsPort = new StubExpenseSupportingDocumentsPort();
     TestBed.configureTestingModule({
       providers: [
+        provideLocalization(),
         provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
         { provide: ExpenseSupportingDocumentsPort, useValue: documentsPort },
         { provide: ExpenseSupportingDocumentDeletionPort, useValue: new StubDeletionPort() },
@@ -68,7 +70,7 @@ describe('ExpenseSupportingDocumentsWidgetComponent', () => {
       await waitFor(() => host.querySelector('[role="alert"]') !== null);
 
       expect(host.querySelector('[role="alert"]')?.textContent?.trim()).toBe(
-        'Lecture indisponible',
+        'Une erreur est survenue. Veuillez réessayer.',
       );
       expect(host.querySelector<HTMLButtonElement>('button')?.textContent?.trim()).toBe(
         'Réessayer',

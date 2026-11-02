@@ -39,11 +39,32 @@ paths:
       security:
       - bearerAuth: []
   /api/groups:
+    get:
+      tags:
+      - Groups
+      summary: List the groups of the authenticated member
+      operationId: listMemberGroups
+      responses:
+        "200":
+          description: listMemberGroups 200 response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MemberGroupResponse"
+      security:
+      - bearerAuth: []
     post:
       tags:
       - Groups
       summary: Create a new group for the authenticated member
       operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGroupRequest"
       responses:
         "200":
           description: create 200 response
@@ -528,6 +549,30 @@ paths:
                 $ref: "#/components/schemas/MemberDebtReductionHistoryResponse"
       security:
       - bearerAuth: []
+  /api/groups/{groupId}/name:
+    patch:
+      tags:
+      - Groups
+      summary: Rename a group as its creator
+      operationId: renameGroup
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RenameGroupRequest"
+        required: true
+      responses:
+        "204":
+          description: renameGroup 204 response
+      security:
+      - bearerAuth: []
   /api/groups/{groupId}/ownership-shares:
     get:
       tags:
@@ -992,6 +1037,12 @@ components:
           type: string
           enum:
           - WITHDRAWAL
+    CreateGroupRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
     CreateGroupResponse:
       required:
       - group
@@ -1464,6 +1515,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/GroupInvitationResponse"
+        name:
+          type: string
+          nullable: true
     InviteMemberRequest:
       required:
       - invitedMember
@@ -1524,6 +1578,27 @@ components:
       - DIRECT_REIMBURSEMENT
       - COMPENSATING_EXPENSE
       - CASH_POOL_WITHDRAWAL
+    MemberGroupResponse:
+      required:
+      - canRename
+      - createdAt
+      - createdBy
+      - group
+      type: object
+      properties:
+        group:
+          type: string
+          format: uuid
+        createdBy:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        name:
+          type: string
+          nullable: true
+        canRename:
+          type: boolean
     OwnershipShareChangeResponse:
       required:
       - change
@@ -1755,6 +1830,13 @@ components:
           format: date-time
         download:
           $ref: "#/components/schemas/ReimbursementDocumentDownloadResponse"
+    RenameGroupRequest:
+      required:
+      - name
+      type: object
+      properties:
+        name:
+          type: string
     ReplaceExpenseSupportingDocumentRequest:
       required:
       - replacementUploadIntent

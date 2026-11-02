@@ -1,3 +1,5 @@
+import { FinancialFormatter } from '../i18n/financial-formatter';
+import { provideLocalization } from '../i18n/provide-localization';
 import { Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { submit } from '@angular/forms/signals';
@@ -18,7 +20,7 @@ describe('RevenueDistributionPreviewPageViewModel', () => {
   beforeEach(() => {
     port = new StubRevenueDistributionPreviewPort();
     TestBed.configureTestingModule({
-      providers: [provideTanStackQuery(new QueryClient())],
+      providers: [provideLocalization(), provideTanStackQuery(new QueryClient())],
     });
     injector = TestBed.inject(Injector);
   });
@@ -69,7 +71,7 @@ describe('RevenueDistributionPreviewPageViewModel', () => {
       await expect(submit(viewModel.form)).resolves.toBe(false);
 
       expect(viewModel.groupId).toBeNull();
-      expect(viewModel.routeErrorMessage).toBe('Aucun groupe n’est sélectionné.');
+      expect(viewModel.routeErrorMessage).toBe('errors.groups.noneSelected');
       expect(port.queries).toEqual([]);
     });
 
@@ -88,7 +90,12 @@ describe('RevenueDistributionPreviewPageViewModel', () => {
   });
 
   const createViewModel = (route: ActivatedRoute): RevenueDistributionPreviewPageViewModel => {
-    const viewModel = new RevenueDistributionPreviewPageViewModel(route, port, injector);
+    const viewModel = new RevenueDistributionPreviewPageViewModel(
+      route,
+      port,
+      injector,
+      TestBed.inject(FinancialFormatter),
+    );
     TestBed.tick();
     return viewModel;
   };

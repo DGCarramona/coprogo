@@ -1,3 +1,4 @@
+import { provideLocalization } from '../i18n/provide-localization';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ReimbursementSupportingDocumentsComponent } from './reimbursement-supporting-documents.component';
@@ -57,7 +58,10 @@ const createFixture = (
     downloadUrl: string;
   }[],
 ): ComponentFixture<ReimbursementSupportingDocumentsComponent> => {
-  TestBed.configureTestingModule({ imports: [ReimbursementSupportingDocumentsComponent] });
+  TestBed.configureTestingModule({
+    providers: [provideLocalization()],
+    imports: [ReimbursementSupportingDocumentsComponent],
+  });
   const fixture = TestBed.createComponent(ReimbursementSupportingDocumentsComponent);
   fixture.componentRef.setInput('documents', documents);
   return fixture;

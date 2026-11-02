@@ -1,0 +1,597 @@
+{
+  "errors": {
+    "cashPool": {
+      "insufficientBalance": "O montante excede o valor disponível na caixa comum.",
+      "loadHistory": "Não foi possível carregar o histórico da caixa comum.",
+      "withdraw": "Não foi possível registar o levantamento.",
+      "recordIncome": "Não foi possível registar a receita.",
+      "missingHistoryGroup": "Escolha um grupo antes de carregar o histórico."
+    },
+    "auth": {
+      "googleNotConfigured": "A ligação ao Google não está configurada.",
+      "googleUnavailable": "A ligação ao Google não está disponível neste navegador.",
+      "signInUnavailable": "O início de sessão com o Google não está disponível neste momento."
+    },
+    "expenses": {
+      "loadDetail": "Não foi possível carregar a despesa.",
+      "loadList": "Não foi possível carregar as despesas.",
+      "recordDecision": "Não foi possível registar a decisão sobre a participação.",
+      "propose": "Não foi possível propor a despesa.",
+      "missingListGroup": "Escolha um grupo antes de carregar as despesas.",
+      "missingProposalGroup": "Escolha um grupo antes de propor uma despesa.",
+      "incompleteTarget": "A despesa pedida está incompleta.",
+      "missingDetailTarget": "Selecione uma despesa completa antes de a carregar.",
+      "noPendingParticipation": "Não há participações pendentes que possam ser validadas.",
+      "missingRefusal": "Uma despesa invalidada deve incluir a recusa."
+    },
+    "groups": {
+      "create": "Não foi possível criar o grupo.",
+      "loadMembers": "Não foi possível carregar os membros do grupo.",
+      "rename": "Não foi possível alterar o nome do grupo.",
+      "loadList": "Não foi possível carregar os seus grupos.",
+      "noneSelected": "Nenhum grupo selecionado.",
+      "missingMembersGroup": "Escolha um grupo antes de carregar os membros."
+    },
+    "invitations": {
+      "load": "Não foi possível carregar os convites pendentes.",
+      "accept": "Não foi possível aceitar o convite."
+    },
+    "dashboard": {
+      "load": "Não foi possível carregar o resumo do grupo."
+    },
+    "debtReduction": {
+      "loadHistory": "Não foi possível carregar as operações que reduziram esta dívida.",
+      "missingMember": "Escolha um membro antes de carregar o histórico."
+    },
+    "reimbursements": {
+      "record": "Não foi possível registar o reembolso.",
+      "declare": "Não foi possível declarar o reembolso.",
+      "loadHistory": "Não foi possível carregar os reembolsos.",
+      "invalidDate": "Data de reembolso inválida",
+      "invalidDeclarationDate": "Data de declaração do reembolso inválida",
+      "inconsistentReview": "Decisão de reembolso incompatível com o estado de revisão.",
+      "missingReviewDate": "Falta a data da decisão sobre o reembolso.",
+      "invalidReviewDate": "Data da decisão sobre o reembolso inválida",
+      "accept": "Não foi possível aceitar o reembolso.",
+      "reject": "Não foi possível recusar o reembolso.",
+      "missingHistoryGroup": "Escolha um grupo antes de carregar os reembolsos.",
+      "missingReviewTarget": "Falta o reembolso a verificar.",
+      "recordReview": "Não foi possível registar a decisão sobre o reembolso."
+    },
+    "documents": {
+      "invalidAttachmentDate": "Data de adição do comprovativo inválida",
+      "invalidDownloadExpiration": "Data de expiração da transferência inválida",
+      "remove": "Não foi possível remover o comprovativo.",
+      "load": "Não foi possível carregar os comprovativos.",
+      "invalidRemovalDate": "Data de remoção do comprovativo inválida",
+      "invalidLinkExpiration": "Data de expiração da ligação inválida",
+      "upload": "Não foi possível enviar o comprovativo.",
+      "startUpload": "Não foi possível iniciar o envio do comprovativo.",
+      "confirmUpload": "Não foi possível confirmar o comprovativo.",
+      "missingExpense": "Selecione uma despesa antes de carregar os comprovativos.",
+      "duplicateOrigin": "O histórico contém várias versões com a mesma origem.",
+      "multipleReplacements": "Uma versão de comprovativo só pode ser substituída uma vez.",
+      "historyCycle": "O histórico de comprovativos contém uma referência circular.",
+      "sendFile": "Não foi possível enviar o ficheiro.",
+      "missingUploadGroup": "Escolha um grupo antes de enviar um comprovativo."
+    },
+    "ownership": {
+      "recordShares": "Não foi possível registar as quotas de propriedade.",
+      "loadHistory": "Não foi possível carregar o histórico das quotas de propriedade.",
+      "inconsistentHistory": "Histórico das quotas de propriedade inconsistente.",
+      "invalidRecordedDate": "Data de registo das quotas de propriedade inválida",
+      "missingHistoryGroup": "Escolha um grupo antes de carregar as quotas de propriedade.",
+      "noApplicableShares": "Nenhuma quota de propriedade se aplica a esta data.",
+      "creatorOnly": "Só o criador pode alterar as quotas de propriedade."
+    },
+    "revenue": {
+      "preview": "Não foi possível calcular a distribuição das receitas.",
+      "inconsistentPreview": "Pré-visualização incompatível com o grupo pedido."
+    },
+    "unexpected": "Ocorreu um erro. Tente novamente.",
+    "members": {
+      "invite": "Não foi possível criar o convite. Tente novamente."
+    }
+  },
+  "app": {
+    "name": "Coprogo"
+  },
+  "auth": {
+    "signIn": {
+      "title": "Inicie sessão e crie a sua conta num único passo.",
+      "description": "O primeiro início de sessão com o Google cria automaticamente a sua conta. Depois, pode consultar os convites pendentes ou criar o seu primeiro grupo.",
+      "principles": "Como iniciar sessão",
+      "accountCreationChip": "Conta criada no primeiro início de sessão",
+      "identityChip": "Conta associada ao endereço de e-mail Google verificado",
+      "invitationsChip": "Convites pendentes disponíveis após iniciar sessão",
+      "steps": {
+        "connect": {
+          "title": "Inicie sessão",
+          "description": "A sua conta é reconhecida através do seu endereço de e-mail Google verificado."
+        },
+        "invitations": {
+          "title": "Consulte os seus convites",
+          "description": "Os convites recebidos aparecem logo após o primeiro início de sessão."
+        },
+        "createGroup": {
+          "title": "Crie o seu grupo, se necessário",
+          "description": "Se não tiver convites, pode criar um grupo de imediato."
+        }
+      },
+      "personalAccount": "Conta pessoal",
+      "continueWithGoogle": "Continuar com o Google",
+      "accountSetupHelp": "Não precisa de preencher outro formulário. O seu endereço de e-mail é suficiente para criar a conta.",
+      "loading": "A iniciar sessão...",
+      "footer": "Não precisa de um formulário de inscrição separado. Ao iniciar sessão, a sua conta é criada automaticamente."
+    },
+    "googleClientIdSetting": "APP_GOOGLE_CLIENT_ID",
+    "sessionActive": "Sessão iniciada",
+    "backToSignIn": "Voltar ao início de sessão",
+    "signOut": "Terminar sessão"
+  },
+  "cashPool": {
+    "history": {
+      "title": "Histórico da caixa comum",
+      "description": "Receitas, distribuições entre membros e levantamentos",
+      "empty": "Ainda não foram registadas operações na caixa comum.",
+      "incomeAdded": "Receita adicionada",
+      "incomeDistribution": "Distribuição da receita:",
+      "ownShareConsumed": "{{p0}} retirados da sua parte.",
+      "debtReduction": "{{p0}} reduziram o que os outros membros lhe devem.",
+      "withdrawalBy": "Levantamento por {{p0}}"
+    },
+    "income": {
+      "title": "Registar uma receita",
+      "description": "O montante será adicionado à caixa comum e distribuído entre os membros.",
+      "success": "A receita e a respetiva distribuição foram registadas.",
+      "amount": "Montante da receita em euros",
+      "receivedDate": "Data de recebimento",
+      "sharesDateHelp": "A data das quotas de propriedade determina a distribuição aplicada a esta receita.",
+      "submit": "Registar a receita"
+    },
+    "withdrawal": {
+      "title": "Levantar da caixa comum",
+      "description": "O levantamento será registado no histórico de operações do grupo.",
+      "success": "O levantamento foi registado.",
+      "amount": "Montante do levantamento em euros",
+      "date": "Data do levantamento",
+      "balanceHelp": "Não pode levantar mais do que o montante disponível. Se o levantamento exceder a sua parte, o excedente reduz o que os outros membros lhe devem.",
+      "submit": "Registar o levantamento"
+    },
+    "title": "Caixa comum",
+    "availableBalance": "Saldo disponível"
+  },
+  "common": {
+    "loadingOperations": "A carregar as operações...",
+    "retry": "Tentar novamente",
+    "amountInEuros": "Montante em euros",
+    "remove": "Remover",
+    "totalAmount": "Montante total",
+    "recordedBy": "Registada por",
+    "date": "Data",
+    "onDate": "em {{p0}}",
+    "reason": "Motivo:",
+    "optionalRefusalReason": "Motivo da recusa (facultativo)",
+    "approve": "Aprovar",
+    "refuse": "Recusar",
+    "operationHistory": "Histórico de operações",
+    "backToGroup": "Voltar ao grupo",
+    "openGroup": "Abrir o grupo",
+    "cancel": "Cancelar",
+    "rename": "Alterar o nome",
+    "chooseMember": "Escolher um membro",
+    "accept": "Aceitar",
+    "loadingHistory": "A carregar o histórico...",
+    "language": "Idioma",
+    "saving": "A guardar…"
+  },
+  "ownership": {
+    "sharesDate": "Data das quotas de propriedade",
+    "change": {
+      "title": "Alterar as quotas de propriedade",
+      "description": "Esta nova distribuição será aplicada às receitas a partir da data indicada.",
+      "success": "As novas quotas de propriedade foram registadas.",
+      "submit": "Registar as quotas de propriedade"
+    },
+    "effectiveDate": "Data de entrada em vigor",
+    "distribution": {
+      "title": "Distribuição das receitas",
+      "help": "Indique uma quota positiva para cada membro, num total de 100%."
+    },
+    "memberShare": "Quota de propriedade de {{p0}}",
+    "totalMustEqualHundred": "O total deve ser exatamente 100%.",
+    "history": {
+      "title": "Histórico das quotas de propriedade",
+      "description": "Consulte a distribuição das receitas entre os membros em cada data de entrada em vigor.",
+      "empty": "Ainda não foi registada nenhuma distribuição de receitas."
+    },
+    "effectiveFrom": "Distribuição aplicável a partir de {{p0}}",
+    "applicableOn": "Quotas de propriedade aplicáveis em {{p0}}"
+  },
+  "validation": {
+    "amount": {
+      "positiveTwoDecimals": "Indique um montante positivo com, no máximo, duas casas decimais."
+    },
+    "income": {
+      "receivedDateRequired": "Indique a data de recebimento.",
+      "receivedDateInvalid": "Indique uma data de recebimento válida.",
+      "completeForm": "Preencha o montante e as datas da receita."
+    },
+    "ownership": {
+      "sharesDateRequired": "Indique a data das quotas de propriedade.",
+      "sharesDateInvalid": "Indique uma data válida para as quotas de propriedade.",
+      "effectiveDateRequired": "Indique a data de entrada em vigor.",
+      "effectiveDateInvalid": "Indique uma data de entrada em vigor válida.",
+      "totalMustEqualHundred": "O total deve ser exatamente 100%.",
+      "completeForm": "Preencha a data e as quotas de propriedade de cada membro."
+    },
+    "withdrawal": {
+      "dateRequired": "Indique a data do levantamento.",
+      "dateInvalid": "Indique uma data de levantamento válida.",
+      "completeForm": "Preencha o montante e a data do levantamento."
+    },
+    "allocation": {
+      "tierParticipantsRequired": "Escolha pelo menos um participante para cada escalão.",
+      "positiveThresholds": "Indique limites positivos com, no máximo, duas casas decimais.",
+      "increasingThresholds": "Os limites devem ser crescentes e inferiores ao montante total.",
+      "minimumTierContribution": "Cada participante deve contribuir com pelo menos um cêntimo em cada escalão.",
+      "customParticipantRequired": "Indique um montante para pelo menos um participante.",
+      "positiveAmounts": "Indique montantes positivos com, no máximo, duas casas decimais.",
+      "totalMismatch": "A soma dos montantes deve corresponder ao montante total.",
+      "participantRequired": "Escolha pelo menos um participante.",
+      "positiveMaximum": "Indique um montante máximo positivo com, no máximo, duas casas decimais.",
+      "uncappedParticipantRequired": "Deixe pelo menos um participante sem montante máximo."
+    },
+    "expenses": {
+      "titleRequired": "O título é obrigatório.",
+      "titleBlank": "O título não pode estar vazio.",
+      "waitForUpload": "Aguarde a conclusão do envio do comprovativo antes de propor a despesa."
+    },
+    "groups": {
+      "nameLength": "Indique um nome de grupo com 1 a 100 caracteres."
+    },
+    "reimbursements": {
+      "payerRequired": "Escolha a pessoa que o reembolsou.",
+      "dateRequired": "Indique a data do reembolso.",
+      "dateInvalid": "Indique uma data de reembolso válida.",
+      "completeReceived": "Preencha os dados do reembolso.",
+      "recipientRequired": "Escolha a pessoa que reembolsou.",
+      "documentRequired": "Adicione pelo menos um comprovativo.",
+      "waitForUpload": "Aguarde a conclusão do envio do comprovativo.",
+      "completeSent": "Preencha os dados e adicione um comprovativo."
+    },
+    "revenue": {
+      "distributionDateRequired": "Indique a data de distribuição.",
+      "completePreview": "Preencha o montante e a data de distribuição."
+    },
+    "date": {
+      "invalid": "Indique uma data válida."
+    },
+    "members": {
+      "email": "Introduza um endereço de email válido."
+    }
+  },
+  "expenses": {
+    "list": {
+      "title": "Despesas",
+      "recent": "Últimas despesas registadas",
+      "loadFailed": "Não foi possível carregar as despesas.",
+      "empty": "Ainda não foram registadas despesas.",
+      "description": "Consulte as despesas registadas neste grupo."
+    },
+    "proposal": {
+      "title": "Propor uma despesa",
+      "success": "A despesa foi proposta.",
+      "submit": "Propor a despesa"
+    },
+    "fields": {
+      "title": "Título"
+    },
+    "eyebrow": "Despesas do grupo",
+    "detail": {
+      "title": "Detalhes da despesa",
+      "description": "Consulte o montante atribuído a cada membro e o estado de validação.",
+      "loading": "A carregar a despesa...",
+      "refusedTitle": "Despesa recusada",
+      "refusedHelp": "Esta despesa não é contabilizada e mantém-se no histórico. Para a substituir, crie uma nova despesa.",
+      "refusedBy": "Recusada por"
+    },
+    "backToList": "Voltar às despesas",
+    "createReplacement": "Criar uma nova despesa",
+    "participations": {
+      "title": "Participações"
+    },
+    "participation": {
+      "validateLabel": "Validar a minha participação",
+      "mine": "A minha participação",
+      "approveLabel": "Aprovar a minha participação",
+      "refuseLabel": "Recusar a minha participação"
+    },
+    "documents": {
+      "title": "Comprovativos da despesa"
+    }
+  },
+  "documents": {
+    "title": "Comprovativos",
+    "optionalHelp": "O comprovativo é facultativo.",
+    "omitAttachment": "Não anexar comprovativo",
+    "attachedTitle": "Comprovativos anexados",
+    "noneAttached": "Nenhum comprovativo anexado.",
+    "addedByAt": "Adicionado por {{p0}} em {{p1}}.",
+    "openNamed": "Consultar ou descarregar {{p0}}",
+    "loading": "A carregar os comprovativos…",
+    "noneAdded": "Ainda não foi adicionado nenhum comprovativo.",
+    "history": {
+      "title": "Histórico das versões do comprovativo",
+      "chronologicalLabel": "Versões do comprovativo, da mais antiga à mais recente",
+      "replacesVersion": "Substitui uma versão anterior."
+    },
+    "addedBy": "Adicionado por {{p0}} em",
+    "removedBy": "Removido por {{p0}} em",
+    "removing": "A remover o comprovativo…",
+    "removalSuccess": "O comprovativo foi removido. Continua disponível no histórico.",
+    "add": "Adicionar um comprovativo",
+    "uploading": "A enviar o comprovativo…",
+    "uploadSuccess": "O comprovativo foi adicionado.",
+    "removeNamed": "Remover {{p0}}",
+    "removeAttachmentNamed": "Remover o comprovativo {{p0}}"
+  },
+  "groups": {
+    "loadingMembers": "A carregar os membros…",
+    "historyLabel": "Histórico do grupo",
+    "create": {
+      "title": "Criar um grupo",
+      "emptyInvitationsHelp": "Não há convites pendentes. Pode criar um grupo para partilhar as suas despesas.",
+      "success": "Grupo criado com sucesso. Identificador do grupo:",
+      "loading": "A criar…"
+    },
+    "fields": {
+      "name": "Nome do grupo"
+    },
+    "shortIdentifier": "Grupo {{p0}}",
+    "mine": {
+      "title": "Os meus grupos",
+      "loading": "A carregar os seus grupos…",
+      "empty": "Ainda não aderiu a nenhum grupo."
+    },
+    "createdBy": "Criado por {{p0}}",
+    "identifier": "Identificador do grupo: {{p0}}",
+    "rename": {
+      "newName": "Novo nome do grupo",
+      "submit": "Guardar o nome",
+      "accessibleLabel": "Alterar o nome do grupo {{p0}}"
+    },
+    "unnamedByCreator": "Grupo criado por {{p0}}"
+  },
+  "allocation": {
+    "mode": "Modo de repartição",
+    "equal": "Partes iguais",
+    "equalWithCaps": "Partes iguais com limites máximos",
+    "cumulativeTiers": "Repartição por escalões",
+    "custom": "Montantes personalizados",
+    "participants": "Participantes",
+    "caps": {
+      "participants": "Participantes e montantes máximos",
+      "help": "O montante máximo é facultativo. Deixe pelo menos um participante sem limite máximo.",
+      "maximumForMember": "Montante máximo para {{p0}}"
+    },
+    "tiers": {
+      "help": "Adicione limites intermédios. O último escalão abrange sempre o montante total.",
+      "number": "Escalão {{p0}}",
+      "thresholdInEuros": "Limite do escalão {{p0}} em euros",
+      "participants": "Participantes do escalão {{p0}}",
+      "removeCurrent": "Remover este escalão",
+      "add": "Adicionar um escalão",
+      "final": "Escalão final até ao montante total",
+      "removeLabel": "Remover o escalão {{p0}}"
+    },
+    "customHelp": "Introduza montantes positivos. A soma deve corresponder exatamente ao montante total. O criador deve incluir a sua própria parte.",
+    "customAmountForMember": "Montante para {{p0}}"
+  },
+  "dashboard": {
+    "eyebrow": "Resumo do grupo",
+    "title": "Visão geral do grupo",
+    "description": "Os montantes apresentados são calculados a partir do histórico de operações do grupo.",
+    "loadingTitle": "A carregar o resumo...",
+    "loadingDescription": "A carregar os saldos, o saldo da caixa comum e a parte de cada membro.",
+    "loadFailed": "Não foi possível carregar o resumo",
+    "links": {
+      "expenses": "Ver as despesas",
+      "reimbursements": "Ver os reembolsos",
+      "ownershipShares": "Ver as quotas de propriedade"
+    },
+    "memberBalances": {
+      "title": "Saldos dos membros",
+      "description": "O que falta pagar ou receber",
+      "empty": "Não há dívidas nem valores a receber pendentes."
+    },
+    "cashPoolShares": {
+      "title": "Partes da caixa comum",
+      "description": "Receitas ainda atribuídas a cada membro",
+      "empty": "Não há partes da caixa comum disponíveis."
+    }
+  },
+  "revenue": {
+    "preview": {
+      "title": "Pré-visualizar uma distribuição",
+      "description": "Verifique como seria distribuída uma receita segundo as quotas de propriedade aplicáveis numa determinada data.",
+      "amount": "Montante a distribuir em euros",
+      "date": "Data de distribuição",
+      "submit": "Pré-visualizar a distribuição",
+      "distributionOf": "Distribuição de {{p0}}"
+    },
+    "eyebrow": "Receitas do grupo"
+  },
+  "balances": {
+    "toReceive": "A receber",
+    "toPay": "A pagar"
+  },
+  "debtReduction": {
+    "title": "Operações que reduziram esta dívida",
+    "showHistory": "Ver o que reduziu esta dívida",
+    "empty": "Nenhuma operação registada reduziu a dívida deste membro.",
+    "listLabel": "Operações que reduziram esta dívida:",
+    "types": {
+      "reimbursement": "Reembolso efetuado",
+      "expense": "Despesa que reduziu a dívida",
+      "withdrawal": "Levantamento da caixa comum"
+    }
+  },
+  "statuses": {
+    "pendingApproval": "A aguardar validação",
+    "needsReplacement": "A substituir",
+    "pendingValidation": "Por validar",
+    "pendingReview": "Por rever",
+    "approved": "Validada",
+    "refused": "Recusada",
+    "accepted": "Aceite",
+    "rejected": "Recusado"
+  },
+  "invitations": {
+    "sentBy": "Convite enviado por {{p0}}",
+    "informationLabel": "Informações do convite",
+    "joinGroupHelp": "Este convite permite-lhe aderir ao grupo",
+    "page": {
+      "title": "Os seus grupos e convites",
+      "description": "Consulte os seus grupos, aceite um convite ou crie um grupo."
+    },
+    "loading": "A carregar os seus convites...",
+    "initializingSession": "A iniciar a sessão e a carregar os convites pendentes.",
+    "loadFailed": "Não foi possível carregar os seus convites",
+    "pending": "Convites pendentes",
+    "accepting": "A aceitar...",
+    "accept": "Aceitar o convite"
+  },
+  "reimbursements": {
+    "received": {
+      "title": "Registar um reembolso recebido",
+      "description": "Indique quem o reembolsou. Não é necessária confirmação.",
+      "success": "O reembolso foi registado.",
+      "payer": "Pessoa que o reembolsou",
+      "submit": "Registar o reembolso"
+    },
+    "amount": "Montante reembolsado em euros",
+    "date": "Data do reembolso",
+    "sent": {
+      "title": "Declarar um reembolso enviado",
+      "description": "Adicione um comprovativo para que a pessoa reembolsada possa verificar a sua declaração.",
+      "success": "O reembolso foi declarado.",
+      "recipient": "Pessoa reembolsada",
+      "submit": "Declarar o reembolso"
+    },
+    "title": "Reembolsos",
+    "history": {
+      "description": "Consulte os reembolsos registados neste grupo.",
+      "title": "Histórico de reembolsos",
+      "empty": "Ainda não foram registados reembolsos."
+    },
+    "paidBy": "Pago por",
+    "receivedBy": "Recebido por",
+    "review": {
+      "statusLabel": "Verificação:",
+      "refusalReason": "Motivo da recusa: {{p0}}",
+      "title": "Verificar este reembolso",
+      "acceptLabel": "Aceitar o reembolso",
+      "refuseLabel": "Recusar o reembolso"
+    },
+    "documents": {
+      "label": "Comprovativos anexados ao reembolso"
+    }
+  },
+  "languages": {
+    "french": "Français",
+    "portuguese": "Português"
+  },
+  "members": {
+    "link": "Membros",
+    "eyebrow": "O seu grupo",
+    "title": "Membros do grupo",
+    "description": "Consulte os membros do grupo e convide outras pessoas a participar.",
+    "back": "Voltar ao grupo",
+    "listTitle": "Membros atuais",
+    "joinedAt": "Membro desde",
+    "empty": "Não há membros para mostrar.",
+    "loading": "A carregar os membros…",
+    "inviteTitle": "Convidar um membro",
+    "inviteHelp": "Todos os membros podem convidar outra pessoa. Utilize o endereço de email da conta Google dessa pessoa. O convite estará disponível quando iniciar sessão no Coprogo.",
+    "email": "Endereço de email Google",
+    "invite": "Criar convite",
+    "inviting": "A criar…",
+    "invited": "Convite criado para {{email}}. Esta pessoa precisa de o aceitar no Coprogo para entrar no grupo."
+  },
+  "layout": {
+    "signIn": {
+      "eyebrow": "A vida em grupo, mais clara",
+      "title": "Despesas partilhadas, mais simples.",
+      "lead": "Acompanhe as despesas, os reembolsos e as receitas do seu grupo num espaço comum.",
+      "invitationsTitle": "Consulte os seus convites",
+      "invitationsHelp": "Entre facilmente no grupo que o convidou.",
+      "expensesTitle": "Acompanhe as despesas",
+      "expensesHelp": "Consulte os montantes, os comprovativos e o que falta pagar.",
+      "revenueTitle": "Partilhe as receitas",
+      "revenueHelp": "Consulte a distribuição aplicada a cada membro.",
+      "welcome": "Bem-vindo",
+      "accountHelp": "A sua conta é criada automaticamente no primeiro início de sessão.",
+      "unavailable": "O início de sessão com Google não está disponível neste ambiente. Contacte o administrador.",
+      "footer": "Depois de iniciar sessão, pode aceitar um convite ou criar o seu primeiro grupo.",
+      "googleButton": "Botão de início de sessão com Google"
+    },
+    "expenses": {
+      "recordedAmounts": "Montantes registados neste grupo",
+      "documents": "Ver os comprovativos",
+      "amount": "Montante da despesa",
+      "summary": "Resumo da despesa",
+      "allocations": "Distribuição por membro"
+    },
+    "dashboard": {
+      "quickLinks": "Acessos diretos",
+      "overviewKicker": "Num relance",
+      "overview": "Visão geral",
+      "overviewHelp": "Os montantes que resumem a situação atual do grupo.",
+      "cashCaption": "Receitas e levantamentos registados para o grupo.",
+      "operations": "Operações",
+      "cashTitle": "Gerir a caixa comum",
+      "cashHelp": "Registe as receitas e os levantamentos e consulte os movimentos.",
+      "activityKicker": "Acompanhamento do grupo",
+      "activityTitle": "Atividade do grupo",
+      "activityHelp": "Consulte as despesas recentes e as receitas atribuídas a cada membro.",
+      "proposalHelp": "Registe uma despesa acordada fora da aplicação."
+    },
+    "newOperation": "Nova operação",
+    "invitations": {
+      "getStarted": "Para começar",
+      "createTitle": "Começar com um grupo",
+      "createHelp": "Crie um espaço para acompanhar em conjunto as despesas e as receitas partilhadas.",
+      "joinKicker": "Para aderir",
+      "joinTitle": "Grupos para os quais foi convidado",
+      "joinHelp": "Verifique os detalhes antes de aceitar um convite."
+    },
+    "reimbursements": {
+      "recordTitle": "Registar um reembolso",
+      "recordHelp": "Escolha a forma como o reembolso foi efetuado.",
+      "historyKicker": "Acompanhamento",
+      "historyHelp": "Os movimentos e os comprovativos continuam disponíveis após o registo."
+    },
+    "ownership": {
+      "manage": "Gestão das receitas",
+      "changeHelp": "Uma nova distribuição aplica-se às receitas a partir da sua data de entrada em vigor.",
+      "historyKicker": "Histórico",
+      "historyTitle": "Distribuições registadas",
+      "historyHelp": "Cada alteração permanece visível com a data de aplicação e o seu autor."
+    },
+    "preview": {
+      "simulation": "Simulação",
+      "requestTitle": "Montante e data de aplicação",
+      "requestHelp": "A data determina as quotas utilizadas nesta estimativa.",
+      "result": "Resultado",
+      "total": "Montante distribuído: {{p0}}"
+    },
+    "navigation": {
+      "home": "Coprogo, início",
+      "label": "Navegação principal",
+      "shares": "Quotas",
+      "distribution": "Distribuição",
+      "invitations": "Convites"
+    }
+  }
+}

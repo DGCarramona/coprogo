@@ -15,14 +15,18 @@ describe('CashPoolIncomeWidgetViewModel', () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 9, 27, 0, 30));
     port = new StubCashPoolIncomeRecordingPort();
     queryClient = new QueryClient();
     TestBed.configureTestingModule({ providers: [provideTanStackQuery(queryClient)] });
     injector = TestBed.inject(Injector);
   });
 
+  afterEach(() => vi.useRealTimers());
+
   describe('initialize', () => {
-    it('starts with an invalid empty form for the selected group', () => {
+    it('defaults the ownership-share date to today in local time', () => {
       const viewModel = createViewModel();
 
       viewModel.initialize('group-1');
@@ -30,7 +34,7 @@ describe('CashPoolIncomeWidgetViewModel', () => {
       expect(viewModel.form().value()).toEqual({
         amountInEuros: '',
         receivedAt: '',
-        effectiveDate: '',
+        effectiveDate: '2026-10-27',
       });
       expect(viewModel.form().invalid()).toBe(true);
     });
@@ -57,11 +61,44 @@ describe('CashPoolIncomeWidgetViewModel', () => {
       expect(viewModel.form().value()).toEqual({
         amountInEuros: '',
         receivedAt: '',
-        effectiveDate: '',
+        effectiveDate: '2026-10-27',
       });
       expect(
         queryClient.getQueryState(['groups', 'group-1', 'cash-pool', 'history'])?.isInvalidated,
       ).toBe(true);
+    });
+
+    it('records without requiring the member to enter the ownership-share date', async () => {
+      const viewModel = createViewModel();
+      viewModel.initialize('group-1');
+      viewModel.form.amountInEuros().value.set('25');
+      viewModel.form.receivedAt().value.set('2026-10-27T09:30');
+
+      await expect(submit(viewModel.form)).resolves.toBe(true);
+
+      expect(port.commands).toEqual([
+        {
+          groupId: 'group-1',
+          amountInCents: 2500,
+          receivedAt: new Date('2026-10-27T09:30'),
+          effectiveDate: new Date(2026, 9, 27),
+        },
+      ]);
+    });
+
+    it('recomputes today when resetting after an income is recorded on a later day', async () => {
+      const viewModel = createViewModel();
+      viewModel.initialize('group-1');
+      fillForm(viewModel, validValue());
+      vi.setSystemTime(new Date(2026, 9, 28, 0, 30));
+
+      await expect(submit(viewModel.form)).resolves.toBe(true);
+
+      expect(viewModel.form().value()).toEqual({
+        amountInEuros: '',
+        receivedAt: '',
+        effectiveDate: '2026-10-28',
+      });
     });
 
     it.each([

@@ -1,45 +1,49 @@
 <app-authenticated-shell
-  eyebrow="Dépenses du groupe"
-  title="Détail de la dépense"
-  description="Consultez le montant attribué à chaque membre et son état de validation."
+  [eyebrow]="'expenses.eyebrow' | translate"
+  [title]="'expenses.detail.title' | translate"
+  [description]="'expenses.detail.description' | translate"
 >
   @if (viewModel.groupId !== null) {
     <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId, 'expenses']">
-      Retour aux dépenses
+      {{ 'expenses.backToList' | translate }}
     </a>
   }
 
   <mat-card class="material-card expense-detail-page__card" appearance="outlined">
     @if (viewModel.isLoading()) {
       <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-      <p>Chargement de la dépense...</p>
+      <p>{{ 'expenses.detail.loading' | translate }}</p>
     } @else if (viewModel.hasLoadError()) {
-      <p role="alert">{{ viewModel.errorMessage() }}</p>
+      <p role="alert">{{ viewModel.errorMessage() | errorMessage }}</p>
       @if (viewModel.groupId !== null && viewModel.expenseId !== null) {
-        <button mat-flat-button type="button" (click)="viewModel.retry()">Réessayer</button>
+        <button mat-flat-button type="button" (click)="viewModel.retry()">
+          {{ 'common.retry' | translate }}
+        </button>
       }
     } @else if (viewModel.detail(); as detail) {
       <mat-card-header>
         <mat-card-title>{{ detail.title }}</mat-card-title>
-        <mat-card-subtitle>{{ detail.statusLabel }}</mat-card-subtitle>
+        <mat-card-subtitle>{{ detail.statusLabel | translate }}</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
         <section
           class="expense-detail-page__summary-section"
           aria-labelledby="expense-summary-title"
         >
-          <h2 id="expense-summary-title" class="sr-only">Résumé de la dépense</h2>
+          <h2 id="expense-summary-title" class="sr-only">
+            {{ 'layout.expenses.summary' | translate }}
+          </h2>
           <dl class="expense-detail-page__summary">
             <div>
-              <dt>Montant total</dt>
+              <dt>{{ 'common.totalAmount' | translate }}</dt>
               <dd>{{ detail.totalAmount }}</dd>
             </div>
             <div>
-              <dt>Enregistrée par</dt>
+              <dt>{{ 'common.recordedBy' | translate }}</dt>
               <dd>{{ detail.createdBy }}</dd>
             </div>
             <div>
-              <dt>Date</dt>
+              <dt>{{ 'common.date' | translate }}</dt>
               <dd>{{ detail.createdAt }}</dd>
             </div>
           </dl>
@@ -48,24 +52,24 @@
         @if (detail.invalidation; as invalidation) {
           <section
             class="expense-detail-page__invalidation"
-            aria-label="Dépense refusée"
+            [attr.aria-label]="'expenses.detail.refusedTitle' | translate"
             role="alert"
           >
-            <h2>Dépense refusée</h2>
+            <h2>{{ 'expenses.detail.refusedTitle' | translate }}</h2>
+            <p>{{ 'expenses.detail.refusedHelp' | translate }}</p>
             <p>
-              Cette dépense n’est pas prise en compte et reste dans l’historique. Pour la remplacer,
-              créez une nouvelle dépense.
-            </p>
-            <p>
-              Refusée par <strong>{{ invalidation.refusedBy }}</strong> le
-              {{ invalidation.refusedAt }}
+              {{ 'expenses.detail.refusedBy' | translate }}
+              <strong>{{ invalidation.refusedBy }}</strong>
+              {{ 'common.onDate' | translate: { p0: invalidation.refusedAt } }}
             </p>
             @if (invalidation.reason !== null) {
-              <p><strong>Motif :</strong> {{ invalidation.reason }}</p>
+              <p>
+                <strong> {{ 'common.reason' | translate }} </strong> {{ invalidation.reason }}
+              </p>
             }
             @if (viewModel.groupId !== null) {
               <a mat-flat-button [routerLink]="['/groups', viewModel.groupId, 'dashboard']">
-                Créer une nouvelle dépense
+                {{ 'expenses.createReplacement' | translate }}
               </a>
             }
           </section>
@@ -75,7 +79,7 @@
           class="expense-detail-page__participations-section"
           aria-labelledby="expense-participations-title"
         >
-          <h2 id="expense-participations-title">Répartition par membre</h2>
+          <h2 id="expense-participations-title">{{ 'layout.expenses.allocations' | translate }}</h2>
           <div class="expense-detail-page__participations">
             @for (participation of detail.participations; track participation.member) {
               <div class="expense-detail-page__participation">
@@ -84,7 +88,7 @@
                   <span>{{ participation.amount }}</span>
                 </div>
                 <mat-chip [class]="'expense-detail-page__chip--' + participation.tone">
-                  {{ participation.statusLabel }}
+                  {{ participation.statusLabel | translate }}
                 </mat-chip>
               </div>
             }
@@ -92,9 +96,14 @@
         </section>
 
         @if (viewModel.canDecide()) {
-          <section class="expense-detail-page__decision" aria-label="Valider ma participation">
-            <h2>Ma participation</h2>
-            <label for="expense-rejection-reason">Motif du refus (facultatif)</label>
+          <section
+            class="expense-detail-page__decision"
+            [attr.aria-label]="'expenses.participation.validateLabel' | translate"
+          >
+            <h2>{{ 'expenses.participation.mine' | translate }}</h2>
+            <label for="expense-rejection-reason">
+              {{ 'common.optionalRefusalReason' | translate }}
+            </label>
             <textarea
               id="expense-rejection-reason"
               [value]="viewModel.rejectionReason()"
@@ -103,27 +112,27 @@
             ></textarea>
 
             @if (viewModel.decisionError(); as decisionError) {
-              <p role="alert">{{ decisionError }}</p>
+              <p role="alert">{{ decisionError | errorMessage }}</p>
             }
 
             <div class="expense-detail-page__decision-actions">
               <button
                 mat-flat-button
                 type="button"
-                aria-label="Approuver ma participation"
+                [attr.aria-label]="'expenses.participation.approveLabel' | translate"
                 [disabled]="viewModel.isDeciding()"
                 (click)="viewModel.approve()"
               >
-                Approuver
+                {{ 'common.approve' | translate }}
               </button>
               <button
                 mat-stroked-button
                 type="button"
-                aria-label="Refuser ma participation"
+                [attr.aria-label]="'expenses.participation.refuseLabel' | translate"
                 [disabled]="viewModel.isDeciding()"
                 (click)="viewModel.refuse()"
               >
-                Refuser
+                {{ 'common.refuse' | translate }}
               </button>
             </div>
           </section>

@@ -1,3 +1,4 @@
+import { provideLocalization } from '../../i18n/provide-localization';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 
@@ -55,7 +56,7 @@ describe('CashPoolHistoryWidgetComponent', () => {
     const { fixture, host } = createFixture(port);
 
     await waitFor(fixture, () => host.querySelector('[role="alert"]') !== null);
-    expect(host.textContent).toContain('Historique indisponible');
+    expect(host.textContent).toContain('Une erreur est survenue. Veuillez réessayer.');
 
     port.failure = null;
     requiredButton(host, 'button').click();
@@ -74,6 +75,7 @@ const createFixture = (
   TestBed.configureTestingModule({
     imports: [CashPoolHistoryWidgetComponent],
     providers: [
+      provideLocalization(),
       provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
       { provide: CashPoolHistoryPort, useValue: port },
     ],

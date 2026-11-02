@@ -1,54 +1,61 @@
 <app-authenticated-shell
   #shell
-  eyebrow="Votre espace"
-  title="Groupes et invitations"
-  description="Rejoignez un groupe qui vous a invité ou créez votre premier espace partagé."
+  [eyebrow]="'auth.sessionActive' | translate"
+  [title]="'invitations.page.title' | translate"
+  [description]="'invitations.page.description' | translate"
 >
+  <app-member-groups-widget />
   @if (invitationsViewModel.isLoading()) {
     <mat-card class="material-card pending-invitations-page__state" appearance="outlined">
       <mat-card-header>
-        <mat-card-title>Chargement de vos invitations…</mat-card-title>
+        <mat-card-title> {{ 'invitations.loading' | translate }} </mat-card-title>
       </mat-card-header>
       <mat-card-content>
         <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-        <p>Préparation de votre espace et de vos invitations.</p>
+        <p>{{ 'invitations.initializingSession' | translate }}</p>
       </mat-card-content>
     </mat-card>
   } @else if (invitationsViewModel.hasLoadError()) {
     <mat-card class="material-card pending-invitations-page__state" appearance="outlined">
       <mat-card-header>
-        <mat-card-title>Impossible de charger vos invitations</mat-card-title>
+        <mat-card-title> {{ 'invitations.loadFailed' | translate }} </mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <p>{{ invitationsViewModel.errorMessage() }}</p>
+        <p>{{ invitationsViewModel.errorMessage() | errorMessage }}</p>
       </mat-card-content>
       <mat-card-actions>
         <button mat-flat-button type="button" (click)="invitationsViewModel.retry()">
-          Réessayer
+          {{ 'common.retry' | translate }}
         </button>
-        <button mat-button type="button" (click)="shell.signOut()">Retour à la connexion</button>
+        <button mat-button type="button" (click)="shell.signOut()">
+          {{ 'auth.backToSignIn' | translate }}
+        </button>
       </mat-card-actions>
     </mat-card>
   } @else if (invitationsViewModel.isEmpty()) {
     <section class="pending-invitations-page__section" aria-labelledby="first-group-title">
       <div class="pending-invitations-page__section-heading">
-        <p class="pending-invitations-page__section-kicker">Pour commencer</p>
-        <h2 id="first-group-title">Commencer avec un groupe</h2>
-        <p>Créez un espace pour suivre ensemble les dépenses et les revenus partagés.</p>
+        <p class="pending-invitations-page__section-kicker">
+          {{ 'layout.invitations.getStarted' | translate }}
+        </p>
+        <h2 id="first-group-title">{{ 'layout.invitations.createTitle' | translate }}</h2>
+        <p>{{ 'layout.invitations.createHelp' | translate }}</p>
       </div>
       <app-create-first-group-card
         [createdGroupId]="createGroupViewModel.createdGroupId()"
         [errorMessage]="createGroupViewModel.errorMessage()"
         [creating]="createGroupViewModel.isCreatingGroup()"
-        (createRequested)="createGroupViewModel.createGroup()"
+        (createRequested)="createGroupViewModel.createGroup($event)"
       />
     </section>
   } @else {
     <section class="pending-invitations-page__section" aria-labelledby="pending-invitations-title">
       <div class="pending-invitations-page__section-heading">
-        <p class="pending-invitations-page__section-kicker">À rejoindre</p>
-        <h2 id="pending-invitations-title">Groupes auxquels vous êtes invité</h2>
-        <p>Vérifiez les détails avant d’accepter une invitation.</p>
+        <p class="pending-invitations-page__section-kicker">
+          {{ 'layout.invitations.joinKicker' | translate }}
+        </p>
+        <h2 id="pending-invitations-title">{{ 'layout.invitations.joinTitle' | translate }}</h2>
+        <p>{{ 'layout.invitations.joinHelp' | translate }}</p>
       </div>
       <app-pending-invitations-list
         [invitations]="invitationsViewModel.invitations()"

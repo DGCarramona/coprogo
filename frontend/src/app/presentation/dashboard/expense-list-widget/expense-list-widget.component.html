@@ -1,18 +1,20 @@
 <mat-card class="material-card" appearance="outlined">
   <mat-card-header>
-    <mat-card-title>Dépenses</mat-card-title>
-    <mat-card-subtitle>Montants enregistrés dans ce groupe</mat-card-subtitle>
+    <mat-card-title> {{ 'expenses.list.title' | translate }} </mat-card-title>
+    <mat-card-subtitle> {{ 'layout.expenses.recordedAmounts' | translate }} </mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
     @if (viewModel.isLoading()) {
       <mat-progress-bar mode="indeterminate"></mat-progress-bar>
     } @else if (viewModel.hasLoadError()) {
-      <p>Impossible de charger les dépenses.</p>
-      <button mat-flat-button type="button" (click)="viewModel.retry()">Réessayer</button>
+      <p>{{ 'expenses.list.loadFailed' | translate }}</p>
+      <button mat-flat-button type="button" (click)="viewModel.retry()">
+        {{ 'common.retry' | translate }}
+      </button>
     } @else if (viewModel.expenses().length === 0) {
-      <p class="expense-list-widget__empty">Aucune dépense enregistrée.</p>
+      <p class="expense-list-widget__empty">{{ 'expenses.list.empty' | translate }}</p>
     } @else {
-      <ul class="expense-list-widget__list" aria-label="Dépenses du groupe">
+      <ul class="expense-list-widget__list" [attr.aria-label]="'expenses.eyebrow' | translate">
         @for (expense of viewModel.expenses(); track expense.id) {
           <li class="expense-list-widget__item">
             <article class="expense-list-widget__row">
@@ -24,10 +26,13 @@
                   {{ expense.title }}
                 </a>
                 <p class="expense-list-widget__creator">
-                  Enregistrée par <span>{{ expense.createdBy }}</span>
+                  {{ 'common.recordedBy' | translate }} <span>{{ expense.createdBy }}</span>
                 </p>
               </div>
-              <strong class="expense-list-widget__amount" aria-label="Montant de la dépense">
+              <strong
+                class="expense-list-widget__amount"
+                [attr.aria-label]="'layout.expenses.amount' | translate"
+              >
                 {{ expense.amount }}
               </strong>
             </article>
@@ -38,7 +43,7 @@
                 viewModel.setSupportingDocumentsOpen(expense.id, supportingDocumentsDetails.open)
               "
             >
-              <summary>Voir les justificatifs</summary>
+              <summary>{{ 'layout.expenses.documents' | translate }}</summary>
               @if (viewModel.isSupportingDocumentsOpen(expense.id)) {
                 <app-expense-supporting-documents-widget
                   [groupId]="groupId"

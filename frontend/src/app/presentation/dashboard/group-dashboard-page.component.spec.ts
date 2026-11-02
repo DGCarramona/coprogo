@@ -1,3 +1,6 @@
+import { ErrorMessagePipe } from '../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
+import { provideLocalization } from '../i18n/provide-localization';
 import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -91,6 +94,15 @@ describe('GroupDashboardPageComponent', () => {
     expect(link).not.toBeNull();
   });
 
+  it('links to the members of the ready group', () => {
+    const fixture = createFixture(new StubGroupDashboardPageViewModel());
+    fixture.detectChanges();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('a[href="/groups/group-1/members"]')
+        ?.textContent,
+    ).toContain('Membres');
+  });
+
   it('links to the expense list of the ready group', () => {
     const fixture = createFixture(new StubGroupDashboardPageViewModel());
 
@@ -172,11 +184,11 @@ describe('GroupDashboardPageComponent', () => {
     viewModel.memberBalances.set([
       {
         member: 'alice@example.com',
-        label: 'A recevoir',
+        label: 'balances.toReceive',
         amount: '+40,00 €',
         tone: 'credit',
       },
-      { member: 'bob@example.com', label: 'A payer', amount: '-40,00 €', tone: 'debt' },
+      { member: 'bob@example.com', label: 'balances.toPay', amount: '-40,00 €', tone: 'debt' },
     ]);
     const fixture = createFixture(viewModel);
 
@@ -201,11 +213,13 @@ const createFixture = (
 ): ComponentFixture<GroupDashboardPageComponent> => {
   TestBed.configureTestingModule({
     imports: [GroupDashboardPageComponent],
-    providers: [provideRouter([])],
+    providers: [provideLocalization(), provideRouter([])],
   });
   TestBed.overrideComponent(GroupDashboardPageComponent, {
     set: {
       imports: [
+        ErrorMessagePipe,
+        TranslatePipe,
         StubAuthenticatedShellComponent,
         StubCashPoolHistoryWidgetComponent,
         StubCashPoolIncomeWidgetComponent,

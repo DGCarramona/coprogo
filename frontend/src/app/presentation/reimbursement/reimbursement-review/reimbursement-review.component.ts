@@ -1,3 +1,5 @@
+import { ErrorMessagePipe } from '../../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component, OnInit, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 
@@ -5,7 +7,7 @@ import { ReimbursementReviewViewModel } from './reimbursement-review.view-model'
 
 @Component({
   selector: 'app-reimbursement-review',
-  imports: [MatButtonModule],
+  imports: [ErrorMessagePipe, TranslatePipe, MatButtonModule],
   providers: [ReimbursementReviewViewModel],
   templateUrl: './reimbursement-review.component.html',
   styleUrl: './reimbursement-review.component.scss',

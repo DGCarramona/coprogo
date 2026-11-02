@@ -23,7 +23,7 @@ export class HttpExpenseProposalGateway extends ExpenseProposalPort {
     await firstValueFrom(
       this.expensesService.proposeExpense(command.groupId, toRequest(command)).pipe(
         catchError((error) => {
-          throw toApiClientError(error, 'La depense n a pas pu etre proposee.');
+          throw toApiClientError(error, 'errors.expenses.propose');
         }),
         map(() => undefined),
       ),

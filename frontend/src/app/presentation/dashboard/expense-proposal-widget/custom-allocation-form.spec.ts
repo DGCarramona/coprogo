@@ -29,7 +29,7 @@ describe('custom allocation form', () => {
     it('requires at least one participation', () => {
       expect(validateCustomAllocationForm(emptyCustomAllocationForm(), 1000)).toEqual({
         kind: 'participations',
-        message: 'Indiquez un montant pour au moins un participant.',
+        message: 'validation.allocation.customParticipantRequired',
       });
     });
 
@@ -43,7 +43,7 @@ describe('custom allocation form', () => {
           ),
         ).toEqual({
           kind: 'amount',
-          message: 'Indiquez des montants positifs avec deux decimales au plus.',
+          message: 'validation.allocation.positiveAmounts',
         });
       },
     );
@@ -61,7 +61,7 @@ describe('custom allocation form', () => {
         ),
       ).toEqual({
         kind: 'total',
-        message: 'La somme des montants doit correspondre au montant total.',
+        message: 'validation.allocation.totalMismatch',
       });
     });
 

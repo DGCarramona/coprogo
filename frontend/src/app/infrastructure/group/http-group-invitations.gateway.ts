@@ -17,7 +17,7 @@ export class HttpGroupInvitationsGateway extends PendingGroupInvitationsPort {
     return await firstValueFrom(
       this.groupsService.listPending().pipe(
         catchError((error) => {
-          throw toApiClientError(error, 'Les invitations en attente n ont pas pu etre chargees.');
+          throw toApiClientError(error, 'errors.invitations.load');
         }),
         mapArray((invitation): PendingGroupInvitation => ({
           invitationId: invitation.invitation,
@@ -34,7 +34,7 @@ export class HttpGroupInvitationsGateway extends PendingGroupInvitationsPort {
     await firstValueFrom(
       this.groupsService.accept(invitationId).pipe(
         catchError((error) => {
-          throw toApiClientError(error, "L'invitation n'a pas pu etre acceptee.");
+          throw toApiClientError(error, 'errors.invitations.accept');
         }),
       ),
     );

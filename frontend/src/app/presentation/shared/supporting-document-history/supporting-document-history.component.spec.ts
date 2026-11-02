@@ -1,3 +1,4 @@
+import { provideLocalization } from '../../i18n/provide-localization';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 
@@ -17,6 +18,7 @@ describe('SupportingDocumentHistoryComponent', () => {
     deletionPort = new StubExpenseSupportingDocumentDeletionPort();
     TestBed.configureTestingModule({
       providers: [
+        provideLocalization(),
         provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
         { provide: ExpenseSupportingDocumentDeletionPort, useValue: deletionPort },
       ],
@@ -204,7 +206,7 @@ describe('SupportingDocumentHistoryComponent', () => {
       fixture.detectChanges();
 
       expect(host.querySelector('[role="alert"]')?.textContent?.trim()).toBe(
-        'Le retrait est indisponible.',
+        'Une erreur est survenue. Veuillez réessayer.',
       );
       expect(versionItems(host)).toEqual([expect.stringContaining('facture-courante.pdf')]);
     });

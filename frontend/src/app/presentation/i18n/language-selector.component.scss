@@ -1,0 +1,37 @@
+:host {
+  display: block;
+  padding: 0.75rem 1.5rem 0;
+}
+
+label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  max-width: 1180px;
+  margin-inline: auto;
+  font: inherit;
+}
+
+select {
+  max-width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: 0.5rem;
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: inherit;
+}
+
+select:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  :host {
+    padding-inline: 1rem;
+  }
+}

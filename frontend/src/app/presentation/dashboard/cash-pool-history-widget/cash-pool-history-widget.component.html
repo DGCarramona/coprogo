@@ -1,28 +1,37 @@
 <mat-card class="material-card" appearance="outlined">
   <mat-card-header>
-    <mat-card-title>Historique de la caisse commune</mat-card-title>
-    <mat-card-subtitle>Revenus, répartitions entre membres et retraits</mat-card-subtitle>
+    <mat-card-title>{{ 'cashPool.history.title' | translate }}</mat-card-title>
+    <mat-card-subtitle>{{ 'cashPool.history.description' | translate }}</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
     @if (viewModel.isLoading()) {
       <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-      <p>Lecture des opérations...</p>
+      <p>{{ 'common.loadingOperations' | translate }}</p>
     } @else if (viewModel.hasLoadError()) {
-      <p role="alert">{{ viewModel.errorMessage() }}</p>
-      <button mat-button type="button" (click)="viewModel.retry()">Réessayer</button>
+      <p role="alert">{{ viewModel.errorMessage() | errorMessage }}</p>
+      <button mat-button type="button" (click)="viewModel.retry()">
+        {{ 'common.retry' | translate }}
+      </button>
     } @else if (viewModel.operations().length === 0) {
-      <p>Aucune opération de caisse commune enregistrée.</p>
+      <p>{{ 'cashPool.history.empty' | translate }}</p>
     } @else {
       <ul class="cash-pool-history__operations">
         @for (operation of viewModel.operations(); track operation.operationId) {
           <li class="cash-pool-history__operation">
             <div class="cash-pool-history__summary">
-              <span>{{ operation.label }} · {{ operation.occurredAt }}</span>
+              <span
+                >{{
+                  operation.label
+                    | translate
+                      : { p0: operation.type === 'WITHDRAWAL' ? operation.withdrawnBy : '' }
+                }}
+                · {{ operation.occurredAt }}</span
+              >
               <strong>{{ operation.amount }}</strong>
             </div>
             @switch (operation.type) {
               @case ('INCOME') {
-                <p>Répartition du revenu :</p>
+                <p>{{ 'cashPool.history.incomeDistribution' | translate }}</p>
                 <ul>
                   @for (allocation of operation.allocations; track allocation.member) {
                     <li>{{ allocation.member }} : {{ allocation.amount }}</li>
@@ -30,10 +39,17 @@
                 </ul>
               }
               @case ('WITHDRAWAL') {
-                <p>{{ operation.ownRevenueShareConsumed }} pris sur sa part.</p>
+                <p>
+                  {{
+                    'cashPool.history.ownShareConsumed'
+                      | translate: { p0: operation.ownRevenueShareConsumed }
+                  }}
+                </p>
                 @if (operation.hasDebtReduction) {
                   <p>
-                    {{ operation.debtReduction }} ont réduit ce que les autres membres lui doivent.
+                    {{
+                      'cashPool.history.debtReduction' | translate: { p0: operation.debtReduction }
+                    }}
                   </p>
                 }
               }

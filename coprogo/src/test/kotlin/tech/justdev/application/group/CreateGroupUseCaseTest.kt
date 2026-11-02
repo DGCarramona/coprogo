@@ -7,6 +7,7 @@ import tech.justdev.application.support.InMemoryGroupRepository
 import tech.justdev.application.support.InMemoryMemberRepository
 import tech.justdev.domain.group.entity.Group
 import tech.justdev.domain.group.entity.Member
+import tech.justdev.domain.group.valueobject.GroupName
 import tech.justdev.testsupport.FixedGroupIdGenerator
 import tech.justdev.testsupport.groupId
 import tech.justdev.testsupport.groupUuid
@@ -14,6 +15,18 @@ import tech.justdev.testsupport.memberEmail
 import java.time.Instant
 
 class CreateGroupUseCaseTest {
+    @Test
+    fun `invoke persists the chosen name`() =
+        runTest {
+            val groups = InMemoryGroupRepository()
+            val useCase = CreateGroupUseCase(InMemoryMemberRepository(), groups, FixedGroupIdGenerator(listOf(groupId("named-create"))))
+            val name = GroupName.of("Appartement familial")
+
+            useCase(CreateGroupCommand(memberEmail("alice"), Instant.EPOCH, name))
+
+            assertEquals(name, groups.findById(groupId("named-create"))?.name)
+        }
+
     @Test
     fun `invoke should create and persist a group for a registered member`() {
         runTest {

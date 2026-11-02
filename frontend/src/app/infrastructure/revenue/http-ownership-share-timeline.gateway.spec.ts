@@ -64,7 +64,7 @@ describe('HttpOwnershipShareTimelineGateway', () => {
       {
         name: 'recording date',
         response: timelineResponse({ recordedAt: 'date-invalide' }),
-        message: 'Date d enregistrement des quotes-parts invalide: date-invalide.',
+        message: 'errors.ownership.invalidRecordedDate: date-invalide.',
       },
     ])('rejects an invalid $name', async ({ response, message }) => {
       const timeline = gateway.getByGroup(GROUP_ID);
@@ -79,7 +79,7 @@ describe('HttpOwnershipShareTimelineGateway', () => {
 
       expectTimelineRequest().flush(timelineResponse({}, 'another-group'));
 
-      await expect(timeline).rejects.toThrow('Historique des quotes-parts incoherent.');
+      await expect(timeline).rejects.toThrow('errors.ownership.inconsistentHistory');
     });
 
     it('maps an API failure to an ApiClientError', async () => {

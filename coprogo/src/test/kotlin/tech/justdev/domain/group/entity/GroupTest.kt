@@ -1,13 +1,30 @@
 package tech.justdev.domain.group.entity
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import tech.justdev.domain.group.valueobject.GroupName
 import tech.justdev.testsupport.groupId
 import tech.justdev.testsupport.memberEmail
 import java.time.Instant
 
 class GroupTest {
+    @Nested
+    inner class Rename {
+        @Test
+        fun `changes only the descriptive name`() {
+            val group =
+                Group
+                    .create(groupId("rename"), memberEmail("alice"), Instant.EPOCH)
+                    .addMember(memberEmail("bob"), Instant.EPOCH.plusSeconds(1))
+            val name = GroupName.of("Appartement familial")
+
+            assertEquals(group.copy(name = name), group.rename(name))
+            assertEquals(null, group.name)
+        }
+    }
+
     @Test
     fun `create should add the creator as the initial group member`() {
         val createdAt = Instant.parse("2026-04-13T10:15:30Z")

@@ -1,5 +1,6 @@
 export interface RenderGoogleSignInButtonCommand {
   host: HTMLElement;
+  locale: string;
   onCredential: (idToken: string) => void | Promise<void>;
 }
 

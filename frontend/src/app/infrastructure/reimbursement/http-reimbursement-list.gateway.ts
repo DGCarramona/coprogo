@@ -26,7 +26,7 @@ export class HttpReimbursementListGateway extends ReimbursementListPort {
     return await firstValueFrom(
       this.reimbursementsService.listReimbursements(groupId).pipe(
         catchError((error) => {
-          throw toApiClientError(error, 'Les remboursements n ont pas pu etre charges.');
+          throw toApiClientError(error, 'errors.reimbursements.loadHistory');
         }),
         mapArray(toReimbursementSummary),
       ),
@@ -39,9 +39,9 @@ const toReimbursementSummary = (response: ReimbursementResponseDto): Reimburseme
   paidBy: response.paidBy,
   receivedBy: response.receivedBy,
   amountInCents: response.amountInCents,
-  reimbursedAt: toDate(response.reimbursedAt, 'Date de remboursement invalide'),
+  reimbursedAt: toDate(response.reimbursedAt, 'errors.reimbursements.invalidDate'),
   declaredBy: response.declaredBy,
-  declaredAt: toDate(response.declaredAt, 'Date de declaration du remboursement invalide'),
+  declaredAt: toDate(response.declaredAt, 'errors.reimbursements.invalidDeclarationDate'),
   documents: response.documents.map(toSupportingDocument),
   ...toDecision(response),
 });
@@ -50,7 +50,7 @@ const toDecision = (response: ReimbursementResponseDto): ReimbursementDecision =
   switch (toStatus(response.status)) {
     case 'PENDING_REVIEW':
       if (response.decidedAt != null || response.rejectionReason != null) {
-        throw new Error('Decision de remboursement incoherente pour le statut a revoir.');
+        throw new Error('errors.reimbursements.inconsistentReview');
       }
       return { status: 'PENDING_REVIEW', decidedAt: null, rejectionReason: null };
     case 'ACCEPTED':
@@ -83,9 +83,9 @@ const toStatus = (
 
 const toRequiredDecisionDate = (value: string | null | undefined): Date => {
   if (value == null) {
-    throw new Error('Date de decision du remboursement manquante.');
+    throw new Error('errors.reimbursements.missingReviewDate');
   }
-  return toDate(value, 'Date de decision du remboursement invalide');
+  return toDate(value, 'errors.reimbursements.invalidReviewDate');
 };
 
 const toSupportingDocument = (
@@ -96,10 +96,10 @@ const toSupportingDocument = (
   mediaType: response.mediaType,
   sizeBytes: response.sizeBytes,
   uploader: response.uploader,
-  attachedAt: toDate(response.attachedAt, 'Date d ajout du justificatif invalide'),
+  attachedAt: toDate(response.attachedAt, 'errors.documents.invalidAttachmentDate'),
   downloadTarget: {
     url: response.download.url,
-    expiresAt: toDate(response.download.expiresAt, 'Date d expiration du telechargement invalide'),
+    expiresAt: toDate(response.download.expiresAt, 'errors.documents.invalidDownloadExpiration'),
   },
 });
 

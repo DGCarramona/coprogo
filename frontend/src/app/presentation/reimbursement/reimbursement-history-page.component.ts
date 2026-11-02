@@ -1,3 +1,5 @@
+import { ErrorMessagePipe } from '../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -14,6 +16,8 @@ import { ReimbursementSupportingDocumentsComponent } from './reimbursement-suppo
 @Component({
   selector: 'app-reimbursement-history-page',
   imports: [
+    ErrorMessagePipe,
+    TranslatePipe,
     AuthenticatedShellComponent,
     DocumentedReimbursementWidgetComponent,
     DirectReimbursementWidgetComponent,

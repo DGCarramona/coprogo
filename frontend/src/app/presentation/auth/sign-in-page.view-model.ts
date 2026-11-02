@@ -41,12 +41,13 @@ export class SignInPageViewModel {
     }
   }
 
-  mountGoogleButton(host: HTMLElement): void {
+  mountGoogleButton(host: HTMLElement, locale = 'fr-FR'): void {
     this.renderErrorMessageState.set(null);
 
     try {
       this.googleIdentityPort.renderButton({
         host,
+        locale,
         onCredential: async (idToken) => {
           const authenticated = await this.authSessionFacade.authenticateWithGoogleIdToken(idToken);
           if (authenticated) {
@@ -55,9 +56,7 @@ export class SignInPageViewModel {
         },
       });
     } catch (error) {
-      this.renderErrorMessageState.set(
-        describeError(error, 'La connexion Google n est pas disponible pour le moment.'),
-      );
+      this.renderErrorMessageState.set(describeError(error, 'errors.auth.signInUnavailable'));
     }
   }
 }

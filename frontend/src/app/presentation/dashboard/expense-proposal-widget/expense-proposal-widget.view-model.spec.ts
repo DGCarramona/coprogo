@@ -197,7 +197,7 @@ describe('ExpenseProposalWidgetViewModel', () => {
           totalAmountInCents: 12500,
           participants: new Set(),
         }),
-      ).toThrow('Un groupe doit etre initialise avant de proposer une depense.');
+      ).toThrow('errors.expenses.missingProposalGroup');
       expect(proposalPort.commands).toEqual([]);
     });
   });

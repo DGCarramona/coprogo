@@ -24,6 +24,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'groups/:groupId/members',
+    canActivate: [authenticatedRouteGuard],
+    loadComponent: () =>
+      import('./presentation/members/group-members-page.component').then(
+        (module) => module.GroupMembersPageComponent,
+      ),
+  },
+  {
     path: 'groups/:groupId/dashboard',
     canActivate: [authenticatedRouteGuard],
     loadComponent: () =>

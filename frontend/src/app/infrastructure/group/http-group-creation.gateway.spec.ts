@@ -1,3 +1,4 @@
+import { GroupName } from '../../domain/group/group-name';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
@@ -35,12 +36,12 @@ describe('HttpGroupCreationGateway', () => {
   });
 
   it('posts a group creation and maps its id', async () => {
-    const creation = gateway.create();
+    const creation = gateway.create(GroupName('Appartement familial'));
 
     const request = httpTestingController.expectOne('http://localhost:8080/api/groups');
 
     expect(request.request.method).toBe('POST');
-    expect(request.request.body).toBeNull();
+    expect(request.request.body).toEqual({ name: 'Appartement familial' });
 
     request.flush({ group: '9d88fb48-4e2c-4a89-8b6b-509ed8f00b93' });
 
@@ -48,7 +49,7 @@ describe('HttpGroupCreationGateway', () => {
   });
 
   it('maps an API failure to an ApiClientError', async () => {
-    const creation = gateway.create();
+    const creation = gateway.create(GroupName('Appartement'));
 
     const request = httpTestingController.expectOne('http://localhost:8080/api/groups');
 

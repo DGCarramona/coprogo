@@ -46,7 +46,7 @@ describe('equal with caps allocation form', () => {
     it('validates participants, amounts and the required uncapped participant', () => {
       expect(validateEqualWithCapsForm(emptyEqualWithCapsForm())).toEqual({
         kind: 'participants',
-        message: 'Choisissez au moins un participant.',
+        message: 'validation.allocation.participantRequired',
       });
 
       const participants = ['alice@example.com', 'bob@example.com'];
@@ -57,7 +57,7 @@ describe('equal with caps allocation form', () => {
         }),
       ).toEqual({
         kind: 'maximum-amount',
-        message: 'Indiquez un montant maximum positif avec deux decimales au plus.',
+        message: 'validation.allocation.positiveMaximum',
       });
       expect(
         validateEqualWithCapsForm({
@@ -69,7 +69,7 @@ describe('equal with caps allocation form', () => {
         }),
       ).toEqual({
         kind: 'uncapped-participant',
-        message: 'Laissez au moins un participant sans montant maximum.',
+        message: 'validation.allocation.uncappedParticipantRequired',
       });
       expect(
         validateEqualWithCapsForm({

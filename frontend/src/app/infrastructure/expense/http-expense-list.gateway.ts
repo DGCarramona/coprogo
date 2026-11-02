@@ -18,7 +18,7 @@ export class HttpExpenseListGateway extends ExpenseListPort {
     return await firstValueFrom(
       this.expensesService.listGroupExpenses(groupId).pipe(
         catchError((error) => {
-          throw toApiClientError(error, 'Les depenses n ont pas pu etre chargees.');
+          throw toApiClientError(error, 'errors.expenses.loadList');
         }),
         mapArray(toExpenseSummary),
       ),

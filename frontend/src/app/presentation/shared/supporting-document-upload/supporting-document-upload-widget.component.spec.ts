@@ -1,3 +1,4 @@
+import { provideLocalization } from '../../i18n/provide-localization';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 
@@ -82,7 +83,9 @@ describe('SupportingDocumentUploadWidgetComponent', () => {
 
       await waitFor(() => fixture.componentInstance.viewModel.hasUploadError());
       fixture.detectChanges();
-      expect(host.querySelector('[role="alert"]')?.textContent).toContain('Envoi indisponible');
+      expect(host.querySelector('[role="alert"]')?.textContent).toContain(
+        'Une erreur est survenue. Veuillez réessayer.',
+      );
       expect(confirmed).toEqual([]);
     });
   });
@@ -93,6 +96,7 @@ const createFixture = (
 ): { fixture: ComponentFixture<SupportingDocumentUploadWidgetComponent>; host: HTMLElement } => {
   TestBed.configureTestingModule({
     providers: [
+      provideLocalization(),
       provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
       { provide: UploadSupportingDocument, useValue: upload },
     ],

@@ -6,10 +6,7 @@ import { GroupFinancialDashboardPort } from '../../application/ledger/group-fina
 import { NavigationPort } from '../../application/shared/navigation.port';
 import { describeError } from '../../application/shared/describe-error';
 import { GroupFinancialDashboard } from '../../domain/ledger/group-financial-dashboard';
-import {
-  formatMoneyFromCents,
-  formatSignedMoneyFromCents,
-} from '../../shared/format/financial-format';
+import { FinancialFormatter } from '../i18n/financial-formatter';
 
 type DashboardStatus = 'idle' | 'loading' | 'ready' | 'failed';
 
@@ -36,6 +33,7 @@ export class GroupDashboardPageViewModel {
     private readonly navigation: NavigationPort,
     private readonly authSessionFacade: AuthSessionFacade,
     private readonly dashboardPort: GroupFinancialDashboardPort,
+    private readonly formatter: FinancialFormatter,
   ) {}
 
   readonly status = this.statusState.asReadonly();
@@ -47,14 +45,14 @@ export class GroupDashboardPageViewModel {
   readonly hasLoadError = computed(() => this.status() === 'failed');
   readonly isReady = computed(() => this.status() === 'ready');
   readonly cashPoolBalance = computed(() =>
-    formatMoneyFromCents(this.dashboardState()?.cashPoolBalance.availableAmountInCents ?? 0),
+    this.formatter.money(this.dashboardState()?.cashPoolBalance.availableAmountInCents ?? 0),
   );
   readonly memberBalances = computed<readonly MemberBalanceViewItem[]>(
     () =>
       this.dashboardState()?.memberBalances.map((balance) => ({
         member: balance.member,
-        label: balance.netAmountInCents >= 0 ? 'A recevoir' : 'A payer',
-        amount: formatSignedMoneyFromCents(balance.netAmountInCents),
+        label: balance.netAmountInCents >= 0 ? 'balances.toReceive' : 'balances.toPay',
+        amount: this.formatter.signedMoney(balance.netAmountInCents),
         tone:
           balance.netAmountInCents > 0
             ? 'credit'
@@ -67,7 +65,7 @@ export class GroupDashboardPageViewModel {
     () =>
       this.dashboardState()?.cashPoolShares.map((share) => ({
         member: share.member,
-        amount: formatMoneyFromCents(share.amountInCents),
+        amount: this.formatter.money(share.amountInCents),
       })) ?? [],
   );
 
@@ -88,7 +86,7 @@ export class GroupDashboardPageViewModel {
     const groupId = this.route.snapshot.paramMap.get('groupId');
     if (!groupId) {
       this.statusState.set('failed');
-      this.errorMessageState.set('Aucun groupe n est selectionne.');
+      this.errorMessageState.set('errors.groups.noneSelected');
       return;
     }
 
@@ -101,9 +99,7 @@ export class GroupDashboardPageViewModel {
     } catch (error) {
       this.dashboardState.set(null);
       this.statusState.set('failed');
-      this.errorMessageState.set(
-        describeError(error, 'Le dashboard financier n a pas pu etre charge.'),
-      );
+      this.errorMessageState.set(describeError(error, 'errors.dashboard.load'));
     }
   }
 }

@@ -5,7 +5,7 @@ import { injectQuery } from '@tanstack/angular-query-experimental';
 import { ReimbursementListPort } from '../../application/reimbursement/reimbursement-list.port';
 import { describeError } from '../../application/shared/describe-error';
 import type { ReimbursementSummary } from '../../domain/reimbursement/reimbursement-summary';
-import { formatDate, formatMoneyFromCents } from '../../shared/format/financial-format';
+import { FinancialFormatter } from '../i18n/financial-formatter';
 
 export interface ReimbursementHistoryViewItem {
   readonly id: string;
@@ -33,7 +33,10 @@ export class ReimbursementHistoryPageViewModel {
   private readonly reimbursementsQuery;
 
   readonly reimbursements = computed<readonly ReimbursementHistoryViewItem[]>(
-    () => this.reimbursementsQuery.data() ?? [],
+    () =>
+      this.reimbursementsQuery
+        .data()
+        ?.map((reimbursement) => toViewItem(reimbursement, this.formatter)) ?? [],
   );
   readonly isLoading = computed(
     () => this.groupId !== null && this.reimbursementsQuery.isLoading(),
@@ -43,18 +46,17 @@ export class ReimbursementHistoryPageViewModel {
   );
   readonly isReady = computed(() => this.groupId !== null && this.reimbursementsQuery.isSuccess());
   readonly errorMessage = computed(() => {
-    if (this.groupId === null) return 'Aucun groupe n est selectionne.';
+    if (this.groupId === null) return 'errors.groups.noneSelected';
 
     const error = this.reimbursementsQuery.error();
-    return error === null
-      ? null
-      : describeError(error, 'Les remboursements n ont pas pu etre charges.');
+    return error === null ? null : describeError(error, 'errors.reimbursements.loadHistory');
   });
 
   constructor(
     route: ActivatedRoute,
     private readonly reimbursementPort: ReimbursementListPort,
     injector: Injector,
+    private readonly formatter: FinancialFormatter,
   ) {
     this.groupId = route.snapshot.paramMap.get('groupId');
     this.reimbursementsQuery = injectQuery(
@@ -62,14 +64,13 @@ export class ReimbursementHistoryPageViewModel {
         queryKey: ['groups', this.groupId, 'reimbursements'] as const,
         queryFn: (): Promise<readonly ReimbursementSummary[]> => {
           if (this.groupId === null) {
-            throw new Error('Un groupe doit etre selectionne avant de charger ses remboursements.');
+            throw new Error('errors.reimbursements.missingHistoryGroup');
           }
 
           return this.reimbursementPort.listByGroup(this.groupId);
         },
         enabled: this.groupId !== null,
         staleTime: 30_000,
-        select: (reimbursements) => reimbursements.map(toViewItem),
       }),
       { injector },
     );
@@ -80,12 +81,15 @@ export class ReimbursementHistoryPageViewModel {
   }
 }
 
-const toViewItem = (reimbursement: ReimbursementSummary): ReimbursementHistoryViewItem => ({
+const toViewItem = (
+  reimbursement: ReimbursementSummary,
+  formatter: FinancialFormatter,
+): ReimbursementHistoryViewItem => ({
   id: reimbursement.id,
   paidBy: reimbursement.paidBy,
   receivedBy: reimbursement.receivedBy,
-  amount: formatMoneyFromCents(reimbursement.amountInCents),
-  reimbursedAt: formatDate(reimbursement.reimbursedAt),
+  amount: formatter.money(reimbursement.amountInCents),
+  reimbursedAt: formatter.date(reimbursement.reimbursedAt),
   awaitsReview: reimbursement.status === 'PENDING_REVIEW',
   reviewStatusLabel: toReviewStatusLabel(reimbursement),
   rejectionReason: reimbursement.status === 'REJECTED' ? reimbursement.rejectionReason : null,
@@ -93,7 +97,7 @@ const toViewItem = (reimbursement: ReimbursementSummary): ReimbursementHistoryVi
     sourceUploadIntent: document.sourceUploadIntent,
     fileName: document.fileName,
     uploader: document.uploader,
-    attachedAt: formatDate(document.attachedAt),
+    attachedAt: formatter.date(document.attachedAt),
     downloadUrl: document.downloadTarget.url,
   })),
 });
@@ -103,10 +107,10 @@ const toReviewStatusLabel = (reimbursement: ReimbursementSummary): string | null
 
   switch (reimbursement.status) {
     case 'PENDING_REVIEW':
-      return 'À revoir';
+      return 'statuses.pendingReview';
     case 'ACCEPTED':
-      return 'Accepté';
+      return 'statuses.accepted';
     case 'REJECTED':
-      return 'Refusé';
+      return 'statuses.rejected';
   }
 };

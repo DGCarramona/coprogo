@@ -29,9 +29,7 @@ export class OwnershipShareChangeWidgetViewModel {
   readonly hasLoadError = computed(() => this.membersQuery.isError());
   readonly loadErrorMessage = computed(() => {
     const error = this.membersQuery.error();
-    return error === null
-      ? null
-      : describeError(error, 'Les membres du groupe n ont pas pu etre charges.');
+    return error === null ? null : describeError(error, 'errors.groups.loadMembers');
   });
   readonly hasInvalidShares = computed(
     () =>
@@ -45,9 +43,7 @@ export class OwnershipShareChangeWidgetViewModel {
   readonly hasRecordingError = computed(() => this.recordingMutation.isError());
   readonly recordingErrorMessage = computed(() => {
     const error = this.recordingMutation.error();
-    return error === null
-      ? null
-      : describeError(error, 'Les quotes-parts n ont pas pu etre enregistrees.');
+    return error === null ? null : describeError(error, 'errors.ownership.recordShares');
   });
 
   constructor(
@@ -73,17 +69,19 @@ export class OwnershipShareChangeWidgetViewModel {
     this.form = form(
       this.formModel,
       (shareChange) => {
-        required(shareChange.effectiveDate, { message: 'Indiquez la date d effet.' });
+        required(shareChange.effectiveDate, {
+          message: 'validation.ownership.effectiveDateRequired',
+        });
         validate(shareChange.effectiveDate, ({ value }) =>
           parseLocalDate(value()) !== null
             ? undefined
-            : { kind: 'effective-date', message: 'Indiquez une date d effet valide.' },
+            : { kind: 'effective-date', message: 'validation.ownership.effectiveDateInvalid' },
         );
         validate(shareChange.percentagesByMember, ({ value }) =>
           toOwnershipShares(this.members(), value()) === null
             ? {
                 kind: 'ownership-shares',
-                message: 'Le total doit etre exactement egal a 100 %.',
+                message: 'validation.ownership.totalMustEqualHundred',
               }
             : undefined,
         );
@@ -99,7 +97,7 @@ export class OwnershipShareChangeWidgetViewModel {
             if (groupId === null || effectiveDate === null || shares === null) {
               return {
                 kind: 'ownership-share-change',
-                message: 'Completez la date et les quotes-parts de chaque membre.',
+                message: 'validation.ownership.completeForm',
               };
             }
 
@@ -114,7 +112,7 @@ export class OwnershipShareChangeWidgetViewModel {
             } catch {
               return {
                 kind: 'ownership-share-change',
-                message: 'Les quotes-parts n ont pas pu etre enregistrees.',
+                message: 'errors.ownership.recordShares',
               };
             }
           },

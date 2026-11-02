@@ -1,6 +1,8 @@
 package tech.justdev.infrastructure.persistence.group
 
+import io.r2dbc.spi.ConnectionFactory
 import jakarta.inject.Inject
+import jakarta.inject.Named
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
@@ -9,6 +11,10 @@ import tech.justdev.domain.group.entity.Group
 import tech.justdev.domain.group.entity.Member
 import tech.justdev.domain.group.repository.GroupRepository
 import tech.justdev.domain.group.repository.MemberRepository
+import tech.justdev.domain.group.valueobject.GroupName
+import tech.justdev.infrastructure.persistence.jooq.Tables.GROUP_MEMBERSHIPS
+import tech.justdev.infrastructure.persistence.jooq.awaitList
+import tech.justdev.infrastructure.persistence.jooq.dsl
 import tech.justdev.testsupport.PostgresMicronautTest
 import tech.justdev.testsupport.groupId
 import tech.justdev.testsupport.memberEmail
@@ -17,6 +23,10 @@ import java.time.Instant
 @PostgresMicronautTest
 class R2dbcGroupRepositoryIntegrationTest {
     @Inject
+    @field:Named("default")
+    lateinit var connectionFactory: ConnectionFactory
+
+    @Inject
     lateinit var groupRepository: GroupRepository
 
     @Inject
@@ -24,6 +34,32 @@ class R2dbcGroupRepositoryIntegrationTest {
 
     @Nested
     inner class Persist {
+        @Test
+        fun `renaming preserves existing membership rows and dates`() =
+            runTest {
+                val group = groupWithMember("rename-preserve-memberships")
+                groupRepository.persist(group)
+                val before = membershipRows(group)
+                val renamed = group.rename(GroupName.of("Appartement familial"))
+
+                groupRepository.persist(renamed)
+
+                assertEquals(renamed, groupRepository.findById(group.id))
+                assertEquals(before, membershipRows(group))
+            }
+
+        @Test
+        fun `removes only memberships absent from the persisted aggregate`() =
+            runTest {
+                val group = groupWithMember("replace-memberships-subset")
+                groupRepository.persist(group)
+                val updated = group.copy(members = group.members.filter { it.member == group.createdBy }.toSet())
+
+                groupRepository.persist(updated)
+
+                assertEquals(updated, groupRepository.findById(group.id))
+            }
+
         @Test
         fun `should persist the group creator and memberships`() =
             runTest {
@@ -95,6 +131,15 @@ class R2dbcGroupRepositoryIntegrationTest {
                 joinedAt = Instant.parse("2026-04-14T08:00:00Z"),
             )
     }
+
+    private suspend fun membershipRows(group: Group) =
+        connectionFactory
+            .dsl()
+            .select(GROUP_MEMBERSHIPS.ID, GROUP_MEMBERSHIPS.MEMBER_EMAIL, GROUP_MEMBERSHIPS.JOINED_AT)
+            .from(GROUP_MEMBERSHIPS)
+            .where(GROUP_MEMBERSHIPS.GROUP.eq(group.id.toPrimitive()))
+            .orderBy(GROUP_MEMBERSHIPS.MEMBER_EMAIL)
+            .awaitList()
 
     private suspend fun persistMember(email: tech.justdev.domain.group.valueobject.MemberEmail) {
         memberRepository.persist(

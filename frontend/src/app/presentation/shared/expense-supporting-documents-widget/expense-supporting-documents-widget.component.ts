@@ -1,3 +1,5 @@
+import { ErrorMessagePipe } from '../../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component, OnInit, input } from '@angular/core';
 
 import { SupportingDocumentHistoryComponent } from '../supporting-document-history/supporting-document-history.component';
@@ -6,7 +8,7 @@ import { ExpenseSupportingDocumentsWidgetViewModel } from './expense-supporting-
 @Component({
   selector: 'app-expense-supporting-documents-widget',
   standalone: true,
-  imports: [SupportingDocumentHistoryComponent],
+  imports: [ErrorMessagePipe, TranslatePipe, SupportingDocumentHistoryComponent],
   providers: [ExpenseSupportingDocumentsWidgetViewModel],
   templateUrl: './expense-supporting-documents-widget.component.html',
 })

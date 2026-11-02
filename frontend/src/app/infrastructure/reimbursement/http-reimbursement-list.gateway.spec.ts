@@ -126,24 +126,24 @@ describe('HttpReimbursementListGateway', () => {
       {
         name: 'reimbursement date',
         response: reimbursementResponse({ reimbursedAt: 'date-invalide' }),
-        message: 'Date de remboursement invalide: date-invalide.',
+        message: 'errors.reimbursements.invalidDate: date-invalide.',
       },
       {
         name: 'declaration date',
         response: reimbursementResponse({ declaredAt: 'date-invalide' }),
-        message: 'Date de declaration du remboursement invalide: date-invalide.',
+        message: 'errors.reimbursements.invalidDeclarationDate: date-invalide.',
       },
       {
         name: 'decision date',
         response: reimbursementResponse({ status: 'ACCEPTED', decidedAt: 'date-invalide' }),
-        message: 'Date de decision du remboursement invalide: date-invalide.',
+        message: 'errors.reimbursements.invalidReviewDate: date-invalide.',
       },
       {
         name: 'document attachment date',
         response: reimbursementResponse({
           documents: [supportingDocumentResponse({ attachedAt: 'date-invalide' })],
         }),
-        message: 'Date d ajout du justificatif invalide: date-invalide.',
+        message: 'errors.documents.invalidAttachmentDate: date-invalide.',
       },
       {
         name: 'download expiration date',
@@ -157,7 +157,7 @@ describe('HttpReimbursementListGateway', () => {
             }),
           ],
         }),
-        message: 'Date d expiration du telechargement invalide: date-invalide.',
+        message: 'errors.documents.invalidDownloadExpiration: date-invalide.',
       },
     ])('rejects an invalid $name', async ({ response, message }) => {
       const reimbursements = gateway.listByGroup(GROUP_ID);

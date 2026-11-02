@@ -1,9 +1,11 @@
+import { provideLocalization } from './presentation/i18n/provide-localization';
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
+      providers: [provideLocalization()],
       imports: [App],
     }).compileComponents();
   });

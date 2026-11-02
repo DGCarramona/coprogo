@@ -1,11 +1,11 @@
 <app-authenticated-shell
-  eyebrow="Revenus du groupe"
-  title="Quotes-parts et revenus"
-  description="Consultez comment les revenus sont répartis entre les membres à chaque date d’effet."
+  [eyebrow]="'revenue.eyebrow' | translate"
+  [title]="'ownership.history.title' | translate"
+  [description]="'ownership.history.description' | translate"
 >
   @if (viewModel.groupId !== null) {
     <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId, 'dashboard']">
-      Retour au groupe
+      {{ 'members.back' | translate }}
     </a>
 
     <section
@@ -13,9 +13,11 @@
       aria-labelledby="ownership-share-change-title"
     >
       <div class="ownership-share-timeline-page__section-heading">
-        <p class="ownership-share-timeline-page__section-kicker">Gestion des revenus</p>
-        <h2 id="ownership-share-change-title">Modifier les quotes-parts</h2>
-        <p>Une nouvelle répartition s’applique aux revenus à partir de sa date d’effet.</p>
+        <p class="ownership-share-timeline-page__section-kicker">
+          {{ 'layout.ownership.manage' | translate }}
+        </p>
+        <h2 id="ownership-share-change-title">{{ 'ownership.change.title' | translate }}</h2>
+        <p>{{ 'layout.ownership.changeHelp' | translate }}</p>
       </div>
       <app-ownership-share-change-widget [groupId]="viewModel.groupId" />
     </section>
@@ -26,34 +28,38 @@
     aria-labelledby="ownership-share-history-title"
   >
     <div class="ownership-share-timeline-page__section-heading">
-      <p class="ownership-share-timeline-page__section-kicker">Historique</p>
-      <h2 id="ownership-share-history-title">Répartitions enregistrées</h2>
-      <p>Chaque changement reste visible avec sa date d’application et son auteur.</p>
+      <p class="ownership-share-timeline-page__section-kicker">
+        {{ 'layout.ownership.historyKicker' | translate }}
+      </p>
+      <h2 id="ownership-share-history-title">{{ 'layout.ownership.historyTitle' | translate }}</h2>
+      <p>{{ 'layout.ownership.historyHelp' | translate }}</p>
     </div>
 
     <mat-card class="material-card ownership-share-timeline-page__card" appearance="outlined">
       <mat-card-content>
         @if (viewModel.isLoading()) {
           <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-          <p>Chargement de l’historique…</p>
+          <p>{{ 'common.loadingHistory' | translate }}</p>
         } @else if (viewModel.hasLoadError()) {
-          <p role="alert">{{ viewModel.errorMessage() }}</p>
+          <p role="alert">{{ viewModel.errorMessage() | errorMessage }}</p>
           @if (viewModel.groupId !== null) {
-            <button mat-flat-button type="button" (click)="viewModel.retry()">Réessayer</button>
+            <button mat-flat-button type="button" (click)="viewModel.retry()">
+              {{ 'common.retry' | translate }}
+            </button>
           }
         } @else if (viewModel.isReady() && viewModel.changes().length === 0) {
           <p class="ownership-share-timeline-page__empty">
-            Aucune répartition des revenus n’a encore été enregistrée.
+            {{ 'ownership.history.empty' | translate }}
           </p>
         } @else {
           <ol class="ownership-share-timeline-page__timeline">
             @for (change of viewModel.changes(); track change.id) {
               <li>
                 <article class="ownership-share-timeline-page__change">
-                  <h3>Répartition applicable à partir du {{ change.effectiveDate }}</h3>
+                  <h3>{{ 'ownership.effectiveFrom' | translate: { p0: change.effectiveDate } }}</h3>
                   <p>
-                    Enregistrée par <strong>{{ change.recordedBy }}</strong> le
-                    {{ change.recordedAt }}
+                    {{ 'common.recordedBy' | translate }} <strong>{{ change.recordedBy }}</strong>
+                    {{ 'common.onDate' | translate: { p0: change.recordedAt } }}
                   </p>
                   <dl>
                     @for (share of change.shares; track share.member) {

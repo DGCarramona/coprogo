@@ -1,3 +1,5 @@
+import { ErrorMessagePipe } from '../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -17,6 +19,8 @@ import { MemberDebtReductionHistoryWidgetComponent } from './member-debt-reducti
 @Component({
   selector: 'app-group-dashboard-page',
   imports: [
+    ErrorMessagePipe,
+    TranslatePipe,
     AuthenticatedShellComponent,
     CashPoolHistoryWidgetComponent,
     CashPoolIncomeWidgetComponent,

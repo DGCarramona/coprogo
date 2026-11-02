@@ -1,3 +1,5 @@
+import { GroupMemberInvitationPort } from './application/group/group-member-invitation.port';
+import { HttpGroupMemberInvitationGateway } from './infrastructure/group/http-group-member-invitation.gateway';
 import { ProviderToken } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { QueryClient } from '@tanstack/angular-query-experimental';
@@ -8,6 +10,10 @@ import { ExpenseParticipationDecisionPort } from './application/expense/expense-
 import { MemberDebtReductionHistoryPort } from './application/ledger/member-debt-reduction-history.port';
 import { CashPoolHistoryPort } from './application/ledger/cash-pool-history.port';
 import { CashPoolWithdrawalPort } from './application/ledger/cash-pool-withdrawal.port';
+import { MemberGroupsPort } from './application/group/member-groups.port';
+import { GroupRenamingPort } from './application/group/group-renaming.port';
+import { HttpGroupRenamingGateway } from './infrastructure/group/http-group-renaming.gateway';
+import { HttpMemberGroupsGateway } from './infrastructure/group/http-member-groups.gateway';
 import { GroupMembersPort } from './application/group/group-members.port';
 import { NavigationPort } from './application/shared/navigation.port';
 import { ReimbursementListPort } from './application/reimbursement/reimbursement-list.port';
@@ -52,6 +58,12 @@ const portBindings: readonly {
   port: ProviderToken<unknown>;
   adapter: ProviderToken<unknown>;
 }[] = [
+  { name: 'group renaming', port: GroupRenamingPort, adapter: HttpGroupRenamingGateway },
+  {
+    name: 'member groups',
+    port: MemberGroupsPort,
+    adapter: HttpMemberGroupsGateway,
+  },
   {
     name: 'expense proposal',
     port: ExpenseProposalPort,
@@ -155,6 +167,12 @@ const portBindings: readonly {
 ];
 
 describe('appConfig', () => {
+  it('binds group invitations to the HTTP adapter', () => {
+    TestBed.configureTestingModule({ providers: appConfig.providers });
+    expect(TestBed.inject(GroupMemberInvitationPort)).toBe(
+      TestBed.inject(HttpGroupMemberInvitationGateway),
+    );
+  });
   it('provides a TanStack Query client', () => {
     TestBed.configureTestingModule({ providers: appConfig.providers });
 

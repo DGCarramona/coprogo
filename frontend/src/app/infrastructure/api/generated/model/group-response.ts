@@ -16,4 +16,5 @@ export interface GroupResponseDto {
   createdAt: string;
   members: Array<GroupMemberResponseDto>;
   pendingInvitations: Array<GroupInvitationResponseDto>;
+  name?: string | null;
 }

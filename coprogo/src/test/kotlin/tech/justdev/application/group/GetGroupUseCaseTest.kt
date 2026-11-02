@@ -8,6 +8,7 @@ import tech.justdev.application.support.InMemoryGroupInvitationRepository
 import tech.justdev.application.support.InMemoryGroupRepository
 import tech.justdev.domain.group.entity.Group
 import tech.justdev.domain.group.entity.GroupInvitation
+import tech.justdev.domain.group.valueobject.GroupName
 import tech.justdev.testsupport.groupId
 import tech.justdev.testsupport.groupInvitationId
 import tech.justdev.testsupport.groupInvitationUuid
@@ -25,6 +26,7 @@ class GetGroupUseCaseTest {
                         id = groupId("group-1"),
                         createdBy = memberEmail("alice"),
                         createdAt = Instant.parse("2026-04-14T08:30:00Z"),
+                        name = GroupName.of("Appartement familial"),
                     ).addMember(
                         member = memberEmail("bob"),
                         joinedAt = Instant.parse("2026-04-14T09:00:00Z"),
@@ -51,6 +53,7 @@ class GetGroupUseCaseTest {
                 GroupSnapshot(
                     group = groupUuid("group-1"),
                     createdBy = "alice@example.com",
+                    name = "Appartement familial",
                     createdAt = Instant.parse("2026-04-14T08:30:00Z"),
                     members =
                         listOf(

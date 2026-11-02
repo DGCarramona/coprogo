@@ -157,6 +157,7 @@
 .group-dashboard-page__row-summary {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 1rem;
 }

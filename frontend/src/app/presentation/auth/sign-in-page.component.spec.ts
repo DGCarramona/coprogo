@@ -1,3 +1,6 @@
+import { provideLocalization } from '../i18n/provide-localization';
+import { ErrorMessagePipe } from '../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
@@ -24,7 +27,10 @@ describe('SignInPageComponent', () => {
 });
 
 const createFixture = (): ComponentFixture<SignInPageComponent> => {
-  TestBed.configureTestingModule({ imports: [SignInPageComponent] });
+  TestBed.configureTestingModule({
+    imports: [SignInPageComponent],
+    providers: [provideLocalization()],
+  });
   TestBed.overrideComponent(SignInPageComponent, {
     set: {
       providers: [
@@ -40,7 +46,14 @@ const createFixture = (): ComponentFixture<SignInPageComponent> => {
           },
         },
       ],
-      imports: [MatCardModule, MatChipsModule, MatDividerModule, MatProgressBarModule],
+      imports: [
+        ErrorMessagePipe,
+        TranslatePipe,
+        MatCardModule,
+        MatChipsModule,
+        MatDividerModule,
+        MatProgressBarModule,
+      ],
     },
   });
 

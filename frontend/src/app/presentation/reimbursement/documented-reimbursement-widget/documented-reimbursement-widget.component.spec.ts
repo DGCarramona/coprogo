@@ -1,3 +1,4 @@
+import { provideLocalization } from '../../i18n/provide-localization';
 import { Component, Input, output } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -27,8 +28,8 @@ describe('DocumentedReimbursementWidgetComponent', () => {
     const { fixture, host } = createFixture(declarationPort);
     await waitForMembers(fixture, host);
 
-    setValue(host, fixture, 'select[aria-label="Personne remboursee"]', 'alice@example.com');
-    setValue(host, fixture, 'input[aria-label="Montant rembourse en euros"]', '42,50');
+    setValue(host, fixture, 'select[aria-label="Personne remboursée"]', 'alice@example.com');
+    setValue(host, fixture, 'input[aria-label="Montant remboursé en euros"]', '42,50');
     setValue(host, fixture, 'input[aria-label="Date du remboursement"]', '2026-10-03T09:30');
     const upload = requiredUploadWidget(fixture);
     upload.confirmed.emit({ intentId: 'upload-1', fileName: 'recu.pdf' });
@@ -54,8 +55,8 @@ describe('DocumentedReimbursementWidgetComponent', () => {
     const { fixture, host } = createFixture(new StubDocumentedReimbursementDeclarationPort());
     await waitForMembers(fixture, host);
 
-    setValue(host, fixture, 'select[aria-label="Personne remboursee"]', 'alice@example.com');
-    setValue(host, fixture, 'input[aria-label="Montant rembourse en euros"]', '42,50');
+    setValue(host, fixture, 'select[aria-label="Personne remboursée"]', 'alice@example.com');
+    setValue(host, fixture, 'input[aria-label="Montant remboursé en euros"]', '42,50');
     setValue(host, fixture, 'input[aria-label="Date du remboursement"]', '2026-10-03T09:30');
 
     expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
@@ -64,8 +65,8 @@ describe('DocumentedReimbursementWidgetComponent', () => {
   it('blocks declaration while a supporting document upload is pending', async () => {
     const { fixture, host } = createFixture(new StubDocumentedReimbursementDeclarationPort());
     await waitForMembers(fixture, host);
-    setValue(host, fixture, 'select[aria-label="Personne remboursee"]', 'alice@example.com');
-    setValue(host, fixture, 'input[aria-label="Montant rembourse en euros"]', '42,50');
+    setValue(host, fixture, 'select[aria-label="Personne remboursée"]', 'alice@example.com');
+    setValue(host, fixture, 'input[aria-label="Montant remboursé en euros"]', '42,50');
     setValue(host, fixture, 'input[aria-label="Date du remboursement"]', '2026-10-03T09:30');
     const upload = requiredUploadWidget(fixture);
     upload.confirmed.emit({ intentId: 'upload-1', fileName: 'recu.pdf' });
@@ -94,6 +95,7 @@ const createFixture = (
   TestBed.configureTestingModule({
     imports: [DocumentedReimbursementWidgetComponent],
     providers: [
+      provideLocalization(),
       provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
       { provide: GroupMembersPort, useClass: StubGroupMembersPort },
       { provide: DocumentedReimbursementDeclarationPort, useValue: declarationPort },

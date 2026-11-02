@@ -15,7 +15,7 @@ export class HttpReimbursementReviewGateway extends ReimbursementReviewPort {
     await firstValueFrom(
       this.reimbursementsService.acceptReimbursement(groupId, reimbursementId).pipe(
         catchError((error) => {
-          throw toApiClientError(error, 'Le remboursement n a pas pu etre accepte.');
+          throw toApiClientError(error, 'errors.reimbursements.accept');
         }),
         map(() => undefined),
       ),
@@ -30,7 +30,7 @@ export class HttpReimbursementReviewGateway extends ReimbursementReviewPort {
     await firstValueFrom(
       this.reimbursementsService.rejectReimbursement(groupId, reimbursementId, { reason }).pipe(
         catchError((error) => {
-          throw toApiClientError(error, 'Le remboursement n a pas pu etre refuse.');
+          throw toApiClientError(error, 'errors.reimbursements.reject');
         }),
         map(() => undefined),
       ),

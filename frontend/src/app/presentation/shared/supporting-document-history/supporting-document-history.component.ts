@@ -1,4 +1,6 @@
-import { DatePipe } from '@angular/common';
+import { ErrorMessagePipe } from '../../i18n/error-message.pipe';
+import { LocalizedDatePipe } from '../../i18n/localized-date.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component, input } from '@angular/core';
 
 import type { ExpenseSupportingDocument } from '../../../application/supporting-document/expense-supporting-documents.port';
@@ -9,7 +11,7 @@ export type SupportingDocumentVersion = ExpenseSupportingDocument;
 @Component({
   selector: 'app-supporting-document-history',
   standalone: true,
-  imports: [DatePipe],
+  imports: [ErrorMessagePipe, LocalizedDatePipe, TranslatePipe],
   providers: [SupportingDocumentHistoryViewModel],
   templateUrl: './supporting-document-history.component.html',
 })

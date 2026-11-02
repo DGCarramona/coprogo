@@ -21,7 +21,7 @@ export class HttpDirectReimbursementRecordingGateway extends DirectReimbursement
         .recordDirectReimbursement(command.groupId, toRequest(command))
         .pipe(
           catchError((error) => {
-            throw toApiClientError(error, 'Le remboursement n a pas pu etre enregistre.');
+            throw toApiClientError(error, 'errors.reimbursements.record');
           }),
           map(() => undefined),
         ),

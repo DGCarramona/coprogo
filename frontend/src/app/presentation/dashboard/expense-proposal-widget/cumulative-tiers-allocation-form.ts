@@ -85,7 +85,7 @@ export const validateCumulativeTiersForm = (
   ) {
     return {
       kind: 'tier-participants',
-      message: 'Choisissez au moins un participant pour chaque tranche.',
+      message: 'validation.allocation.tierParticipantsRequired',
     };
   }
 
@@ -95,7 +95,7 @@ export const validateCumulativeTiersForm = (
   if (parsedThresholds.some((threshold) => threshold === null)) {
     return {
       kind: 'tier-threshold',
-      message: 'Indiquez des seuils positifs avec deux decimales au plus.',
+      message: 'validation.allocation.positiveThresholds',
     };
   }
 
@@ -109,7 +109,7 @@ export const validateCumulativeTiersForm = (
   if (hasInvalidOrder) {
     return {
       kind: 'tier-order',
-      message: 'Les seuils doivent augmenter et rester inferieurs au montant total.',
+      message: 'validation.allocation.increasingThresholds',
     };
   }
 
@@ -124,7 +124,7 @@ export const validateCumulativeTiersForm = (
   return hasZeroCentShare
     ? {
         kind: 'tier-share',
-        message: 'Chaque participant doit participer pour au moins un centime dans chaque tranche.',
+        message: 'validation.allocation.minimumTierContribution',
       }
     : undefined;
 };

@@ -1,3 +1,6 @@
+import { ErrorMessagePipe } from '../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
+import { provideLocalization } from '../i18n/provide-localization';
 import { Component, Input, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonModule } from '@angular/material/button';
@@ -44,7 +47,7 @@ describe('OwnershipShareTimelinePageComponent', () => {
     fixture.detectChanges();
 
     expect((fixture.nativeElement as HTMLElement).textContent).toContain(
-      'Chargement de l’historique…',
+      'Chargement de l’historique...',
     );
   });
 
@@ -112,11 +115,13 @@ const createFixture = (
 ): ComponentFixture<OwnershipShareTimelinePageComponent> => {
   TestBed.configureTestingModule({
     imports: [OwnershipShareTimelinePageComponent],
-    providers: [provideRouter([])],
+    providers: [provideLocalization(), provideRouter([])],
   });
   TestBed.overrideComponent(OwnershipShareTimelinePageComponent, {
     set: {
       imports: [
+        ErrorMessagePipe,
+        TranslatePipe,
         StubAuthenticatedShellComponent,
         StubOwnershipShareChangeWidgetComponent,
         MatButtonModule,

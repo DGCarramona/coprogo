@@ -23,7 +23,7 @@ export class HttpSignedSupportingDocumentUploaderGateway extends SignedSupportin
         })
         .pipe(
           catchError((error) => {
-            throw toApiClientError(error, 'Le televersement direct du justificatif a echoue.');
+            throw toApiClientError(error, 'errors.documents.upload');
           }),
           map(() => undefined),
         ),

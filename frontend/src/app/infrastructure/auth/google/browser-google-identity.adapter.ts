@@ -15,12 +15,12 @@ export class BrowserGoogleIdentityAdapter extends GoogleIdentityPort {
 
   override renderButton(command: RenderGoogleSignInButtonCommand): void {
     if (!this.isConfigured()) {
-      throw new Error('APP_GOOGLE_CLIENT_ID est requis pour afficher la connexion Google.');
+      throw new Error('errors.auth.googleNotConfigured');
     }
 
     const google = globalThis.window.google?.accounts.id;
     if (google === undefined) {
-      throw new Error('Google Identity Services est indisponible dans ce navigateur.');
+      throw new Error('errors.auth.googleUnavailable');
     }
 
     command.host.replaceChildren();
@@ -32,12 +32,21 @@ export class BrowserGoogleIdentityAdapter extends GoogleIdentityPort {
       context: 'signin',
       ux_mode: 'popup',
     });
-    google.renderButton(command.host, {
-      theme: 'outline',
-      size: 'large',
-      shape: 'pill',
-      text: 'continue_with',
-      width: Math.max(command.host.clientWidth, 280),
-    });
+    google.renderButton(
+      command.host,
+      googleSignInButtonOptions(command.host.clientWidth, command.locale),
+    );
   }
 }
+
+export const googleSignInButtonOptions = (
+  availableWidth: number,
+  locale: string,
+): GoogleIdentityButtonConfiguration => ({
+  theme: 'outline',
+  size: 'large',
+  shape: 'pill',
+  text: 'continue_with',
+  width: Math.min(400, Math.max(availableWidth, 200)),
+  locale,
+});

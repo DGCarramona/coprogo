@@ -28,7 +28,7 @@ export class CashPoolWithdrawalWidgetViewModel {
   readonly hasWithdrawalError = computed(() => this.withdrawalMutation.isError());
   readonly withdrawalErrorMessage = computed(() => {
     const error = this.withdrawalMutation.error();
-    return error === null ? null : describeError(error, 'Le retrait n a pas pu etre enregistre.');
+    return error === null ? null : describeError(error, 'errors.cashPool.withdraw');
   });
 
   constructor(
@@ -47,14 +47,14 @@ export class CashPoolWithdrawalWidgetViewModel {
           parseAmountInCents(value()) === null
             ? {
                 kind: 'amount',
-                message: 'Indiquez un montant positif avec deux decimales au plus.',
+                message: 'validation.amount.positiveTwoDecimals',
               }
             : undefined,
         );
-        required(withdrawal.withdrawnAt, { message: 'Indiquez la date du retrait.' });
+        required(withdrawal.withdrawnAt, { message: 'validation.withdrawal.dateRequired' });
         validate(withdrawal.withdrawnAt, ({ value }) =>
           parseLocalDateTime(value()) === null
-            ? { kind: 'withdrawn-at', message: 'Indiquez une date de retrait valide.' }
+            ? { kind: 'withdrawn-at', message: 'validation.withdrawal.dateInvalid' }
             : undefined,
         );
       },
@@ -69,7 +69,7 @@ export class CashPoolWithdrawalWidgetViewModel {
             if (groupId === null || amountInCents === null || withdrawnAt === null) {
               return {
                 kind: 'cash-pool-withdrawal',
-                message: 'Completez le montant et la date du retrait.',
+                message: 'validation.withdrawal.completeForm',
               };
             }
 
@@ -83,7 +83,7 @@ export class CashPoolWithdrawalWidgetViewModel {
             } catch {
               return {
                 kind: 'cash-pool-withdrawal',
-                message: 'Le retrait n a pas pu etre enregistre.',
+                message: 'errors.cashPool.withdraw',
               };
             }
           },

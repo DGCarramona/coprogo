@@ -1,3 +1,4 @@
+import { provideLocalization } from '../../i18n/provide-localization';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
@@ -487,7 +488,7 @@ describe('ExpenseProposalWidgetComponent', () => {
       await waitFor(() => fixture.componentInstance.viewModel.hasProposalError());
       fixture.detectChanges();
 
-      expect(host.textContent).toContain('Proposition indisponible');
+      expect(host.textContent).toContain('Une erreur est survenue. Veuillez réessayer.');
       expect(host.querySelector('[role="alert"]')).toBeInstanceOf(HTMLElement);
     });
   });
@@ -515,7 +516,7 @@ describe('ExpenseProposalWidgetComponent', () => {
       await waitFor(() => {
         fixture.detectChanges();
 
-        return host.textContent?.includes('Membres indisponibles') ?? false;
+        return host.textContent?.includes('Une erreur est survenue. Veuillez réessayer.') ?? false;
       });
 
       const retry = requiredButton(host, 'button[aria-label="Réessayer"]');
@@ -542,6 +543,7 @@ const createFixture = (
 ): { fixture: ComponentFixture<ExpenseProposalWidgetComponent>; host: HTMLElement } => {
   TestBed.configureTestingModule({
     providers: [
+      provideLocalization(),
       provideTanStackQuery(
         new QueryClient({
           defaultOptions: {

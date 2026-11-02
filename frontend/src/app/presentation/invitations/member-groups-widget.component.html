@@ -1,0 +1,90 @@
+<section aria-labelledby="member-groups-title">
+  <h2 id="member-groups-title">{{ 'groups.mine.title' | translate }}</h2>
+  @if (viewModel.isLoading()) {
+    <p role="status">{{ 'groups.mine.loading' | translate }}</p>
+  } @else if (viewModel.hasLoadError()) {
+    <p role="alert">{{ viewModel.errorMessage() | errorMessage }}</p>
+    <button mat-stroked-button type="button" (click)="viewModel.retry()">
+      {{ 'common.retry' | translate }}
+    </button>
+  } @else if (viewModel.groups().length === 0) {
+    <p>{{ 'groups.mine.empty' | translate }}</p>
+  } @else {
+    <ul>
+      @for (group of viewModel.groups(); track group.groupId) {
+        <li>
+          <mat-card appearance="outlined">
+            <mat-card-header>
+              <mat-card-title>{{
+                group.name ?? ('groups.unnamedByCreator' | translate: { p0: group.createdBy })
+              }}</mat-card-title>
+              @if (group.name) {
+                <mat-card-subtitle>{{
+                  'groups.createdBy' | translate: { p0: group.createdBy }
+                }}</mat-card-subtitle>
+              }
+            </mat-card-header>
+            <mat-card-content>
+              <p>{{ 'groups.identifier' | translate: { p0: group.groupId } }}</p>
+              @if (viewModel.editingGroupId() === group.groupId) {
+                <form (submit)="submitRename($event)">
+                  <label [for]="'rename-group-' + group.groupId">{{
+                    'groups.rename.newName' | translate
+                  }}</label>
+                  <input
+                    #newName
+                    [id]="'rename-group-' + group.groupId"
+                    name="groupName"
+                    [attr.aria-label]="'groups.rename.newName' | translate"
+                    required
+                    maxlength="100"
+                    [value]="viewModel.draftName()"
+                    (input)="viewModel.setName(newName.value)"
+                    [disabled]="viewModel.isSaving()"
+                  />
+                  @if (viewModel.renameError()) {
+                    <p role="alert">{{ viewModel.renameError() | errorMessage }}</p>
+                  }
+                  <div class="member-groups__rename-actions">
+                    <button mat-flat-button type="submit" [disabled]="viewModel.isSaving()">
+                      {{
+                        (viewModel.isSaving() ? 'common.saving' : 'groups.rename.submit')
+                          | translate
+                      }}
+                    </button>
+                    <button
+                      mat-button
+                      type="button"
+                      (click)="viewModel.cancelRename()"
+                      [disabled]="viewModel.isSaving()"
+                    >
+                      {{ 'common.cancel' | translate }}
+                    </button>
+                  </div>
+                </form>
+              }
+            </mat-card-content>
+            <mat-card-actions>
+              <a mat-flat-button [routerLink]="['/groups', group.groupId, 'dashboard']">{{
+                'common.openGroup' | translate
+              }}</a>
+              @if (group.canRename && viewModel.editingGroupId() !== group.groupId) {
+                <button
+                  mat-button
+                  type="button"
+                  [attr.aria-label]="
+                    'groups.rename.accessibleLabel' | translate: { p0: group.name ?? group.groupId }
+                  "
+                  (click)="viewModel.beginRename(group)"
+                  [disabled]="viewModel.isSaving()"
+                >
+                  {{ 'common.rename' | translate }}
+                </button>
+              }
+            </mat-card-actions>
+          </mat-card>
+        </li>
+      }
+    </ul>
+  }
+</section>

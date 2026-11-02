@@ -30,9 +30,7 @@ export class DirectReimbursementWidgetViewModel {
   readonly hasLoadError = computed(() => this.membersQuery.isError());
   readonly loadErrorMessage = computed(() => {
     const error = this.membersQuery.error();
-    return error === null
-      ? null
-      : describeError(error, 'Les membres du groupe n ont pas pu etre charges.');
+    return error === null ? null : describeError(error, 'errors.groups.loadMembers');
   });
 
   private readonly recordingMutation;
@@ -41,9 +39,7 @@ export class DirectReimbursementWidgetViewModel {
   readonly hasRecordingError = computed(() => this.recordingMutation.isError());
   readonly recordingErrorMessage = computed(() => {
     const error = this.recordingMutation.error();
-    return error === null
-      ? null
-      : describeError(error, 'Le remboursement n a pas pu etre enregistre.');
+    return error === null ? null : describeError(error, 'errors.reimbursements.record');
   });
 
   constructor(
@@ -69,19 +65,19 @@ export class DirectReimbursementWidgetViewModel {
     this.form = form(
       this.formModel,
       (reimbursement) => {
-        required(reimbursement.paidBy, { message: 'Choisissez la personne qui vous a rembourse.' });
+        required(reimbursement.paidBy, { message: 'validation.reimbursements.payerRequired' });
         validate(reimbursement.amountInEuros, ({ value }) =>
           parseAmountInCents(value()) === null
             ? {
                 kind: 'amount',
-                message: 'Indiquez un montant positif avec deux decimales au plus.',
+                message: 'validation.amount.positiveTwoDecimals',
               }
             : undefined,
         );
-        required(reimbursement.reimbursedAt, { message: 'Indiquez la date du remboursement.' });
+        required(reimbursement.reimbursedAt, { message: 'validation.reimbursements.dateRequired' });
         validate(reimbursement.reimbursedAt, ({ value }) =>
           parseLocalDateTime(value()) === null
-            ? { kind: 'date', message: 'Indiquez une date de remboursement valide.' }
+            ? { kind: 'date', message: 'validation.reimbursements.dateInvalid' }
             : undefined,
         );
       },
@@ -97,7 +93,7 @@ export class DirectReimbursementWidgetViewModel {
             if (groupId === null || amountInCents === null || reimbursedAt === null) {
               return {
                 kind: 'direct-reimbursement',
-                message: 'Completez les informations du remboursement.',
+                message: 'validation.reimbursements.completeReceived',
               };
             }
 
@@ -113,7 +109,7 @@ export class DirectReimbursementWidgetViewModel {
             } catch {
               return {
                 kind: 'direct-reimbursement',
-                message: 'Le remboursement n a pas pu etre enregistre.',
+                message: 'errors.reimbursements.record',
               };
             }
           },

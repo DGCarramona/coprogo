@@ -1,17 +1,17 @@
 <app-authenticated-shell
-  eyebrow="Historique des opérations"
-  title="Dépenses"
-  description="Retrouvez les dépenses enregistrées pour ce groupe."
+  [eyebrow]="'common.operationHistory' | translate"
+  [title]="'expenses.list.title' | translate"
+  [description]="'expenses.list.description' | translate"
 >
   @if (viewModel.groupId !== null) {
     <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId, 'dashboard']">
-      Retour au groupe
+      {{ 'common.backToGroup' | translate }}
     </a>
     <app-expense-list-widget [groupId]="viewModel.groupId" />
   } @else {
     <mat-card class="material-card expense-list-page__missing-group" appearance="outlined">
       <mat-card-content>
-        <p role="alert">Aucun groupe n’est sélectionné.</p>
+        <p role="alert">{{ 'errors.groups.noneSelected' | translate }}</p>
       </mat-card-content>
     </mat-card>
   }

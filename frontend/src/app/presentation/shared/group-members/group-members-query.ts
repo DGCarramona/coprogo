@@ -12,7 +12,7 @@ export const groupMembersQueryOptions = (groupId: string | null, port: GroupMemb
     queryKey: groupMembersQueryKey(groupId),
     queryFn: (): Promise<readonly GroupMember[]> => {
       if (groupId === null) {
-        throw new Error('Un groupe doit etre initialise avant de charger ses membres.');
+        throw new Error('errors.groups.missingMembersGroup');
       }
 
       return firstValueFrom(port.listByGroup(groupId));

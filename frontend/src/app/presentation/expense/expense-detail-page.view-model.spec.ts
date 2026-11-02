@@ -1,3 +1,5 @@
+import { FinancialFormatter } from '../i18n/financial-formatter';
+import { provideLocalization } from '../i18n/provide-localization';
 import { Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
@@ -19,7 +21,7 @@ describe('ExpenseDetailPageViewModel', () => {
     decisionPort = new StubExpenseParticipationDecisionPort();
     queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     TestBed.configureTestingModule({
-      providers: [provideTanStackQuery(queryClient)],
+      providers: [provideLocalization(), provideTanStackQuery(queryClient)],
     });
     injector = TestBed.inject(Injector);
   });
@@ -37,25 +39,25 @@ describe('ExpenseDetailPageViewModel', () => {
         canDecideParticipation: true,
         totalAmount: '60,00\u00a0€',
         createdAt: expect.stringContaining('2026'),
-        statusLabel: 'En attente de validation',
+        statusLabel: 'statuses.pendingApproval',
         invalidation: null,
         participations: [
           {
             member: 'alice@example.com',
             amount: '20,00\u00a0€',
-            statusLabel: 'Validée',
+            statusLabel: 'statuses.approved',
             tone: 'approved',
           },
           {
             member: 'bob@example.com',
             amount: '20,00\u00a0€',
-            statusLabel: 'À valider',
+            statusLabel: 'statuses.pendingValidation',
             tone: 'pending',
           },
           {
             member: 'charlie@example.com',
             amount: '20,00\u00a0€',
-            statusLabel: 'Refusée',
+            statusLabel: 'statuses.refused',
             tone: 'refused',
           },
         ],
@@ -93,14 +95,14 @@ describe('ExpenseDetailPageViewModel', () => {
       const viewModel = createViewModel(routeWith('group-1', 'expense-1'));
       await waitFor(() => viewModel.hasLoadError());
 
-      expect(viewModel.errorMessage()).toBe('Une dépense invalidée doit contenir son refus.');
+      expect(viewModel.errorMessage()).toBe('errors.expenses.missingRefusal');
     });
 
     it('reports missing route identifiers without querying', () => {
       const viewModel = createViewModel(routeWith(null, null));
 
       expect(viewModel.hasLoadError()).toBe(true);
-      expect(viewModel.errorMessage()).toBe('La dépense demandée est incomplète.');
+      expect(viewModel.errorMessage()).toBe('errors.expenses.incompleteTarget');
       expect(port.requests).toEqual([]);
     });
 
@@ -172,9 +174,7 @@ describe('ExpenseDetailPageViewModel', () => {
       await viewModel.approve();
 
       expect(decisionPort.approvals).toEqual([]);
-      expect(viewModel.decisionError()).toBe(
-        'Aucune participation en attente ne peut être validée.',
-      );
+      expect(viewModel.decisionError()).toBe('errors.expenses.noPendingParticipation');
     });
   });
 
@@ -212,7 +212,14 @@ describe('ExpenseDetailPageViewModel', () => {
   });
 
   const createViewModel = (route: ActivatedRoute) =>
-    new ExpenseDetailPageViewModel(route, port, decisionPort, queryClient, injector);
+    new ExpenseDetailPageViewModel(
+      route,
+      port,
+      decisionPort,
+      queryClient,
+      injector,
+      TestBed.inject(FinancialFormatter),
+    );
 });
 
 class StubExpenseDetailPort extends ExpenseDetailPort {

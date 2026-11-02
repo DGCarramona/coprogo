@@ -23,9 +23,7 @@ export class ExpenseSupportingDocumentsWidgetViewModel {
   readonly isReady = computed(() => this.documentsQuery.isSuccess());
   readonly errorMessage = computed(() => {
     const error = this.documentsQuery.error();
-    return error === null
-      ? null
-      : describeError(error, 'Les justificatifs n ont pas pu etre charges.');
+    return error === null ? null : describeError(error, 'errors.documents.load');
   });
 
   constructor(
@@ -41,9 +39,7 @@ export class ExpenseSupportingDocumentsWidgetViewModel {
           queryKey: expenseSupportingDocumentsQueryKey(groupId ?? '', expenseId ?? ''),
           queryFn: (): Promise<ExpenseSupportingDocuments> => {
             if (groupId === null || expenseId === null) {
-              throw new Error(
-                'Une depense doit etre initialisee avant de charger ses justificatifs.',
-              );
+              throw new Error('errors.documents.missingExpense');
             }
 
             return this.supportingDocumentsPort.listByExpense(groupId, expenseId);

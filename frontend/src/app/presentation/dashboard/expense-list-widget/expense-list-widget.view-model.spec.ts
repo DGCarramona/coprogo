@@ -1,3 +1,5 @@
+import { FinancialFormatter } from '../../i18n/financial-formatter';
+import { provideLocalization } from '../../i18n/provide-localization';
 import { Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
@@ -18,12 +20,11 @@ describe('ExpenseListWidgetViewModel', () => {
       },
     });
     TestBed.configureTestingModule({
-      providers: [provideTanStackQuery(queryClient)],
+      providers: [provideLocalization(), provideTanStackQuery(queryClient)],
     });
     port = new StubExpenseListPort();
     injector = TestBed.inject(Injector);
   });
-
   describe('initialize', () => {
     it('refreshes expenses when the scoped query is invalidated', async () => {
       const vm = createViewModel();
@@ -128,7 +129,11 @@ describe('ExpenseListWidgetViewModel', () => {
   });
 
   const createViewModel = (): ExpenseListWidgetViewModel => {
-    const viewModel = new ExpenseListWidgetViewModel(port, injector);
+    const viewModel = new ExpenseListWidgetViewModel(
+      port,
+      injector,
+      TestBed.inject(FinancialFormatter),
+    );
     TestBed.tick();
 
     return viewModel;

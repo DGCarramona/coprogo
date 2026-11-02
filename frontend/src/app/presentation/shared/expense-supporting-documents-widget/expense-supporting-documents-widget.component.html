@@ -1,13 +1,13 @@
-<section aria-label="Justificatifs de la dépense">
-  <h3>Justificatifs</h3>
+<section [attr.aria-label]="'expenses.documents.title' | translate">
+  <h3>{{ 'documents.title' | translate }}</h3>
 
   @if (viewModel.isLoading()) {
-    <p role="status">Chargement des justificatifs…</p>
+    <p role="status">{{ 'documents.loading' | translate }}</p>
   } @else if (viewModel.hasLoadError()) {
-    <p role="alert">{{ viewModel.errorMessage() }}</p>
-    <button type="button" (click)="viewModel.retry()">Réessayer</button>
+    <p role="alert">{{ viewModel.errorMessage() | errorMessage }}</p>
+    <button type="button" (click)="viewModel.retry()">{{ 'common.retry' | translate }}</button>
   } @else if (viewModel.histories().length === 0) {
-    <p>Aucun justificatif n’a été ajouté.</p>
+    <p>{{ 'documents.noneAdded' | translate }}</p>
   } @else {
     @for (history of viewModel.histories(); track history.rootSourceUploadIntent) {
       <app-supporting-document-history

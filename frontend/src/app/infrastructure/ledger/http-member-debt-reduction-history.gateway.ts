@@ -25,10 +25,7 @@ export class HttpMemberDebtReductionHistoryGateway extends MemberDebtReductionHi
     return await firstValueFrom(
       this.ledgerService.getMemberDebtReductionHistory(groupId, member).pipe(
         catchError((error) => {
-          throw toApiClientError(
-            error,
-            'Les operations qui ont reduit cette dette n ont pas pu etre chargees.',
-          );
+          throw toApiClientError(error, 'errors.debtReduction.loadHistory');
         }),
         map(toMemberDebtReductionHistory),
       ),

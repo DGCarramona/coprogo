@@ -1,3 +1,4 @@
+import { provideLocalization } from '../../i18n/provide-localization';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 
@@ -44,6 +45,7 @@ const createFixture = (
   TestBed.configureTestingModule({
     imports: [ReimbursementReviewComponent],
     providers: [
+      provideLocalization(),
       provideTanStackQuery(new QueryClient()),
       { provide: ReimbursementReviewPort, useValue: port },
     ],

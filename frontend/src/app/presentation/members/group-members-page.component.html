@@ -1,0 +1,86 @@
+<app-authenticated-shell
+  [eyebrow]="'members.eyebrow' | translate"
+  [title]="'members.title' | translate"
+  [description]="'members.description' | translate"
+>
+  @if (viewModel.groupId !== null) {
+    <nav class="members-page__navigation">
+      <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId, 'dashboard']">
+        {{ 'members.back' | translate }}
+      </a>
+    </nav>
+  }
+  @if (viewModel.isLoading()) {
+    <mat-card class="material-card" appearance="outlined" role="status">
+      <mat-card-content>
+        <p>{{ 'members.loading' | translate }}</p>
+        <mat-progress-bar mode="indeterminate" [attr.aria-label]="'members.loading' | translate" />
+      </mat-card-content>
+    </mat-card>
+  } @else if (viewModel.hasLoadError()) {
+    <mat-card class="material-card" appearance="outlined">
+      <mat-card-content>
+        <p role="alert">{{ viewModel.errorMessage() | errorMessage }}</p>
+        @if (viewModel.groupId !== null) {
+          <button mat-flat-button type="button" (click)="viewModel.retry()">
+            {{ 'common.retry' | translate }}
+          </button>
+        }
+      </mat-card-content>
+    </mat-card>
+  } @else if (viewModel.isReady()) {
+    <div class="members-page__grid">
+      <mat-card class="material-card" appearance="outlined">
+        <mat-card-header
+          ><mat-card-title>{{ 'members.listTitle' | translate }}</mat-card-title></mat-card-header
+        >
+        <mat-card-content>
+          <ul class="members-page__list">
+            @for (member of viewModel.members(); track member.member) {
+              <li>
+                <strong>{{ member.member }}</strong>
+                <span
+                  >{{ 'members.joinedAt' | translate }} {{ member.joinedAt | localizedDate }}</span
+                >
+              </li>
+            } @empty {
+              <li>{{ 'members.empty' | translate }}</li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="material-card" appearance="outlined">
+        <mat-card-header
+          ><mat-card-title>{{ 'members.inviteTitle' | translate }}</mat-card-title></mat-card-header
+        >
+        <mat-card-content>
+          <p id="invitation-help">{{ 'members.inviteHelp' | translate }}</p>
+          <form novalidate (submit)="submit($event, email)">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'members.email' | translate }}</mat-label>
+              <input
+                matInput
+                #email
+                type="email"
+                name="email"
+                autocomplete="email"
+                required
+                aria-describedby="invitation-help invitation-error"
+                [disabled]="viewModel.isInviting()"
+              />
+            </mat-form-field>
+            <button mat-flat-button type="submit" [disabled]="viewModel.isInviting()">
+              {{ (viewModel.isInviting() ? 'members.inviting' : 'members.invite') | translate }}
+            </button>
+          </form>
+          <div aria-live="polite">
+            @if (viewModel.invitedEmail(); as invitedEmail) {
+              <p role="status">{{ 'members.invited' | translate: { email: invitedEmail } }}</p>
+            }
+          </div>
+          <p id="invitation-error" role="alert">{{ viewModel.invitationError() | errorMessage }}</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+</app-authenticated-shell>

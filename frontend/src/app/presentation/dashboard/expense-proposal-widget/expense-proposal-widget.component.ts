@@ -1,3 +1,5 @@
+import { ErrorMessagePipe } from '../../i18n/error-message.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormField, FormRoot } from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,6 +13,8 @@ import { ExpenseProposalWidgetViewModel } from './expense-proposal-widget.view-m
   selector: 'app-expense-proposal-widget',
   standalone: true,
   imports: [
+    ErrorMessagePipe,
+    TranslatePipe,
     FormField,
     FormRoot,
     MatButtonModule,
