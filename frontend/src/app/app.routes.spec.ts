@@ -1,6 +1,12 @@
 import { routes } from './app.routes';
 
 describe('routes', () => {
+  it('matches the group dashboard directly from its URL', () => {
+    const route = routes.find((candidate) => candidate.path === 'groups/:groupId/dashboard');
+
+    expect(route).toBeDefined();
+    expect(route?.canActivate).toHaveLength(1);
+  });
   it('protects and loads the group members page', async () => {
     const route = routes.find((route) => route.path === 'groups/:groupId/members');
     expect(route?.canActivate).toHaveLength(1);

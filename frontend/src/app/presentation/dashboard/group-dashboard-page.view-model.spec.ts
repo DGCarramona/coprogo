@@ -15,6 +15,13 @@ import { GroupDashboardPageViewModel } from './group-dashboard-page.view-model';
 describe('GroupDashboardPageViewModel', () => {
   beforeEach(() => TestBed.configureTestingModule({ providers: [provideLocalization()] }));
   describe('initialize', () => {
+    it('shows a loading state until the dashboard request starts', () => {
+      const viewModel = createViewModel();
+
+      expect(viewModel.status()).toBe('idle');
+      expect(viewModel.isLoading()).toBe(true);
+    });
+
     it('loads the group financial dashboard', async () => {
       const dashboardPort = new StubGroupFinancialDashboardPort();
       const viewModel = createViewModel({ dashboardPort });

@@ -41,7 +41,7 @@ export class GroupDashboardPageViewModel {
   readonly groupId = computed(
     () => this.dashboardState()?.groupId ?? this.route.snapshot.paramMap.get('groupId'),
   );
-  readonly isLoading = computed(() => this.status() === 'loading');
+  readonly isLoading = computed(() => this.status() === 'idle' || this.status() === 'loading');
   readonly hasLoadError = computed(() => this.status() === 'failed');
   readonly isReady = computed(() => this.status() === 'ready');
   readonly cashPoolBalance = computed(() =>
