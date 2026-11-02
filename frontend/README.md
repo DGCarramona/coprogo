@@ -119,3 +119,43 @@ receive a translated fallback), and `FinancialFormatter` / `LocalizedDatePipe` f
 Keep raw server data in TanStack Query and derive formatted values in computed Signals, so a language
 change updates cached results without fetching them again. Amounts, currency and date input values
 remain unchanged.
+
+## Browser tests (Playwright)
+
+Install the browser once after `npm ci`, then run the tests:
+
+```bash
+npm run test:e2e:install
+npm run test:e2e
+```
+
+Playwright starts Angular automatically at `http://127.0.0.1:4201` and stops it afterwards.
+An existing server on that address is reused locally. The default projects run Chromium with
+a desktop viewport and a Pixel 7 mobile viewport. No backend or Google credentials are needed
+for the initial smoke test: it checks the signed-out redirect, page rendering and reload.
+The external Google script is blocked only within that test.
+
+```bash
+npm run test:e2e -- --project=chromium       # Desktop only
+npm run test:e2e -- e2e/app.spec.ts         # One test file
+npm run test:e2e:ui                        # Interactive runner
+npm run test:e2e:debug                     # Inspector and step-by-step debugging
+npm run test:e2e:report                    # Last HTML report
+npm run test:e2e:typecheck                 # Check test and configuration types
+```
+
+Add browser scenarios under `e2e/*.spec.ts` when a real browser adds useful coverage of a workflow
+or layout. Use accessible roles/labels, awaited Playwright assertions and isolated test data;
+keep business rule tests in the existing unit suites. Angular unit tests remain scoped to `src/`.
+There is no browser suite for individual translations and the browser command runs separately
+from `npm test` and the current CI checks.
+
+Failures produce screenshots and traces under `test-results/`, plus an HTML report under
+`playwright-report/`; both directories are ignored by Git and Prettier. View a trace with
+`npx playwright show-trace test-results/<test-directory>/trace.zip`.
+
+For a Linux CI runner, install browser system dependencies with
+`npx playwright install --with-deps chromium`, then run `npm run test:e2e:typecheck`
+and `npm run test:e2e`. With `CI=true`, Playwright requires a fresh server, forbids focused tests
+and retries a failing test once. Upload `playwright-report/` and `test-results/` on failure
+when adding a browser job to CI.
