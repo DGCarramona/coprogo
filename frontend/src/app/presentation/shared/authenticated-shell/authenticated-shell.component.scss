@@ -3,60 +3,146 @@
   min-height: 100dvh;
 }
 
-.authenticated-shell__toolbar {
-  height: auto;
-  align-items: start;
-  gap: 1rem;
-  padding: 1.25rem 1.5rem;
-  border-radius: 28px;
-  background:
-    radial-gradient(
-      circle at 12% 16%,
-      color-mix(in srgb, var(--mat-sys-primary) 18%, transparent),
-      transparent 32%
-    ),
-    color-mix(in srgb, var(--mat-sys-surface) 90%, white);
+.authenticated-shell__topbar {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  min-height: 3.5rem;
+  margin-bottom: 2.5rem;
 }
 
-.authenticated-shell__toolbar-copy {
+.authenticated-shell__brand {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--mat-sys-on-surface);
+  font-size: 1.05rem;
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  text-decoration: none;
+}
+
+.authenticated-shell__brand-mark {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 0.65rem;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font-size: 1rem;
+  letter-spacing: 0;
+}
+
+.authenticated-shell__navigation {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.2rem;
   min-width: 0;
 }
 
-.authenticated-shell__toolbar-spacer {
-  flex: 1 1 auto;
+.authenticated-shell__navigation a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.6rem;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.86rem;
+  font-weight: 550;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.authenticated-shell__navigation a:hover {
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+}
+
+.authenticated-shell__navigation a.is-active {
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  font-weight: 650;
+}
+
+.authenticated-shell__topbar > button {
+  flex: 0 0 auto;
+}
+
+.authenticated-shell__page-header {
+  margin-bottom: 1rem;
 }
 
 .authenticated-shell__eyebrow {
-  margin: 0;
+  margin: 0 0 0.45rem;
   color: var(--mat-sys-primary);
-  letter-spacing: 0.18em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  font-family: var(--mat-sys-label-small-font);
-  font-size: var(--mat-sys-label-small-size);
-  line-height: var(--mat-sys-label-small-line-height);
-  font-weight: var(--mat-sys-label-small-weight);
 }
 
 .authenticated-shell h1 {
   margin: 0;
-  font-family: var(--mat-sys-headline-large-font);
-  font-size: var(--mat-sys-headline-large-size);
-  line-height: var(--mat-sys-headline-large-line-height);
-  font-weight: var(--mat-sys-headline-large-weight);
+  color: var(--mat-sys-on-surface);
+  font-size: clamp(1.8rem, 4vw, 2.35rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.12;
 }
 
-.authenticated-shell__toolbar-copy p:not(.authenticated-shell__eyebrow) {
-  margin: 0;
+.authenticated-shell__description {
+  max-width: 44rem;
+  margin: 0.65rem 0 0;
   color: var(--mat-sys-on-surface-variant);
+  font-size: 0.98rem;
   line-height: 1.6;
 }
 
-@media (max-width: 720px) {
-  .authenticated-shell__toolbar {
-    flex-direction: column;
-    padding: 1rem;
+@media (max-width: 960px) {
+  .authenticated-shell__topbar {
+    flex-wrap: wrap;
+    gap: 0.8rem 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .authenticated-shell__navigation {
+    order: 3;
+    flex-basis: 100%;
+    overflow-x: auto;
+    margin-inline: -0.25rem;
+    padding: 0.2rem 0.25rem;
+  }
+
+  .authenticated-shell__topbar > button {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .authenticated-shell__navigation {
+    gap: 0;
+  }
+
+  .authenticated-shell__navigation a {
+    padding-inline: 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .authenticated-shell__topbar > button {
+    min-height: 2.4rem;
+    padding-inline: 0.65rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .authenticated-shell__navigation a {
+    transition: none;
   }
 }

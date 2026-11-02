@@ -50,9 +50,9 @@ describe('ExpenseListWidgetComponent', () => {
       const { fixture, host } = createFixture();
 
       fixture.detectChanges();
-      await waitFor(() => host.textContent?.includes('Aucune depense enregistree.'));
+      await waitFor(() => host.textContent?.includes('Aucune dépense enregistrée.'));
 
-      expect(host.textContent).toContain('Aucune depense enregistree.');
+      expect(host.textContent).toContain('Aucune dépense enregistrée.');
     });
 
     it('lets the user retry after a loading failure', async () => {
@@ -115,6 +115,27 @@ describe('ExpenseListWidgetComponent', () => {
 
       expect(host.querySelector('a')?.getAttribute('href')).toBe(
         '/groups/group-1/expenses/expense-1',
+      );
+    });
+  });
+
+  describe('expense summary presentation', () => {
+    it('groups each expense into a semantic row with its creator and amount', async () => {
+      const { fixture, host } = createFixture();
+      fixture.detectChanges();
+      await waitFor(() => host.querySelector('article.expense-list-widget__row') !== null);
+
+      const row = host.querySelector('article.expense-list-widget__row');
+
+      expect(host.querySelectorAll('.expense-list-widget__list > li')).toHaveLength(1);
+      expect(row?.querySelector('.expense-list-widget__title')?.textContent?.trim()).toBe(
+        'Courses',
+      );
+      expect(row?.querySelector('.expense-list-widget__creator')?.textContent).toContain(
+        'alice@example.com',
+      );
+      expect(row?.querySelector('.expense-list-widget__amount')?.textContent?.trim()).toBe(
+        '15,00 €',
       );
     });
   });

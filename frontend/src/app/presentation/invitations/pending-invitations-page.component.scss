@@ -2,8 +2,8 @@
   margin-top: 1.5rem;
 }
 
-.pending-invitations-page__state p,
-.pending-invitations-page__message {
+.pending-invitations-page__state p {
+  color: var(--mat-sys-on-surface-variant);
   line-height: 1.6;
 }
 
@@ -11,18 +11,50 @@
   margin: 0.75rem 0 1rem;
 }
 
-.pending-invitations-page__list {
-  margin-top: 1.5rem;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
-  gap: 1rem;
+.pending-invitations-page__section {
+  margin-top: 2rem;
+}
+
+.pending-invitations-page__section-heading {
+  margin-bottom: 1rem;
+}
+
+.pending-invitations-page__section-heading h2 {
+  margin: 0;
+  color: var(--mat-sys-on-surface);
+  font-size: clamp(1.25rem, 2vw, 1.55rem);
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+
+.pending-invitations-page__section-heading > p:last-child {
+  margin: 0.35rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.93rem;
+  line-height: 1.55;
+}
+
+.pending-invitations-page__section-kicker {
+  margin: 0 0 0.3rem;
+  color: var(--mat-sys-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pending-invitations-page__section app-create-first-group-card,
+.pending-invitations-page__section app-pending-invitations-list {
+  display: block;
 }
 
 .pending-invitations-page__message {
   max-width: 42rem;
   margin-top: 1rem;
   padding: 0.95rem 1rem;
-  border-radius: 16px;
+  border-radius: 0.85rem;
+  line-height: 1.6;
 }
 
 .pending-invitations-page__message--error {

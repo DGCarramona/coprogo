@@ -1,18 +1,116 @@
+.revenue-distribution-preview-page__request,
+.revenue-distribution-preview-page__result {
+  margin-top: 2rem;
+}
+
+.revenue-distribution-preview-page__section-heading {
+  margin-bottom: 1rem;
+}
+
+.revenue-distribution-preview-page__section-heading h2 {
+  margin: 0;
+  color: var(--mat-sys-on-surface);
+  font-size: clamp(1.25rem, 2vw, 1.55rem);
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+
+.revenue-distribution-preview-page__section-heading > p:last-child {
+  margin: 0.35rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.93rem;
+  line-height: 1.55;
+}
+
+.revenue-distribution-preview-page__section-kicker {
+  margin: 0 0 0.3rem;
+  color: var(--mat-sys-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 .revenue-distribution-preview-page__card {
-  margin-top: 1.5rem;
+  margin-top: 0;
+}
+
+.revenue-distribution-preview-page__card mat-card-content > p[role='alert'] {
+  margin: 0 0 1rem;
+  color: var(--mat-sys-error);
+}
+
+.revenue-distribution-preview-page__card form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+  gap: 1rem;
+}
+
+.revenue-distribution-preview-page__card form p {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.revenue-distribution-preview-page__card label {
+  color: var(--mat-sys-on-surface);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.revenue-distribution-preview-page__card input {
+  width: 100%;
+  min-height: 2.9rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 0.65rem;
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: inherit;
+}
+
+.revenue-distribution-preview-page__card input:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+.revenue-distribution-preview-page__card button {
+  justify-self: start;
 }
 
 .revenue-distribution-preview-page__allocations {
   display: grid;
-  gap: 0.75rem;
+  gap: 0;
+  margin: 0;
 }
 
 .revenue-distribution-preview-page__allocations div {
   display: flex;
   justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.revenue-distribution-preview-page__allocations div:last-child {
+  border-bottom: 0;
+}
+
+.revenue-distribution-preview-page__allocations dt {
+  overflow-wrap: anywhere;
 }
 
 .revenue-distribution-preview-page__allocations dd {
   margin: 0;
-  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+@media (max-width: 680px) {
+  .revenue-distribution-preview-page__card form {
+    grid-template-columns: 1fr;
+  }
 }

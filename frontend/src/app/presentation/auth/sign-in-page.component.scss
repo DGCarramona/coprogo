@@ -3,96 +3,142 @@
   min-height: 100dvh;
 }
 
-.sign-in-page {
-  display: block;
+.sign-in-page__layout {
+  grid-template-columns: minmax(0, 1.15fr) minmax(19rem, 27rem);
+  gap: clamp(2.5rem, 7vw, 6rem);
+  align-items: center;
+  min-height: calc(100dvh - 3rem);
 }
 
 .sign-in-page__hero {
-  background:
-    linear-gradient(
-      160deg,
-      color-mix(in srgb, var(--mat-sys-primary-container) 72%, white),
-      transparent 80%
-    ),
-    var(--mat-sys-surface);
+  max-width: 43rem;
+}
+
+.sign-in-page__brand {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 3.5rem;
+  color: var(--mat-sys-on-surface);
+  font-size: 1.1rem;
+  font-weight: 750;
+  letter-spacing: -0.04em;
+}
+
+.sign-in-page__brand::before {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  margin-right: 0.65rem;
+  place-items: center;
+  border-radius: 0.65rem;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  content: 'C';
+  font-size: 1rem;
+  letter-spacing: 0;
 }
 
 .sign-in-page__eyebrow {
-  margin: 0 0 1rem;
-  font-size: 0.78rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
+  margin: 0 0 0.7rem;
   color: var(--mat-sys-primary);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sign-in-page__hero h1 {
+  max-width: 39rem;
+  margin: 0;
+  color: var(--mat-sys-on-surface);
+  font-size: clamp(2.5rem, 5vw, 4.1rem);
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  line-height: 1.03;
 }
 
 .sign-in-page__lead {
   max-width: 34rem;
-  margin: 1.5rem 0 0;
-}
-
-.sign-in-page__chip-set {
-  display: flex;
-  margin-top: 1.5rem;
+  margin: 1.25rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 1.08rem;
+  line-height: 1.65;
 }
 
 .sign-in-page__steps {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  margin-top: 3rem;
+  gap: 1.25rem;
+  margin: 2.5rem 0 0;
+  padding: 0;
+  list-style: none;
 }
 
-.sign-in-page__step {
-  background: color-mix(in srgb, var(--mat-sys-surface-container-low) 84%, white);
+.sign-in-page__steps li {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  align-items: start;
+  gap: 0.85rem;
 }
 
 .sign-in-page__step-index {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
   margin: 0;
-  color: var(--mat-sys-primary);
-  font-family: var(--mat-sys-title-medium-font);
-  font-size: var(--mat-sys-title-medium-size);
-  line-height: var(--mat-sys-title-medium-line-height);
-  font-weight: var(--mat-sys-title-medium-weight);
-  letter-spacing: var(--mat-sys-title-medium-tracking);
+  place-items: center;
+  border-radius: 50%;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
-.sign-in-page__step h2 {
-  margin: 1rem 0 0.5rem;
-  font-family: var(--mat-sys-title-large-font);
-  font-size: var(--mat-sys-title-large-size);
-  line-height: var(--mat-sys-title-large-line-height);
-  font-weight: var(--mat-sys-title-large-weight);
-  letter-spacing: var(--mat-sys-title-large-tracking);
+.sign-in-page__steps h2 {
+  margin: 0.1rem 0 0.25rem;
+  color: var(--mat-sys-on-surface);
+  font-size: 0.98rem;
+  font-weight: 650;
+  letter-spacing: -0.015em;
 }
 
-.sign-in-page__step p {
+.sign-in-page__steps p {
   margin: 0;
   color: var(--mat-sys-on-surface-variant);
-  line-height: 1.6;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .sign-in-page__panel {
-  position: sticky;
-  top: 1.5rem;
+  width: 100%;
+  padding: 0.5rem 0;
+  border-radius: 1.1rem;
+  background: var(--mat-sys-surface);
 }
 
 .sign-in-page__panel mat-card-header {
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .sign-in-page__panel mat-card-title {
-  font-family: var(--mat-sys-headline-small-font);
-  font-size: var(--mat-sys-headline-small-size);
-  line-height: var(--mat-sys-headline-small-line-height);
-  font-weight: var(--mat-sys-headline-small-weight);
-  letter-spacing: var(--mat-sys-headline-small-tracking);
+  color: var(--mat-sys-on-surface);
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+.sign-in-page__panel-copy {
+  margin: 0.5rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.92rem;
+  line-height: 1.6;
 }
 
 .sign-in-page__button-host {
-  min-height: 3.5rem;
-  margin-top: 1.5rem;
   display: flex;
   align-items: center;
+  min-height: 3.5rem;
+  margin-top: 1.5rem;
 }
 
 .sign-in-page__feedback {
@@ -103,22 +149,22 @@
 .sign-in-page__footer {
   margin: 0.75rem 0 0;
   color: var(--mat-sys-on-surface-variant);
-  font-family: var(--mat-sys-body-medium-font);
-  font-size: var(--mat-sys-body-medium-size);
-  line-height: var(--mat-sys-body-medium-line-height);
-  font-weight: var(--mat-sys-body-medium-weight);
-  letter-spacing: var(--mat-sys-body-medium-tracking);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.sign-in-page__footer {
+  display: block;
+  margin: 0;
+  padding: 1rem 1.5rem 1.25rem;
 }
 
 .sign-in-page__message {
   margin-top: 1rem;
   padding: 0.9rem 1rem;
-  border-radius: 16px;
-  font-family: var(--mat-sys-body-medium-font);
-  font-size: var(--mat-sys-body-medium-size);
-  line-height: var(--mat-sys-body-medium-line-height);
-  font-weight: var(--mat-sys-body-medium-weight);
-  letter-spacing: var(--mat-sys-body-medium-tracking);
+  border-radius: 0.75rem;
+  font-size: 0.88rem;
+  line-height: 1.55;
 }
 
 .sign-in-page__message--warn {
@@ -132,11 +178,48 @@
 }
 
 @media (max-width: 960px) {
-  .sign-in-page__steps {
+  .sign-in-page__layout {
     grid-template-columns: 1fr;
+    gap: 2rem;
+    align-content: center;
   }
 
-  .sign-in-page__panel {
-    position: static;
+  .sign-in-page__brand {
+    margin-bottom: 2rem;
+  }
+
+  .sign-in-page__hero {
+    max-width: 40rem;
+  }
+
+  .sign-in-page__steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .sign-in-page__steps li {
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: 0.55rem;
+  }
+
+  .sign-in-page__step-index {
+    width: 1.9rem;
+    height: 1.9rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .sign-in-page__layout {
+    min-height: auto;
+  }
+
+  .sign-in-page__steps {
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+    margin-top: 1.75rem;
+  }
+
+  .sign-in-page__hero h1 {
+    font-size: clamp(2.3rem, 12vw, 3.4rem);
   }
 }
