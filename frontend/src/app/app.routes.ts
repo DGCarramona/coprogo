@@ -1,16 +1,12 @@
 import { Routes } from '@angular/router';
 
 import { authenticatedRouteGuard } from './authenticated-route.guard';
-import { getRememberedGroupId } from './application/shared/remembered-group';
 
 export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: () => {
-      const groupId = getRememberedGroupId();
-      return groupId ? `/groups/${encodeURIComponent(groupId)}/dashboard` : 'invitations';
-    },
+    redirectTo: 'invitations',
   },
   {
     path: 'connexion',

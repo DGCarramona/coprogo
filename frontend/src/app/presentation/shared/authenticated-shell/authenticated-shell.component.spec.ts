@@ -8,23 +8,9 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 
 import { AuthSessionFacade } from '../../../application/auth/auth-session.facade';
 import { NavigationPort } from '../../../application/shared/navigation.port';
-import {
-  forgetGroup,
-  getRememberedGroupId,
-  rememberGroup,
-} from '../../../application/shared/remembered-group';
 import { AuthenticatedShellComponent } from './authenticated-shell.component';
 
 describe('AuthenticatedShellComponent', () => {
-  afterEach(() => forgetGroup());
-
-  it('remembers the active group so the dashboard can be restored after a reload', () => {
-    const fixture = createFixture('group-1');
-
-    fixture.detectChanges();
-
-    expect(getRememberedGroupId()).toBe('group-1');
-  });
   it('shows persistent links for the current group and invitations', () => {
     const fixture = createFixture('group-1');
 
@@ -93,8 +79,7 @@ const createFixture = (groupId: string | null): ComponentFixture<AuthenticatedSh
 };
 
 describe('AuthenticatedShellComponent sign out', () => {
-  it('clears private cached data and remembered group when signing out', async () => {
-    rememberGroup('group-1');
+  it('clears private cached data when signing out before another member signs in', async () => {
     const queryClient = new QueryClient();
     queryClient.setQueryData(['member-groups'], [{ groupId: 'private-group' }]);
     const auth = authSessionFacadeWithToken(true);
@@ -114,7 +99,6 @@ describe('AuthenticatedShellComponent sign out', () => {
     await fixture.whenStable();
 
     expect(queryClient.getQueryData(['member-groups'])).toBeUndefined();
-    expect(getRememberedGroupId()).toBeNull();
     expect(auth.hasStoredToken()).toBe(false);
     expect(navigation.navigatedTo).toBe('/connexion');
   });

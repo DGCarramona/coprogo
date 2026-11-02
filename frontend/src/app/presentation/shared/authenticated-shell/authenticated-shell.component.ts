@@ -6,7 +6,6 @@ import { ActivatedRoute, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { AuthSessionFacade } from '../../../application/auth/auth-session.facade';
 import { NavigationPort } from '../../../application/shared/navigation.port';
-import { forgetGroup, rememberGroup } from '../../../application/shared/remembered-group';
 
 @Component({
   selector: 'app-authenticated-shell',
@@ -28,11 +27,9 @@ export class AuthenticatedShellComponent {
     private readonly queryClient: QueryClient,
   ) {
     this.groupId = route.snapshot.paramMap.get('groupId');
-    if (this.groupId !== null) rememberGroup(this.groupId);
   }
 
   async signOut(): Promise<void> {
-    forgetGroup();
     this.authSessionFacade.signOut();
     this.queryClient.clear();
     await this.navigation.navigateByUrl('/connexion');
