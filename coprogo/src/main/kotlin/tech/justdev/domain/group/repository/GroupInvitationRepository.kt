@@ -12,5 +12,7 @@ interface GroupInvitationRepository {
 
     suspend fun findPendingByInvitedMember(invitedMember: MemberEmail): List<GroupInvitation>
 
+    suspend fun deletePending(id: GroupInvitationId)
+
     suspend fun persist(invitation: GroupInvitation)
 }

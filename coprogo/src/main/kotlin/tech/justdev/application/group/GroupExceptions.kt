@@ -50,3 +50,8 @@ class OwnershipShareChangeForbiddenException(
 ) : GroupApplicationException(
         "member ${member.toPrimitive()} is not allowed to modify ownership shares for group ${group.toPrimitive()}",
     )
+
+class GroupInvitationCancellationDeniedException(
+    invitation: GroupInvitationId,
+    member: MemberEmail,
+) : GroupApplicationException("member ${member.toPrimitive()} cannot cancel group invitation ${invitation.toPrimitive()}")

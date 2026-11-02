@@ -81,6 +81,9 @@
           <p id="invitation-error" role="alert">{{ viewModel.invitationError() | errorMessage }}</p>
         </mat-card-content>
       </mat-card>
+      @if (viewModel.groupId; as groupId) {
+        <app-group-invitations-widget [groupId]="groupId" />
+      }
     </div>
   }
 </app-authenticated-shell>

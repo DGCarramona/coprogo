@@ -1,3 +1,4 @@
+import { GroupInvitationsWidgetComponent } from './group-invitations-widget.component';
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -16,6 +17,7 @@ import { GroupMembersPageViewModel } from './group-members-page.view-model';
   selector: 'app-group-members-page',
   imports: [
     AuthenticatedShellComponent,
+    GroupInvitationsWidgetComponent,
     RouterLink,
     MatButtonModule,
     MatCardModule,

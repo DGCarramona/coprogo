@@ -1,3 +1,4 @@
+import { groupInvitationsQueryKey } from './group-invitations.view-model';
 import { computed, Injectable, Injector, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { injectMutation, injectQuery, QueryClient } from '@tanstack/angular-query-experimental';
@@ -64,6 +65,9 @@ export class GroupMembersPageViewModel {
       await this.queryClient.invalidateQueries({
         queryKey: groupMembersQueryKey(this.groupId),
         refetchType: 'none',
+      });
+      await this.queryClient.invalidateQueries({
+        queryKey: groupInvitationsQueryKey(this.groupId),
       });
       this.invitedEmailState.set(email);
     } catch (error: unknown) {

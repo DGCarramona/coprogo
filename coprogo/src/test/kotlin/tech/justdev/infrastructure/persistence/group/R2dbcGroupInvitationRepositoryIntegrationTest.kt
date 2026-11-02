@@ -30,6 +30,28 @@ class R2dbcGroupInvitationRepositoryIntegrationTest {
     lateinit var memberRepository: MemberRepository
 
     @Nested
+    inner class DeletePending {
+        @Test
+        fun `removes pending invitation without removing accepted invitations`() =
+            runTest {
+                val pending = invitationFixture("cancel-pending").invitation
+                val fixture = invitationFixture("cancel-accepted", persistInvitedMember = true)
+                val accepted = fixture.invitation.accept(fixture.invitedMember, Instant.parse("2026-04-14T10:00:00Z"))
+                groupInvitationRepository.persist(pending)
+                groupInvitationRepository.persist(accepted)
+                groupInvitationRepository.deletePending(pending.id)
+                groupInvitationRepository.deletePending(accepted.id)
+                assertEquals(
+                    listOf(null, accepted),
+                    listOf(
+                        groupInvitationRepository.findById(pending.id),
+                        groupInvitationRepository.findById(accepted.id),
+                    ),
+                )
+            }
+    }
+
+    @Nested
     inner class Persist {
         @Test
         fun `should store a pending group invitation`() =

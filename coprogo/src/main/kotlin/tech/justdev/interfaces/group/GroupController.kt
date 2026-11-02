@@ -225,6 +225,7 @@ data class GroupInvitationResponse(
     val invitedMember: String,
     val invitedBy: String,
     val invitedAt: Instant,
+    val canCancel: Boolean = false,
 )
 
 @Serdeable
@@ -258,6 +259,7 @@ private fun GroupInvitationSnapshot.toResponse(): GroupInvitationResponse =
         invitedMember = invitedMember,
         invitedBy = invitedBy,
         invitedAt = invitedAt,
+        canCancel = canCancel,
     )
 
 private fun PendingGroupInvitationSnapshot.toResponse(): PendingGroupInvitationResponse =

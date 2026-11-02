@@ -522,6 +522,30 @@ paths:
           description: invite 204 response
       security:
       - bearerAuth: []
+  /api/groups/{groupId}/invitations/{invitationId}:
+    delete:
+      tags:
+      - Groups
+      summary: Cancel a pending invitation as its sender or the group creator
+      operationId: cancelGroupInvitation
+      parameters:
+      - name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: invitationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: cancelGroupInvitation 204 response
+      security:
+      - bearerAuth: []
   /api/groups/{groupId}/members/{memberEmail}/debt-reductions:
     get:
       tags:
@@ -1439,6 +1463,7 @@ components:
             $ref: "#/components/schemas/GroupMemberBalanceResponse"
     GroupInvitationResponse:
       required:
+      - canCancel
       - invitation
       - invitedAt
       - invitedBy
@@ -1455,6 +1480,8 @@ components:
         invitedAt:
           type: string
           format: date-time
+        canCancel:
+          type: boolean
     GroupMemberBalanceResponse:
       required:
       - member

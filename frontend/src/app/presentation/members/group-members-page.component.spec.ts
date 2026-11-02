@@ -1,3 +1,4 @@
+import { GroupInvitationsPort } from '../../application/group/group-invitations.port';
 import { Component, Input } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
@@ -38,6 +39,10 @@ describe('GroupMembersPageComponent', () => {
   function setup(members = new StubMembers(), invitations = new StubInvitations()) {
     TestBed.configureTestingModule({
       providers: [
+        {
+          provide: GroupInvitationsPort,
+          useValue: { list: async () => [], cancel: async () => undefined },
+        },
         provideLocalization(),
         provideRouter([]),
         provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
@@ -119,7 +124,7 @@ describe('GroupMembersPageComponent', () => {
     });
     expect(host.textContent).toContain('accepter');
     expect(invitations.commands).toEqual(['group-1:bob@example.com']);
-    expect(host.querySelectorAll('li')).toHaveLength(1);
+    expect(host.querySelectorAll('.members-page__list li')).toHaveLength(1);
     expect(host.querySelector<HTMLInputElement>('input')?.value).toBe('');
   });
   it('disables submission while pending and shows an actionable failure', async () => {
