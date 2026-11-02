@@ -106,11 +106,13 @@ Translation sources are plain JSON files: `src/app/presentation/i18n/catalogs/fr
 `npm run build` embeds the catalogs in the optimized production JavaScript bundles under
 `dist/frontend/browser/`. No separate generation command or runtime catalog request is needed.
 
-Use stable technical ASCII keys in English, grouped by feature, for example
+Use nested dictionaries grouped by feature, with stable technical ASCII keys in English.
+Reference their leaf messages through dotted paths, for example
 `expenses.proposal.title`, `cashPool.withdrawal.submit` and `errors.expenses.loadList`.
 Accents and punctuation belong in translated values, never in keys. Changing display copy does
-not require renaming its key. The loader checks Portuguese keys against the French catalog at
-compile time. Keep interpolation parameters consistent between both catalogs.
+not require renaming its key. The loader checks both catalogs recursively at compile time,
+rejecting missing or additional keys and mismatches between dictionaries and message strings.
+Keep interpolation parameters consistent between both catalogs.
 Translate complete sentences with parameters rather than concatenating translated fragments.
 Group names, expense titles, member addresses, filenames and rejection reasons remain user data.
 
