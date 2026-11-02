@@ -24,13 +24,13 @@ jobs:
         uses: actions/checkout@v7.0.1
 
       - name: Setup Java
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@v6.1.0
         with:
           distribution: temurin
           java-version: '25'
 
       - name: Generate and submit Gradle dependency graph
-        uses: gradle/actions/dependency-submission@v6
+        uses: gradle/actions/dependency-submission@v6.4.1
         with:
           build-root-directory: coprogo
           gradle-version: '9.5.0'
