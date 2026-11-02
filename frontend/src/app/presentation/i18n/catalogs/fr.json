@@ -481,7 +481,7 @@
     },
     "title": "Remboursements",
     "history": {
-      "description": "Retrouvez les remboursements enregistrés pour ce groupe.",
+      "description": "Retrouvez les remboursements enregistr��s pour ce groupe.",
       "title": "Historique des remboursements",
       "empty": "Aucun remboursement enregistré."
     },
@@ -544,7 +544,6 @@
       "allocations": "Répartition par membre"
     },
     "dashboard": {
-      "quickLinks": "Accès directs",
       "overviewKicker": "En un coup d’œil",
       "overview": "Vue d’ensemble",
       "overviewHelp": "Les montants qui résument la situation actuelle du groupe.",
