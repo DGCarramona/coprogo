@@ -1,36 +1,85 @@
+.ownership-share-timeline-page__change-section,
+.ownership-share-timeline-page__history-section {
+  margin-top: 2rem;
+}
+
+.ownership-share-timeline-page__section-heading {
+  margin-bottom: 1rem;
+}
+
+.ownership-share-timeline-page__section-heading h2 {
+  margin: 0;
+  color: var(--mat-sys-on-surface);
+  font-size: clamp(1.25rem, 2vw, 1.55rem);
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+
+.ownership-share-timeline-page__section-heading > p:last-child {
+  margin: 0.35rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.93rem;
+  line-height: 1.55;
+}
+
+.ownership-share-timeline-page__section-kicker {
+  margin: 0 0 0.3rem;
+  color: var(--mat-sys-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 .ownership-share-timeline-page__card {
-  margin-top: 1.5rem;
+  margin-top: 0;
 }
 
 .ownership-share-timeline-page__card mat-progress-bar {
   margin-bottom: 1rem;
 }
 
+.ownership-share-timeline-page__empty,
+.ownership-share-timeline-page__card mat-card-content > p {
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.6;
+}
+
 .ownership-share-timeline-page__timeline {
   display: grid;
-  gap: 1.5rem;
+  gap: 0;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.ownership-share-timeline-page__change {
-  padding-left: 1rem;
-  border-left: 0.25rem solid var(--mat-sys-primary);
+.ownership-share-timeline-page__timeline li + li {
+  border-top: 1px solid var(--mat-sys-outline-variant);
 }
 
-.ownership-share-timeline-page__change h2 {
+.ownership-share-timeline-page__change {
+  padding: 1.2rem 0 1.35rem 1rem;
+  border-left: 3px solid var(--mat-sys-primary);
+}
+
+.ownership-share-timeline-page__change h3 {
   margin: 0;
-  font-size: 1.1rem;
+  color: var(--mat-sys-on-surface);
+  font-size: 1.05rem;
+  font-weight: 650;
+  line-height: 1.4;
 }
 
 .ownership-share-timeline-page__change > p {
+  margin: 0.45rem 0 1rem;
   color: var(--mat-sys-on-surface-variant);
+  font-size: 0.87rem;
 }
 
 .ownership-share-timeline-page__change dl {
   display: grid;
-  gap: 0.5rem;
+  gap: 0.55rem;
   margin: 0;
 }
 
@@ -42,7 +91,8 @@
 
 .ownership-share-timeline-page__change dd {
   margin: 0;
-  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
 }
 
 .ownership-share-timeline-page__change dt {

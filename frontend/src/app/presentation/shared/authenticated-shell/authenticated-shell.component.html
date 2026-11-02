@@ -1,16 +1,64 @@
 <section class="authenticated-shell material-page">
   <div class="material-page__content">
-    <mat-toolbar class="authenticated-shell__toolbar material-card">
-      <div class="authenticated-shell__toolbar-copy">
-        <p class="authenticated-shell__eyebrow">{{ eyebrow }}</p>
-        <h1>{{ title }}</h1>
-        @if (description) {
-          <p>{{ description }}</p>
+    <div class="authenticated-shell__topbar">
+      <a class="authenticated-shell__brand" routerLink="/invitations" aria-label="Coprogo, accueil">
+        <span class="authenticated-shell__brand-mark" aria-hidden="true">C</span>
+        <span>Coprogo</span>
+      </a>
+
+      <nav class="authenticated-shell__navigation" aria-label="Navigation principale">
+        @if (groupId; as currentGroupId) {
+          <a
+            [routerLink]="['/groups', currentGroupId, 'dashboard']"
+            routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            ariaCurrentWhenActive="page"
+            >Vue d’ensemble</a
+          >
+          <a
+            [routerLink]="['/groups', currentGroupId, 'expenses']"
+            routerLinkActive="is-active"
+            ariaCurrentWhenActive="page"
+            >Dépenses</a
+          >
+          <a
+            [routerLink]="['/groups', currentGroupId, 'reimbursements']"
+            routerLinkActive="is-active"
+            ariaCurrentWhenActive="page"
+            >Remboursements</a
+          >
+          <a
+            [routerLink]="['/groups', currentGroupId, 'ownership-shares']"
+            routerLinkActive="is-active"
+            ariaCurrentWhenActive="page"
+            >Quotes-parts</a
+          >
+          <a
+            [routerLink]="['/groups', currentGroupId, 'revenue-distribution', 'preview']"
+            routerLinkActive="is-active"
+            ariaCurrentWhenActive="page"
+            >Répartition</a
+          >
         }
-      </div>
-      <span class="authenticated-shell__toolbar-spacer"></span>
-      <button mat-stroked-button type="button" (click)="signOut()">Se deconnecter</button>
-    </mat-toolbar>
+        <a
+          routerLink="/invitations"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          ariaCurrentWhenActive="page"
+          >Invitations</a
+        >
+      </nav>
+
+      <button mat-stroked-button type="button" (click)="signOut()">Se déconnecter</button>
+    </div>
+
+    <header class="authenticated-shell__page-header">
+      <p class="authenticated-shell__eyebrow">{{ eyebrow }}</p>
+      <h1>{{ title }}</h1>
+      @if (description) {
+        <p class="authenticated-shell__description">{{ description }}</p>
+      }
+    </header>
     <ng-content />
   </div>
 </section>

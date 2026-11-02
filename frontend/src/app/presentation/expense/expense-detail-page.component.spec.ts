@@ -20,6 +20,18 @@ class StubAuthenticatedShellComponent {
 }
 
 describe('ExpenseDetailPageComponent', () => {
+  it('separates the expense summary from participant allocations', () => {
+    const fixture = createFixture(new StubExpenseDetailPageViewModel());
+
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('section[aria-labelledby="expense-summary-title"]')).not.toBeNull();
+    expect(
+      host.querySelector('section[aria-labelledby="expense-participations-title"]'),
+    ).not.toBeNull();
+  });
+
   it('renders the expense and every participation status in plain language', () => {
     const fixture = createFixture(new StubExpenseDetailPageViewModel());
 

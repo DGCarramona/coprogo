@@ -1,17 +1,17 @@
 <app-authenticated-shell
   #shell
-  eyebrow="Connexion active"
-  title="Invitations en attente"
-  description="Votre compte est cree automatiquement a la premiere connexion. Cette page devient le point d entree pour rejoindre un groupe ou en creer un."
+  eyebrow="Votre espace"
+  title="Groupes et invitations"
+  description="Rejoignez un groupe qui vous a invité ou créez votre premier espace partagé."
 >
   @if (invitationsViewModel.isLoading()) {
     <mat-card class="material-card pending-invitations-page__state" appearance="outlined">
       <mat-card-header>
-        <mat-card-title>Chargement de vos invitations...</mat-card-title>
+        <mat-card-title>Chargement de vos invitations…</mat-card-title>
       </mat-card-header>
       <mat-card-content>
         <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-        <p>Initialisation de votre session et chargement des invitations en attente.</p>
+        <p>Préparation de votre espace et de vos invitations.</p>
       </mat-card-content>
     </mat-card>
   } @else if (invitationsViewModel.hasLoadError()) {
@@ -24,24 +24,38 @@
       </mat-card-content>
       <mat-card-actions>
         <button mat-flat-button type="button" (click)="invitationsViewModel.retry()">
-          Reessayer
+          Réessayer
         </button>
-        <button mat-button type="button" (click)="shell.signOut()">Revenir a la connexion</button>
+        <button mat-button type="button" (click)="shell.signOut()">Retour à la connexion</button>
       </mat-card-actions>
     </mat-card>
   } @else if (invitationsViewModel.isEmpty()) {
-    <app-create-first-group-card
-      [createdGroupId]="createGroupViewModel.createdGroupId()"
-      [errorMessage]="createGroupViewModel.errorMessage()"
-      [creating]="createGroupViewModel.isCreatingGroup()"
-      (createRequested)="createGroupViewModel.createGroup()"
-    />
+    <section class="pending-invitations-page__section" aria-labelledby="first-group-title">
+      <div class="pending-invitations-page__section-heading">
+        <p class="pending-invitations-page__section-kicker">Pour commencer</p>
+        <h2 id="first-group-title">Commencer avec un groupe</h2>
+        <p>Créez un espace pour suivre ensemble les dépenses et les revenus partagés.</p>
+      </div>
+      <app-create-first-group-card
+        [createdGroupId]="createGroupViewModel.createdGroupId()"
+        [errorMessage]="createGroupViewModel.errorMessage()"
+        [creating]="createGroupViewModel.isCreatingGroup()"
+        (createRequested)="createGroupViewModel.createGroup()"
+      />
+    </section>
   } @else {
-    <app-pending-invitations-list
-      [invitations]="invitationsViewModel.invitations()"
-      [busyInvitationId]="invitationsViewModel.busyInvitationId()"
-      [errorMessage]="invitationsViewModel.errorMessage()"
-      (invitationAccepted)="invitationsViewModel.acceptInvitation($event)"
-    />
+    <section class="pending-invitations-page__section" aria-labelledby="pending-invitations-title">
+      <div class="pending-invitations-page__section-heading">
+        <p class="pending-invitations-page__section-kicker">À rejoindre</p>
+        <h2 id="pending-invitations-title">Groupes auxquels vous êtes invité</h2>
+        <p>Vérifiez les détails avant d’accepter une invitation.</p>
+      </div>
+      <app-pending-invitations-list
+        [invitations]="invitationsViewModel.invitations()"
+        [busyInvitationId]="invitationsViewModel.busyInvitationId()"
+        [errorMessage]="invitationsViewModel.errorMessage()"
+        (invitationAccepted)="invitationsViewModel.acceptInvitation($event)"
+      />
+    </section>
   }
 </app-authenticated-shell>

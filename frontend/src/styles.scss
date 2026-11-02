@@ -5,8 +5,8 @@ html {
     (
       color: (
         theme-type: light,
-        primary: mat.$azure-palette,
-        tertiary: mat.$blue-palette,
+        primary: mat.$green-palette,
+        tertiary: mat.$cyan-palette,
       ),
       typography: (
         plain-family: (
@@ -16,11 +16,10 @@ html {
           sans-serif,
         ),
         brand-family: (
-          'Iowan Old Style',
-          'Palatino Linotype',
-          'Book Antiqua',
-          Georgia,
-          serif,
+          'Avenir Next',
+          'Trebuchet MS',
+          'Segoe UI',
+          sans-serif,
         ),
         bold-weight: 700,
         medium-weight: 500,
@@ -29,6 +28,19 @@ html {
       density: 0,
     )
   );
+
+  --mat-sys-primary: #176b5d;
+  --mat-sys-on-primary: #fff;
+  --mat-sys-primary-container: #dcefe9;
+  --mat-sys-on-primary-container: #153e35;
+  --mat-sys-surface: #fff;
+  --mat-sys-surface-container-low: #f4f7f5;
+  --mat-sys-surface-container-lowest: #fff;
+  --mat-sys-on-surface: #1d2924;
+  --mat-sys-on-surface-variant: #596962;
+  --mat-sys-outline-variant: #dce4df;
+  --mat-sys-error: #a6423a;
+  --mat-sys-error-container: #f8e4e1;
 }
 
 html,
@@ -38,13 +50,7 @@ body {
 
 body {
   margin: 0;
-  background:
-    radial-gradient(circle at top, rgb(111 175 255 / 0.16), transparent 28%),
-    linear-gradient(
-      180deg,
-      var(--mat-sys-surface-container-lowest),
-      var(--mat-sys-surface-container-low)
-    );
+  background: var(--mat-sys-surface-container-low);
   color: var(--mat-sys-on-surface);
   font-family: var(--mat-sys-body-large-font);
   font-size: var(--mat-sys-body-large-size);
@@ -77,7 +83,9 @@ body {
 }
 
 .material-card {
-  border-radius: 28px;
+  border-radius: 18px;
+  border-color: var(--mat-sys-outline-variant);
+  box-shadow: 0 2px 12px rgb(24 44 35 / 4%);
 }
 
 .material-section-title {

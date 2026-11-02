@@ -1,134 +1,165 @@
 <app-authenticated-shell
   eyebrow="Dashboard financier"
-  title="Vue du groupe"
-  description="Les montants affiches sont calcules a partir de l'historique des operations du groupe."
+  title="Vue d’ensemble du groupe"
+  description="Retrouvez les soldes, les opérations et les dernières dépenses du groupe."
 >
   @if (viewModel.isLoading()) {
     <mat-card class="material-card group-dashboard-page__state" appearance="outlined">
       <mat-card-header>
-        <mat-card-title>Chargement du dashboard...</mat-card-title>
+        <mat-card-title>Chargement du tableau de bord…</mat-card-title>
       </mat-card-header>
       <mat-card-content>
         <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-        <p>Lecture des balances, du solde de caisse commune et des parts par membre.</p>
+        <p>Lecture des soldes, de la caisse commune et des quotes-parts.</p>
       </mat-card-content>
     </mat-card>
   } @else if (viewModel.hasLoadError()) {
     <mat-card class="material-card group-dashboard-page__state" appearance="outlined">
       <mat-card-header>
-        <mat-card-title>Impossible de charger le dashboard</mat-card-title>
+        <mat-card-title>Impossible de charger le tableau de bord</mat-card-title>
       </mat-card-header>
       <mat-card-content>
         <p>{{ viewModel.errorMessage() }}</p>
       </mat-card-content>
       <mat-card-actions>
-        <button mat-flat-button type="button" (click)="viewModel.retry()">Reessayer</button>
+        <button mat-flat-button type="button" (click)="viewModel.retry()">Réessayer</button>
       </mat-card-actions>
     </mat-card>
   } @else if (viewModel.isReady()) {
-    <nav class="group-dashboard-page__history-links" aria-label="Historique du groupe">
-      <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId(), 'expenses']">
-        Voir les dépenses
-      </a>
-      <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId(), 'reimbursements']">
-        Voir les remboursements
-      </a>
-      <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId(), 'ownership-shares']">
-        Voir les quotes-parts
-      </a>
-      <a
-        mat-stroked-button
-        [routerLink]="['/groups', viewModel.groupId(), 'revenue-distribution', 'preview']"
-      >
-        Prévisualiser une répartition
+    <nav class="group-dashboard-page__quick-links" aria-label="Accès directs">
+      <span class="group-dashboard-page__quick-links-label">Accès directs</span>
+      <a [routerLink]="['/groups', viewModel.groupId(), 'expenses']">Dépenses</a>
+      <a [routerLink]="['/groups', viewModel.groupId(), 'reimbursements']">Remboursements</a>
+      <a [routerLink]="['/groups', viewModel.groupId(), 'ownership-shares']">Quotes-parts</a>
+      <a [routerLink]="['/groups', viewModel.groupId(), 'revenue-distribution', 'preview']">
+        Répartition des revenus
       </a>
     </nav>
-    <div class="group-dashboard-page__grid">
-      <mat-card class="material-card group-dashboard-page__cash-card" appearance="outlined">
-        <mat-card-header>
-          <mat-card-title>Caisse commune</mat-card-title>
-          <mat-card-subtitle>Solde disponible</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <p class="group-dashboard-page__cash-amount">{{ viewModel.cashPoolBalance() }}</p>
-        </mat-card-content>
-      </mat-card>
 
-      <mat-card class="material-card" appearance="outlined">
-        <mat-card-header>
-          <mat-card-title>Balances membres</mat-card-title>
-          <mat-card-subtitle>Ce qui reste a payer ou recevoir</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          @if (viewModel.memberBalances().length === 0) {
-            <p class="group-dashboard-page__empty">Aucune dette ou creance ouverte.</p>
-          } @else {
-            <div class="group-dashboard-page__list">
-              @for (balance of viewModel.memberBalances(); track balance.member) {
-                <div class="group-dashboard-page__row">
-                  <div class="group-dashboard-page__row-summary">
-                    <span>{{ balance.member }}</span>
-                    <mat-chip
-                      [class]="
-                        'group-dashboard-page__chip group-dashboard-page__chip--' + balance.tone
-                      "
-                    >
-                      {{ balance.label }} {{ balance.amount }}
-                    </mat-chip>
-                  </div>
-                  <app-member-debt-reduction-history-widget
-                    [groupId]="viewModel.groupId()!"
-                    [member]="balance.member"
-                  />
+    <div class="group-dashboard-page__content">
+      <section class="group-dashboard-page__section" aria-labelledby="dashboard-overview-title">
+        <div class="group-dashboard-page__section-heading">
+          <p class="group-dashboard-page__section-kicker">En un coup d’œil</p>
+          <h2 id="dashboard-overview-title">Vue d’ensemble</h2>
+          <p>Les montants qui résument la situation actuelle du groupe.</p>
+        </div>
+
+        <div class="group-dashboard-page__overview-grid">
+          <mat-card class="material-card group-dashboard-page__cash-card" appearance="outlined">
+            <mat-card-header>
+              <mat-card-title>Caisse commune</mat-card-title>
+              <mat-card-subtitle>Montant disponible</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <p class="group-dashboard-page__cash-amount">{{ viewModel.cashPoolBalance() }}</p>
+              <p class="group-dashboard-page__cash-caption">
+                Revenus et retraits enregistrés pour le groupe.
+              </p>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="material-card" appearance="outlined">
+            <mat-card-header>
+              <mat-card-title>Soldes des membres</mat-card-title>
+              <mat-card-subtitle>Ce qu’il reste à payer ou à recevoir</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              @if (viewModel.memberBalances().length === 0) {
+                <p class="group-dashboard-page__empty">Aucun solde à régulariser.</p>
+              } @else {
+                <div class="group-dashboard-page__list">
+                  @for (balance of viewModel.memberBalances(); track balance.member) {
+                    <div class="group-dashboard-page__row">
+                      <div class="group-dashboard-page__row-summary">
+                        <span>{{ balance.member }}</span>
+                        <mat-chip
+                          [class]="
+                            'group-dashboard-page__chip group-dashboard-page__chip--' + balance.tone
+                          "
+                        >
+                          {{ balance.label }} {{ balance.amount }}
+                        </mat-chip>
+                      </div>
+                      <app-member-debt-reduction-history-widget
+                        [groupId]="viewModel.groupId()!"
+                        [member]="balance.member"
+                      />
+                    </div>
+                  }
                 </div>
               }
-            </div>
-          }
-        </mat-card-content>
-      </mat-card>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </section>
 
-      <mat-card class="material-card" appearance="outlined">
-        <mat-card-header>
-          <mat-card-title>Parts de caisse</mat-card-title>
-          <mat-card-subtitle>Revenus restant attribues a chaque membre</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          @if (viewModel.cashPoolShares().length === 0) {
-            <p class="group-dashboard-page__empty">Aucune part de caisse commune en cours.</p>
-          } @else {
-            <div class="group-dashboard-page__list">
-              @for (share of viewModel.cashPoolShares(); track share.member) {
-                <div class="group-dashboard-page__row">
-                  <span>{{ share.member }}</span>
-                  <strong>{{ share.amount }}</strong>
+      <section class="group-dashboard-page__section" aria-labelledby="dashboard-cash-title">
+        <div class="group-dashboard-page__section-heading">
+          <p class="group-dashboard-page__section-kicker">Opérations</p>
+          <h2 id="dashboard-cash-title">Gérer la caisse commune</h2>
+          <p>Enregistrez les revenus et les retraits, puis consultez les mouvements.</p>
+        </div>
+
+        <div class="group-dashboard-page__cash-actions">
+          <app-cash-pool-income-widget
+            [groupId]="viewModel.groupId()!"
+            (recorded)="viewModel.retry()"
+          />
+          <app-cash-pool-withdrawal-widget
+            [groupId]="viewModel.groupId()!"
+            (withdrawn)="viewModel.retry()"
+          />
+        </div>
+        <app-cash-pool-history-widget [groupId]="viewModel.groupId()!" />
+      </section>
+
+      <section class="group-dashboard-page__section" aria-labelledby="dashboard-activity-title">
+        <div class="group-dashboard-page__section-heading">
+          <p class="group-dashboard-page__section-kicker">Suivi du groupe</p>
+          <h2 id="dashboard-activity-title">Activité du groupe</h2>
+          <p>Consultez les dépenses récentes et les revenus attribués à chacun.</p>
+        </div>
+
+        <div class="group-dashboard-page__activity-grid">
+          <mat-card class="material-card" appearance="outlined">
+            <mat-card-header>
+              <mat-card-title>Revenus attribués</mat-card-title>
+              <mat-card-subtitle>Répartition selon les quotes-parts</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              @if (viewModel.cashPoolShares().length === 0) {
+                <p class="group-dashboard-page__empty">Aucun revenu à répartir pour le moment.</p>
+              } @else {
+                <div class="group-dashboard-page__list">
+                  @for (share of viewModel.cashPoolShares(); track share.member) {
+                    <div class="group-dashboard-page__share-row">
+                      <span>{{ share.member }}</span>
+                      <strong>{{ share.amount }}</strong>
+                    </div>
+                  }
                 </div>
               }
-            </div>
-          }
-        </mat-card-content>
-      </mat-card>
+            </mat-card-content>
+          </mat-card>
 
-      <app-cash-pool-income-widget
-        [groupId]="viewModel.groupId()!"
-        (recorded)="viewModel.retry()"
-      />
+          <app-expense-list-widget
+            class="group-dashboard-page__expenses-card"
+            [groupId]="viewModel.groupId()!"
+          />
+        </div>
+      </section>
 
-      <app-cash-pool-withdrawal-widget
-        [groupId]="viewModel.groupId()!"
-        (withdrawn)="viewModel.retry()"
-      />
-
-      <app-cash-pool-history-widget [groupId]="viewModel.groupId()!" />
-
-      <app-expense-proposal-widget
-        class="group-dashboard-page__proposal-card"
-        [groupId]="viewModel.groupId()!"
-      />
-
-      <app-expense-list-widget
-        class="group-dashboard-page__expenses-card"
-        [groupId]="viewModel.groupId()!"
-      />
+      <section class="group-dashboard-page__section" aria-labelledby="dashboard-expense-title">
+        <div class="group-dashboard-page__section-heading">
+          <p class="group-dashboard-page__section-kicker">Nouvelle opération</p>
+          <h2 id="dashboard-expense-title">Proposer une dépense</h2>
+          <p>Enregistrez une dépense convenue en dehors de l’application.</p>
+        </div>
+        <app-expense-proposal-widget
+          class="group-dashboard-page__proposal-card"
+          [groupId]="viewModel.groupId()!"
+        />
+      </section>
     </div>
   }
 </app-authenticated-shell>

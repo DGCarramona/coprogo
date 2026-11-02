@@ -1,14 +1,12 @@
 import { Component, ElementRef, OnInit, afterNextRender, viewChild } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { SignInPageViewModel } from './sign-in-page.view-model';
 
 @Component({
   selector: 'app-sign-in-page',
-  imports: [MatCardModule, MatChipsModule, MatDividerModule, MatProgressBarModule],
+  imports: [MatCardModule, MatProgressBarModule],
   templateUrl: './sign-in-page.component.html',
   styleUrl: './sign-in-page.component.scss',
   providers: [SignInPageViewModel],

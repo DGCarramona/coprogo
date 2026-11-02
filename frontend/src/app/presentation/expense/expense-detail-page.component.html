@@ -24,20 +24,26 @@
         <mat-card-subtitle>{{ detail.statusLabel }}</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
-        <dl class="expense-detail-page__summary">
-          <div>
-            <dt>Montant total</dt>
-            <dd>{{ detail.totalAmount }}</dd>
-          </div>
-          <div>
-            <dt>Enregistrée par</dt>
-            <dd>{{ detail.createdBy }}</dd>
-          </div>
-          <div>
-            <dt>Date</dt>
-            <dd>{{ detail.createdAt }}</dd>
-          </div>
-        </dl>
+        <section
+          class="expense-detail-page__summary-section"
+          aria-labelledby="expense-summary-title"
+        >
+          <h2 id="expense-summary-title" class="sr-only">Résumé de la dépense</h2>
+          <dl class="expense-detail-page__summary">
+            <div>
+              <dt>Montant total</dt>
+              <dd>{{ detail.totalAmount }}</dd>
+            </div>
+            <div>
+              <dt>Enregistrée par</dt>
+              <dd>{{ detail.createdBy }}</dd>
+            </div>
+            <div>
+              <dt>Date</dt>
+              <dd>{{ detail.createdAt }}</dd>
+            </div>
+          </dl>
+        </section>
 
         @if (detail.invalidation; as invalidation) {
           <section
@@ -65,20 +71,25 @@
           </section>
         }
 
-        <h2>Participations</h2>
-        <div class="expense-detail-page__participations">
-          @for (participation of detail.participations; track participation.member) {
-            <div class="expense-detail-page__participation">
-              <div>
-                <strong>{{ participation.member }}</strong>
-                <span>{{ participation.amount }}</span>
+        <section
+          class="expense-detail-page__participations-section"
+          aria-labelledby="expense-participations-title"
+        >
+          <h2 id="expense-participations-title">Répartition par membre</h2>
+          <div class="expense-detail-page__participations">
+            @for (participation of detail.participations; track participation.member) {
+              <div class="expense-detail-page__participation">
+                <div>
+                  <strong>{{ participation.member }}</strong>
+                  <span>{{ participation.amount }}</span>
+                </div>
+                <mat-chip [class]="'expense-detail-page__chip--' + participation.tone">
+                  {{ participation.statusLabel }}
+                </mat-chip>
               </div>
-              <mat-chip [class]="'expense-detail-page__chip--' + participation.tone">
-                {{ participation.statusLabel }}
-              </mat-chip>
-            </div>
-          }
-        </div>
+            }
+          </div>
+        </section>
 
         @if (viewModel.canDecide()) {
           <section class="expense-detail-page__decision" aria-label="Valider ma participation">
