@@ -34,6 +34,9 @@
       class="group-dashboard-page__history-links"
       [attr.aria-label]="'groups.historyLabel' | translate"
     >
+      <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId(), 'members']">
+        {{ 'members.link' | translate }}
+      </a>
       <a mat-stroked-button [routerLink]="['/groups', viewModel.groupId(), 'expenses']">
         {{ 'dashboard.links.expenses' | translate }}
       </a>

@@ -88,7 +88,10 @@
       "preview": "Não foi possível calcular a distribuição das receitas.",
       "inconsistentPreview": "Pré-visualização incompatível com o grupo pedido."
     },
-    "unexpected": "Ocorreu um erro. Tente novamente."
+    "unexpected": "Ocorreu um erro. Tente novamente.",
+    "members": {
+      "invite": "Não foi possível criar o convite. Tente novamente."
+    }
   },
   "app": {
     "name": "Coprogo"
@@ -263,6 +266,9 @@
     },
     "date": {
       "invalid": "Indique uma data válida."
+    },
+    "members": {
+      "email": "Introduza um endereço de email válido."
     }
   },
   "expenses": {
@@ -495,5 +501,22 @@
   "languages": {
     "french": "Français",
     "portuguese": "Português"
+  },
+  "members": {
+    "link": "Membros",
+    "eyebrow": "O seu grupo",
+    "title": "Membros do grupo",
+    "description": "Consulte os membros do grupo e convide outras pessoas a participar.",
+    "back": "Voltar ao grupo",
+    "listTitle": "Membros atuais",
+    "joinedAt": "Membro desde",
+    "empty": "Não há membros para mostrar.",
+    "loading": "A carregar os membros…",
+    "inviteTitle": "Convidar um membro",
+    "inviteHelp": "Todos os membros podem convidar outra pessoa. Utilize o endereço de email da conta Google dessa pessoa. O convite estará disponível quando iniciar sessão no Coprogo.",
+    "email": "Endereço de email Google",
+    "invite": "Criar convite",
+    "inviting": "A criar…",
+    "invited": "Convite criado para {{email}}. Esta pessoa precisa de o aceitar no Coprogo para entrar no grupo."
   }
 }

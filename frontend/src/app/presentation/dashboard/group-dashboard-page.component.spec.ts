@@ -77,6 +77,15 @@ describe('GroupDashboardPageComponent', () => {
     expect(link).not.toBeNull();
   });
 
+  it('links to the members of the ready group', () => {
+    const fixture = createFixture(new StubGroupDashboardPageViewModel());
+    fixture.detectChanges();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('a[href="/groups/group-1/members"]')
+        ?.textContent,
+    ).toContain('Membres');
+  });
+
   it('links to the expense list of the ready group', () => {
     const fixture = createFixture(new StubGroupDashboardPageViewModel());
 

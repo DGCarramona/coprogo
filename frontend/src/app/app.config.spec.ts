@@ -1,3 +1,5 @@
+import { GroupMemberInvitationPort } from './application/group/group-member-invitation.port';
+import { HttpGroupMemberInvitationGateway } from './infrastructure/group/http-group-member-invitation.gateway';
 import { ProviderToken } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { QueryClient } from '@tanstack/angular-query-experimental';
@@ -165,6 +167,12 @@ const portBindings: readonly {
 ];
 
 describe('appConfig', () => {
+  it('binds group invitations to the HTTP adapter', () => {
+    TestBed.configureTestingModule({ providers: appConfig.providers });
+    expect(TestBed.inject(GroupMemberInvitationPort)).toBe(
+      TestBed.inject(HttpGroupMemberInvitationGateway),
+    );
+  });
   it('provides a TanStack Query client', () => {
     TestBed.configureTestingModule({ providers: appConfig.providers });
 

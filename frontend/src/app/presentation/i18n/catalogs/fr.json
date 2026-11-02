@@ -88,7 +88,10 @@
       "preview": "La répartition des revenus n’a pas pu être calculée.",
       "inconsistentPreview": "Prévisualisation incohérente avec le groupe demandé."
     },
-    "unexpected": "Une erreur est survenue. Veuillez réessayer."
+    "unexpected": "Une erreur est survenue. Veuillez réessayer.",
+    "members": {
+      "invite": "L’invitation n’a pas pu être créée. Veuillez réessayer."
+    }
   },
   "app": {
     "name": "Coprogo"
@@ -263,6 +266,9 @@
     },
     "date": {
       "invalid": "Indiquez une date valide."
+    },
+    "members": {
+      "email": "Saisissez une adresse email valide."
     }
   },
   "expenses": {
@@ -495,5 +501,22 @@
   "languages": {
     "french": "Français",
     "portuguese": "Português"
+  },
+  "members": {
+    "link": "Membres",
+    "eyebrow": "Votre groupe",
+    "title": "Membres du groupe",
+    "description": "Retrouvez les membres du groupe et invitez vos proches à vous rejoindre.",
+    "back": "Retour au groupe",
+    "listTitle": "Membres actuels",
+    "joinedAt": "Membre depuis le",
+    "empty": "Aucun membre à afficher.",
+    "loading": "Chargement des membres…",
+    "inviteTitle": "Inviter un membre",
+    "inviteHelp": "Tous les membres peuvent inviter un proche. Utilisez l’adresse email de son compte Google. La personne retrouvera son invitation en se connectant à Coprogo.",
+    "email": "Adresse email Google",
+    "invite": "Créer l’invitation",
+    "inviting": "Création en cours…",
+    "invited": "Invitation créée pour {{email}}. Cette personne doit l’accepter dans Coprogo pour rejoindre le groupe."
   }
 }
