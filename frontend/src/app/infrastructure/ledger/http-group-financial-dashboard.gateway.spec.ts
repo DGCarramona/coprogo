@@ -82,6 +82,49 @@ describe('HttpGroupFinancialDashboardGateway', () => {
     });
   });
 
+  describe('get', () => {
+    it.each([
+      [
+        'missing balances',
+        { group: groupId },
+        { group: groupId, availableAmountInCents: 0 },
+        { group: groupId, shares: [] },
+      ],
+      [
+        'missing shares',
+        { group: groupId, balances: [] },
+        { group: groupId, availableAmountInCents: 0 },
+        { group: groupId },
+      ],
+      [
+        'HTML instead of JSON',
+        '<html>Application</html>',
+        '<html>Application</html>',
+        '<html>Application</html>',
+      ],
+      [
+        'missing available amount',
+        { group: groupId, balances: [] },
+        { group: groupId },
+        { group: groupId, shares: [] },
+      ],
+    ])('rejects an invalid response: %s', async (_, balances, balance, shares) => {
+      const dashboard = gateway.get(groupId);
+      httpTestingController
+        .expectOne(`http://localhost:8080/api/groups/${groupId}/balances`)
+        .flush(balances);
+      httpTestingController
+        .expectOne(`http://localhost:8080/api/groups/${groupId}/cash-pool/balance`)
+        .flush(balance);
+      httpTestingController
+        .expectOne(`http://localhost:8080/api/groups/${groupId}/cash-pool/shares`)
+        .flush(shares);
+
+      await expect(dashboard).rejects.toBeInstanceOf(ApiClientError);
+      await expect(dashboard).rejects.toMatchObject({ message: 'errors.dashboard.load' });
+    });
+  });
+
   it('maps an API failure to an ApiClientError', async () => {
     const dashboard = gateway.get(groupId);
 
