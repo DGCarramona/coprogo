@@ -53,6 +53,27 @@ class RevenueDistributionTest {
     }
 
     @Test
+    fun `distribute should allocate the leftover cent to the largest fractional remainder`() {
+        val result =
+            RevenueDistribution.distribute(
+                totalAmount = MoneyAmount.ofCents(2),
+                ownershipShares =
+                    setOf(
+                        OwnershipShare(member = memberEmail("alice"), percentage = OwnershipPercentage.ofBasisPoints(6000)),
+                        OwnershipShare(member = memberEmail("bob"), percentage = OwnershipPercentage.ofBasisPoints(4000)),
+                    ),
+            )
+
+        assertEquals(
+            setOf(
+                RevenueAllocation(member = memberEmail("alice"), amount = MoneyAmount.ofCents(1)),
+                RevenueAllocation(member = memberEmail("bob"), amount = MoneyAmount.ofCents(1)),
+            ),
+            result.allocations,
+        )
+    }
+
+    @Test
     fun `distribute should fail when ownership shares do not sum to one hundred percent`() {
         assertThrows(IllegalArgumentException::class.java) {
             RevenueDistribution.distribute(
