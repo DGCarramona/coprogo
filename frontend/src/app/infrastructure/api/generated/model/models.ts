@@ -46,6 +46,7 @@ export * from './ownership-share-response';
 export * from './ownership-share-timeline-response';
 export * from './pending-group-invitation-response';
 export * from './propose-expense-request';
+export * from './readiness-status';
 export * from './record-cash-pool-income-request';
 export * from './record-ownership-share-change-request';
 export * from './reimbursement-document-download-response';

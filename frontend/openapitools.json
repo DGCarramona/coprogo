@@ -6,7 +6,7 @@
     "generators": {
       "main": {
         "generatorName": "typescript-angular",
-        "inputSpec": "../coprogo/src/main/resources/openapi.yml",
+        "inputSpec": "http://localhost:10000/openapi.yml",
         "output": "src/app/infrastructure/api/generated",
         "additionalProperties": {
           "fileNaming": "kebab-case",

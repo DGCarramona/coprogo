@@ -63,6 +63,7 @@ Le script `scripts/dev-stack.sh` orchestrate ces deux processus et les gère jus
 ./gradlew backendRun
 ```
 Le backend démarre sur `http://localhost:8080`.
+Dans IntelliJ IDEA, la configuration partagée `Backend` démarre d'abord PostgreSQL et S3Mock avec la configuration Docker Compose `Infrastructure`, attend leurs contrôles de santé, puis lance l'application Micronaut depuis le module backend avec le JDK configuré dans IntelliJ. Le plugin Docker doit être activé et une connexion Docker nommée `Docker` configurée dans l'IDE ; les propriétés locales nécessaires, notamment Google et S3, restent à configurer comme décrit plus bas.
 
 **Terminal 2 – Frontend :**
 ```bash
@@ -143,10 +144,10 @@ Voir `coprogo/README.md` pour plus de détails sur les conventions de test backe
 ### Infrastructure locale
 
 ```bash
-docker compose up -d
+docker compose up -d --wait
 ```
 
-Cette commande démarre PostgreSQL et Adobe S3Mock. Le stockage objet local est accessible sur `http://localhost:9090`, avec le bucket `coprogo-documents` dans la région `eu-west-1` par défaut.
+Cette commande démarre PostgreSQL et Adobe S3Mock et attend leurs contrôles de santé. Les conteneurs et volumes restent présents après l'arrêt du backend ; le stockage objet local est accessible sur `http://localhost:9090`, avec le bucket `coprogo-documents` dans la région `eu-west-1` par défaut.
 Les clients S3 doivent utiliser l'accès path-style. S3Mock est uniquement un mock de développement local : il n'est pas déployé dans les environnements applicatifs.
 
 Les propriétés S3 locales sont fournies dans `coprogo/src/main/resources/application-local.example.properties`.
@@ -269,6 +270,10 @@ Package scripts :
 - `npm run test` : Vitest
 - `npm run format:check` : Prettier
 - `npm run generate:api` : Générer le client OpenAPI
+
+Le générateur lit `http://localhost:8080/openapi.yml` : démarrer le backend avant de l'exécuter.
+Micronaut génère ce schéma à la compilation et la route expose ce fichier, sans copie suivie séparée.
+La route de supervision Micronaut `/health/readiness` est décrite par un complément OpenAPI fusionné à la compilation.
 
 Voir `frontend/README.md` pour la documentation détaillée du frontend.
 

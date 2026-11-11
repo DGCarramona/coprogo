@@ -92,7 +92,10 @@ The frontend can generate a typed API client from the backend OpenAPI specificat
 npm run generate:api
 ```
 
-By default, the generator reads the public backend endpoint `http://localhost:8080/openapi.yml`. Ensure the backend is running before generating the client.
+The generator reads `http://localhost:8080/openapi.yml`; start the backend before generating the client.
+Micronaut generates this schema at backend compilation and the endpoint serves that generated schema,
+so there is no separate checked-in copy. A small OpenAPI supplement describes the Micronaut management
+route `/health/readiness`, which is not discovered automatically.
 
 ## Languages
 

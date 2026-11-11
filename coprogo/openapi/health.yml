@@ -1,0 +1,34 @@
+openapi: 3.0.1
+info:
+  title: coprogo
+  version: 1.0.0
+paths:
+  /health/readiness:
+    get:
+      tags:
+        - Health
+      summary: Check whether the application is ready to receive traffic
+      operationId: getReadiness
+      security: []
+      responses:
+        '200':
+          description: The application is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessStatus'
+        '503':
+          description: The application is not ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessStatus'
+components:
+  schemas:
+    ReadinessStatus:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
