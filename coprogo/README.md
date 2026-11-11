@@ -53,6 +53,20 @@ leaving room for other native allocations in a 512 MiB service. These are starti
 capacity guarantee under load. Override the port with `MICRONAUT_SERVER_PORT`; command arguments
 after the image name replace the default memory arguments.
 
+### Render readiness health check
+
+Set the Render web service's **Health Check Path** to `/health/readiness`. The endpoint returns
+`200` with only `{"status":"UP"}` when the application's PostgreSQL R2DBC connection is available,
+and `503` with only `{"status":"DOWN"}` when it is not. It is public so Render can call it without
+credentials; health details remain hidden even from authenticated callers. The R2DBC connection
+timeout is three seconds, within Render's five-second HTTP health-check window. The JDBC health check
+is disabled so the JDBC datasource used by Flyway cannot make the service appear ready when its R2DBC
+connection is unavailable.
+
+This check does not prevent Render Free from spinning down an idle service. After roughly 15 minutes
+without inbound traffic, the first user request can trigger a cold start that takes about a minute;
+the client should show a wait/retry option and must not automatically replay financial writes.
+
 ### PostgreSQL-backed tests
 
 When a backend test needs a real database, do not wire a PostgreSQL container manually in the test class.

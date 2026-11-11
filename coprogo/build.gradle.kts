@@ -33,8 +33,10 @@ dependencies {
 
     implementation("io.micronaut.flyway:micronaut-flyway")
     implementation("io.micronaut:micronaut-http-client")
+    implementation("io.micronaut:micronaut-management")
     implementation("io.micronaut:micronaut-jackson-databind")
     implementation("io.micronaut.kotlin:micronaut-kotlin-runtime")
+    implementation("io.micronaut.r2dbc:micronaut-r2dbc-core")
     implementation("io.micronaut.security:micronaut-security-jwt")
     implementation("io.micronaut.openapi:micronaut-openapi-annotations")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
