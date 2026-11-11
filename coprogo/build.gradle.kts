@@ -18,6 +18,7 @@ val equivalentMutationWhitelist = layout.projectDirectory.file("pitest-equivalen
 
 ksp {
     arg("micronaut.openapi.filename", "openapi")
+    arg("micronaut.openapi.project.dir", projectDir.toString())
 }
 
 version = "0.1"
