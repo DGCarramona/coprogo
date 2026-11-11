@@ -15,7 +15,6 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
-import tech.justdev.application.auth.AuthenticatedEmailProvider
 import tech.justdev.application.auth.AuthenticatedUserProvider
 import tech.justdev.application.group.AcceptGroupInvitationCommand
 import tech.justdev.application.group.AcceptGroupInvitationUseCase
@@ -46,7 +45,6 @@ import java.util.UUID
 @AuthenticatedApi
 @Tag(name = "Groups")
 class GroupController(
-    private val authenticatedEmailProvider: AuthenticatedEmailProvider,
     private val authenticatedUserProvider: AuthenticatedUserProvider,
     private val createGroupUseCase: CreateGroupUseCase,
     private val getGroupUseCase: GetGroupUseCase,
@@ -61,7 +59,7 @@ class GroupController(
     suspend fun listMemberGroups(): List<MemberGroupResponse> =
         listMemberGroupsUseCase(
             ListMemberGroupsQuery(
-                requestedBy = authenticatedEmailProvider.currentAuthenticatedEmail(),
+                requestedBy = authenticatedUserProvider.currentAuthenticatedUser().email,
             ),
         ).map { group ->
             MemberGroupResponse(
@@ -121,7 +119,7 @@ class GroupController(
         renameGroupUseCase(
             RenameGroupCommand(
                 group = GroupId(groupId),
-                renamedBy = authenticatedEmailProvider.currentAuthenticatedEmail(),
+                renamedBy = authenticatedUserProvider.currentAuthenticatedUser().email,
                 name = GroupName.of(request.name),
             ),
         )
@@ -154,7 +152,7 @@ class GroupController(
         acceptGroupInvitationUseCase(
             AcceptGroupInvitationCommand(
                 invitation = invitationId,
-                acceptedBy = authenticatedEmailProvider.currentAuthenticatedEmail(),
+                acceptedBy = authenticatedUserProvider.currentAuthenticatedUser().email,
                 acceptedAt = Instant.now(),
             ),
         )

@@ -4,7 +4,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import tech.justdev.application.auth.AuthenticatedEmailProvider
 import tech.justdev.application.auth.AuthenticatedUser
 import tech.justdev.application.auth.AuthenticatedUserProvider
 import tech.justdev.application.group.AcceptGroupInvitationUseCase
@@ -134,10 +133,6 @@ private fun controller(
     val invitations = InMemoryGroupInvitationRepository()
     val accessPolicy = GroupAccessPolicy(groups)
     return GroupController(
-        authenticatedEmailProvider =
-            object : AuthenticatedEmailProvider {
-                override suspend fun currentAuthenticatedEmail() = member
-            },
         authenticatedUserProvider =
             object : AuthenticatedUserProvider {
                 override suspend fun currentAuthenticatedUser() = AuthenticatedUser(member)
