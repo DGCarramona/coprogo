@@ -5,14 +5,14 @@ plugins {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.22.4")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.23.0")
 
-    compileOnly("org.pitest:pitest-entry:1.30.1")
-    compileOnly("org.pitest:pitest:1.30.1")
+    compileOnly("org.pitest:pitest-entry:1.30.2")
+    compileOnly("org.pitest:pitest:1.30.2")
 
     testImplementation("org.junit.jupiter:junit-jupiter:6.1.3")
-    testImplementation("org.pitest:pitest-entry:1.30.1")
-    testImplementation("org.pitest:pitest:1.30.1")
+    testImplementation("org.pitest:pitest-entry:1.30.2")
+    testImplementation("org.pitest:pitest:1.30.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.1.3")
 }
 
