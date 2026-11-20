@@ -17,7 +17,6 @@ import tech.justdev.infrastructure.persistence.jooq.tables.DocumentUploadIntents
 import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseParticipations;
 import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseSupportingDocuments;
 import tech.justdev.infrastructure.persistence.jooq.tables.Expenses;
-import tech.justdev.infrastructure.persistence.jooq.tables.GroupInvitations;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupMemberships;
 import tech.justdev.infrastructure.persistence.jooq.tables.Groups;
 import tech.justdev.infrastructure.persistence.jooq.tables.LedgerAcceptedExpenseEvents;
@@ -68,11 +67,6 @@ public class Public extends SchemaImpl {
      * The table <code>public.expenses</code>.
      */
     public final Expenses EXPENSES = Expenses.EXPENSES;
-
-    /**
-     * The table <code>public.group_invitations</code>.
-     */
-    public final GroupInvitations GROUP_INVITATIONS = GroupInvitations.GROUP_INVITATIONS;
 
     /**
      * The table <code>public.group_memberships</code>.
@@ -185,7 +179,6 @@ public class Public extends SchemaImpl {
             ExpenseParticipations.EXPENSE_PARTICIPATIONS,
             ExpenseSupportingDocuments.EXPENSE_SUPPORTING_DOCUMENTS,
             Expenses.EXPENSES,
-            GroupInvitations.GROUP_INVITATIONS,
             GroupMemberships.GROUP_MEMBERSHIPS,
             Groups.GROUPS,
             LedgerAcceptedExpenseEvents.LEDGER_ACCEPTED_EXPENSE_EVENTS,

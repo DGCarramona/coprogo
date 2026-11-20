@@ -4,9 +4,12 @@ import io.r2dbc.spi.ConnectionFactory
 import jakarta.inject.Inject
 import jakarta.inject.Named
 import kotlinx.coroutines.test.runTest
+import org.jooq.exception.IntegrityConstraintViolationException
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import tech.justdev.domain.group.entity.Group
 import tech.justdev.domain.group.entity.Member
 import tech.justdev.domain.group.repository.GroupRepository
@@ -35,6 +38,50 @@ class R2dbcGroupRepositoryIntegrationTest {
     @Nested
     inner class Persist {
         @Test
+        fun `creates missing members and preserves existing member creation dates`() =
+            runTest {
+                val owner = memberEmail("auto-create-group-owner")
+                val existing = memberEmail("auto-create-group-existing")
+                val added = memberEmail("auto-create-group-added")
+                val createdAt = Instant.parse("2026-04-13T10:00:00Z")
+                val joinedAt = createdAt.plusSeconds(60)
+                val existingMember = Member(existing, createdAt.minusSeconds(60))
+                memberRepository.persist(existingMember)
+                val group =
+                    Group
+                        .create(groupId("auto-create-group"), owner, createdAt)
+                        .addMember(existing, joinedAt, owner)
+                        .addMember(added, joinedAt.plusSeconds(60), owner)
+
+                groupRepository.persist(group)
+
+                assertEquals(group, groupRepository.findById(group.id))
+                assertEquals(Member(owner, createdAt), memberRepository.findByEmail(owner))
+                assertEquals(existingMember, memberRepository.findByEmail(existing))
+                assertEquals(Member(added, joinedAt.plusSeconds(60)), memberRepository.findByEmail(added))
+            }
+
+        @Test
+        fun `rolls back newly created members when membership persistence fails`() {
+            val owner = memberEmail("rollback-auto-create-owner")
+            val added = memberEmail("rollback-auto-create-added")
+            val group =
+                Group
+                    .create(groupId("rollback-auto-create"), owner, Instant.EPOCH)
+                    .addMember(added, Instant.EPOCH, memberEmail("rollback-auto-create-unknown"))
+
+            assertThrows<IntegrityConstraintViolationException> {
+                runTest { groupRepository.persist(group) }
+            }
+
+            runTest {
+                assertNull(groupRepository.findById(group.id))
+                assertNull(memberRepository.findByEmail(owner))
+                assertNull(memberRepository.findByEmail(added))
+            }
+        }
+
+        @Test
         fun `renaming preserves existing membership rows and dates`() =
             runTest {
                 val group = groupWithMember("rename-preserve-memberships")
@@ -49,15 +96,18 @@ class R2dbcGroupRepositoryIntegrationTest {
             }
 
         @Test
-        fun `removes only memberships absent from the persisted aggregate`() =
+        fun `persisting an older group snapshot does not erase added members`() =
             runTest {
-                val group = groupWithMember("replace-memberships-subset")
+                val group = groupWithMember("preserve-concurrent-memberships")
+                val olderSnapshot = group.copy(members = group.members.filter { it.member == group.createdBy }.toSet())
+                groupRepository.persist(olderSnapshot)
                 groupRepository.persist(group)
-                val updated = group.copy(members = group.members.filter { it.member == group.createdBy }.toSet())
+                val rowsBefore = membershipRows(group)
 
-                groupRepository.persist(updated)
+                groupRepository.persist(olderSnapshot.rename(GroupName.of("Nouveau nom")))
 
-                assertEquals(updated, groupRepository.findById(group.id))
+                assertEquals(group.rename(GroupName.of("Nouveau nom")), groupRepository.findById(group.id))
+                assertEquals(rowsBefore, membershipRows(group))
             }
 
         @Test

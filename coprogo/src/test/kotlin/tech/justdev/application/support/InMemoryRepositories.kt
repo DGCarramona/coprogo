@@ -6,10 +6,7 @@ import tech.justdev.domain.expense.repository.ExpenseRepository
 import tech.justdev.domain.expense.valueobject.ExpenseId
 import tech.justdev.domain.expense.valueobject.ExpenseStatus
 import tech.justdev.domain.group.entity.Group
-import tech.justdev.domain.group.entity.GroupInvitation
-import tech.justdev.domain.group.entity.GroupInvitationId
 import tech.justdev.domain.group.entity.Member
-import tech.justdev.domain.group.repository.GroupInvitationRepository
 import tech.justdev.domain.group.repository.GroupRepository
 import tech.justdev.domain.group.repository.MemberRepository
 import tech.justdev.domain.group.valueobject.MemberEmail
@@ -109,28 +106,6 @@ class InMemoryGroupRepository(
 
     override suspend fun persist(group: Group) {
         groupsById[group.id] = group
-    }
-}
-
-class InMemoryGroupInvitationRepository(
-    invitations: Iterable<GroupInvitation> = emptyList(),
-) : GroupInvitationRepository {
-    private val invitationsById = invitations.associateBy { invitation -> invitation.id }.toMutableMap()
-
-    override suspend fun findById(id: GroupInvitationId): GroupInvitation? = invitationsById[id]
-
-    override suspend fun findPendingByGroup(group: GroupId): List<GroupInvitation> =
-        invitationsById.values.filter { invitation -> invitation.group == group && invitation.isPending() }
-
-    override suspend fun findPendingByInvitedMember(invitedMember: MemberEmail): List<GroupInvitation> =
-        invitationsById.values.filter { invitation -> invitation.invitedMember == invitedMember && invitation.isPending() }
-
-    override suspend fun deletePending(id: GroupInvitationId) {
-        if (invitationsById[id]?.isPending() == true) invitationsById.remove(id)
-    }
-
-    override suspend fun persist(invitation: GroupInvitation) {
-        invitationsById[invitation.id] = invitation
     }
 }
 

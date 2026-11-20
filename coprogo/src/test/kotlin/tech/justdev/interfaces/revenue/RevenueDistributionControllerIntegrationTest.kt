@@ -13,12 +13,11 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import tech.justdev.domain.group.repository.GroupInvitationRepository
 import tech.justdev.domain.ledger.event.CashPoolIncomeLedgerEvent
 import tech.justdev.domain.ledger.repository.LedgerEventRepository
 import tech.justdev.domain.shared.valueobject.GroupId
+import tech.justdev.interfaces.group.AddGroupMemberRequest
 import tech.justdev.interfaces.group.CreateGroupResponse
-import tech.justdev.interfaces.group.InviteMemberRequest
 import tech.justdev.testsupport.PostgresMicronautTest
 import tech.justdev.testsupport.auth.TestGoogleJwtTokens
 import java.math.BigDecimal
@@ -33,9 +32,6 @@ class RevenueDistributionControllerIntegrationTest {
     lateinit var httpClient: HttpClient
 
     @Inject
-    lateinit var groupInvitationRepository: GroupInvitationRepository
-
-    @Inject
     lateinit var ledgerEventRepository: LedgerEventRepository
 
     @Nested
@@ -45,7 +41,7 @@ class RevenueDistributionControllerIntegrationTest {
             val ownerEmail = "revenue-owner@example.com"
             val coOwnerEmail = "revenue-co-owner@example.com"
             val groupId = createGroup(ownerEmail)
-            inviteAndAccept(groupId = groupId, ownerEmail = ownerEmail, invitedEmail = coOwnerEmail)
+            addGroupMember(groupId = groupId, ownerEmail = ownerEmail, member = coOwnerEmail)
 
             val response =
                 httpClient.toBlocking().exchange(
@@ -72,7 +68,7 @@ class RevenueDistributionControllerIntegrationTest {
             val ownerEmail = "revenue-forbidden-owner@example.com"
             val coOwnerEmail = "revenue-forbidden-co-owner@example.com"
             val groupId = createGroup(ownerEmail)
-            inviteAndAccept(groupId = groupId, ownerEmail = ownerEmail, invitedEmail = coOwnerEmail)
+            addGroupMember(groupId = groupId, ownerEmail = ownerEmail, member = coOwnerEmail)
 
             val exception =
                 assertThrows(HttpClientResponseException::class.java) {
@@ -104,7 +100,7 @@ class RevenueDistributionControllerIntegrationTest {
             val ownerEmail = "revenue-history-owner@example.com"
             val coOwnerEmail = "revenue-history-co-owner@example.com"
             val groupId = createGroup(ownerEmail)
-            inviteAndAccept(groupId = groupId, ownerEmail = ownerEmail, invitedEmail = coOwnerEmail)
+            addGroupMember(groupId = groupId, ownerEmail = ownerEmail, member = coOwnerEmail)
             recordOwnershipShares(groupId = groupId, ownerEmail = ownerEmail, coOwnerEmail = coOwnerEmail)
 
             val history =
@@ -135,7 +131,7 @@ class RevenueDistributionControllerIntegrationTest {
             val ownerEmail = "revenue-preview-owner@example.com"
             val coOwnerEmail = "revenue-preview-co-owner@example.com"
             val groupId = createGroup(ownerEmail)
-            inviteAndAccept(groupId = groupId, ownerEmail = ownerEmail, invitedEmail = coOwnerEmail)
+            addGroupMember(groupId = groupId, ownerEmail = ownerEmail, member = coOwnerEmail)
             recordOwnershipShares(groupId = groupId, ownerEmail = ownerEmail, coOwnerEmail = coOwnerEmail)
 
             val preview =
@@ -169,7 +165,7 @@ class RevenueDistributionControllerIntegrationTest {
             val ownerEmail = "income-owner@example.com"
             val coOwnerEmail = "income-co-owner@example.com"
             val groupId = createGroup(ownerEmail)
-            inviteAndAccept(groupId = groupId, ownerEmail = ownerEmail, invitedEmail = coOwnerEmail)
+            addGroupMember(groupId = groupId, ownerEmail = ownerEmail, member = coOwnerEmail)
             recordOwnershipShares(groupId = groupId, ownerEmail = ownerEmail, coOwnerEmail = coOwnerEmail)
 
             val response =
@@ -238,34 +234,19 @@ class RevenueDistributionControllerIntegrationTest {
             ).body()!!
             .group
 
-    private fun inviteAndAccept(
+    private fun addGroupMember(
         groupId: UUID,
         ownerEmail: String,
-        invitedEmail: String,
+        member: String,
     ) {
-        httpClient.toBlocking().exchange(
-            HttpRequest
-                .POST("/api/groups/$groupId/invitations", InviteMemberRequest(invitedMember = invitedEmail))
-                .header(HttpHeaders.AUTHORIZATION, bearer(ownerEmail)),
-            String::class.java,
-        )
-
-        var invitationId: UUID? = null
-        runTest {
-            invitationId =
-                groupInvitationRepository
-                    .findPendingByGroup(GroupId(groupId))
-                    .single()
-                    .id
-                    .toPrimitive()
-        }
-
-        httpClient.toBlocking().exchange(
-            HttpRequest
-                .create<Any>(HttpMethod.POST, "/api/group-invitations/${invitationId!!}/accept")
-                .header(HttpHeaders.AUTHORIZATION, bearer(invitedEmail)),
-            String::class.java,
-        )
+        val response =
+            httpClient.toBlocking().exchange(
+                HttpRequest
+                    .POST("/api/groups/$groupId/members", AddGroupMemberRequest(member = member))
+                    .header(HttpHeaders.AUTHORIZATION, bearer(ownerEmail)),
+                String::class.java,
+            )
+        assertEquals(HttpStatus.NO_CONTENT, response.status)
     }
 
     private fun bearer(email: String): String = "Bearer ${TestGoogleJwtTokens.googleIdToken(email = email)}"

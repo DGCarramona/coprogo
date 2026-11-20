@@ -13,6 +13,7 @@ import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.valueobject.GroupId
 import tech.justdev.infrastructure.persistence.jooq.Tables.GROUPS
 import tech.justdev.infrastructure.persistence.jooq.Tables.GROUP_MEMBERSHIPS
+import tech.justdev.infrastructure.persistence.jooq.Tables.MEMBERS
 import tech.justdev.infrastructure.persistence.jooq.awaitList
 import tech.justdev.infrastructure.persistence.jooq.dsl
 import tech.justdev.infrastructure.persistence.jooq.transaction
@@ -37,7 +38,7 @@ open class R2dbcGroupRepository(
 
         val members =
             dsl
-                .select(GROUP_MEMBERSHIPS.MEMBER_EMAIL, GROUP_MEMBERSHIPS.JOINED_AT)
+                .select(GROUP_MEMBERSHIPS.MEMBER_EMAIL, GROUP_MEMBERSHIPS.JOINED_AT, GROUP_MEMBERSHIPS.ADDED_BY)
                 .from(GROUP_MEMBERSHIPS)
                 .where(GROUP_MEMBERSHIPS.GROUP.eq(id.toPrimitive()))
                 .awaitList()
@@ -57,6 +58,19 @@ open class R2dbcGroupRepository(
         val dsl = connectionFactory.dsl()
 
         dsl
+            .insertInto(MEMBERS)
+            .columns(MEMBERS.EMAIL, MEMBERS.CREATED_AT)
+            .valuesOfRows(
+                group.members
+                    .sortedBy { member -> member.member.toPrimitive() }
+                    .map { member ->
+                        DSL.row(member.member.toPrimitive(), member.joinedAt.atOffset(ZoneOffset.UTC))
+                    },
+            ).onConflict(MEMBERS.EMAIL)
+            .doNothing()
+            .awaitFirstOrNull()
+
+        dsl
             .insertInto(GROUPS)
             .columns(GROUPS.ID, GROUPS.CREATED_BY, GROUPS.CREATED_AT, GROUPS.NAME)
             .values(
@@ -72,17 +86,13 @@ open class R2dbcGroupRepository(
             .awaitFirstOrNull()
 
         dsl
-            .deleteFrom(GROUP_MEMBERSHIPS)
-            .where(GROUP_MEMBERSHIPS.GROUP.eq(group.id.toPrimitive()))
-            .and(GROUP_MEMBERSHIPS.MEMBER_EMAIL.notIn(group.members.map { it.member.toPrimitive() }))
-            .awaitFirstOrNull()
-        dsl
             .insertInto(GROUP_MEMBERSHIPS)
             .columns(
                 GROUP_MEMBERSHIPS.ID,
                 GROUP_MEMBERSHIPS.GROUP,
                 GROUP_MEMBERSHIPS.MEMBER_EMAIL,
                 GROUP_MEMBERSHIPS.JOINED_AT,
+                GROUP_MEMBERSHIPS.ADDED_BY,
             ).valuesOfRows(
                 group.members.map { member ->
                     DSL.row(
@@ -90,11 +100,11 @@ open class R2dbcGroupRepository(
                         group.id.toPrimitive(),
                         member.member.toPrimitive(),
                         member.joinedAt.atOffset(ZoneOffset.UTC),
+                        member.addedBy?.toPrimitive(),
                     )
                 },
             ).onConflict(GROUP_MEMBERSHIPS.GROUP, GROUP_MEMBERSHIPS.MEMBER_EMAIL)
-            .doUpdate()
-            .set(GROUP_MEMBERSHIPS.JOINED_AT, DSL.excluded(GROUP_MEMBERSHIPS.JOINED_AT))
+            .doNothing()
             .awaitFirstOrNull()
     }
 }
@@ -108,8 +118,9 @@ private fun org.jooq.Record4<UUID, String, OffsetDateTime, String?>.toDomain(mem
         name = value4()?.let(GroupName::of),
     )
 
-private fun org.jooq.Record2<String, OffsetDateTime>.toDomain(): GroupMember =
+private fun org.jooq.Record3<String, OffsetDateTime, String?>.toDomain(): GroupMember =
     GroupMember(
         member = MemberEmail.of(value1()),
         joinedAt = value2().toInstant(),
+        addedBy = value3()?.let(MemberEmail::of),
     )

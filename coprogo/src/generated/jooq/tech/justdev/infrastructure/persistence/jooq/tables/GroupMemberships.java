@@ -79,6 +79,16 @@ public class GroupMemberships extends TableImpl<Record> {
      */
     public final TableField<Record, OffsetDateTime> JOINED_AT = createField(DSL.name("joined_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).nullable(false), this, "");
 
+    /**
+     * The column <code>public.group_memberships.added_by</code>.
+     */
+    public final TableField<Record, String> ADDED_BY = createField(DSL.name("added_by"), Domains.MEMBER_EMAIL_ADDRESS.getDataType(), this, "", new AutoConverter<String, String>(String.class, String.class));
+
+    /**
+     * The column <code>public.group_memberships.recorded_at</code>.
+     */
+    public final TableField<Record, OffsetDateTime> RECORDED_AT = createField(DSL.name("recorded_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "");
+
     private GroupMemberships(Name alias, Table<Record> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }
@@ -130,7 +140,7 @@ public class GroupMemberships extends TableImpl<Record> {
 
     @Override
     public List<ForeignKey<Record, ?>> getReferences() {
-        return Arrays.asList(Keys.GROUP_MEMBERSHIPS__GROUP_MEMBERSHIPS_GROUP_FKEY, Keys.GROUP_MEMBERSHIPS__GROUP_MEMBERSHIPS_MEMBER_EMAIL_FKEY);
+        return Arrays.asList(Keys.GROUP_MEMBERSHIPS__GROUP_MEMBERSHIPS_ADDED_BY_FKEY, Keys.GROUP_MEMBERSHIPS__GROUP_MEMBERSHIPS_GROUP_FKEY, Keys.GROUP_MEMBERSHIPS__GROUP_MEMBERSHIPS_MEMBER_EMAIL_FKEY);
     }
 
     @Override

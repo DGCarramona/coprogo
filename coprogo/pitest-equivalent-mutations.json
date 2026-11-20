@@ -61,5 +61,12 @@
     "mutator": "org.pitest.mutationtest.engine.gregor.mutators.MathMutator",
     "instructionIndex": 63,
     "justification": "Kotlin runningFold changes only the internal ArrayList initial capacity from estimated size plus one to estimated size minus one."
+  },
+  {
+    "className": "tech.justdev.domain.ledger.event.LedgerEventKt",
+    "method": "allocateCompensationTransfers-hApY2aU",
+    "mutator": "org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator",
+    "instructionIndex": 7,
+    "justification": "The zero-amount branch already returns an empty set; replacing it with Collections.emptySet() preserves its result."
   }
 ]
