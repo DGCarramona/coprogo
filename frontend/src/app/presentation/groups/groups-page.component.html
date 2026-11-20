@@ -1,0 +1,22 @@
+<app-authenticated-shell
+  [eyebrow]="'auth.sessionActive' | translate"
+  [title]="'groups.page.title' | translate"
+  [description]="'groups.page.description' | translate"
+>
+  <app-member-groups-widget />
+  <section class="groups-page__section" aria-labelledby="create-group-title">
+    <div class="groups-page__section-heading">
+      <p class="groups-page__section-kicker">
+        {{ 'layout.groups.getStarted' | translate }}
+      </p>
+      <h2 id="create-group-title">{{ 'groups.create.title' | translate }}</h2>
+      <p>{{ 'groups.create.description' | translate }}</p>
+    </div>
+    <app-create-first-group-card
+      [createdGroupId]="createGroupViewModel.createdGroupId()"
+      [errorMessage]="createGroupViewModel.errorMessage()"
+      [creating]="createGroupViewModel.isCreatingGroup()"
+      (createRequested)="createGroupViewModel.createGroup($event)"
+    />
+  </section>
+</app-authenticated-shell>

@@ -642,8 +642,8 @@ const waitFor = async (condition: () => boolean): Promise<void> => {
 
 class Members extends GroupMembersPort {
   readonly members: readonly GroupMember[] = [
-    { member: 'a@b.c', joinedAt: new Date() },
-    { member: 'b@c.d', joinedAt: new Date() },
+    { member: 'a@b.c', joinedAt: new Date(), addedBy: null },
+    { member: 'b@c.d', joinedAt: new Date(), addedBy: null },
   ];
   readonly requestedGroupIds: string[] = [];
   failure: Error | null = null;

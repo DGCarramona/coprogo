@@ -7,7 +7,6 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { GroupInvitationResponseDto } from './group-invitation-response';
 import { GroupMemberResponseDto } from './group-member-response';
 
 export interface GroupResponseDto {
@@ -15,6 +14,5 @@ export interface GroupResponseDto {
   createdBy: string;
   createdAt: string;
   members: Array<GroupMemberResponseDto>;
-  pendingInvitations: Array<GroupInvitationResponseDto>;
   name?: string | null;
 }

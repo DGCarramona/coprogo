@@ -1,4 +1,3 @@
-import { GroupInvitationsWidgetComponent } from './group-invitations-widget.component';
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,7 +16,6 @@ import { GroupMembersPageViewModel } from './group-members-page.view-model';
   selector: 'app-group-members-page',
   imports: [
     AuthenticatedShellComponent,
-    GroupInvitationsWidgetComponent,
     RouterLink,
     MatButtonModule,
     MatCardModule,
@@ -37,7 +35,7 @@ export class GroupMembersPageComponent {
 
   async submit(event: Event, input: HTMLInputElement): Promise<void> {
     event.preventDefault();
-    await this.viewModel.invite(input.value);
-    if (this.viewModel.invitedEmail() !== null) input.value = '';
+    await this.viewModel.addMember(input.value);
+    if (this.viewModel.addedMember() !== null) input.value = '';
   }
 }

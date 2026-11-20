@@ -32,10 +32,6 @@
       "noneSelected": "Aucun groupe n’est sélectionné.",
       "missingMembersGroup": "Un groupe doit être initialisé avant de charger ses membres."
     },
-    "invitations": {
-      "load": "Les invitations en attente n’ont pas pu être chargées.",
-      "accept": "L’invitation n’a pas pu être acceptée."
-    },
     "dashboard": {
       "load": "Le résumé du groupe n’a pas pu être chargé."
     },
@@ -90,9 +86,7 @@
     },
     "unexpected": "Une erreur est survenue. Veuillez réessayer.",
     "members": {
-      "invite": "L’invitation n’a pas pu être créée. Veuillez réessayer.",
-      "loadInvitations": "Les invitations n’ont pas pu être chargées.",
-      "cancelInvitation": "L’invitation n’a pas pu être annulée. Actualisez la liste et réessayez."
+      "add": "Le membre n’a pas pu être ajouté. Veuillez réessayer."
     }
   },
   "app": {
@@ -101,23 +95,23 @@
   "auth": {
     "signIn": {
       "title": "Connexion et inscription en une seule étape.",
-      "description": "La première connexion Google crée automatiquement votre compte. Ensuite, vous retrouvez vos invitations en attente ou vous pouvez créer votre premier groupe.",
+      "description": "La première connexion Google crée automatiquement votre compte. Vous pouvez ensuite rejoindre directement les groupes auxquels vous êtes ajouté ou en créer un.",
       "principles": "Comment se connecter",
       "accountCreationChip": "Compte créé à la première connexion",
       "identityChip": "Compte associé à votre adresse e-mail Google vérifiée",
-      "invitationsChip": "Invitations en attente chargées ensuite",
+      "invitationsChip": "Accès direct aux groupes auxquels vous êtes ajouté",
       "steps": {
         "connect": {
           "title": "Connectez-vous",
           "description": "Votre compte est reconnu grâce à votre adresse e-mail Google vérifiée."
         },
         "invitations": {
-          "title": "Consultez vos invitations",
-          "description": "Les invitations reçues s’affichent dès la première connexion."
+          "title": "Retrouvez vos groupes",
+          "description": "Tout groupe auquel vous êtes ajouté apparaît directement dans votre liste."
         },
         "createGroup": {
-          "title": "Créez votre groupe si besoin",
-          "description": "Sans invitation, vous pouvez enchaîner directement sur la création de groupe."
+          "title": "Créez un groupe si besoin",
+          "description": "Vous pouvez créer un groupe pour suivre ensemble les dépenses et les revenus partagés."
         }
       },
       "personalAccount": "Compte personnel",
@@ -343,7 +337,7 @@
     "historyLabel": "Historique du groupe",
     "create": {
       "title": "Créer un groupe",
-      "emptyInvitationsHelp": "Aucune invitation en attente. Vous pouvez créer un groupe pour partager vos dépenses.",
+      "description": "Créez un espace pour suivre ensemble les dépenses et les revenus partagés.",
       "success": "Groupe créé avec succès. Identifiant du groupe :",
       "loading": "Création…"
     },
@@ -355,6 +349,10 @@
       "title": "Mes groupes",
       "loading": "Chargement de vos groupes…",
       "empty": "Vous n’avez pas encore rejoint de groupe."
+    },
+    "page": {
+      "title": "Mes groupes",
+      "description": "Consultez les groupes auxquels vous appartenez ou créez-en un."
     },
     "createdBy": "Créé par {{p0}}",
     "identifier": "Identifiant du groupe : {{p0}}",
@@ -449,21 +447,6 @@
     "accepted": "Accepté",
     "rejected": "Refusé"
   },
-  "invitations": {
-    "sentBy": "Invitation envoyée par {{p0}}",
-    "informationLabel": "Informations de l’invitation",
-    "joinGroupHelp": "Cette invitation vous permet de rejoindre le groupe",
-    "page": {
-      "title": "Vos groupes et invitations",
-      "description": "Retrouvez vos groupes, acceptez une invitation ou créez un groupe."
-    },
-    "loading": "Chargement de vos invitations...",
-    "initializingSession": "Initialisation de votre session et chargement des invitations en attente.",
-    "loadFailed": "Impossible de charger vos invitations",
-    "pending": "Invitations en attente",
-    "accepting": "Acceptation...",
-    "accept": "Accepter l’invitation"
-  },
   "reimbursements": {
     "received": {
       "title": "Enregistrer un remboursement reçu",
@@ -508,32 +491,27 @@
     "link": "Membres",
     "eyebrow": "Votre groupe",
     "title": "Membres du groupe",
-    "description": "Retrouvez les membres du groupe et invitez vos proches à vous rejoindre.",
+    "description": "Retrouvez les membres du groupe et ajoutez directement vos proches.",
     "back": "Retour au groupe",
     "listTitle": "Membres actuels",
     "joinedAt": "Membre depuis le",
     "empty": "Aucun membre à afficher.",
     "loading": "Chargement des membres…",
-    "inviteTitle": "Inviter un membre",
-    "inviteHelp": "Tous les membres peuvent inviter un proche. Utilisez l’adresse email de son compte Google. La personne retrouvera son invitation en se connectant à Coprogo.",
+    "addTitle": "Ajouter un membre",
+    "addHelp": "Tous les membres peuvent ajouter directement un proche au groupe. Utilisez l’adresse email de son compte Google.",
     "email": "Adresse email Google",
-    "invite": "Créer l’invitation",
-    "inviting": "Création en cours…",
-    "invited": "Invitation créée pour {{email}}. Cette personne doit l’accepter dans Coprogo pour rejoindre le groupe.",
-    "pendingTitle": "Invitations en attente",
-    "pendingLoading": "Chargement des invitations…",
-    "invitationSent": "Envoyée par {{email}} le",
-    "cancelInvitation": "Annuler l’invitation",
-    "cancelInvitationFor": "Annuler l’invitation de {{email}}",
-    "noPendingInvitations": "Aucune invitation en attente."
+    "add": "Ajouter au groupe",
+    "adding": "Ajout en cours…",
+    "added": "{{email}} fait désormais partie du groupe.",
+    "addedBy": "Ajouté par {{email}}"
   },
   "layout": {
     "signIn": {
       "eyebrow": "La vie de groupe, plus claire",
       "title": "Les dépenses partagées, plus simples.",
       "lead": "Suivez les dépenses, les remboursements et les revenus de votre groupe dans un espace commun.",
-      "invitationsTitle": "Retrouvez vos invitations",
-      "invitationsHelp": "Rejoignez facilement le groupe qui vous a invité.",
+      "invitationsTitle": "Retrouvez vos groupes",
+      "invitationsHelp": "Un membre peut vous ajouter directement à son groupe.",
       "expensesTitle": "Suivez les dépenses",
       "expensesHelp": "Consultez les montants, les justificatifs et ce qui reste à régler.",
       "revenueTitle": "Partagez les revenus",
@@ -541,7 +519,7 @@
       "welcome": "Bienvenue",
       "accountHelp": "Votre compte est créé automatiquement lors de votre première connexion.",
       "unavailable": "La connexion Google n’est pas disponible dans cet environnement. Contactez l’administrateur.",
-      "footer": "Après la connexion, vous pourrez accepter une invitation ou créer votre premier groupe.",
+      "footer": "Après la connexion, vous pourrez consulter les groupes auxquels vous appartenez ou en créer un.",
       "googleButton": "Bouton de connexion Google"
     },
     "expenses": {
@@ -565,13 +543,8 @@
       "proposalHelp": "Enregistrez une dépense convenue en dehors de l’application."
     },
     "newOperation": "Nouvelle opération",
-    "invitations": {
-      "getStarted": "Pour commencer",
-      "createTitle": "Commencer avec un groupe",
-      "createHelp": "Créez un espace pour suivre ensemble les dépenses et les revenus partagés.",
-      "joinKicker": "À rejoindre",
-      "joinTitle": "Groupes auxquels vous êtes invité",
-      "joinHelp": "Vérifiez les détails avant d’accepter une invitation."
+    "groups": {
+      "getStarted": "Pour commencer"
     },
     "reimbursements": {
       "recordTitle": "Enregistrer un remboursement",
@@ -598,7 +571,7 @@
       "label": "Navigation principale",
       "shares": "Quotes-parts",
       "distribution": "Répartition",
-      "invitations": "Invitations"
+      "groups": "Mes groupes"
     }
   }
 }

@@ -1,11 +1,11 @@
-<mat-card appearance="outlined" class="material-card pending-invitations-page__state">
+<mat-card appearance="outlined" class="material-card create-group-card">
   <mat-card-header>
     <mat-card-title>{{ 'groups.create.title' | translate }}</mat-card-title>
   </mat-card-header>
   <form (submit)="submitName($event, groupName.value)">
     <mat-card-content>
       <p>
-        {{ 'groups.create.emptyInvitationsHelp' | translate }}
+        {{ 'groups.create.description' | translate }}
       </p>
       <label for="new-group-name">{{ 'groups.fields.name' | translate }}</label>
       <input
@@ -20,14 +20,14 @@
       />
 
       @if (createdGroupId(); as createdGroupIdValue) {
-        <div class="pending-invitations-page__message pending-invitations-page__message--success">
+        <div class="create-group-card__message create-group-card__message--success">
           {{ 'groups.create.success' | translate }}
           <code>{{ createdGroupIdValue }}</code>
         </div>
       }
 
       @if (errorMessage(); as errorMessageValue) {
-        <div class="pending-invitations-page__message pending-invitations-page__message--error">
+        <div class="create-group-card__message create-group-card__message--error">
           {{ errorMessageValue | errorMessage }}
         </div>
       }

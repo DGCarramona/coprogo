@@ -11,7 +11,7 @@ import { NavigationPort } from '../../../application/shared/navigation.port';
 import { AuthenticatedShellComponent } from './authenticated-shell.component';
 
 describe('AuthenticatedShellComponent', () => {
-  it('shows persistent links for the current group and invitations', () => {
+  it('shows persistent links for the current group and group list', () => {
     const fixture = createFixture('group-1');
 
     fixture.detectChanges();
@@ -29,7 +29,7 @@ describe('AuthenticatedShellComponent', () => {
       '/groups/group-1/reimbursements',
       '/groups/group-1/ownership-shares',
       '/groups/group-1/revenue-distribution/preview',
-      '/invitations',
+      '/groups',
     ]);
   });
 
@@ -45,7 +45,7 @@ describe('AuthenticatedShellComponent', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('Se déconnecter');
   });
 
-  it('keeps invitations available when there is no active group', () => {
+  it('keeps the group list available when there is no active group', () => {
     const fixture = createFixture(null);
 
     fixture.detectChanges();
@@ -55,7 +55,7 @@ describe('AuthenticatedShellComponent', () => {
     );
 
     expect(links).toHaveLength(1);
-    expect((links[0] as HTMLAnchorElement).getAttribute('href')).toBe('/invitations');
+    expect((links[0] as HTMLAnchorElement).getAttribute('href')).toBe('/groups');
   });
 });
 

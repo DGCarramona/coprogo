@@ -170,8 +170,8 @@ const fillForm = (viewModel: DirectReimbursementWidgetViewModel, value: FormValu
 
 class StubGroupMembersPort extends GroupMembersPort {
   readonly members: readonly GroupMember[] = [
-    { member: 'alice@example.com', joinedAt: new Date('2026-01-01T00:00:00Z') },
-    { member: 'bob@example.com', joinedAt: new Date('2026-01-02T00:00:00Z') },
+    { member: 'alice@example.com', joinedAt: new Date('2026-01-01T00:00:00Z'), addedBy: null },
+    { member: 'bob@example.com', joinedAt: new Date('2026-01-02T00:00:00Z'), addedBy: null },
   ];
   failure: Error | null = null;
   readonly requestedGroupIds: string[] = [];

@@ -1,5 +1,5 @@
-import { GroupMemberInvitationPort } from './application/group/group-member-invitation.port';
-import { HttpGroupMemberInvitationGateway } from './infrastructure/group/http-group-member-invitation.gateway';
+import { GroupMemberAdditionPort } from './application/group/group-member-addition.port';
+import { HttpGroupMemberAdditionGateway } from './infrastructure/group/http-group-member-addition.gateway';
 import { ProviderToken } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { QueryClient } from '@tanstack/angular-query-experimental';
@@ -90,6 +90,11 @@ const portBindings: readonly {
     adapter: HttpGroupMembersGateway,
   },
   {
+    name: 'group member addition',
+    port: GroupMemberAdditionPort,
+    adapter: HttpGroupMemberAdditionGateway,
+  },
+  {
     name: 'reimbursements read',
     port: ReimbursementListPort,
     adapter: HttpReimbursementListGateway,
@@ -167,10 +172,10 @@ const portBindings: readonly {
 ];
 
 describe('appConfig', () => {
-  it('binds group invitations to the HTTP adapter', () => {
+  it('binds group member addition to the HTTP adapter', () => {
     TestBed.configureTestingModule({ providers: appConfig.providers });
-    expect(TestBed.inject(GroupMemberInvitationPort)).toBe(
-      TestBed.inject(HttpGroupMemberInvitationGateway),
+    expect(TestBed.inject(GroupMemberAdditionPort)).toBe(
+      TestBed.inject(HttpGroupMemberAdditionGateway),
     );
   });
   it('provides a TanStack Query client', () => {

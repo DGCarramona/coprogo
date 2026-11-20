@@ -42,6 +42,9 @@
                 <span
                   >{{ 'members.joinedAt' | translate }} {{ member.joinedAt | localizedDate }}</span
                 >
+                @if (member.addedBy; as addedBy) {
+                  <span>{{ 'members.addedBy' | translate: { email: addedBy } }}</span>
+                }
               </li>
             } @empty {
               <li>{{ 'members.empty' | translate }}</li>
@@ -51,10 +54,10 @@
       </mat-card>
       <mat-card class="material-card" appearance="outlined">
         <mat-card-header
-          ><mat-card-title>{{ 'members.inviteTitle' | translate }}</mat-card-title></mat-card-header
+          ><mat-card-title>{{ 'members.addTitle' | translate }}</mat-card-title></mat-card-header
         >
         <mat-card-content>
-          <p id="invitation-help">{{ 'members.inviteHelp' | translate }}</p>
+          <p id="member-add-help">{{ 'members.addHelp' | translate }}</p>
           <form novalidate (submit)="submit($event, email)">
             <mat-form-field appearance="outline">
               <mat-label>{{ 'members.email' | translate }}</mat-label>
@@ -65,25 +68,22 @@
                 name="email"
                 autocomplete="email"
                 required
-                aria-describedby="invitation-help invitation-error"
-                [disabled]="viewModel.isInviting()"
+                aria-describedby="member-add-help member-add-error"
+                [disabled]="viewModel.isAddingMember()"
               />
             </mat-form-field>
-            <button mat-flat-button type="submit" [disabled]="viewModel.isInviting()">
-              {{ (viewModel.isInviting() ? 'members.inviting' : 'members.invite') | translate }}
+            <button mat-flat-button type="submit" [disabled]="viewModel.isAddingMember()">
+              {{ (viewModel.isAddingMember() ? 'members.adding' : 'members.add') | translate }}
             </button>
           </form>
           <div aria-live="polite">
-            @if (viewModel.invitedEmail(); as invitedEmail) {
-              <p role="status">{{ 'members.invited' | translate: { email: invitedEmail } }}</p>
+            @if (viewModel.addedMember(); as addedMember) {
+              <p role="status">{{ 'members.added' | translate: { email: addedMember } }}</p>
             }
           </div>
-          <p id="invitation-error" role="alert">{{ viewModel.invitationError() | errorMessage }}</p>
+          <p id="member-add-error" role="alert">{{ viewModel.addMemberError() | errorMessage }}</p>
         </mat-card-content>
       </mat-card>
-      @if (viewModel.groupId; as groupId) {
-        <app-group-invitations-widget [groupId]="groupId" />
-      }
     </div>
   }
 </app-authenticated-shell>

@@ -44,10 +44,10 @@ describe('API client providers', () => {
         ],
       });
 
-      const responsePromise = firstValueFrom(TestBed.inject(GroupsService).listPending());
+      const responsePromise = firstValueFrom(TestBed.inject(GroupsService).listMemberGroups());
 
       const request = TestBed.inject(HttpTestingController).expectOne(
-        'http://localhost:8080/api/group-invitations/pending',
+        'http://localhost:8080/api/groups',
       );
 
       expect(request.request.method).toBe('GET');

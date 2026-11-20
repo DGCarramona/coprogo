@@ -184,8 +184,8 @@ class StubGroupMembersPort extends GroupMembersPort {
   override listByGroup(groupId: string): Observable<readonly GroupMember[]> {
     this.requestedGroupIds.push(groupId);
     return of([
-      { member: 'alice@example.com', joinedAt: new Date('2026-01-01T00:00:00Z') },
-      { member: 'bob@example.com', joinedAt: new Date('2026-01-02T00:00:00Z') },
+      { member: 'alice@example.com', joinedAt: new Date('2026-01-01T00:00:00Z'), addedBy: null },
+      { member: 'bob@example.com', joinedAt: new Date('2026-01-02T00:00:00Z'), addedBy: null },
     ]);
   }
 }

@@ -10,9 +10,11 @@ describe('CreateFirstGroupCardComponent', () => {
     const names: string[] = [];
     fixture.componentInstance.createRequested.subscribe((name) => names.push(name));
     fixture.detectChanges();
+
     const host = fixture.nativeElement as HTMLElement;
     const input = host.querySelector<HTMLInputElement>('input[aria-label="Nom du groupe"]');
     if (!input) throw new Error('Champ de nom absent');
+
     input.value = 'Appartement familial';
     expect(input.required).toBe(true);
     expect(input.maxLength).toBe(100);

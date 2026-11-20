@@ -8,10 +8,6 @@
  * Do not edit the class manually.
  */
 
-export interface GroupInvitationResponseDto {
-  invitation: string;
-  invitedMember: string;
-  invitedBy: string;
-  invitedAt: string;
-  canCancel: boolean;
+export interface AddGroupMemberRequestDto {
+  member: string;
 }

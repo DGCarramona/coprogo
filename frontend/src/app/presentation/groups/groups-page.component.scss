@@ -1,0 +1,36 @@
+.groups-page__section {
+  margin-top: 2rem;
+}
+
+.groups-page__section-heading {
+  margin-bottom: 1rem;
+}
+
+.groups-page__section-heading h2 {
+  margin: 0;
+  color: var(--mat-sys-on-surface);
+  font-size: clamp(1.25rem, 2vw, 1.55rem);
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+
+.groups-page__section-heading > p:last-child {
+  margin: 0.35rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.93rem;
+  line-height: 1.55;
+}
+
+.groups-page__section-kicker {
+  margin: 0 0 0.3rem;
+  color: var(--mat-sys-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.groups-page__section app-create-first-group-card {
+  display: block;
+}

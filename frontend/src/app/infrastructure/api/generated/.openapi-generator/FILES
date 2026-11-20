@@ -15,6 +15,7 @@ configuration.ts
 encoder.ts
 git_push.sh
 index.ts
+model/add-group-member-request.ts
 model/api-error-response.ts
 model/cash-pool-balance-response.ts
 model/cash-pool-history-response.ts
@@ -46,12 +47,10 @@ model/expense-supporting-document-audit-entry-response.ts
 model/expense-supporting-document-response.ts
 model/expense-supporting-documents-response.ts
 model/group-balances-response.ts
-model/group-invitation-response.ts
 model/group-member-balance-response.ts
 model/group-member-cash-pool-shares-response.ts
 model/group-member-response.ts
 model/group-response.ts
-model/invite-member-request.ts
 model/member-cash-pool-share-response.ts
 model/member-debt-reduction-history-response.ts
 model/member-debt-reduction-response.ts
@@ -62,7 +61,6 @@ model/ownership-share-change-response.ts
 model/ownership-share-input.ts
 model/ownership-share-response.ts
 model/ownership-share-timeline-response.ts
-model/pending-group-invitation-response.ts
 model/propose-expense-request.ts
 model/readiness-status.ts
 model/record-cash-pool-income-request.ts
