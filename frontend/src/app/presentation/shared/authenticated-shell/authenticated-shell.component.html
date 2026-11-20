@@ -3,7 +3,7 @@
     <div class="authenticated-shell__topbar">
       <a
         class="authenticated-shell__brand"
-        routerLink="/invitations"
+        routerLink="/groups"
         [attr.aria-label]="'layout.navigation.home' | translate"
       >
         <span class="authenticated-shell__brand-mark" aria-hidden="true">C</span>
@@ -59,12 +59,12 @@
           </a>
         }
         <a
-          routerLink="/invitations"
+          routerLink="/groups"
           routerLinkActive="is-active"
           [routerLinkActiveOptions]="{ exact: true }"
           ariaCurrentWhenActive="page"
         >
-          {{ 'layout.navigation.invitations' | translate }}
+          {{ 'layout.navigation.groups' | translate }}
         </a>
       </nav>
 

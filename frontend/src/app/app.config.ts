@@ -1,7 +1,5 @@
-import { GroupInvitationsPort } from './application/group/group-invitations.port';
-import { HttpGroupInvitationsManagementGateway } from './infrastructure/group/http-group-invitations-management.gateway';
-import { GroupMemberInvitationPort } from './application/group/group-member-invitation.port';
-import { HttpGroupMemberInvitationGateway } from './infrastructure/group/http-group-member-invitation.gateway';
+import { GroupMemberAdditionPort } from './application/group/group-member-addition.port';
+import { HttpGroupMemberAdditionGateway } from './infrastructure/group/http-group-member-addition.gateway';
 import { provideLocalization } from './presentation/i18n/provide-localization';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
@@ -28,7 +26,6 @@ import { MemberGroupsPort } from './application/group/member-groups.port';
 import { GroupRenamingPort } from './application/group/group-renaming.port';
 import { HttpGroupRenamingGateway } from './infrastructure/group/http-group-renaming.gateway';
 import { HttpMemberGroupsGateway } from './infrastructure/group/http-member-groups.gateway';
-import { PendingGroupInvitationsPort } from './application/group/pending-group-invitations.port';
 import { GroupFinancialDashboardPort } from './application/ledger/group-financial-dashboard.port';
 import { CashPoolHistoryPort } from './application/ledger/cash-pool-history.port';
 import { MemberDebtReductionHistoryPort } from './application/ledger/member-debt-reduction-history.port';
@@ -57,7 +54,6 @@ import { HttpOwnershipShareChangeGateway } from './infrastructure/revenue/http-o
 import { HttpRevenueDistributionPreviewGateway } from './infrastructure/revenue/http-revenue-distribution-preview.gateway';
 import { HttpCashPoolIncomeRecordingGateway } from './infrastructure/revenue/http-cash-pool-income-recording.gateway';
 import { HttpGroupCreationGateway } from './infrastructure/group/http-group-creation.gateway';
-import { HttpGroupInvitationsGateway } from './infrastructure/group/http-group-invitations.gateway';
 import { HttpGroupMembersGateway } from './infrastructure/group/http-group-members.gateway';
 import { HttpGroupFinancialDashboardGateway } from './infrastructure/ledger/http-group-financial-dashboard.gateway';
 import { HttpCashPoolHistoryGateway } from './infrastructure/ledger/http-cash-pool-history.gateway';
@@ -74,8 +70,7 @@ import { routes } from './app.routes';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideLocalization(),
-    { provide: GroupInvitationsPort, useExisting: HttpGroupInvitationsManagementGateway },
-    { provide: GroupMemberInvitationPort, useExisting: HttpGroupMemberInvitationGateway },
+    { provide: GroupMemberAdditionPort, useExisting: HttpGroupMemberAdditionGateway },
     provideBrowserGlobalErrorListeners(),
     provideCoprogoHttpClients(),
     provideRouter(routes),
@@ -94,10 +89,6 @@ export const appConfig: ApplicationConfig = {
     {
       provide: GoogleIdentityPort,
       useExisting: BrowserGoogleIdentityAdapter,
-    },
-    {
-      provide: PendingGroupInvitationsPort,
-      useExisting: HttpGroupInvitationsGateway,
     },
     {
       provide: GroupCreationPort,

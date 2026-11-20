@@ -725,8 +725,8 @@ describe('ExpenseProposalWidgetViewModel', () => {
 
 class StubGroupMembersPort extends GroupMembersPort {
   members: readonly GroupMember[] = [
-    { member: 'alice@example.com', joinedAt: new Date('2026-08-01T10:00:00.000Z') },
-    { member: 'bob@example.com', joinedAt: new Date('2026-08-02T10:00:00.000Z') },
+    { member: 'alice@example.com', joinedAt: new Date('2026-08-01T10:00:00.000Z'), addedBy: null },
+    { member: 'bob@example.com', joinedAt: new Date('2026-08-02T10:00:00.000Z'), addedBy: null },
   ];
   requestedGroupIds: string[] = [];
   failure: Error | null = null;

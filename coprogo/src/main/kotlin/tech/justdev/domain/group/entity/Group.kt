@@ -8,6 +8,7 @@ import java.time.Instant
 data class GroupMember(
     val member: MemberEmail,
     val joinedAt: Instant,
+    val addedBy: MemberEmail? = null,
 )
 
 data class Group(
@@ -34,10 +35,11 @@ data class Group(
     fun addMember(
         member: MemberEmail,
         joinedAt: Instant,
+        addedBy: MemberEmail? = null,
     ): Group {
         require(!contains(member)) { "member is already part of the group" }
 
-        return copy(members = members + GroupMember(member = member, joinedAt = joinedAt))
+        return copy(members = members + GroupMember(member = member, joinedAt = joinedAt, addedBy = addedBy))
     }
 
     companion object {
@@ -51,7 +53,7 @@ data class Group(
                 id = id,
                 createdBy = createdBy,
                 createdAt = createdAt,
-                members = setOf(GroupMember(member = createdBy, joinedAt = createdAt)),
+                members = setOf(GroupMember(member = createdBy, joinedAt = createdAt, addedBy = createdBy)),
                 name = name,
             )
     }

@@ -3,7 +3,7 @@ import { expect, test as base } from '@playwright/test';
 export const groupId = 'browser-smoke';
 const groupPath = `/api/groups/${groupId}`;
 const responses: Record<string, object> = {
-  [groupPath]: { group: groupId, name: 'Appartement', members: [], pendingInvitations: [] },
+  [groupPath]: { group: groupId, name: 'Appartement', members: [] },
   [`${groupPath}/balances`]: { group: groupId, balances: [] },
   [`${groupPath}/cash-pool/balance`]: { group: groupId, availableAmountInCents: 0 },
   [`${groupPath}/cash-pool/shares`]: { group: groupId, shares: [] },

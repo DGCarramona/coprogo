@@ -1,6 +1,5 @@
 package tech.justdev.application.group
 
-import tech.justdev.domain.group.entity.GroupInvitationId
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.valueobject.GroupId
 
@@ -22,36 +21,9 @@ class GroupCreatorRequiredException(
     member: MemberEmail,
 ) : GroupApplicationException("member ${member.toPrimitive()} is not the creator of group ${group.toPrimitive()}")
 
-class GroupInvitationNotFoundException(
-    invitation: GroupInvitationId,
-) : GroupApplicationException("group invitation ${invitation.toPrimitive()} was not found")
-
-class GroupInvitationAlreadyExistsException(
-    group: GroupId,
-    invitedMember: MemberEmail,
-) : GroupApplicationException(
-        "group ${group.toPrimitive()} already has a pending invitation for ${invitedMember.toPrimitive()}",
-    )
-
-class GroupInvitationAlreadyAcceptedException(
-    invitation: GroupInvitationId,
-) : GroupApplicationException("group invitation ${invitation.toPrimitive()} is already accepted")
-
-class GroupInvitationAccessDeniedException(
-    invitation: GroupInvitationId,
-    member: MemberEmail,
-) : GroupApplicationException(
-        "member ${member.toPrimitive()} cannot accept group invitation ${invitation.toPrimitive()}",
-    )
-
 class OwnershipShareChangeForbiddenException(
     group: GroupId,
     member: MemberEmail,
 ) : GroupApplicationException(
         "member ${member.toPrimitive()} is not allowed to modify ownership shares for group ${group.toPrimitive()}",
     )
-
-class GroupInvitationCancellationDeniedException(
-    invitation: GroupInvitationId,
-    member: MemberEmail,
-) : GroupApplicationException("member ${member.toPrimitive()} cannot cancel group invitation ${invitation.toPrimitive()}")

@@ -11,4 +11,5 @@
 export interface GroupMemberResponseDto {
   member: string;
   joinedAt: string;
+  addedBy?: string | null;
 }

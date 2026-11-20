@@ -11,9 +11,9 @@ plugins {
     id("coprogo.jooq-codegen")
 }
 
-val jooqVersion: String by project
-val kotlinVersion: String by project
-val micronautVersion: String by project
+val jooqVersion = providers.gradleProperty("jooqVersion").get()
+val kotlinVersion = providers.gradleProperty("kotlinVersion").get()
+val micronautVersion = providers.gradleProperty("micronautVersion").get()
 val equivalentMutationWhitelist = layout.projectDirectory.file("pitest-equivalent-mutations.json")
 
 ksp {

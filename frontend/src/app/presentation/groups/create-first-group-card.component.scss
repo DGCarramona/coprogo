@@ -1,0 +1,28 @@
+label,
+input {
+  display: block;
+}
+
+input {
+  width: 100%;
+  max-width: 32rem;
+  margin-top: 0.5rem;
+}
+
+.create-group-card__message {
+  max-width: 42rem;
+  margin-top: 1rem;
+  padding: 0.95rem 1rem;
+  border-radius: 0.85rem;
+  line-height: 1.6;
+}
+
+.create-group-card__message--error {
+  background: color-mix(in srgb, var(--mat-sys-error-container) 72%, white);
+  color: var(--mat-sys-on-error-container);
+}
+
+.create-group-card__message--success {
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 72%, white);
+  color: var(--mat-sys-on-primary-container);
+}

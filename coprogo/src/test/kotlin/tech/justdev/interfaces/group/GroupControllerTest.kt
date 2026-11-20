@@ -6,19 +6,16 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import tech.justdev.application.auth.AuthenticatedUser
 import tech.justdev.application.auth.AuthenticatedUserProvider
-import tech.justdev.application.group.AcceptGroupInvitationUseCase
+import tech.justdev.application.group.AddMemberToGroupCommand
+import tech.justdev.application.group.AddMemberToGroupUseCase
 import tech.justdev.application.group.CreateGroupUseCase
 import tech.justdev.application.group.GetGroupUseCase
 import tech.justdev.application.group.GroupAccessPolicy
-import tech.justdev.application.group.InviteMemberToGroupUseCase
 import tech.justdev.application.group.ListMemberGroupsQuery
 import tech.justdev.application.group.ListMemberGroupsUseCase
-import tech.justdev.application.group.ListPendingGroupInvitationsUseCase
 import tech.justdev.application.group.MemberGroupSnapshot
 import tech.justdev.application.group.RenameGroupCommand
 import tech.justdev.application.group.RenameGroupUseCase
-import tech.justdev.application.shared.DirectTransactionRunner
-import tech.justdev.application.support.InMemoryGroupInvitationRepository
 import tech.justdev.application.support.InMemoryGroupRepository
 import tech.justdev.application.support.InMemoryMemberRepository
 import tech.justdev.domain.group.valueobject.GroupName
@@ -65,6 +62,33 @@ class GroupControllerTest {
                 controller.renameGroup(group.toPrimitive(), RenameGroupRequest("  Maison  "))
 
                 assertEquals(listOf(RenameGroupCommand(group, member, GroupName.of("Maison"))), commands)
+            }
+    }
+
+    @Nested
+    inner class AddMember {
+        @Test
+        fun `passes the authenticated member and validated email to the use case`() =
+            runTest {
+                val member = MemberEmail.of("alice@example.com")
+                val group = groupId("controller-add-member")
+                val commands = mutableListOf<AddMemberToGroupCommand>()
+                val controller =
+                    controller(
+                        member,
+                        addMemberToGroupUseCase =
+                            object : AddMemberToGroupUseCase {
+                                override suspend fun invoke(command: AddMemberToGroupCommand) {
+                                    commands.add(command)
+                                }
+                            },
+                    )
+
+                controller.addMember(group.toPrimitive(), AddGroupMemberRequest("bob@example.com"))
+
+                assertEquals(group, commands.single().group)
+                assertEquals(member, commands.single().addedBy)
+                assertEquals(MemberEmail.of("bob@example.com"), commands.single().member)
             }
     }
 
@@ -124,13 +148,16 @@ private fun controller(
             override suspend fun invoke(query: ListMemberGroupsQuery): List<MemberGroupSnapshot> = emptyList()
         },
     groups: InMemoryGroupRepository = InMemoryGroupRepository(),
+    addMemberToGroupUseCase: AddMemberToGroupUseCase =
+        object : AddMemberToGroupUseCase {
+            override suspend fun invoke(command: AddMemberToGroupCommand) = Unit
+        },
     renameGroupUseCase: RenameGroupUseCase =
         object : RenameGroupUseCase {
             override suspend fun invoke(command: RenameGroupCommand) = Unit
         },
 ): GroupController {
     val members = InMemoryMemberRepository()
-    val invitations = InMemoryGroupInvitationRepository()
     val accessPolicy = GroupAccessPolicy(groups)
     return GroupController(
         authenticatedUserProvider =
@@ -138,10 +165,8 @@ private fun controller(
                 override suspend fun currentAuthenticatedUser() = AuthenticatedUser(member)
             },
         createGroupUseCase = CreateGroupUseCase(members, groups),
-        getGroupUseCase = GetGroupUseCase(accessPolicy, invitations),
-        inviteMemberToGroupUseCase = InviteMemberToGroupUseCase(accessPolicy, invitations),
-        acceptGroupInvitationUseCase = AcceptGroupInvitationUseCase(members, groups, invitations, DirectTransactionRunner),
-        listPendingGroupInvitationsUseCase = ListPendingGroupInvitationsUseCase(invitations),
+        getGroupUseCase = GetGroupUseCase(accessPolicy),
+        addMemberToGroupUseCase = addMemberToGroupUseCase,
         listMemberGroupsUseCase = listMemberGroupsUseCase,
         renameGroupUseCase = renameGroupUseCase,
     )

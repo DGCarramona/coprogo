@@ -53,15 +53,36 @@ describe('HttpGroupMembersGateway', () => {
       createdBy: 'alice@example.com',
       createdAt: '2026-08-02T10:00:00.000Z',
       members: [
-        { member: 'alice@example.com', joinedAt: '2026-08-01T10:00:00.000Z' },
-        { member: 'bob@example.com', joinedAt: '2026-08-02T10:00:00.000Z' },
+        {
+          member: 'alice@example.com',
+          joinedAt: '2026-08-01T10:00:00.000Z',
+          addedBy: 'alice@example.com',
+        },
+        {
+          member: 'bob@example.com',
+          joinedAt: '2026-08-02T10:00:00.000Z',
+          addedBy: 'alice@example.com',
+        },
+        { member: 'creator@example.com', joinedAt: '2026-08-01T10:00:00.000Z' },
       ],
-      pendingInvitations: [],
     });
 
     await expect(members).resolves.toEqual([
-      { member: 'alice@example.com', joinedAt: new Date('2026-08-01T10:00:00.000Z') },
-      { member: 'bob@example.com', joinedAt: new Date('2026-08-02T10:00:00.000Z') },
+      {
+        member: 'alice@example.com',
+        joinedAt: new Date('2026-08-01T10:00:00.000Z'),
+        addedBy: 'alice@example.com',
+      },
+      {
+        member: 'bob@example.com',
+        joinedAt: new Date('2026-08-02T10:00:00.000Z'),
+        addedBy: 'alice@example.com',
+      },
+      {
+        member: 'creator@example.com',
+        joinedAt: new Date('2026-08-01T10:00:00.000Z'),
+        addedBy: null,
+      },
     ]);
   });
 

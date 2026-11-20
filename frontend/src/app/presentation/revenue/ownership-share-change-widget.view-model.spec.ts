@@ -170,8 +170,12 @@ class StubGroupMembersPort extends GroupMembersPort {
     this.requestedGroupIds.push(groupId);
     return this.failure === null
       ? of([
-          { member: 'alice@example.com', joinedAt: new Date('2026-01-01T00:00:00Z') },
-          { member: 'bob@example.com', joinedAt: new Date('2026-01-02T00:00:00Z') },
+          {
+            member: 'alice@example.com',
+            joinedAt: new Date('2026-01-01T00:00:00Z'),
+            addedBy: null,
+          },
+          { member: 'bob@example.com', joinedAt: new Date('2026-01-02T00:00:00Z'), addedBy: null },
         ])
       : throwError(() => this.failure);
   }

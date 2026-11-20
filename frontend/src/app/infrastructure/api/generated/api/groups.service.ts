@@ -22,17 +22,15 @@ import { Observable } from 'rxjs';
 import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 
 // @ts-ignore
+import { AddGroupMemberRequestDto } from '../model/add-group-member-request';
+// @ts-ignore
 import { CreateGroupRequestDto } from '../model/create-group-request';
 // @ts-ignore
 import { CreateGroupResponseDto } from '../model/create-group-response';
 // @ts-ignore
 import { GroupResponseDto } from '../model/group-response';
 // @ts-ignore
-import { InviteMemberRequestDto } from '../model/invite-member-request';
-// @ts-ignore
 import { MemberGroupResponseDto } from '../model/member-group-response';
-// @ts-ignore
-import { PendingGroupInvitationResponseDto } from '../model/pending-group-invitation-response';
 // @ts-ignore
 import { RenameGroupRequestDto } from '../model/rename-group-request';
 
@@ -54,122 +52,48 @@ export class GroupsService extends BaseService {
   }
 
   /**
-   * Accept a pending group invitation
-   * @endpoint post /api/group-invitations/{invitationId}/accept
-   * @param invitationId
-   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-   * @param reportProgress flag to report request and response progress.
-   * @param options additional options
-   */
-  public accept(
-    invitationId: string,
-    observe?: 'body',
-    reportProgress?: boolean,
-    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
-  ): Observable<any>;
-  public accept(
-    invitationId: string,
-    observe?: 'response',
-    reportProgress?: boolean,
-    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
-  ): Observable<HttpResponse<any>>;
-  public accept(
-    invitationId: string,
-    observe?: 'events',
-    reportProgress?: boolean,
-    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
-  ): Observable<HttpEvent<any>>;
-  public accept(
-    invitationId: string,
-    observe: any = 'body',
-    reportProgress: boolean = false,
-    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
-  ): Observable<any> {
-    if (invitationId === null || invitationId === undefined) {
-      throw new Error('Required parameter invitationId was null or undefined when calling accept.');
-    }
-
-    let localVarHeaders = this.defaultHeaders;
-
-    const localVarHttpHeaderAcceptSelected: string | undefined =
-      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([]);
-    if (localVarHttpHeaderAcceptSelected !== undefined) {
-      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-    }
-
-    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-    const localVarTransferCache: boolean = options?.transferCache ?? true;
-
-    let responseType_: 'text' | 'json' | 'blob' = 'json';
-    if (localVarHttpHeaderAcceptSelected) {
-      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-        responseType_ = 'text';
-      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-        responseType_ = 'json';
-      } else {
-        responseType_ = 'blob';
-      }
-    }
-
-    let localVarPath = `/api/group-invitations/${this.configuration.encodeParam({ name: 'invitationId', value: invitationId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/accept`;
-    const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<any>('post', `${basePath}${localVarPath}`, {
-      context: localVarHttpContext,
-      responseType: <any>responseType_,
-      ...(withCredentials ? { withCredentials } : {}),
-      headers: localVarHeaders,
-      observe: observe,
-      ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
-      reportProgress: reportProgress,
-    });
-  }
-
-  /**
-   * Cancel a pending invitation as its sender or the group creator
-   * @endpoint delete /api/groups/{groupId}/invitations/{invitationId}
+   * Add a member to a group
+   * @endpoint post /api/groups/{groupId}/members
    * @param groupId
-   * @param invitationId
+   * @param addGroupMemberRequestDto
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
    * @param reportProgress flag to report request and response progress.
    * @param options additional options
    */
-  public cancelGroupInvitation(
+  public addMember(
     groupId: string,
-    invitationId: string,
+    addGroupMemberRequestDto: AddGroupMemberRequestDto,
     observe?: 'body',
     reportProgress?: boolean,
     options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
   ): Observable<any>;
-  public cancelGroupInvitation(
+  public addMember(
     groupId: string,
-    invitationId: string,
+    addGroupMemberRequestDto: AddGroupMemberRequestDto,
     observe?: 'response',
     reportProgress?: boolean,
     options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
   ): Observable<HttpResponse<any>>;
-  public cancelGroupInvitation(
+  public addMember(
     groupId: string,
-    invitationId: string,
+    addGroupMemberRequestDto: AddGroupMemberRequestDto,
     observe?: 'events',
     reportProgress?: boolean,
     options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
   ): Observable<HttpEvent<any>>;
-  public cancelGroupInvitation(
+  public addMember(
     groupId: string,
-    invitationId: string,
+    addGroupMemberRequestDto: AddGroupMemberRequestDto,
     observe: any = 'body',
     reportProgress: boolean = false,
     options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
   ): Observable<any> {
     if (groupId === null || groupId === undefined) {
-      throw new Error(
-        'Required parameter groupId was null or undefined when calling cancelGroupInvitation.',
-      );
+      throw new Error('Required parameter groupId was null or undefined when calling addMember.');
     }
-    if (invitationId === null || invitationId === undefined) {
+    if (addGroupMemberRequestDto === null || addGroupMemberRequestDto === undefined) {
       throw new Error(
-        'Required parameter invitationId was null or undefined when calling cancelGroupInvitation.',
+        'Required parameter addGroupMemberRequestDto was null or undefined when calling addMember.',
       );
     }
 
@@ -185,6 +109,14 @@ export class GroupsService extends BaseService {
 
     const localVarTransferCache: boolean = options?.transferCache ?? true;
 
+    // to determine the Content-Type header
+    const consumes: string[] = ['application/json'];
+    const httpContentTypeSelected: string | undefined =
+      this.configuration.selectHeaderContentType(consumes);
+    if (httpContentTypeSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+    }
+
     let responseType_: 'text' | 'json' | 'blob' = 'json';
     if (localVarHttpHeaderAcceptSelected) {
       if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
@@ -196,10 +128,11 @@ export class GroupsService extends BaseService {
       }
     }
 
-    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/invitations/${this.configuration.encodeParam({ name: 'invitationId', value: invitationId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}`;
+    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/members`;
     const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<any>('delete', `${basePath}${localVarPath}`, {
+    return this.httpClient.request<any>('post', `${basePath}${localVarPath}`, {
       context: localVarHttpContext,
+      body: addGroupMemberRequestDto,
       responseType: <any>responseType_,
       ...(withCredentials ? { withCredentials } : {}),
       headers: localVarHeaders,
@@ -391,97 +324,6 @@ export class GroupsService extends BaseService {
   }
 
   /**
-   * Invite a member to a group
-   * @endpoint post /api/groups/{groupId}/invitations
-   * @param groupId
-   * @param inviteMemberRequestDto
-   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-   * @param reportProgress flag to report request and response progress.
-   * @param options additional options
-   */
-  public invite(
-    groupId: string,
-    inviteMemberRequestDto: InviteMemberRequestDto,
-    observe?: 'body',
-    reportProgress?: boolean,
-    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
-  ): Observable<any>;
-  public invite(
-    groupId: string,
-    inviteMemberRequestDto: InviteMemberRequestDto,
-    observe?: 'response',
-    reportProgress?: boolean,
-    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
-  ): Observable<HttpResponse<any>>;
-  public invite(
-    groupId: string,
-    inviteMemberRequestDto: InviteMemberRequestDto,
-    observe?: 'events',
-    reportProgress?: boolean,
-    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
-  ): Observable<HttpEvent<any>>;
-  public invite(
-    groupId: string,
-    inviteMemberRequestDto: InviteMemberRequestDto,
-    observe: any = 'body',
-    reportProgress: boolean = false,
-    options?: { httpHeaderAccept?: undefined; context?: HttpContext; transferCache?: boolean },
-  ): Observable<any> {
-    if (groupId === null || groupId === undefined) {
-      throw new Error('Required parameter groupId was null or undefined when calling invite.');
-    }
-    if (inviteMemberRequestDto === null || inviteMemberRequestDto === undefined) {
-      throw new Error(
-        'Required parameter inviteMemberRequestDto was null or undefined when calling invite.',
-      );
-    }
-
-    let localVarHeaders = this.defaultHeaders;
-
-    const localVarHttpHeaderAcceptSelected: string | undefined =
-      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([]);
-    if (localVarHttpHeaderAcceptSelected !== undefined) {
-      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-    }
-
-    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-    const localVarTransferCache: boolean = options?.transferCache ?? true;
-
-    // to determine the Content-Type header
-    const consumes: string[] = ['application/json'];
-    const httpContentTypeSelected: string | undefined =
-      this.configuration.selectHeaderContentType(consumes);
-    if (httpContentTypeSelected !== undefined) {
-      localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
-    }
-
-    let responseType_: 'text' | 'json' | 'blob' = 'json';
-    if (localVarHttpHeaderAcceptSelected) {
-      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-        responseType_ = 'text';
-      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-        responseType_ = 'json';
-      } else {
-        responseType_ = 'blob';
-      }
-    }
-
-    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/invitations`;
-    const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<any>('post', `${basePath}${localVarPath}`, {
-      context: localVarHttpContext,
-      body: inviteMemberRequestDto,
-      responseType: <any>responseType_,
-      ...(withCredentials ? { withCredentials } : {}),
-      headers: localVarHeaders,
-      observe: observe,
-      ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
-      reportProgress: reportProgress,
-    });
-  }
-
-  /**
    * List the groups of the authenticated member
    * @endpoint get /api/groups
    * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -550,89 +392,6 @@ export class GroupsService extends BaseService {
     let localVarPath = `/api/groups`;
     const { basePath, withCredentials } = this.configuration;
     return this.httpClient.request<Array<MemberGroupResponseDto>>(
-      'get',
-      `${basePath}${localVarPath}`,
-      {
-        context: localVarHttpContext,
-        responseType: <any>responseType_,
-        ...(withCredentials ? { withCredentials } : {}),
-        headers: localVarHeaders,
-        observe: observe,
-        ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
-        reportProgress: reportProgress,
-      },
-    );
-  }
-
-  /**
-   * List the pending invitations for the authenticated member
-   * @endpoint get /api/group-invitations/pending
-   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-   * @param reportProgress flag to report request and response progress.
-   * @param options additional options
-   */
-  public listPending(
-    observe?: 'body',
-    reportProgress?: boolean,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<Array<PendingGroupInvitationResponseDto>>;
-  public listPending(
-    observe?: 'response',
-    reportProgress?: boolean,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<HttpResponse<Array<PendingGroupInvitationResponseDto>>>;
-  public listPending(
-    observe?: 'events',
-    reportProgress?: boolean,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<HttpEvent<Array<PendingGroupInvitationResponseDto>>>;
-  public listPending(
-    observe: any = 'body',
-    reportProgress: boolean = false,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<any> {
-    let localVarHeaders = this.defaultHeaders;
-
-    const localVarHttpHeaderAcceptSelected: string | undefined =
-      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
-    if (localVarHttpHeaderAcceptSelected !== undefined) {
-      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-    }
-
-    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-    const localVarTransferCache: boolean = options?.transferCache ?? true;
-
-    let responseType_: 'text' | 'json' | 'blob' = 'json';
-    if (localVarHttpHeaderAcceptSelected) {
-      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-        responseType_ = 'text';
-      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-        responseType_ = 'json';
-      } else {
-        responseType_ = 'blob';
-      }
-    }
-
-    let localVarPath = `/api/group-invitations/pending`;
-    const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<Array<PendingGroupInvitationResponseDto>>(
       'get',
       `${basePath}${localVarPath}`,
       {

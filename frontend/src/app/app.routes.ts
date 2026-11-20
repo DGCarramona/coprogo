@@ -6,7 +6,7 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'invitations',
+    redirectTo: 'groups',
   },
   {
     path: 'connexion',
@@ -16,11 +16,11 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'invitations',
+    path: 'groups',
     canActivate: [authenticatedRouteGuard],
     loadComponent: () =>
-      import('./presentation/invitations/pending-invitations-page.component').then(
-        (module) => module.PendingInvitationsPageComponent,
+      import('./presentation/groups/groups-page.component').then(
+        (module) => module.GroupsPageComponent,
       ),
   },
   {
@@ -81,6 +81,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'invitations',
+    redirectTo: 'groups',
   },
 ];

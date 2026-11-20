@@ -1,9 +1,8 @@
-import { groupInvitationsQueryKey } from './group-invitations.view-model';
 import { computed, Injectable, Injector, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { injectMutation, injectQuery, QueryClient } from '@tanstack/angular-query-experimental';
 
-import { GroupMemberInvitationPort } from '../../application/group/group-member-invitation.port';
+import { GroupMemberAdditionPort } from '../../application/group/group-member-addition.port';
 import { GroupMembersPort } from '../../application/group/group-members.port';
 import { describeError } from '../../application/shared/describe-error';
 import { MemberEmail } from '../../domain/group/member-email';
@@ -16,17 +15,17 @@ import {
 export class GroupMembersPageViewModel {
   readonly groupId: string | null;
   private readonly membersQuery;
-  private readonly invitationMutation;
-  private invitationInFlight = false;
-  private readonly invitationErrorState = signal<string | null>(null);
-  private readonly invitedEmailState = signal<MemberEmail | null>(null);
-  readonly invitationError = this.invitationErrorState.asReadonly();
-  readonly invitedEmail = this.invitedEmailState.asReadonly();
+  private readonly addMemberMutation;
+  private addMemberInFlight = false;
+  private readonly addMemberErrorState = signal<string | null>(null);
+  private readonly addedMemberState = signal<MemberEmail | null>(null);
+  readonly addMemberError = this.addMemberErrorState.asReadonly();
+  readonly addedMember = this.addedMemberState.asReadonly();
   readonly members = computed(() => this.membersQuery.data() ?? []);
   readonly isLoading = computed(() => this.groupId !== null && this.membersQuery.isPending());
   readonly hasLoadError = computed(() => this.groupId === null || this.membersQuery.isError());
   readonly isReady = computed(() => this.groupId !== null && this.membersQuery.isSuccess());
-  readonly isInviting = computed(() => this.invitationMutation.isPending());
+  readonly isAddingMember = computed(() => this.addMemberMutation.isPending());
   readonly errorMessage = computed(() =>
     this.groupId === null
       ? 'errors.groups.noneSelected'
@@ -36,7 +35,7 @@ export class GroupMembersPageViewModel {
   constructor(
     route: ActivatedRoute,
     membersPort: GroupMembersPort,
-    invitationPort: GroupMemberInvitationPort,
+    memberAdditionPort: GroupMemberAdditionPort,
     private readonly queryClient: QueryClient,
     injector: Injector,
   ) {
@@ -48,32 +47,30 @@ export class GroupMembersPageViewModel {
       }),
       { injector },
     );
-    this.invitationMutation = injectMutation<void, Error, { groupId: string; email: MemberEmail }>(
-      () => ({ mutationFn: ({ groupId, email }) => invitationPort.invite(groupId, email) }),
+    this.addMemberMutation = injectMutation<void, Error, { groupId: string; email: MemberEmail }>(
+      () => ({ mutationFn: ({ groupId, email }) => memberAdditionPort.addMember(groupId, email) }),
       { injector },
     );
   }
 
-  async invite(rawEmail: string): Promise<void> {
-    if (this.groupId === null || !this.isReady() || this.invitationInFlight) return;
-    this.invitedEmailState.set(null);
-    this.invitationErrorState.set(null);
-    this.invitationInFlight = true;
+  async addMember(rawEmail: string): Promise<void> {
+    if (this.groupId === null || !this.isReady() || this.addMemberInFlight) return;
+    this.addedMemberState.set(null);
+    this.addMemberErrorState.set(null);
+    this.addMemberInFlight = true;
     try {
       const email = MemberEmail(rawEmail);
-      await this.invitationMutation.mutateAsync({ groupId: this.groupId, email });
+      await this.addMemberMutation.mutateAsync({ groupId: this.groupId, email });
       await this.queryClient.invalidateQueries({
         queryKey: groupMembersQueryKey(this.groupId),
         refetchType: 'none',
       });
-      await this.queryClient.invalidateQueries({
-        queryKey: groupInvitationsQueryKey(this.groupId),
-      });
-      this.invitedEmailState.set(email);
+      await this.membersQuery.refetch();
+      this.addedMemberState.set(email);
     } catch (error: unknown) {
-      this.invitationErrorState.set(describeError(error, 'errors.members.invite'));
+      this.addMemberErrorState.set(describeError(error, 'errors.members.add'));
     } finally {
-      this.invitationInFlight = false;
+      this.addMemberInFlight = false;
     }
   }
 

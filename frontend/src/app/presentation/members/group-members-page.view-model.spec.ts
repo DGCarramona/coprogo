@@ -4,39 +4,48 @@ import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 import { of, throwError } from 'rxjs';
 import { GroupMembersPort } from '../../application/group/group-members.port';
-import { GroupMemberInvitationPort } from '../../application/group/group-member-invitation.port';
+import { GroupMemberAdditionPort } from '../../application/group/group-member-addition.port';
 import { GroupMembersPageViewModel } from './group-members-page.view-model';
 import { groupMembersQueryKey } from '../shared/group-members/group-members-query';
+import { GroupMember } from '../../domain/group/group-member';
 
 class StubMembers extends GroupMembersPort {
   requests: string[] = [];
   failure = false;
+  rows: GroupMember[] = [
+    { member: 'alice@example.com', joinedAt: new Date('2026-01-01'), addedBy: null },
+    { member: 'bob@example.com', joinedAt: new Date('2026-02-01'), addedBy: 'alice@example.com' },
+  ];
   override listByGroup(groupId: string) {
     this.requests.push(groupId);
-    return this.failure
-      ? throwError(() => new Error('unavailable'))
-      : of([
-          { member: 'alice@example.com', joinedAt: new Date('2026-01-01') },
-          { member: 'bob@example.com', joinedAt: new Date('2026-02-01') },
-        ]);
+    return this.failure ? throwError(() => new Error('unavailable')) : of(this.rows);
   }
 }
-class StubInvitations extends GroupMemberInvitationPort {
+class StubMemberAdditions extends GroupMemberAdditionPort {
   commands: { groupId: string; email: string }[] = [];
   pending: Promise<void> = Promise.resolve();
-  override invite(groupId: string, email: string): Promise<void> {
+  constructor(private readonly onAdd: (email: string) => void = () => undefined) {
+    super();
+  }
+  override addMember(groupId: string, email: string): Promise<void> {
     this.commands.push({ groupId, email });
+    this.onAdd(email);
     return this.pending;
   }
 }
 
 describe('GroupMembersPageViewModel', () => {
   let members: StubMembers;
-  let invitations: StubInvitations;
+  let additions: StubMemberAdditions;
   let client: QueryClient;
   beforeEach(() => {
     members = new StubMembers();
-    invitations = new StubInvitations();
+    additions = new StubMemberAdditions((email) => {
+      members.rows = [
+        ...members.rows,
+        { member: email, joinedAt: new Date('2026-03-01'), addedBy: 'alice@example.com' },
+      ];
+    });
     client = new QueryClient({
       defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
     });
@@ -49,7 +58,7 @@ describe('GroupMembersPageViewModel', () => {
     return new GroupMembersPageViewModel(
       route,
       members,
-      invitations,
+      additions,
       client,
       TestBed.inject(Injector),
     );
@@ -66,17 +75,21 @@ describe('GroupMembersPageViewModel', () => {
       await ready(vm);
       expect(members.requests).toEqual(['group-1']);
       expect(vm.members()).toEqual([
-        { member: 'alice@example.com', joinedAt: new Date('2026-01-01') },
-        { member: 'bob@example.com', joinedAt: new Date('2026-02-01') },
+        { member: 'alice@example.com', joinedAt: new Date('2026-01-01'), addedBy: null },
+        {
+          member: 'bob@example.com',
+          joinedAt: new Date('2026-02-01'),
+          addedBy: 'alice@example.com',
+        },
       ]);
       expect(client.getQueryData(groupMembersQueryKey('group-1'))).toEqual(vm.members());
     });
-    it('rejects a missing group without requesting members or inviting', async () => {
+    it('rejects a missing group without requesting members or adding a member', async () => {
       const vm = create(null);
-      await vm.invite('alice@example.com');
+      await vm.addMember('alice@example.com');
       expect(vm.hasLoadError()).toBe(true);
       expect(vm.errorMessage()).toBe('errors.groups.noneSelected');
-      expect({ reads: members.requests, writes: invitations.commands }).toEqual({
+      expect({ reads: members.requests, writes: additions.commands }).toEqual({
         reads: [],
         writes: [],
       });
@@ -96,56 +109,66 @@ describe('GroupMembersPageViewModel', () => {
       expect(members.requests).toEqual(['group-1', 'group-1']);
     });
   });
-  describe('invite', () => {
+  describe('addMember', () => {
     it.each(['', 'bad', 'a@@example.com', 'a b@example.com'])(
       'rejects invalid email %s',
       async (email) => {
         const vm = create();
         await ready(vm);
-        await vm.invite(email);
-        expect(vm.invitationError()).toBe('validation.members.email');
-        expect(invitations.commands).toEqual([]);
+        await vm.addMember(email);
+        expect(vm.addMemberError()).toBe('validation.members.email');
+        expect(additions.commands).toEqual([]);
       },
     );
-    it('normalizes the email and confirms an invitation without adding a member', async () => {
+    it('normalizes the email and refreshes the group members after adding a member', async () => {
       const vm = create();
       await ready(vm);
-      await vm.invite('  CHARLIE@Example.com  ');
-      expect(invitations.commands).toEqual([{ groupId: 'group-1', email: 'charlie@example.com' }]);
-      expect(vm.invitedEmail()).toBe('charlie@example.com');
-      expect(vm.members().map((member) => member.member)).toEqual([
+      await vm.addMember('  CHARLIE@Example.com  ');
+      expect(additions.commands).toEqual([{ groupId: 'group-1', email: 'charlie@example.com' }]);
+      expect(vm.addedMember()).toBe('charlie@example.com');
+      expect(members.rows.map((member) => member.member)).toEqual([
         'alice@example.com',
         'bob@example.com',
+        'charlie@example.com',
       ]);
-      expect(client.getQueryState(groupMembersQueryKey('group-1'))?.isInvalidated).toBe(true);
+      expect(members.requests).toEqual(['group-1', 'group-1']);
+      expect(client.getQueryData(groupMembersQueryKey('group-1'))).toEqual(members.rows);
+      await vi.waitFor(() => {
+        TestBed.tick();
+        expect(vm.members().map((member) => member.member)).toEqual([
+          'alice@example.com',
+          'bob@example.com',
+          'charlie@example.com',
+        ]);
+      });
     });
     it('prevents duplicate submissions while pending', async () => {
       let resolve!: () => void;
-      invitations.pending = new Promise((done) => {
+      additions.pending = new Promise((done) => {
         resolve = done;
       });
       const vm = create();
       await ready(vm);
-      const request = vm.invite('charlie@example.com');
-      const duplicate = vm.invite('dana@example.com');
+      const request = vm.addMember('charlie@example.com');
+      const duplicate = vm.addMember('dana@example.com');
       await Promise.resolve();
       await Promise.resolve();
-      expect(invitations.commands).toEqual([{ groupId: 'group-1', email: 'charlie@example.com' }]);
+      expect(additions.commands).toEqual([{ groupId: 'group-1', email: 'charlie@example.com' }]);
       resolve();
       await Promise.all([request, duplicate]);
     });
     it('clears a previous success on failure and allows retry', async () => {
       const vm = create();
       await ready(vm);
-      await vm.invite('charlie@example.com');
-      invitations.pending = Promise.reject(new Error('failed'));
-      await vm.invite('dana@example.com');
-      expect(vm.invitedEmail()).toBeNull();
-      expect(vm.invitationError()).toBe('failed');
-      expect(vm.isInviting()).toBe(false);
-      invitations.pending = Promise.resolve();
-      await vm.invite('dana@example.com');
-      expect(vm.invitedEmail()).toBe('dana@example.com');
+      await vm.addMember('charlie@example.com');
+      additions.pending = Promise.reject(new Error('failed'));
+      await vm.addMember('dana@example.com');
+      expect(vm.addedMember()).toBeNull();
+      expect(vm.addMemberError()).toBe('failed');
+      expect(vm.isAddingMember()).toBe(false);
+      additions.pending = Promise.resolve();
+      await vm.addMember('dana@example.com');
+      expect(vm.addedMember()).toBe('dana@example.com');
     });
   });
 });

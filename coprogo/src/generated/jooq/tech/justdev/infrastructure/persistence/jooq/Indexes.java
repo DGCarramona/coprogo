@@ -13,7 +13,6 @@ import tech.justdev.infrastructure.persistence.jooq.tables.DocumentUploadIntents
 import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseParticipations;
 import tech.justdev.infrastructure.persistence.jooq.tables.ExpenseSupportingDocuments;
 import tech.justdev.infrastructure.persistence.jooq.tables.Expenses;
-import tech.justdev.infrastructure.persistence.jooq.tables.GroupInvitations;
 import tech.justdev.infrastructure.persistence.jooq.tables.GroupMemberships;
 import tech.justdev.infrastructure.persistence.jooq.tables.LedgerEvents;
 import tech.justdev.infrastructure.persistence.jooq.tables.LedgerMemberBalanceTransfers;
@@ -40,8 +39,6 @@ public class Indexes {
     public static final Index EXPENSE_PARTICIPATIONS_EXPENSE_IDX = Internal.createIndex(DSL.name("expense_participations_expense_idx"), ExpenseParticipations.EXPENSE_PARTICIPATIONS, new OrderField[] { ExpenseParticipations.EXPENSE_PARTICIPATIONS.EXPENSE }, false);
     public static final Index EXPENSE_SUPPORTING_DOCUMENTS_GROUP_EXPENSE_IDX = Internal.createIndex(DSL.name("expense_supporting_documents_group_expense_idx"), ExpenseSupportingDocuments.EXPENSE_SUPPORTING_DOCUMENTS, new OrderField[] { ExpenseSupportingDocuments.EXPENSE_SUPPORTING_DOCUMENTS.GROUP, ExpenseSupportingDocuments.EXPENSE_SUPPORTING_DOCUMENTS.EXPENSE, ExpenseSupportingDocuments.EXPENSE_SUPPORTING_DOCUMENTS.SOURCE_UPLOAD_INTENT }, false);
     public static final Index EXPENSES_GROUP_IDX = Internal.createIndex(DSL.name("expenses_group_idx"), Expenses.EXPENSES, new OrderField[] { Expenses.EXPENSES.GROUP, Expenses.EXPENSES.CREATED_AT, Expenses.EXPENSES.ID }, false);
-    public static final Index GROUP_INVITATIONS_GROUP_PENDING_IDX = Internal.createIndex(DSL.name("group_invitations_group_pending_idx"), GroupInvitations.GROUP_INVITATIONS, new OrderField[] { GroupInvitations.GROUP_INVITATIONS.GROUP }, false);
-    public static final Index GROUP_INVITATIONS_INVITED_EMAIL_PENDING_IDX = Internal.createIndex(DSL.name("group_invitations_invited_email_pending_idx"), GroupInvitations.GROUP_INVITATIONS, new OrderField[] { GroupInvitations.GROUP_INVITATIONS.INVITED_EMAIL }, false);
     public static final Index GROUP_MEMBERSHIPS_GROUP_IDX = Internal.createIndex(DSL.name("group_memberships_group_idx"), GroupMemberships.GROUP_MEMBERSHIPS, new OrderField[] { GroupMemberships.GROUP_MEMBERSHIPS.GROUP }, false);
     public static final Index GROUP_MEMBERSHIPS_MEMBER_EMAIL_IDX = Internal.createIndex(DSL.name("group_memberships_member_email_idx"), GroupMemberships.GROUP_MEMBERSHIPS, new OrderField[] { GroupMemberships.GROUP_MEMBERSHIPS.MEMBER_EMAIL }, false);
     public static final Index LEDGER_EVENTS_GROUP_OCCURRED_AT_IDX = Internal.createIndex(DSL.name("ledger_events_group_occurred_at_idx"), LedgerEvents.LEDGER_EVENTS, new OrderField[] { LedgerEvents.LEDGER_EVENTS.GROUP, LedgerEvents.LEDGER_EVENTS.OCCURRED_AT, LedgerEvents.LEDGER_EVENTS.ID }, false);

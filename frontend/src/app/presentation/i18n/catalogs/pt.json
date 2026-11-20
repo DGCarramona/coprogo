@@ -32,10 +32,6 @@
       "noneSelected": "Nenhum grupo selecionado.",
       "missingMembersGroup": "Escolha um grupo antes de carregar os membros."
     },
-    "invitations": {
-      "load": "Não foi possível carregar os convites pendentes.",
-      "accept": "Não foi possível aceitar o convite."
-    },
     "dashboard": {
       "load": "Não foi possível carregar o resumo do grupo."
     },
@@ -90,9 +86,7 @@
     },
     "unexpected": "Ocorreu um erro. Tente novamente.",
     "members": {
-      "invite": "Não foi possível criar o convite. Tente novamente.",
-      "loadInvitations": "Não foi possível carregar os convites.",
-      "cancelInvitation": "Não foi possível cancelar o convite. Atualize a lista e tente novamente."
+      "add": "Não foi possível adicionar o membro. Tente novamente."
     }
   },
   "app": {
@@ -101,23 +95,23 @@
   "auth": {
     "signIn": {
       "title": "Inicie sessão e crie a sua conta num único passo.",
-      "description": "O primeiro início de sessão com o Google cria automaticamente a sua conta. Depois, pode consultar os convites pendentes ou criar o seu primeiro grupo.",
+      "description": "O primeiro início de sessão com o Google cria automaticamente a sua conta. Depois, pode entrar diretamente nos grupos a que for adicionado ou criar um grupo.",
       "principles": "Como iniciar sessão",
       "accountCreationChip": "Conta criada no primeiro início de sessão",
       "identityChip": "Conta associada ao endereço de e-mail Google verificado",
-      "invitationsChip": "Convites pendentes disponíveis após iniciar sessão",
+      "invitationsChip": "Acesso direto aos grupos a que foi adicionado",
       "steps": {
         "connect": {
           "title": "Inicie sessão",
           "description": "A sua conta é reconhecida através do seu endereço de e-mail Google verificado."
         },
         "invitations": {
-          "title": "Consulte os seus convites",
-          "description": "Os convites recebidos aparecem logo após o primeiro início de sessão."
+          "title": "Consulte os seus grupos",
+          "description": "Qualquer grupo a que seja adicionado aparece diretamente na sua lista."
         },
         "createGroup": {
-          "title": "Crie o seu grupo, se necessário",
-          "description": "Se não tiver convites, pode criar um grupo de imediato."
+          "title": "Crie um grupo, se necessário",
+          "description": "Pode criar um grupo para acompanhar em conjunto as despesas e as receitas partilhadas."
         }
       },
       "personalAccount": "Conta pessoal",
@@ -343,7 +337,7 @@
     "historyLabel": "Histórico do grupo",
     "create": {
       "title": "Criar um grupo",
-      "emptyInvitationsHelp": "Não há convites pendentes. Pode criar um grupo para partilhar as suas despesas.",
+      "description": "Crie um espaço para acompanhar em conjunto as despesas e as receitas partilhadas.",
       "success": "Grupo criado com sucesso. Identificador do grupo:",
       "loading": "A criar…"
     },
@@ -355,6 +349,10 @@
       "title": "Os meus grupos",
       "loading": "A carregar os seus grupos…",
       "empty": "Ainda não aderiu a nenhum grupo."
+    },
+    "page": {
+      "title": "Os meus grupos",
+      "description": "Consulte os grupos a que pertence ou crie um novo."
     },
     "createdBy": "Criado por {{p0}}",
     "identifier": "Identificador do grupo: {{p0}}",
@@ -449,21 +447,6 @@
     "accepted": "Aceite",
     "rejected": "Recusado"
   },
-  "invitations": {
-    "sentBy": "Convite enviado por {{p0}}",
-    "informationLabel": "Informações do convite",
-    "joinGroupHelp": "Este convite permite-lhe aderir ao grupo",
-    "page": {
-      "title": "Os seus grupos e convites",
-      "description": "Consulte os seus grupos, aceite um convite ou crie um grupo."
-    },
-    "loading": "A carregar os seus convites...",
-    "initializingSession": "A iniciar a sessão e a carregar os convites pendentes.",
-    "loadFailed": "Não foi possível carregar os seus convites",
-    "pending": "Convites pendentes",
-    "accepting": "A aceitar...",
-    "accept": "Aceitar o convite"
-  },
   "reimbursements": {
     "received": {
       "title": "Registar um reembolso recebido",
@@ -508,32 +491,27 @@
     "link": "Membros",
     "eyebrow": "O seu grupo",
     "title": "Membros do grupo",
-    "description": "Consulte os membros do grupo e convide outras pessoas a participar.",
+    "description": "Consulte os membros do grupo e adicione outras pessoas diretamente.",
     "back": "Voltar ao grupo",
     "listTitle": "Membros atuais",
     "joinedAt": "Membro desde",
     "empty": "Não há membros para mostrar.",
     "loading": "A carregar os membros…",
-    "inviteTitle": "Convidar um membro",
-    "inviteHelp": "Todos os membros podem convidar outra pessoa. Utilize o endereço de email da conta Google dessa pessoa. O convite estará disponível quando iniciar sessão no Coprogo.",
+    "addTitle": "Adicionar um membro",
+    "addHelp": "Todos os membros podem adicionar outra pessoa diretamente ao grupo. Utilize o endereço de email da conta Google dessa pessoa.",
     "email": "Endereço de email Google",
-    "invite": "Criar convite",
-    "inviting": "A criar…",
-    "invited": "Convite criado para {{email}}. Esta pessoa precisa de o aceitar no Coprogo para entrar no grupo.",
-    "pendingTitle": "Convites pendentes",
-    "pendingLoading": "A carregar os convites…",
-    "invitationSent": "Enviado por {{email}} em",
-    "cancelInvitation": "Cancelar convite",
-    "cancelInvitationFor": "Cancelar convite de {{email}}",
-    "noPendingInvitations": "Não há convites pendentes."
+    "add": "Adicionar ao grupo",
+    "adding": "A adicionar…",
+    "added": "{{email}} passa a fazer parte do grupo.",
+    "addedBy": "Adicionado por {{email}}"
   },
   "layout": {
     "signIn": {
       "eyebrow": "A vida em grupo, mais clara",
       "title": "Despesas partilhadas, mais simples.",
       "lead": "Acompanhe as despesas, os reembolsos e as receitas do seu grupo num espaço comum.",
-      "invitationsTitle": "Consulte os seus convites",
-      "invitationsHelp": "Entre facilmente no grupo que o convidou.",
+      "invitationsTitle": "Consulte os seus grupos",
+      "invitationsHelp": "Um membro pode adicioná-lo diretamente ao grupo.",
       "expensesTitle": "Acompanhe as despesas",
       "expensesHelp": "Consulte os montantes, os comprovativos e o que falta pagar.",
       "revenueTitle": "Partilhe as receitas",
@@ -541,7 +519,7 @@
       "welcome": "Bem-vindo",
       "accountHelp": "A sua conta é criada automaticamente no primeiro início de sessão.",
       "unavailable": "O início de sessão com Google não está disponível neste ambiente. Contacte o administrador.",
-      "footer": "Depois de iniciar sessão, pode aceitar um convite ou criar o seu primeiro grupo.",
+      "footer": "Depois de iniciar sessão, pode consultar os grupos a que pertence ou criar um grupo.",
       "googleButton": "Botão de início de sessão com Google"
     },
     "expenses": {
@@ -565,13 +543,8 @@
       "proposalHelp": "Registe uma despesa acordada fora da aplicação."
     },
     "newOperation": "Nova operação",
-    "invitations": {
-      "getStarted": "Para começar",
-      "createTitle": "Começar com um grupo",
-      "createHelp": "Crie um espaço para acompanhar em conjunto as despesas e as receitas partilhadas.",
-      "joinKicker": "Para aderir",
-      "joinTitle": "Grupos para os quais foi convidado",
-      "joinHelp": "Verifique os detalhes antes de aceitar um convite."
+    "groups": {
+      "getStarted": "Para começar"
     },
     "reimbursements": {
       "recordTitle": "Registar um reembolso",
@@ -598,7 +571,7 @@
       "label": "Navegação principal",
       "shares": "Quotas",
       "distribution": "Distribuição",
-      "invitations": "Convites"
+      "groups": "Os meus grupos"
     }
   }
 }

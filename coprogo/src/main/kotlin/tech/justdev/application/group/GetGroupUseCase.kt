@@ -1,7 +1,6 @@
 package tech.justdev.application.group
 
 import jakarta.inject.Singleton
-import tech.justdev.domain.group.repository.GroupInvitationRepository
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.shared.valueobject.GroupId
 import java.time.Instant
@@ -17,27 +16,18 @@ data class GroupSnapshot(
     val createdBy: String,
     val createdAt: Instant,
     val members: List<GroupMemberSnapshot>,
-    val pendingInvitations: List<GroupInvitationSnapshot>,
     val name: String? = null,
 )
 
 data class GroupMemberSnapshot(
     val member: String,
     val joinedAt: Instant,
-)
-
-data class GroupInvitationSnapshot(
-    val invitation: UUID,
-    val invitedMember: String,
-    val invitedBy: String,
-    val invitedAt: Instant,
-    val canCancel: Boolean = false,
+    val addedBy: String?,
 )
 
 @Singleton
 class GetGroupUseCase(
     private val groupAccessPolicy: GroupAccessPolicy,
-    private val groupInvitationRepository: GroupInvitationRepository,
 ) {
     suspend operator fun invoke(query: GetGroupQuery): GroupSnapshot {
         val groupId = GroupId(query.group)
@@ -55,19 +45,7 @@ class GetGroupUseCase(
                         GroupMemberSnapshot(
                             member = member.member.toPrimitive(),
                             joinedAt = member.joinedAt,
-                        )
-                    },
-            pendingInvitations =
-                groupInvitationRepository
-                    .findPendingByGroup(group.id)
-                    .sortedBy { invitation -> invitation.invitedMember.toPrimitive() }
-                    .map { invitation ->
-                        GroupInvitationSnapshot(
-                            invitation = invitation.id.toPrimitive(),
-                            invitedMember = invitation.invitedMember.toPrimitive(),
-                            invitedBy = invitation.invitedBy.toPrimitive(),
-                            invitedAt = invitation.invitedAt,
-                            canCancel = query.requestedBy == invitation.invitedBy || query.requestedBy == group.createdBy,
+                            addedBy = member.addedBy?.toPrimitive(),
                         )
                     },
         )

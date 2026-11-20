@@ -37,7 +37,7 @@ export class SignInPageViewModel {
 
     const restored = await this.authSessionFacade.restoreStoredSession();
     if (restored) {
-      await this.navigation.navigateByUrl('/invitations');
+      await this.navigation.navigateByUrl('/groups');
     }
   }
 
@@ -51,7 +51,7 @@ export class SignInPageViewModel {
         onCredential: async (idToken) => {
           const authenticated = await this.authSessionFacade.authenticateWithGoogleIdToken(idToken);
           if (authenticated) {
-            await this.navigation.navigateByUrl('/invitations');
+            await this.navigation.navigateByUrl('/groups');
           }
         },
       });

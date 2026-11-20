@@ -37,7 +37,7 @@ class GroupTest {
             )
 
         assertEquals(
-            setOf(GroupMember(member = memberEmail("alice"), joinedAt = createdAt)),
+            setOf(GroupMember(member = memberEmail("alice"), joinedAt = createdAt, addedBy = memberEmail("alice"))),
             group.members,
         )
     }
@@ -48,12 +48,12 @@ class GroupTest {
         val joinedAt = Instant.parse("2026-04-14T08:00:00Z")
         val group = Group.create(groupId("group-1"), memberEmail("alice"), createdAt)
 
-        val updatedGroup = group.addMember(member = memberEmail("bob"), joinedAt = joinedAt)
+        val updatedGroup = group.addMember(member = memberEmail("bob"), joinedAt = joinedAt, addedBy = memberEmail("alice"))
 
         assertEquals(
             setOf(
-                GroupMember(member = memberEmail("alice"), joinedAt = createdAt),
-                GroupMember(member = memberEmail("bob"), joinedAt = joinedAt),
+                GroupMember(member = memberEmail("alice"), joinedAt = createdAt, addedBy = memberEmail("alice")),
+                GroupMember(member = memberEmail("bob"), joinedAt = joinedAt, addedBy = memberEmail("alice")),
             ),
             updatedGroup.members,
         )

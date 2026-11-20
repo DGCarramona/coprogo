@@ -1,11 +1,10 @@
-import { GroupInvitationsPort } from '../../application/group/group-invitations.port';
 import { Component, Input } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 import { Subject, of, throwError } from 'rxjs';
 import { GroupMembersPort } from '../../application/group/group-members.port';
-import { GroupMemberInvitationPort } from '../../application/group/group-member-invitation.port';
+import { GroupMemberAdditionPort } from '../../application/group/group-member-addition.port';
 import { GroupMember } from '../../domain/group/group-member';
 import { AuthenticatedShellComponent } from '../shared/authenticated-shell/authenticated-shell.component';
 import { provideLocalization } from '../i18n/provide-localization';
@@ -19,30 +18,26 @@ class StubShell {
 }
 class StubMembers extends GroupMembersPort {
   result = of<readonly GroupMember[]>([
-    { member: 'alice@example.com', joinedAt: new Date('2026-01-01') },
+    { member: 'alice@example.com', joinedAt: new Date('2026-01-01'), addedBy: 'alice@example.com' },
   ]);
   override listByGroup() {
     return this.result;
   }
 }
-class StubInvitations extends GroupMemberInvitationPort {
+class StubMemberAdditions extends GroupMemberAdditionPort {
   commands: string[] = [];
   failure = false;
   pending = Promise.resolve();
-  override async invite(groupId: string, email: string) {
+  override async addMember(groupId: string, email: string) {
     this.commands.push(`${groupId}:${email}`);
-    if (this.failure) throw new Error('errors.members.invite');
+    if (this.failure) throw new Error('errors.members.add');
     await this.pending;
   }
 }
 describe('GroupMembersPageComponent', () => {
-  function setup(members = new StubMembers(), invitations = new StubInvitations()) {
+  function setup(members = new StubMembers(), additions = new StubMemberAdditions()) {
     TestBed.configureTestingModule({
       providers: [
-        {
-          provide: GroupInvitationsPort,
-          useValue: { list: async () => [], cancel: async () => undefined },
-        },
         provideLocalization(),
         provideRouter([]),
         provideTanStackQuery(new QueryClient({ defaultOptions: { queries: { retry: false } } })),
@@ -51,7 +46,7 @@ describe('GroupMembersPageComponent', () => {
           useValue: { snapshot: { paramMap: convertToParamMap({ groupId: 'group-1' }) } },
         },
         { provide: GroupMembersPort, useValue: members },
-        { provide: GroupMemberInvitationPort, useValue: invitations },
+        { provide: GroupMemberAdditionPort, useValue: additions },
       ],
     });
     TestBed.overrideComponent(GroupMembersPageComponent, {
@@ -73,7 +68,7 @@ describe('GroupMembersPageComponent', () => {
       host.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
       fixture.detectChanges();
     };
-    return { fixture, host, ready, submit, invitations };
+    return { fixture, host, ready, submit, additions };
   }
   it('shows the members, their joining dates and a link back to the group', async () => {
     const { host, ready } = setup();
@@ -81,6 +76,7 @@ describe('GroupMembersPageComponent', () => {
     expect(host.querySelector('h1')?.textContent).toBe('Membres du groupe');
     expect(host.querySelector('li')?.textContent).toContain('alice@example.com');
     expect(host.querySelector('li')?.textContent).toContain('2026');
+    expect(host.querySelector('li')?.textContent).toContain('Ajouté par alice@example.com');
     expect(host.querySelector('a[href="/groups/group-1/dashboard"]')).not.toBeNull();
   });
   it('shows loading until members arrive', async () => {
@@ -109,31 +105,31 @@ describe('GroupMembersPageComponent', () => {
     host.querySelector<HTMLButtonElement>('button')!.click();
     await ready();
   });
-  it('validates the email and confirms an invitation awaiting acceptance', async () => {
-    const { fixture, host, ready, submit, invitations } = setup();
+  it('validates the email and confirms the member joined immediately', async () => {
+    const { fixture, host, ready, submit, additions } = setup();
     await ready();
     submit('invalid');
     expect(host.querySelector('[role="alert"]')?.textContent).toContain(
       'Saisissez une adresse email valide.',
     );
-    expect(invitations.commands).toEqual([]);
+    expect(additions.commands).toEqual([]);
     submit(' BOB@Example.com ');
     await vi.waitFor(() => {
       fixture.detectChanges();
       expect(host.querySelector('[role="status"]')?.textContent).toContain('bob@example.com');
     });
-    expect(host.textContent).toContain('accepter');
-    expect(invitations.commands).toEqual(['group-1:bob@example.com']);
+    expect(host.textContent).not.toContain('accepter');
+    expect(additions.commands).toEqual(['group-1:bob@example.com']);
     expect(host.querySelectorAll('.members-page__list li')).toHaveLength(1);
     expect(host.querySelector<HTMLInputElement>('input')?.value).toBe('');
   });
   it('disables submission while pending and shows an actionable failure', async () => {
-    const invitations = new StubInvitations();
+    const additions = new StubMemberAdditions();
     let resolve!: () => void;
-    invitations.pending = new Promise((done) => {
+    additions.pending = new Promise((done) => {
       resolve = done;
     });
-    const { fixture, host, ready, submit } = setup(new StubMembers(), invitations);
+    const { fixture, host, ready, submit } = setup(new StubMembers(), additions);
     await ready();
     submit('bob@example.com');
     await vi.waitFor(() => {
@@ -145,12 +141,12 @@ describe('GroupMembersPageComponent', () => {
       fixture.detectChanges();
       expect(host.querySelector<HTMLButtonElement>('button[type="submit"]')?.disabled).toBe(false);
     });
-    invitations.failure = true;
+    additions.failure = true;
     submit('charlie@example.com');
     await vi.waitFor(() => {
       fixture.detectChanges();
       expect(host.querySelector('[role="alert"]')?.textContent).toContain(
-        'L’invitation n’a pas pu être créée.',
+        'Le membre n’a pas pu être ajouté.',
       );
     });
   });
