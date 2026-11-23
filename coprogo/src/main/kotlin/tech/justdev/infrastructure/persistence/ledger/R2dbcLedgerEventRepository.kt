@@ -57,12 +57,11 @@ open class R2dbcLedgerEventRepository(
     override suspend fun findByGroup(group: GroupId): List<LedgerEvent> {
         val dsl = connectionFactory.dsl()
         val groupId = group.toPrimitive()
+        val rows = dsl.findRowsByGroup(groupId)
         val transfersByEvent = dsl.findTransfersByGroup(groupId).groupBy { transfer -> transfer.event }
         val cashPoolShareDeltasByEvent = dsl.findCashPoolShareDeltasByGroup(groupId).groupBy { delta -> delta.event }
 
-        return dsl
-            .findRowsByGroup(groupId)
-            .map { row -> row.toDomain(transfersByEvent[row.id].orEmpty(), cashPoolShareDeltasByEvent[row.id].orEmpty()) }
+        return rows.map { row -> row.toDomain(transfersByEvent[row.id].orEmpty(), cashPoolShareDeltasByEvent[row.id].orEmpty()) }
     }
 }
 
@@ -104,12 +103,10 @@ private suspend fun org.jooq.DSLContext.persistDetail(event: LedgerEvent) {
                     LEDGER_CASH_POOL_WITHDRAWAL_EVENTS.EVENT,
                     LEDGER_CASH_POOL_WITHDRAWAL_EVENTS.WITHDRAWN_BY,
                     LEDGER_CASH_POOL_WITHDRAWAL_EVENTS.WITHDRAWN_AMOUNT_IN_CENTS,
-                    LEDGER_CASH_POOL_WITHDRAWAL_EVENTS.OWN_REVENUE_SHARE_CONSUMED_IN_CENTS,
                 ).values(
                     event.id.toPrimitive(),
                     event.withdrawnBy.toPrimitive(),
                     event.withdrawnAmount.inCents(),
-                    event.ownRevenueShareConsumed.inCents(),
                 ).awaitFirstOrNull()
     }
 }
@@ -160,7 +157,6 @@ private suspend fun org.jooq.DSLContext.findRowsByGroup(group: UUID): List<Ledge
         LEDGER_CASH_POOL_INCOME_EVENTS.AMOUNT_IN_CENTS,
         LEDGER_CASH_POOL_WITHDRAWAL_EVENTS.WITHDRAWN_BY,
         LEDGER_CASH_POOL_WITHDRAWAL_EVENTS.WITHDRAWN_AMOUNT_IN_CENTS,
-        LEDGER_CASH_POOL_WITHDRAWAL_EVENTS.OWN_REVENUE_SHARE_CONSUMED_IN_CENTS,
     ).from(LEDGER_EVENTS)
         .leftJoin(LEDGER_ACCEPTED_EXPENSE_EVENTS)
         .on(LEDGER_ACCEPTED_EXPENSE_EVENTS.EVENT.eq(LEDGER_EVENTS.ID))
@@ -185,7 +181,6 @@ private suspend fun org.jooq.DSLContext.findRowsByGroup(group: UUID): List<Ledge
                 incomeAmountInCents = row.get(LEDGER_CASH_POOL_INCOME_EVENTS.AMOUNT_IN_CENTS),
                 withdrawnBy = row.get(LEDGER_CASH_POOL_WITHDRAWAL_EVENTS.WITHDRAWN_BY),
                 withdrawnAmountInCents = row.get(LEDGER_CASH_POOL_WITHDRAWAL_EVENTS.WITHDRAWN_AMOUNT_IN_CENTS),
-                ownRevenueShareConsumedInCents = row.get(LEDGER_CASH_POOL_WITHDRAWAL_EVENTS.OWN_REVENUE_SHARE_CONSUMED_IN_CENTS),
             )
         }
 
@@ -248,7 +243,7 @@ private fun LedgerEvent.memberBalanceTransfers(): Set<MemberBalanceTransfer> =
     when (this) {
         is AcceptedExpenseLedgerEvent -> transfers
         is AcceptedReimbursementLedgerEvent -> setOf(balanceTransfer)
-        is CashPoolWithdrawalLedgerEvent -> balanceTransfers
+        is CashPoolWithdrawalLedgerEvent -> emptySet()
         is CashPoolIncomeLedgerEvent -> emptySet()
     }
 
@@ -257,12 +252,7 @@ private fun LedgerEvent.memberCashPoolShareDeltas(): Set<MemberCashPoolShareDelt
         is AcceptedExpenseLedgerEvent -> emptySet()
         is AcceptedReimbursementLedgerEvent -> emptySet()
         is CashPoolIncomeLedgerEvent -> allocations
-        is CashPoolWithdrawalLedgerEvent ->
-            if (ownRevenueShareConsumed.isZero()) {
-                emptySet()
-            } else {
-                setOf(MemberCashPoolShareDelta.decrease(withdrawnBy, ownRevenueShareConsumed))
-            }
+        is CashPoolWithdrawalLedgerEvent -> emptySet()
     }
 
 private fun LedgerEventRow.toDomain(
@@ -318,11 +308,9 @@ private fun LedgerEventRow.toDomain(
                     ),
                 ownRevenueShareConsumed =
                     MoneyAmount.ofCents(
-                        requireNotNull(ownRevenueShareConsumedInCents) {
-                            "cash pool withdrawal ledger event requires ownRevenueShareConsumed"
-                        },
+                        requireNotNull(withdrawnAmountInCents) { "cash pool withdrawal ledger event requires withdrawnAmount" },
                     ),
-                balanceTransfers = transfers.map { transfer -> transfer.toDomain() }.toSet(),
+                balanceTransfers = emptySet(),
                 occurredAt = occurredAt.toInstant(),
             )
     }
@@ -351,7 +339,6 @@ private data class LedgerEventRow(
     val incomeAmountInCents: Long?,
     val withdrawnBy: String?,
     val withdrawnAmountInCents: Long?,
-    val ownRevenueShareConsumedInCents: Long?,
 )
 
 private data class LedgerTransferRow(

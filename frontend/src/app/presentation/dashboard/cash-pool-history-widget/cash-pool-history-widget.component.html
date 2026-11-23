@@ -18,42 +18,45 @@
       <ul class="cash-pool-history__operations">
         @for (operation of viewModel.operations(); track operation.operationId) {
           <li class="cash-pool-history__operation">
-            <div class="cash-pool-history__summary">
-              <span
-                >{{
-                  operation.label
-                    | translate
-                      : { p0: operation.type === 'WITHDRAWAL' ? operation.withdrawnBy : '' }
-                }}
-                · {{ operation.occurredAt }}</span
-              >
-              <strong>{{ operation.amount }}</strong>
-            </div>
-            @switch (operation.type) {
-              @case ('INCOME') {
-                <p>{{ 'cashPool.history.incomeDistribution' | translate }}</p>
-                <ul>
-                  @for (allocation of operation.allocations; track allocation.member) {
-                    <li>{{ allocation.member }} : {{ allocation.amount }}</li>
-                  }
-                </ul>
-              }
-              @case ('WITHDRAWAL') {
-                <p>
-                  {{
-                    'cashPool.history.ownShareConsumed'
-                      | translate: { p0: operation.ownRevenueShareConsumed }
+            <details>
+              <summary class="cash-pool-history__summary">
+                <span
+                  >{{
+                    operation.label
+                      | translate
+                        : { p0: operation.type === 'WITHDRAWAL' ? operation.withdrawnBy : '' }
                   }}
-                </p>
-                @if (operation.hasDebtReduction) {
+                  · {{ operation.occurredAt }}</span
+                >
+                <strong>{{ operation.amount }}</strong>
+              </summary>
+              @switch (operation.type) {
+                @case ('INCOME') {
+                  <p>{{ 'cashPool.history.incomeDistribution' | translate }}</p>
+                  <ul>
+                    @for (allocation of operation.allocations; track allocation.member) {
+                      <li>{{ allocation.member }} : {{ allocation.amount }}</li>
+                    }
+                  </ul>
+                }
+                @case ('WITHDRAWAL') {
                   <p>
                     {{
-                      'cashPool.history.debtReduction' | translate: { p0: operation.debtReduction }
+                      'cashPool.history.ownShareConsumed'
+                        | translate: { p0: operation.ownRevenueShareConsumed }
                     }}
                   </p>
+                  @if (operation.hasOtherMembersShareConsumed) {
+                    <p>
+                      {{
+                        'cashPool.history.otherMembersShareConsumed'
+                          | translate: { p0: operation.otherMembersShareConsumed }
+                      }}
+                    </p>
+                  }
                 }
               }
-            }
+            </details>
           </li>
         }
       </ul>

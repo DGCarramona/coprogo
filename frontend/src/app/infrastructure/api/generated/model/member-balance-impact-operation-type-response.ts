@@ -8,10 +8,10 @@
  * Do not edit the class manually.
  */
 
-export const MemberDebtReductionTypeResponseDto = {
+export const MemberBalanceImpactOperationTypeResponseDto = {
   DirectReimbursement: 'DIRECT_REIMBURSEMENT',
   CompensatingExpense: 'COMPENSATING_EXPENSE',
   CashPoolWithdrawal: 'CASH_POOL_WITHDRAWAL',
 } as const;
-export type MemberDebtReductionTypeResponseDto =
-  (typeof MemberDebtReductionTypeResponseDto)[keyof typeof MemberDebtReductionTypeResponseDto];
+export type MemberBalanceImpactOperationTypeResponseDto =
+  (typeof MemberBalanceImpactOperationTypeResponseDto)[keyof typeof MemberBalanceImpactOperationTypeResponseDto];

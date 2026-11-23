@@ -45,6 +45,13 @@ describe('CashPoolWithdrawalWidgetComponent', () => {
     expect(requiredButton(host, 'button[type="submit"]').disabled).toBe(true);
   });
 
+  it('explains that the surplus may create debt', () => {
+    const { fixture, host } = createFixture(new StubCashPoolWithdrawalPort());
+    fixture.detectChanges();
+
+    expect(host.textContent).toContain('augmenter ce que vous devez');
+  });
+
   it('keeps the withdrawal editable and lets the member reduce it when the amount is unavailable', async () => {
     const port = new StubCashPoolWithdrawalPort();
     port.failure = new InsufficientCashPoolBalanceError();

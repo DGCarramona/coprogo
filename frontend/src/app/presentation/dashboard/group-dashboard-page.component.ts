@@ -12,7 +12,7 @@ import { CashPoolWithdrawalWidgetComponent } from './cash-pool-withdrawal-widget
 import { ExpenseListWidgetComponent } from './expense-list-widget/expense-list-widget.component';
 import { ExpenseProposalWidgetComponent } from './expense-proposal-widget/expense-proposal-widget.component';
 import { GroupDashboardPageViewModel } from './group-dashboard-page.view-model';
-import { MemberDebtReductionHistoryWidgetComponent } from './member-debt-reduction-history-widget/member-debt-reduction-history-widget.component';
+import { MemberBalanceImpactHistoryWidgetComponent } from './member-balance-impact-history-widget/member-balance-impact-history-widget.component';
 
 @Component({
   selector: 'app-group-dashboard-page',
@@ -29,7 +29,7 @@ import { MemberDebtReductionHistoryWidgetComponent } from './member-debt-reducti
     MatCardModule,
     MatChipsModule,
     MatProgressBarModule,
-    MemberDebtReductionHistoryWidgetComponent,
+    MemberBalanceImpactHistoryWidgetComponent,
   ],
   templateUrl: './group-dashboard-page.component.html',
   styleUrl: './group-dashboard-page.component.scss',

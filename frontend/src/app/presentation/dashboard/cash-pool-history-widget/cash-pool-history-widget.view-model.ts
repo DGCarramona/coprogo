@@ -23,8 +23,8 @@ export interface CashPoolWithdrawalViewItem extends CashPoolOperationViewItemBas
   readonly type: 'WITHDRAWAL';
   readonly withdrawnBy: string;
   readonly ownRevenueShareConsumed: string;
-  readonly debtReduction: string;
-  readonly hasDebtReduction: boolean;
+  readonly otherMembersShareConsumed: string;
+  readonly hasOtherMembersShareConsumed: boolean;
 }
 
 export type CashPoolOperationViewItem = CashPoolIncomeViewItem | CashPoolWithdrawalViewItem;
@@ -106,10 +106,11 @@ const toViewItem = (
         label: 'cashPool.history.withdrawalBy',
         withdrawnBy: operation.withdrawnBy,
         ownRevenueShareConsumed: formatter.money(operation.ownRevenueShareConsumedInCents),
-        debtReduction: formatter.money(
+        otherMembersShareConsumed: formatter.money(
           operation.amountInCents - operation.ownRevenueShareConsumedInCents,
         ),
-        hasDebtReduction: operation.amountInCents > operation.ownRevenueShareConsumedInCents,
+        hasOtherMembersShareConsumed:
+          operation.amountInCents > operation.ownRevenueShareConsumedInCents,
       };
   }
 };

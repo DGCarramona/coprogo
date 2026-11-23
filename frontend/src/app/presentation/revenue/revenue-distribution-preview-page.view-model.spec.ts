@@ -41,7 +41,7 @@ describe('RevenueDistributionPreviewPageViewModel', () => {
         },
       ]);
       expect(viewModel.preview()).toEqual({
-        effectiveDate: expect.stringContaining('2026'),
+        effectiveDate: '1 nov. 2026',
         totalAmount: '25,50 €',
         allocations: [
           { member: 'alice@example.com', amount: '15,30 €' },

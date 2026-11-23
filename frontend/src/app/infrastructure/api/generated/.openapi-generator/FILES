@@ -51,10 +51,11 @@ model/group-member-balance-response.ts
 model/group-member-cash-pool-shares-response.ts
 model/group-member-response.ts
 model/group-response.ts
+model/member-balance-impact-history-response.ts
+model/member-balance-impact-operation-type-response.ts
+model/member-balance-impact-response.ts
+model/member-balance-impact-type-response.ts
 model/member-cash-pool-share-response.ts
-model/member-debt-reduction-history-response.ts
-model/member-debt-reduction-response.ts
-model/member-debt-reduction-type-response.ts
 model/member-group-response.ts
 model/models.ts
 model/ownership-share-change-response.ts

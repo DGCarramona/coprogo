@@ -40,8 +40,8 @@ describe('CashPoolHistoryWidgetViewModel', () => {
           withdrawnBy: 'alice@example.com',
           amount: '70,00\u00a0€',
           ownRevenueShareConsumed: '60,00\u00a0€',
-          debtReduction: '10,00\u00a0€',
-          hasDebtReduction: true,
+          otherMembersShareConsumed: '10,00\u00a0€',
+          hasOtherMembersShareConsumed: true,
         },
         {
           type: 'INCOME',

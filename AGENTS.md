@@ -116,6 +116,7 @@ Keep adapters focused on conversion, delivery, and persistence/integration mecha
 
 - Use Micronaut, Kotlin, Gradle Kotlin DSL, PostgreSQL, Micronaut Data R2DBC, Flyway, REST, GraalVM native-image compatibility, Google account authentication, and S3-compatible document storage.
 - Login occurs client-side; the backend validates the Google ID token. The canonical identity and internal member identifier is the normalized, verified Google email. Google `sub` is optional non-canonical metadata only.
+- Handle backend date-time operations in UTC and store instants as PostgreSQL `TIMESTAMPTZ`. Display and enter instants in the user's local timezone in the frontend. Calendar-only dates, such as ownership-share effective dates, remain `DATE`.
 
 ### Frontend and monorepo
 

@@ -35,8 +35,8 @@
     "dashboard": {
       "load": "Não foi possível carregar o resumo do grupo."
     },
-    "debtReduction": {
-      "loadHistory": "Não foi possível carregar as operações que reduziram esta dívida.",
+    "balanceImpact": {
+      "loadHistory": "Não foi possível carregar a explicação das operações.",
       "missingMember": "Escolha um membro antes de carregar o histórico."
     },
     "reimbursements": {
@@ -133,7 +133,7 @@
       "incomeAdded": "Receita adicionada",
       "incomeDistribution": "Distribuição da receita:",
       "ownShareConsumed": "{{p0}} retirados da sua parte.",
-      "debtReduction": "{{p0}} reduziram o que os outros membros lhe devem.",
+      "otherMembersShareConsumed": "{{p0}} retirados da parte dos outros membros.",
       "withdrawalBy": "Levantamento por {{p0}}"
     },
     "income": {
@@ -151,7 +151,7 @@
       "success": "O levantamento foi registado.",
       "amount": "Montante do levantamento em euros",
       "date": "Data do levantamento",
-      "balanceHelp": "Não pode levantar mais do que o montante disponível. Se o levantamento exceder a sua parte, o excedente reduz o que os outros membros lhe devem.",
+      "balanceHelp": "Não pode levantar mais do que o montante disponível. Se o levantamento exceder a sua parte, o excedente pode reduzir o que os outros membros lhe devem ou aumentar o que deve.",
       "submit": "Registar o levantamento"
     },
     "title": "Caixa comum",
@@ -426,15 +426,17 @@
     "toReceive": "A receber",
     "toPay": "A pagar"
   },
-  "debtReduction": {
-    "title": "Operações que reduziram esta dívida",
-    "showHistory": "Ver o que reduziu esta dívida",
-    "empty": "Nenhuma operação registada reduziu a dívida deste membro.",
-    "listLabel": "Operações que reduziram esta dívida:",
+  "balanceImpact": {
+    "title": "Efeitos para este membro",
+    "showHistory": "Ver os efeitos dos levantamentos e as reduções da dívida",
+    "empty": "Nenhum efeito de levantamento nem operação que tenha reduzido o que este membro deve.",
+    "listLabel": "Efeitos dos levantamentos e operações que reduziram o que este membro deve:",
     "types": {
       "reimbursement": "Reembolso efetuado",
       "expense": "Despesa que reduziu a dívida",
-      "withdrawal": "Levantamento da caixa comum"
+      "withdrawalBalanceImpact": "Levantamento: o que este membro deve diminuiu",
+      "withdrawalDebtIncrease": "Levantamento: o que este membro deve aumentou",
+      "withdrawalCreditReduction": "Levantamento: o que devem a este membro diminuiu"
     }
   },
   "statuses": {

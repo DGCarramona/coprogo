@@ -76,6 +76,83 @@ class WithdrawFromCashPoolUseCaseTest {
     }
 
     @Test
+    fun `invoke should not use income from a later UTC day`() {
+        val futureIncome = incomeEvent(amountInCents = 100).copy(occurredAt = Instant.parse("2026-04-04T00:00:00Z"))
+        val persistence = InMemoryCashPoolWithdrawalPersistence(listOf(futureIncome))
+
+        val exception =
+            assertThrows<InsufficientCashPoolBalanceException> {
+                runTest { useCase(persistence)(command(amountInCents = 1)) }
+            }
+
+        assertEquals(MoneyAmount.ZERO, exception.availableAmount)
+        assertEquals(listOf(futureIncome), persistence.events)
+    }
+
+    @Test
+    fun `invoke should reject a backdated withdrawal that makes a later withdrawal impossible`() {
+        val income = incomeEvent(amountInCents = 100)
+        val laterWithdrawal = withdrawalEvent(amountInCents = 90, occurredAt = "2026-04-04T12:00:00Z")
+        val persistence = InMemoryCashPoolWithdrawalPersistence(listOf(income, laterWithdrawal))
+
+        val error =
+            assertThrows<InsufficientCashPoolBalanceException> {
+                runTest { useCase(persistence)(command(amountInCents = 20)) }
+            }
+
+        assertEquals(MoneyAmount.ofCents(20), error.requestedAmount)
+        assertEquals(MoneyAmount.ofCents(10), error.availableAmount)
+        assertEquals(listOf(income, laterWithdrawal), persistence.events)
+    }
+
+    @Test
+    fun `invoke should report the minimum availability across all later withdrawals`() {
+        val income = incomeEvent(amountInCents = 100)
+        val firstWithdrawal = withdrawalEvent(amountInCents = 90, occurredAt = "2026-04-04T12:00:00Z")
+        val laterIncome =
+            incomeEvent(amountInCents = 20).copy(
+                id = ledgerEventId("later-income"),
+                occurredAt = Instant.parse("2026-04-05T12:00:00Z"),
+            )
+        val secondWithdrawal =
+            withdrawalEvent(amountInCents = 30, occurredAt = "2026-04-06T12:00:00Z")
+                .copy(id = ledgerEventId("second-withdrawal"))
+        val original = listOf(income, firstWithdrawal, laterIncome, secondWithdrawal)
+        val persistence = InMemoryCashPoolWithdrawalPersistence(original)
+
+        val error =
+            assertThrows<InsufficientCashPoolBalanceException> {
+                runTest { useCase(persistence)(command(amountInCents = 20)) }
+            }
+
+        assertEquals(MoneyAmount.ZERO, error.availableAmount)
+        assertEquals(original, persistence.events)
+    }
+
+    @Test
+    fun `invoke should use all income on the withdrawal UTC day even if its instant is later`() =
+        runTest {
+            val income = incomeEvent(amountInCents = 100).copy(occurredAt = Instant.parse("2026-04-03T23:59:59Z"))
+            val persistence = InMemoryCashPoolWithdrawalPersistence(listOf(income))
+
+            useCase(persistence)(command(amountInCents = 100))
+
+            assertEquals(MoneyAmount.ofCents(100), (persistence.events.last() as CashPoolWithdrawalLedgerEvent).ownRevenueShareConsumed)
+        }
+
+    @Test
+    fun `invoke should calculate a backdated withdrawal before later withdrawals`() =
+        runTest {
+            val income = incomeEvent(amountInCents = 100)
+            val laterWithdrawal = withdrawalEvent(amountInCents = 40, occurredAt = "2026-04-04T12:00:00Z")
+            val persistence = InMemoryCashPoolWithdrawalPersistence(listOf(income, laterWithdrawal))
+
+            useCase(persistence)(command(amountInCents = 60))
+
+            assertEquals(MoneyAmount.ofCents(60), (persistence.events.last() as CashPoolWithdrawalLedgerEvent).ownRevenueShareConsumed)
+        }
+
+    @Test
     fun `invoke should check access before accessing the persistence port`() {
         val persistence = InMemoryCashPoolWithdrawalPersistence(listOf(incomeEvent(amountInCents = 100)))
         val useCase =
@@ -124,6 +201,20 @@ class WithdrawFromCashPoolUseCaseTest {
                 ),
         )
 
+    private fun withdrawalEvent(
+        amountInCents: Long,
+        occurredAt: String,
+    ): CashPoolWithdrawalLedgerEvent =
+        CashPoolWithdrawalLedgerEvent(
+            id = ledgerEventId("later-withdrawal"),
+            group = groupId("group"),
+            withdrawnBy = memberEmail("alice"),
+            withdrawnAmount = MoneyAmount.ofCents(amountInCents),
+            ownRevenueShareConsumed = MoneyAmount.ofCents(amountInCents),
+            balanceTransfers = emptySet(),
+            occurredAt = Instant.parse(occurredAt),
+        )
+
     private class InMemoryCashPoolWithdrawalPersistence(
         initialEvents: List<LedgerEvent> = emptyList(),
     ) : CashPoolWithdrawalPersistence {
@@ -132,7 +223,7 @@ class WithdrawFromCashPoolUseCaseTest {
 
         override suspend fun appendFromCurrentLedger(
             group: tech.justdev.domain.shared.valueobject.GroupId,
-            build: suspend (List<LedgerEvent>) -> tech.justdev.domain.ledger.event.CashPoolWithdrawalLedgerEvent,
+            build: suspend (List<LedgerEvent>) -> CashPoolWithdrawalLedgerEvent,
         ) {
             appendAttempts += 1
             events += build(events.filter { event -> event.group == group })

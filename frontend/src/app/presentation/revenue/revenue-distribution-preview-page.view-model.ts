@@ -122,7 +122,7 @@ const toViewItem = (
   preview: RevenueDistributionPreview,
   formatter: FinancialFormatter,
 ): RevenueDistributionPreviewViewItem => ({
-  effectiveDate: formatter.date(preview.effectiveDate),
+  effectiveDate: formatter.civilDate(preview.effectiveDate),
   totalAmount: formatter.money(preview.totalAmountInCents),
   allocations: preview.allocations.map((allocation) => ({
     member: allocation.member,

@@ -1,10 +1,10 @@
 <section
-  class="member-debt-reduction-history"
-  [attr.aria-label]="'debtReduction.title' | translate"
+  class="member-balance-impact-history"
+  [attr.aria-label]="'balanceImpact.title' | translate"
 >
   @if (!viewModel.isRequested()) {
     <button mat-button type="button" (click)="load()">
-      {{ 'debtReduction.showHistory' | translate }}
+      {{ 'balanceImpact.showHistory' | translate }}
     </button>
   } @else if (viewModel.isLoading()) {
     <mat-progress-bar mode="indeterminate"></mat-progress-bar>
@@ -14,17 +14,17 @@
     <button mat-button type="button" (click)="viewModel.retry()">
       {{ 'common.retry' | translate }}
     </button>
-  } @else if (viewModel.reductions().length === 0) {
-    <p>{{ 'debtReduction.empty' | translate }}</p>
+  } @else if (viewModel.impacts().length === 0) {
+    <p>{{ 'balanceImpact.empty' | translate }}</p>
   } @else {
-    <p class="member-debt-reduction-history__intro">
-      {{ 'debtReduction.listLabel' | translate }}
+    <p class="member-balance-impact-history__intro">
+      {{ 'balanceImpact.listLabel' | translate }}
     </p>
     <ul>
-      @for (reduction of viewModel.reductions(); track reduction.operationId) {
+      @for (impact of viewModel.impacts(); track impact.key) {
         <li>
-          <span>{{ reduction.label | translate }} · {{ reduction.occurredAt }}</span>
-          <strong>{{ reduction.amount }}</strong>
+          <span>{{ impact.label | translate }} · {{ impact.occurredAt }}</span>
+          <strong>{{ impact.amount }}</strong>
         </li>
       }
     </ul>

@@ -34,6 +34,22 @@ describe('CashPoolWithdrawalWidgetViewModel', () => {
   });
 
   describe('form submission', () => {
+    it('invalidates member explanations for this group after a withdrawal', async () => {
+      const current = ['groups', 'group-1', 'members', 'alice@example.com', 'balance-impacts'];
+      const other = ['groups', 'group-2', 'members', 'alice@example.com', 'balance-impacts'];
+      queryClient.setQueryData(current, []);
+      queryClient.setQueryData(other, []);
+      const viewModel = createViewModel();
+      viewModel.initialize('group-1');
+      fillForm(viewModel, validValue());
+
+      await expect(submit(viewModel.form)).resolves.toBe(true);
+
+      expect([
+        queryClient.getQueryState(current)?.isInvalidated,
+        queryClient.getQueryState(other)?.isInvalidated,
+      ]).toEqual([true, false]);
+    });
     it('records the exact withdrawal amount and instant', async () => {
       const viewModel = createViewModel();
       viewModel.initialize('group-1');

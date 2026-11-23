@@ -28,6 +28,12 @@ export class FinancialFormatter {
     return formatDate(date, this.localization.locale());
   }
 
+  civilDate(date: Date): string {
+    return new Intl.DateTimeFormat(this.localization.locale(), { dateStyle: 'medium' }).format(
+      date,
+    );
+  }
+
   dateTime(date: Date): string {
     return new Intl.DateTimeFormat(this.localization.locale(), {
       day: 'numeric',

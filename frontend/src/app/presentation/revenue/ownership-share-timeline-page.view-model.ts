@@ -72,7 +72,7 @@ const toViewItem = (
   formatter: FinancialFormatter,
 ): OwnershipShareChangeViewItem => ({
   id: change.id,
-  effectiveDate: formatter.date(change.effectiveDate),
+  effectiveDate: formatter.civilDate(change.effectiveDate),
   recordedBy: change.recordedBy,
   recordedAt: formatter.date(change.recordedAt),
   shares: change.shares.map((share) => ({

@@ -55,7 +55,7 @@ class MemberCashPoolShareProjectionTest {
         assertEquals(
             setOf(
                 MemberCashPoolShareBalance(member = memberEmail("alice"), amount = NetBalanceAmount.ofCents(35)),
-                MemberCashPoolShareBalance(member = memberEmail("bob"), amount = NetBalanceAmount.ofCents(40)),
+                MemberCashPoolShareBalance(member = memberEmail("bob"), amount = NetBalanceAmount.ofCents(30)),
             ),
             shareBalances,
         )

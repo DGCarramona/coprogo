@@ -66,6 +66,15 @@ describe('CashPoolIncomeWidgetComponent', () => {
     );
   });
 
+  it('does not describe local reception time as UTC', () => {
+    const { fixture, host } = createFixture(new StubCashPoolIncomeRecordingPort());
+    fixture.detectChanges();
+
+    expect(
+      host.querySelector('label[for="cash-pool-income-received-at"]')?.textContent,
+    ).not.toContain('UTC');
+  });
+
   it('keeps the income editable and lets the member adjust it after recording fails', async () => {
     const port = new StubCashPoolIncomeRecordingPort();
     port.failure = new Error('Aucune quote-part ne s’applique à cette date.');

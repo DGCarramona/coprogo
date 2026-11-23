@@ -8,7 +8,8 @@ import tech.justdev.domain.ledger.effect.MemberBalanceTransfer
 import tech.justdev.domain.ledger.event.AcceptedExpenseLedgerEvent
 import tech.justdev.domain.ledger.event.AcceptedReimbursementLedgerEvent
 import tech.justdev.domain.ledger.event.CashPoolWithdrawalLedgerEvent
-import tech.justdev.domain.ledger.projection.MemberDebtReduction
+import tech.justdev.domain.ledger.projection.MemberBalanceImpact
+import tech.justdev.domain.ledger.projection.MemberBalanceImpactType
 import tech.justdev.domain.reimbursement.valueobject.ReimbursementId
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.domain.shared.valueobject.GroupId
@@ -20,49 +21,60 @@ import tech.justdev.testsupport.memberEmail
 import tech.justdev.testsupport.testUuid
 import java.time.Instant
 
-class MemberDebtReductionPresenterTest {
+class MemberBalanceImpactPresenterTest {
     @Nested
     inner class Present {
         @Test
-        fun `should map every debt reduction source without changing history order`() {
-            val group = groupId("debt-reduction-presenter")
+        fun `should map every debt impact source without changing history order`() {
+            val group = groupId("balance-impact-presenter")
             val member = memberEmail("alice")
             val expense = compensatingExpense(group, member)
             val reimbursement = reimbursement(group, member)
             val withdrawal = withdrawal(group, member)
 
             val response =
-                MemberDebtReductionPresenter(
+                MemberBalanceImpactPresenter(
                     group = group,
                     member = member,
-                    reductions =
+                    impacts =
                         listOf(
-                            MemberDebtReduction(withdrawal, MoneyAmount.ofCents(20)),
-                            MemberDebtReduction(reimbursement, MoneyAmount.ofCents(30)),
-                            MemberDebtReduction(expense, MoneyAmount.ofCents(50)),
+                            MemberBalanceImpact(withdrawal, MoneyAmount.ofCents(10), MemberBalanceImpactType.CREDIT_REDUCTION),
+                            MemberBalanceImpact(withdrawal, MoneyAmount.ofCents(10), MemberBalanceImpactType.DEBT_INCREASE),
+                            MemberBalanceImpact(reimbursement, MoneyAmount.ofCents(30)),
+                            MemberBalanceImpact(expense, MoneyAmount.ofCents(50)),
                         ),
                 )
 
             assertEquals(
-                MemberDebtReductionHistoryResponse(
+                MemberBalanceImpactHistoryResponse(
                     group = group.toPrimitive(),
                     member = member.toPrimitive(),
-                    reductions =
+                    impacts =
                         listOf(
-                            MemberDebtReductionResponse(
-                                type = MemberDebtReductionTypeResponse.CASH_POOL_WITHDRAWAL,
+                            MemberBalanceImpactResponse(
+                                type = MemberBalanceImpactOperationTypeResponse.CASH_POOL_WITHDRAWAL,
+                                effect = MemberBalanceImpactTypeResponse.CREDIT_REDUCTION,
                                 operationId = withdrawal.id.toPrimitive(),
-                                amountInCents = 20,
+                                amountInCents = 10,
                                 occurredAt = withdrawal.occurredAt,
                             ),
-                            MemberDebtReductionResponse(
-                                type = MemberDebtReductionTypeResponse.DIRECT_REIMBURSEMENT,
+                            MemberBalanceImpactResponse(
+                                type = MemberBalanceImpactOperationTypeResponse.CASH_POOL_WITHDRAWAL,
+                                effect = MemberBalanceImpactTypeResponse.DEBT_INCREASE,
+                                operationId = withdrawal.id.toPrimitive(),
+                                amountInCents = 10,
+                                occurredAt = withdrawal.occurredAt,
+                            ),
+                            MemberBalanceImpactResponse(
+                                type = MemberBalanceImpactOperationTypeResponse.DIRECT_REIMBURSEMENT,
+                                effect = MemberBalanceImpactTypeResponse.DEBT_REDUCTION,
                                 operationId = reimbursement.reimbursement.toPrimitive(),
                                 amountInCents = 30,
                                 occurredAt = reimbursement.occurredAt,
                             ),
-                            MemberDebtReductionResponse(
-                                type = MemberDebtReductionTypeResponse.COMPENSATING_EXPENSE,
+                            MemberBalanceImpactResponse(
+                                type = MemberBalanceImpactOperationTypeResponse.COMPENSATING_EXPENSE,
+                                effect = MemberBalanceImpactTypeResponse.DEBT_REDUCTION,
                                 operationId = expense.expense.toPrimitive(),
                                 amountInCents = 50,
                                 occurredAt = expense.occurredAt,

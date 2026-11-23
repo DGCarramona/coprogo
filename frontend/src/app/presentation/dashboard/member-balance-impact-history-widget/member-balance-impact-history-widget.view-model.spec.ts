@@ -4,16 +4,16 @@ import { Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 
-import { MemberDebtReductionHistoryPort } from '../../../application/ledger/member-debt-reduction-history.port';
-import type { MemberDebtReductionHistory } from '../../../domain/ledger/member-debt-reduction-history';
-import { MemberDebtReductionHistoryWidgetViewModel } from './member-debt-reduction-history-widget.view-model';
+import { MemberBalanceImpactHistoryPort } from '../../../application/ledger/member-balance-impact-history.port';
+import type { MemberBalanceImpactHistory } from '../../../domain/ledger/member-balance-impact-history';
+import { MemberBalanceImpactHistoryWidgetViewModel } from './member-balance-impact-history-widget.view-model';
 
-describe('MemberDebtReductionHistoryWidgetViewModel', () => {
-  let port: StubMemberDebtReductionHistoryPort;
+describe('MemberBalanceImpactHistoryWidgetViewModel', () => {
+  let port: StubMemberBalanceImpactHistoryPort;
   let injector: Injector;
 
   beforeEach(() => {
-    port = new StubMemberDebtReductionHistoryPort();
+    port = new StubMemberBalanceImpactHistoryPort();
     TestBed.configureTestingModule({
       providers: [
         provideLocalization(),
@@ -37,22 +37,25 @@ describe('MemberDebtReductionHistoryWidgetViewModel', () => {
       await waitFor(() => viewModel.isReady());
 
       expect(port.requests).toEqual([{ groupId: 'group-1', member: 'alice@example.com' }]);
-      expect(viewModel.reductions()).toEqual([
+      expect(viewModel.impacts()).toEqual([
         {
           operationId: 'reimbursement-1',
-          label: 'debtReduction.types.reimbursement',
+          key: 'DIRECT_REIMBURSEMENT:reimbursement-1:DEBT_REDUCTION',
+          label: 'balanceImpact.types.reimbursement',
           amount: '12,50\u00a0€',
           occurredAt: expect.stringContaining('2026'),
         },
         {
           operationId: 'expense-1',
-          label: 'debtReduction.types.expense',
+          key: 'COMPENSATING_EXPENSE:expense-1:DEBT_REDUCTION',
+          label: 'balanceImpact.types.expense',
           amount: '5,00\u00a0€',
           occurredAt: expect.stringContaining('2026'),
         },
         {
           operationId: 'withdrawal-1',
-          label: 'debtReduction.types.withdrawal',
+          key: 'CASH_POOL_WITHDRAWAL:withdrawal-1:CREDIT_REDUCTION',
+          label: 'balanceImpact.types.withdrawalCreditReduction',
           amount: '3,00\u00a0€',
           occurredAt: expect.stringContaining('2026'),
         },
@@ -89,39 +92,46 @@ describe('MemberDebtReductionHistoryWidgetViewModel', () => {
   });
 
   const createViewModel = () =>
-    new MemberDebtReductionHistoryWidgetViewModel(
+    new MemberBalanceImpactHistoryWidgetViewModel(
       port,
       injector,
       TestBed.inject(FinancialFormatter),
     );
 });
 
-class StubMemberDebtReductionHistoryPort extends MemberDebtReductionHistoryPort {
-  result: MemberDebtReductionHistory = {
+class StubMemberBalanceImpactHistoryPort extends MemberBalanceImpactHistoryPort {
+  result: MemberBalanceImpactHistory = {
     groupId: 'group-1',
     member: 'alice@example.com',
-    reductions: [
-      reduction('DIRECT_REIMBURSEMENT', 'reimbursement-1', 1250, '2026-04-03T10:00:00Z'),
-      reduction('COMPENSATING_EXPENSE', 'expense-1', 500, '2026-04-04T10:00:00Z'),
-      reduction('CASH_POOL_WITHDRAWAL', 'withdrawal-1', 300, '2026-04-05T10:00:00Z'),
+    impacts: [
+      impact('DIRECT_REIMBURSEMENT', 'reimbursement-1', 1250, '2026-04-03T10:00:00Z'),
+      impact('COMPENSATING_EXPENSE', 'expense-1', 500, '2026-04-04T10:00:00Z'),
+      impact(
+        'CASH_POOL_WITHDRAWAL',
+        'withdrawal-1',
+        300,
+        '2026-04-05T10:00:00Z',
+        'CREDIT_REDUCTION',
+      ),
     ],
   };
   failure: Error | null = null;
   readonly requests: { groupId: string; member: string }[] = [];
 
-  override async get(groupId: string, member: string): Promise<MemberDebtReductionHistory> {
+  override async get(groupId: string, member: string): Promise<MemberBalanceImpactHistory> {
     this.requests.push({ groupId, member });
     if (this.failure !== null) throw this.failure;
     return this.result;
   }
 }
 
-const reduction = (
+const impact = (
   type: 'DIRECT_REIMBURSEMENT' | 'COMPENSATING_EXPENSE' | 'CASH_POOL_WITHDRAWAL',
   operationId: string,
   amountInCents: number,
   occurredAt: string,
-) => ({ type, operationId, amountInCents, occurredAt: new Date(occurredAt) });
+  effect: 'DEBT_REDUCTION' | 'DEBT_INCREASE' | 'CREDIT_REDUCTION' = 'DEBT_REDUCTION',
+) => ({ type, effect, operationId, amountInCents, occurredAt: new Date(occurredAt) });
 
 const waitFor = async (condition: () => boolean): Promise<void> => {
   for (let attempt = 0; attempt < 50; attempt += 1) {
