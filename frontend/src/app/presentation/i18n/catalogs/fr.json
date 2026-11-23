@@ -35,8 +35,8 @@
     "dashboard": {
       "load": "Le résumé du groupe n’a pas pu être chargé."
     },
-    "debtReduction": {
-      "loadHistory": "Les opérations qui ont réduit cette dette n’ont pas pu être chargées.",
+    "balanceImpact": {
+      "loadHistory": "L’explication des opérations n’a pas pu être chargée.",
       "missingMember": "Un membre doit être choisi avant de charger son historique."
     },
     "reimbursements": {
@@ -133,7 +133,7 @@
       "incomeAdded": "Revenu ajouté",
       "incomeDistribution": "Répartition du revenu :",
       "ownShareConsumed": "{{p0}} pris sur sa part.",
-      "debtReduction": "{{p0}} ont réduit ce que les autres membres lui doivent.",
+      "otherMembersShareConsumed": "{{p0}} pris sur la part des autres membres.",
       "withdrawalBy": "Retrait par {{p0}}"
     },
     "income": {
@@ -151,7 +151,7 @@
       "success": "Le retrait a été enregistré.",
       "amount": "Montant du retrait en euros",
       "date": "Date du retrait",
-      "balanceHelp": "Vous ne pouvez pas retirer plus que le montant disponible. Si le retrait dépasse votre propre part, le surplus réduit ce que les autres membres vous doivent.",
+      "balanceHelp": "Vous ne pouvez pas retirer plus que le montant disponible. Si le retrait dépasse votre propre part, le surplus peut réduire ce que les autres membres vous doivent ou augmenter ce que vous devez.",
       "submit": "Enregistrer le retrait"
     },
     "title": "Caisse commune",
@@ -426,15 +426,17 @@
     "toReceive": "À recevoir",
     "toPay": "À payer"
   },
-  "debtReduction": {
-    "title": "Opérations ayant réduit cette dette",
-    "showHistory": "Voir ce qui a réduit cette dette",
-    "empty": "Aucune opération enregistrée n’a réduit la dette de ce membre.",
-    "listLabel": "Opérations ayant réduit cette dette :",
+  "balanceImpact": {
+    "title": "Effets sur ce membre",
+    "showHistory": "Voir les effets des retraits et les réductions de dette",
+    "empty": "Aucun effet de retrait ni opération ayant réduit ce que ce membre doit.",
+    "listLabel": "Effets des retraits et opérations ayant réduit ce que ce membre doit :",
     "types": {
       "reimbursement": "Remboursement effectué",
       "expense": "Dépense ayant réduit la dette",
-      "withdrawal": "Retrait de caisse commune"
+      "withdrawalBalanceImpact": "Retrait : ce que ce membre doit a diminué",
+      "withdrawalDebtIncrease": "Retrait : ce que ce membre doit a augmenté",
+      "withdrawalCreditReduction": "Retrait : ce qu’on doit à ce membre a diminué"
     }
   },
   "statuses": {

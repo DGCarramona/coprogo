@@ -184,6 +184,11 @@ data class CashPoolWithdrawalLedgerEvent(
                     add(MemberCashPoolShareDelta.decrease(member = withdrawnBy, amount = ownRevenueShareConsumed))
                 }
                 addAll(balanceTransfers)
+                addAll(
+                    balanceTransfers.map { transfer ->
+                        MemberCashPoolShareDelta.decrease(member = transfer.toMember, amount = transfer.amount)
+                    },
+                )
             }
 
     companion object {

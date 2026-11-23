@@ -11,11 +11,23 @@
 }
 
 .cash-pool-history__operation {
-  padding-block: 0.5rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
 }
 
 .cash-pool-history__summary {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: 1rem;
+  cursor: pointer;
+}
+
+.cash-pool-history__summary::before {
+  content: '▸';
+}
+
+details[open] .cash-pool-history__summary::before {
+  content: '▾';
 }

@@ -15,15 +15,15 @@ import tech.justdev.application.ledger.GetCashPoolBalanceUseCase
 import tech.justdev.application.ledger.GetCashPoolHistoryQuery
 import tech.justdev.application.ledger.GetCashPoolHistoryUseCase
 import tech.justdev.application.ledger.GetGroupBalancesUseCase
+import tech.justdev.application.ledger.GetMemberBalanceImpactHistoryQuery
+import tech.justdev.application.ledger.GetMemberBalanceImpactHistoryUseCase
 import tech.justdev.application.ledger.GetMemberCashPoolSharesUseCase
-import tech.justdev.application.ledger.GetMemberDebtReductionHistoryQuery
-import tech.justdev.application.ledger.GetMemberDebtReductionHistoryUseCase
 import tech.justdev.application.ledger.WithdrawFromCashPoolCommand
 import tech.justdev.application.ledger.WithdrawFromCashPoolUseCase
 import tech.justdev.application.support.InMemoryGroupRepository
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.ledger.event.LedgerEvent
-import tech.justdev.domain.ledger.projection.MemberDebtReduction
+import tech.justdev.domain.ledger.projection.MemberBalanceImpact
 import tech.justdev.domain.ledger.repository.LedgerEventRepository
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.domain.shared.valueobject.GroupId
@@ -32,9 +32,9 @@ import java.time.Instant
 
 class LedgerControllerTest {
     private val withdrawalUseCase = WithdrawFromCashPoolUseCaseFake()
-    private val debtReductionHistoryUseCase = GetMemberDebtReductionHistoryUseCaseFake()
+    private val balanceImpactHistoryUseCase = GetMemberBalanceImpactHistoryUseCaseFake()
     private val cashPoolHistoryUseCase = GetCashPoolHistoryUseCaseFake()
-    private val controller = controller(withdrawalUseCase, debtReductionHistoryUseCase, cashPoolHistoryUseCase)
+    private val controller = controller(withdrawalUseCase, balanceImpactHistoryUseCase, cashPoolHistoryUseCase)
 
     @Nested
     inner class GetCashPoolHistory {
@@ -100,27 +100,27 @@ class LedgerControllerTest {
     }
 
     @Nested
-    inner class GetMemberDebtReductionHistory {
+    inner class GetMemberBalanceImpactHistory {
         @Test
         fun `should return the requested member history on behalf of the authenticated member`() =
             runTest {
-                val group = testUuid("debt-reduction-history-group")
+                val group = testUuid("balance-impact-history-group")
 
-                val response = controller.getMemberDebtReductionHistory(group, "target@example.com")
+                val response = controller.getMemberBalanceImpactHistory(group, "target@example.com")
 
                 assertEquals(
-                    GetMemberDebtReductionHistoryQuery(
+                    GetMemberBalanceImpactHistoryQuery(
                         group = GroupId(group),
                         member = MemberEmail.of("target@example.com"),
                         requestedBy = MemberEmail.of("member@example.com"),
                     ),
-                    debtReductionHistoryUseCase.query,
+                    balanceImpactHistoryUseCase.query,
                 )
                 assertEquals(
-                    MemberDebtReductionHistoryResponse(
+                    MemberBalanceImpactHistoryResponse(
                         group = group,
                         member = "target@example.com",
-                        reductions = emptyList(),
+                        impacts = emptyList(),
                     ),
                     response,
                 )
@@ -156,7 +156,7 @@ class LedgerControllerTest {
 
     private fun controller(
         withdrawalUseCase: WithdrawFromCashPoolUseCase,
-        debtReductionHistoryUseCase: GetMemberDebtReductionHistoryUseCase,
+        balanceImpactHistoryUseCase: GetMemberBalanceImpactHistoryUseCase,
         cashPoolHistoryUseCase: GetCashPoolHistoryUseCase,
     ): LedgerController {
         val groupAccessPolicy = GroupAccessPolicy(InMemoryGroupRepository())
@@ -167,7 +167,7 @@ class LedgerControllerTest {
             getCashPoolBalanceUseCase = GetCashPoolBalanceUseCase(groupAccessPolicy, ledgerEventRepository),
             getMemberCashPoolSharesUseCase = GetMemberCashPoolSharesUseCase(groupAccessPolicy, ledgerEventRepository),
             withdrawFromCashPoolUseCase = withdrawalUseCase,
-            getMemberDebtReductionHistoryUseCase = debtReductionHistoryUseCase,
+            getMemberBalanceImpactHistoryUseCase = balanceImpactHistoryUseCase,
             getCashPoolHistoryUseCase = cashPoolHistoryUseCase,
         )
     }
@@ -184,10 +184,10 @@ class LedgerControllerTest {
         }
     }
 
-    private class GetMemberDebtReductionHistoryUseCaseFake : GetMemberDebtReductionHistoryUseCase {
-        var query: GetMemberDebtReductionHistoryQuery? = null
+    private class GetMemberBalanceImpactHistoryUseCaseFake : GetMemberBalanceImpactHistoryUseCase {
+        var query: GetMemberBalanceImpactHistoryQuery? = null
 
-        override suspend fun invoke(query: GetMemberDebtReductionHistoryQuery): List<MemberDebtReduction> {
+        override suspend fun invoke(query: GetMemberBalanceImpactHistoryQuery): List<MemberBalanceImpact> {
             this.query = query
             return emptyList()
         }

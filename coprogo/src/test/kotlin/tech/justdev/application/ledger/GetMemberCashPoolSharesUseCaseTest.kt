@@ -70,7 +70,7 @@ class GetMemberCashPoolSharesUseCaseTest {
                     group = groupId("group-1"),
                     shares =
                         listOf(
-                            MemberCashPoolShareSnapshot(member = memberEmailString("alice"), amountInCents = 35),
+                            MemberCashPoolShareSnapshot(member = memberEmailString("alice"), amountInCents = 25),
                             MemberCashPoolShareSnapshot(member = memberEmailString("bob"), amountInCents = 40),
                         ),
                 ),

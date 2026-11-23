@@ -46,8 +46,8 @@ class StubExpenseProposalWidgetComponent {
   @Input({ required: true }) groupId = '';
 }
 
-@Component({ selector: 'app-member-debt-reduction-history-widget', template: '' })
-class StubMemberDebtReductionHistoryWidgetComponent {
+@Component({ selector: 'app-member-balance-impact-history-widget', template: '' })
+class StubMemberBalanceImpactHistoryWidgetComponent {
   @Input({ required: true }) groupId = '';
   @Input({ required: true }) member = '';
 }
@@ -150,7 +150,7 @@ describe('GroupDashboardPageComponent', () => {
 
     expect(
       fixture.debugElement
-        .queryAll(By.directive(StubMemberDebtReductionHistoryWidgetComponent))
+        .queryAll(By.directive(StubMemberBalanceImpactHistoryWidgetComponent))
         .map(({ componentInstance }) => ({
           groupId: componentInstance.groupId,
           member: componentInstance.member,
@@ -180,7 +180,7 @@ const createFixture = (
         StubCashPoolWithdrawalWidgetComponent,
         StubExpenseListWidgetComponent,
         StubExpenseProposalWidgetComponent,
-        StubMemberDebtReductionHistoryWidgetComponent,
+        StubMemberBalanceImpactHistoryWidgetComponent,
         MatButtonModule,
         MatCardModule,
         MatChipsModule,

@@ -81,6 +81,83 @@ class R2dbcCashPoolHistoryProjectionIntegrationTest {
                     result,
                 )
             }
+
+        @Test
+        fun `replays backdated income before a withdrawal on the same UTC day while retaining occurrence order`() =
+            runTest {
+                val fixture = persistGroup("backdated-history")
+                val income = fixture.income()
+                val withdrawal = fixture.withdrawal()
+                ledgerEventRepository.append(income)
+                ledgerEventRepository.append(withdrawal)
+
+                assertEquals(
+                    6_000,
+                    (projection.findByGroup(fixture.group).last() as CashPoolWithdrawalSnapshot).ownRevenueShareConsumedInCents,
+                )
+
+                val backdated =
+                    CashPoolIncomeLedgerEvent.from(
+                        id = ledgerEventId("backdated-history-extra"),
+                        group = fixture.group,
+                        occurredAt = Instant.parse("2026-10-02T18:00:00Z"),
+                        distribution =
+                            RevenueDistribution.distribute(
+                                MoneyAmount.ofCents(2_000),
+                                setOf(
+                                    OwnershipShare(fixture.owner, OwnershipPercentage.ofBasisPoints(6_000)),
+                                    OwnershipShare(fixture.coOwner, OwnershipPercentage.ofBasisPoints(4_000)),
+                                ),
+                            ),
+                    )
+                ledgerEventRepository.append(backdated)
+
+                assertEquals(
+                    listOf(
+                        CashPoolIncomeSnapshot(
+                            income.id.toPrimitive(),
+                            income.occurredAt,
+                            10_000,
+                            listOf(
+                                CashPoolIncomeAllocationSnapshot(fixture.coOwner.toPrimitive(), 4_000),
+                                CashPoolIncomeAllocationSnapshot(fixture.owner.toPrimitive(), 6_000),
+                            ),
+                        ),
+                        CashPoolWithdrawalSnapshot(
+                            withdrawal.id.toPrimitive(),
+                            withdrawal.occurredAt,
+                            fixture.owner.toPrimitive(),
+                            7_000,
+                            7_000,
+                        ),
+                        CashPoolIncomeSnapshot(
+                            backdated.id.toPrimitive(),
+                            backdated.occurredAt,
+                            2_000,
+                            listOf(
+                                CashPoolIncomeAllocationSnapshot(fixture.coOwner.toPrimitive(), 800),
+                                CashPoolIncomeAllocationSnapshot(fixture.owner.toPrimitive(), 1_200),
+                            ),
+                        ),
+                    ),
+                    projection.findByGroup(fixture.group),
+                )
+            }
+
+        @Test
+        fun `orders operations with the same instant by their identifiers`() =
+            runTest {
+                val fixture = persistGroup("same-instant-history")
+                val first = fixture.income().copy(id = ledgerEventId("same-instant-first"))
+                val second = fixture.income().copy(id = ledgerEventId("same-instant-second"))
+                ledgerEventRepository.append(first)
+                ledgerEventRepository.append(second)
+
+                assertEquals(
+                    listOf(first.id.toPrimitive(), second.id.toPrimitive()).sortedBy { it.toString() },
+                    projection.findByGroup(fixture.group).map { it.operation },
+                )
+            }
     }
 
     private suspend fun persistGroup(seed: String): Fixture {

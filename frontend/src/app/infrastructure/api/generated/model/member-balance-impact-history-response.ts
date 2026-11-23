@@ -7,10 +7,10 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { MemberDebtReductionResponseDto } from './member-debt-reduction-response';
+import { MemberBalanceImpactResponseDto } from './member-balance-impact-response';
 
-export interface MemberDebtReductionHistoryResponseDto {
+export interface MemberBalanceImpactHistoryResponseDto {
   group: string;
   member: string;
-  reductions: Array<MemberDebtReductionResponseDto>;
+  impacts: Array<MemberBalanceImpactResponseDto>;
 }

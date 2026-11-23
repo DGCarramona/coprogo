@@ -26,7 +26,15 @@ describe('CashPoolIncomeWidgetViewModel', () => {
   afterEach(() => vi.useRealTimers());
 
   describe('initialize', () => {
-    it('defaults the ownership-share date to today in local time', () => {
+    it('uses the local day for the default ownership-share date near midnight', () => {
+      vi.setSystemTime(new Date(2026, 9, 28, 0, 30));
+      const viewModel = createViewModel();
+
+      viewModel.initialize('group-1');
+
+      expect(viewModel.form.effectiveDate().value()).toBe('2026-10-28');
+    });
+    it('defaults the ownership-share date to today locally', () => {
       const viewModel = createViewModel();
 
       viewModel.initialize('group-1');
@@ -41,6 +49,22 @@ describe('CashPoolIncomeWidgetViewModel', () => {
   });
 
   describe('form submission', () => {
+    it('invalidates member explanations for this group after backdated income', async () => {
+      const current = ['groups', 'group-1', 'members', 'alice@example.com', 'balance-impacts'];
+      const other = ['groups', 'group-2', 'members', 'alice@example.com', 'balance-impacts'];
+      queryClient.setQueryData(current, []);
+      queryClient.setQueryData(other, []);
+      const viewModel = createViewModel();
+      viewModel.initialize('group-1');
+      fillForm(viewModel, validValue());
+
+      await expect(submit(viewModel.form)).resolves.toBe(true);
+
+      expect([
+        queryClient.getQueryState(current)?.isInvalidated,
+        queryClient.getQueryState(other)?.isInvalidated,
+      ]).toEqual([true, false]);
+    });
     it('records the received income with the date selecting the effective shares', async () => {
       const viewModel = createViewModel();
       viewModel.initialize('group-1');

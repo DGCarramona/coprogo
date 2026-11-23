@@ -56,8 +56,8 @@
     "justification": "Kotlin's any collection empty fast path cannot change the result because Expense requires at least one participation."
   },
   {
-    "className": "tech.justdev.domain.ledger.projection.MemberDebtReductionProjectionKt",
-    "method": "projectMemberDebtReductions-lwYzoNI",
+    "className": "tech.justdev.domain.ledger.projection.MemberBalanceImpactProjectionKt",
+    "method": "projectMemberBalanceImpacts-lwYzoNI",
     "mutator": "org.pitest.mutationtest.engine.gregor.mutators.MathMutator",
     "instructionIndex": 63,
     "justification": "Kotlin runningFold changes only the internal ArrayList initial capacity from estimated size plus one to estimated size minus one."

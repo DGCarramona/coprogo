@@ -97,6 +97,9 @@ export class CashPoolIncomeWidgetViewModel {
               void this.queryClient.invalidateQueries({
                 queryKey: cashPoolHistoryQueryKey(groupId),
               });
+              void this.queryClient.invalidateQueries({
+                queryKey: ['groups', groupId, 'members'],
+              });
               submittedForm().reset(emptyFormModel());
               return undefined;
             } catch {

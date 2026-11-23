@@ -74,12 +74,6 @@ public class LedgerCashPoolWithdrawalEvents extends TableImpl<Record> {
      */
     public final TableField<Record, Long> WITHDRAWN_AMOUNT_IN_CENTS = createField(DSL.name("withdrawn_amount_in_cents"), Domains.POSITIVE_MONEY_AMOUNT_CENTS.getDataType().nullable(false), this, "", new AutoConverter<Long, Long>(Long.class, Long.class));
 
-    /**
-     * The column
-     * <code>public.ledger_cash_pool_withdrawal_events.own_revenue_share_consumed_in_cents</code>.
-     */
-    public final TableField<Record, Long> OWN_REVENUE_SHARE_CONSUMED_IN_CENTS = createField(DSL.name("own_revenue_share_consumed_in_cents"), Domains.MONEY_AMOUNT_CENTS.getDataType().nullable(false), this, "", new AutoConverter<Long, Long>(Long.class, Long.class));
-
     private LedgerCashPoolWithdrawalEvents(Name alias, Table<Record> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

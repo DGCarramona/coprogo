@@ -7,7 +7,7 @@ import { QueryClient } from '@tanstack/angular-query-experimental';
 import { ExpenseProposalPort } from './application/expense/expense-proposal.port';
 import { ExpenseDetailPort } from './application/expense/expense-detail.port';
 import { ExpenseParticipationDecisionPort } from './application/expense/expense-participation-decision.port';
-import { MemberDebtReductionHistoryPort } from './application/ledger/member-debt-reduction-history.port';
+import { MemberBalanceImpactHistoryPort } from './application/ledger/member-balance-impact-history.port';
 import { CashPoolHistoryPort } from './application/ledger/cash-pool-history.port';
 import { CashPoolWithdrawalPort } from './application/ledger/cash-pool-withdrawal.port';
 import { MemberGroupsPort } from './application/group/member-groups.port';
@@ -34,7 +34,7 @@ import { UploadSupportingDocument } from './application/supporting-document/uplo
 import { HttpExpenseProposalGateway } from './infrastructure/expense/http-expense-proposal.gateway';
 import { HttpExpenseDetailGateway } from './infrastructure/expense/http-expense-detail.gateway';
 import { HttpExpenseParticipationDecisionGateway } from './infrastructure/expense/http-expense-participation-decision.gateway';
-import { HttpMemberDebtReductionHistoryGateway } from './infrastructure/ledger/http-member-debt-reduction-history.gateway';
+import { HttpMemberBalanceImpactHistoryGateway } from './infrastructure/ledger/http-member-balance-impact-history.gateway';
 import { HttpCashPoolHistoryGateway } from './infrastructure/ledger/http-cash-pool-history.gateway';
 import { HttpCashPoolWithdrawalGateway } from './infrastructure/ledger/http-cash-pool-withdrawal.gateway';
 import { HttpGroupMembersGateway } from './infrastructure/group/http-group-members.gateway';
@@ -100,9 +100,9 @@ const portBindings: readonly {
     adapter: HttpReimbursementListGateway,
   },
   {
-    name: 'member debt reduction history',
-    port: MemberDebtReductionHistoryPort,
-    adapter: HttpMemberDebtReductionHistoryGateway,
+    name: 'member debt impact history',
+    port: MemberBalanceImpactHistoryPort,
+    adapter: HttpMemberBalanceImpactHistoryGateway,
   },
   {
     name: 'cash-pool history',

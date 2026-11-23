@@ -1,21 +1,21 @@
-.member-debt-reduction-history {
+.member-balance-impact-history {
   width: 100%;
 }
 
-.member-debt-reduction-history p {
+.member-balance-impact-history p {
   margin: 0.5rem 0 0;
   color: var(--mat-sys-on-surface-variant);
 }
 
-.member-debt-reduction-history mat-progress-bar {
+.member-balance-impact-history mat-progress-bar {
   margin-top: 0.75rem;
 }
 
-.member-debt-reduction-history__intro {
+.member-balance-impact-history__intro {
   font-weight: 500;
 }
 
-.member-debt-reduction-history ul {
+.member-balance-impact-history ul {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -24,7 +24,7 @@
   list-style: none;
 }
 
-.member-debt-reduction-history li {
+.member-balance-impact-history li {
   display: flex;
   justify-content: space-between;
   gap: 1rem;

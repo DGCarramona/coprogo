@@ -1,3 +1,4 @@
+import { LocalizationService } from '../i18n/localization.service';
 import { provideLocalization } from '../i18n/provide-localization';
 import { ErrorMessagePipe } from '../i18n/error-message.pipe';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -56,6 +57,8 @@ const createFixture = (): ComponentFixture<SignInPageComponent> => {
       ],
     },
   });
+
+  TestBed.inject(LocalizationService).selectLanguage('fr');
 
   return TestBed.createComponent(SignInPageComponent);
 };

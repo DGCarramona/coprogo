@@ -4,20 +4,20 @@ import { Component, Input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 
-import { MemberDebtReductionHistoryWidgetViewModel } from './member-debt-reduction-history-widget.view-model';
+import { MemberBalanceImpactHistoryWidgetViewModel } from './member-balance-impact-history-widget.view-model';
 
 @Component({
-  selector: 'app-member-debt-reduction-history-widget',
+  selector: 'app-member-balance-impact-history-widget',
   imports: [ErrorMessagePipe, TranslatePipe, MatButtonModule, MatProgressBarModule],
-  templateUrl: './member-debt-reduction-history-widget.component.html',
-  styleUrl: './member-debt-reduction-history-widget.component.scss',
-  providers: [MemberDebtReductionHistoryWidgetViewModel],
+  templateUrl: './member-balance-impact-history-widget.component.html',
+  styleUrl: './member-balance-impact-history-widget.component.scss',
+  providers: [MemberBalanceImpactHistoryWidgetViewModel],
 })
-export class MemberDebtReductionHistoryWidgetComponent {
+export class MemberBalanceImpactHistoryWidgetComponent {
   @Input({ required: true }) groupId!: string;
   @Input({ required: true }) member!: string;
 
-  constructor(protected readonly viewModel: MemberDebtReductionHistoryWidgetViewModel) {}
+  constructor(protected readonly viewModel: MemberBalanceImpactHistoryWidgetViewModel) {}
 
   protected load(): void {
     this.viewModel.load(this.groupId, this.member);

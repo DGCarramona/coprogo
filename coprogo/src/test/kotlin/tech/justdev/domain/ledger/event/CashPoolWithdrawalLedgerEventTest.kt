@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import tech.justdev.domain.ledger.effect.CashPoolBalanceDelta
 import tech.justdev.domain.ledger.effect.MemberBalanceTransfer
+import tech.justdev.domain.ledger.effect.MemberCashPoolShareDelta
 import tech.justdev.domain.shared.money.MoneyAmount
 import tech.justdev.testsupport.groupId
 import tech.justdev.testsupport.ledgerEventId
@@ -12,7 +13,7 @@ import java.time.Instant
 
 class CashPoolWithdrawalLedgerEventTest {
     @Test
-    fun `effects should omit a member share delta when no own revenue share is consumed`() {
+    fun `effects should debit the other member share when no own revenue share is consumed`() {
         val compensation =
             MemberBalanceTransfer(
                 fromMember = memberEmail("alice"),
@@ -31,7 +32,11 @@ class CashPoolWithdrawalLedgerEventTest {
             )
 
         assertEquals(
-            setOf(CashPoolBalanceDelta.decrease(MoneyAmount.ofCents(50)), compensation),
+            setOf(
+                CashPoolBalanceDelta.decrease(MoneyAmount.ofCents(50)),
+                compensation,
+                MemberCashPoolShareDelta.decrease(memberEmail("bob"), MoneyAmount.ofCents(50)),
+            ),
             event.effects,
         )
     }

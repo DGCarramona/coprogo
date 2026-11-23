@@ -168,7 +168,7 @@ class LedgerControllerIntegrationTest {
                     group = groupId,
                     shares =
                         listOf(
-                            MemberCashPoolShareResponse(coOwnerEmail, 4000),
+                            MemberCashPoolShareResponse(coOwnerEmail, 3000),
                         ),
                 ),
                 getMemberCashPoolShares(groupId, ownerEmail),
@@ -214,47 +214,50 @@ class LedgerControllerIntegrationTest {
     }
 
     @Nested
-    inner class GetMemberDebtReductionHistory {
+    inner class GetMemberBalanceImpactHistory {
         @Test
         fun `a group member can read every operation that reduced another member's debt`() {
             val ownerEmail = "ledger-history-owner@example.com"
             val debtorEmail = "ledger-history-debtor@example.com"
             val groupId = persistGroup(seed = "ledger-history", ownerEmail = ownerEmail, coOwnerEmail = debtorEmail)
             val reimbursementId = testUuid("ledger-history-reimbursement")
-            appendDebtReductionHistory(groupId, ownerEmail, debtorEmail, reimbursementId)
+            appendBalanceImpactHistory(groupId, ownerEmail, debtorEmail, reimbursementId)
 
             val response =
                 httpClient.toBlocking().retrieve(
                     HttpRequest
-                        .GET<Any>("/api/groups/$groupId/members/$debtorEmail/debt-reductions")
+                        .GET<Any>("/api/groups/$groupId/members/$debtorEmail/balance-impacts")
                         .header(HttpHeaders.AUTHORIZATION, bearer(ownerEmail)),
-                    MemberDebtReductionHistoryResponse::class.java,
+                    MemberBalanceImpactHistoryResponse::class.java,
                 )
 
             assertEquals(groupId, response.group)
             assertEquals(debtorEmail, response.member)
             assertEquals(
                 listOf(
-                    MemberDebtReductionResponse(
-                        type = MemberDebtReductionTypeResponse.CASH_POOL_WITHDRAWAL,
+                    MemberBalanceImpactResponse(
+                        type = MemberBalanceImpactOperationTypeResponse.CASH_POOL_WITHDRAWAL,
+                        effect = MemberBalanceImpactTypeResponse.DEBT_REDUCTION,
                         operationId = ledgerEventId("ledger-history-withdrawal").toPrimitive(),
                         amountInCents = 4000,
                         occurredAt = Instant.parse("2026-04-03T12:00:00Z"),
                     ),
-                    MemberDebtReductionResponse(
-                        type = MemberDebtReductionTypeResponse.COMPENSATING_EXPENSE,
+                    MemberBalanceImpactResponse(
+                        type = MemberBalanceImpactOperationTypeResponse.COMPENSATING_EXPENSE,
+                        effect = MemberBalanceImpactTypeResponse.DEBT_REDUCTION,
                         operationId = expenseId("history-compensation").toPrimitive(),
                         amountInCents = 3000,
                         occurredAt = Instant.parse("2026-04-03T11:00:00Z"),
                     ),
-                    MemberDebtReductionResponse(
-                        type = MemberDebtReductionTypeResponse.DIRECT_REIMBURSEMENT,
+                    MemberBalanceImpactResponse(
+                        type = MemberBalanceImpactOperationTypeResponse.DIRECT_REIMBURSEMENT,
+                        effect = MemberBalanceImpactTypeResponse.DEBT_REDUCTION,
                         operationId = reimbursementId,
                         amountInCents = 2000,
                         occurredAt = Instant.parse("2026-04-03T10:00:00Z"),
                     ),
                 ),
-                response.reductions,
+                response.impacts,
             )
         }
     }
@@ -336,7 +339,7 @@ class LedgerControllerIntegrationTest {
                 ),
         )
 
-    private fun appendDebtReductionHistory(
+    private fun appendBalanceImpactHistory(
         groupId: UUID,
         ownerEmail: String,
         debtorEmail: String,
@@ -376,6 +379,16 @@ class LedgerControllerIntegrationTest {
                     paidBy = debtor,
                     occurredAt = Instant.parse("2026-04-03T11:00:00Z"),
                     transfers = setOf(MemberBalanceTransfer(owner, debtor, MoneyAmount.ofCents(3000))),
+                ),
+                CashPoolIncomeLedgerEvent.from(
+                    id = ledgerEventId("ledger-history-income"),
+                    group = group,
+                    occurredAt = Instant.parse("2026-04-03T08:00:00Z"),
+                    distribution =
+                        RevenueDistribution.distribute(
+                            totalAmount = MoneyAmount.ofCents(4000),
+                            ownershipShares = setOf(OwnershipShare(debtor, OwnershipPercentage.ofBasisPoints(10_000))),
+                        ),
                 ),
                 CashPoolWithdrawalLedgerEvent(
                     id = ledgerEventId("ledger-history-withdrawal"),

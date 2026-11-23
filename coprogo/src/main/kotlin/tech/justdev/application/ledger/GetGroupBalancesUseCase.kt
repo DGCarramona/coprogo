@@ -4,6 +4,7 @@ import jakarta.inject.Singleton
 import tech.justdev.application.group.GroupAccessPolicy
 import tech.justdev.domain.group.valueobject.MemberEmail
 import tech.justdev.domain.ledger.projection.projectMemberBalances
+import tech.justdev.domain.ledger.projection.replayCashPoolChronologically
 import tech.justdev.domain.ledger.repository.LedgerEventRepository
 import tech.justdev.domain.shared.valueobject.GroupId
 
@@ -35,6 +36,7 @@ class GetGroupBalancesUseCase(
             balances =
                 ledgerEventRepository
                     .findByGroup(query.group)
+                    .replayCashPoolChronologically()
                     .projectMemberBalances()
                     .sortedBy { balance -> balance.member.toPrimitive() }
                     .map { balance ->

@@ -7,7 +7,7 @@ import type { CashPoolHistory } from '../../../domain/ledger/cash-pool-history';
 import { CashPoolHistoryWidgetComponent } from './cash-pool-history-widget.component';
 
 describe('CashPoolHistoryWidgetComponent', () => {
-  it('shows each income distribution and withdrawal consequence', async () => {
+  it('shows a compact history and lets members expand each operation', async () => {
     const port = new StubCashPoolHistoryPort();
     const { fixture, host } = createFixture(port);
 
@@ -22,7 +22,13 @@ describe('CashPoolHistoryWidgetComponent', () => {
     expect(host.textContent).toContain('bob@example.com : 40,00 €');
     expect(host.textContent).toContain('Retrait par alice@example.com');
     expect(host.textContent).toContain('60,00 € pris sur sa part');
-    expect(host.textContent).toContain('10,00 € ont réduit ce que les autres membres lui doivent');
+    expect(host.textContent).toContain('10,00 € pris sur la part des autres membres');
+    expect(host.textContent).not.toContain('ont réduit ce que les autres membres lui doivent');
+
+    const details = Array.from(host.querySelectorAll<HTMLDetailsElement>('details'));
+    expect(details.map((item) => item.open)).toEqual([false, false]);
+    details[0].querySelector('summary')?.click();
+    expect(details.map((item) => item.open)).toEqual([true, false]);
   });
 
   it('explains when no cash-pool operation has been recorded', async () => {
@@ -30,7 +36,7 @@ describe('CashPoolHistoryWidgetComponent', () => {
     port.result = { groupId: 'group-1', operations: [] };
     const { fixture, host } = createFixture(port);
 
-    await waitFor(fixture, () => host.textContent?.includes('Aucune opération') === true);
+    await waitFor(fixture, () => host.textContent?.includes('Aucune opération'));
 
     expect(host.textContent).toContain('Aucune opération de caisse commune enregistrée.');
   });
@@ -40,7 +46,7 @@ describe('CashPoolHistoryWidgetComponent', () => {
     port.pauseNextRequest();
     const { fixture, host } = createFixture(port);
 
-    await waitFor(fixture, () => host.textContent?.includes('Lecture des opérations...') === true);
+    await waitFor(fixture, () => host.textContent?.includes('Lecture des opérations...'));
 
     expect(host.querySelector('mat-progress-bar')).not.toBeNull();
     port.resumeRequest();

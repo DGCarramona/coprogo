@@ -34,7 +34,7 @@ import { GroupBalancesResponseDto } from '../model/group-balances-response';
 // @ts-ignore
 import { GroupMemberCashPoolSharesResponseDto } from '../model/group-member-cash-pool-shares-response';
 // @ts-ignore
-import { MemberDebtReductionHistoryResponseDto } from '../model/member-debt-reduction-history-response';
+import { MemberBalanceImpactHistoryResponseDto } from '../model/member-balance-impact-history-response';
 
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS } from '../variables';
@@ -332,6 +332,110 @@ export class LedgerService extends BaseService {
   }
 
   /**
+   * Get the withdrawal effects and debt reductions for a group member
+   * @endpoint get /api/groups/{groupId}/members/{memberEmail}/balance-impacts
+   * @param groupId
+   * @param memberEmail
+   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+   * @param reportProgress flag to report request and response progress.
+   * @param options additional options
+   */
+  public getMemberBalanceImpactHistory(
+    groupId: string,
+    memberEmail: string,
+    observe?: 'body',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<MemberBalanceImpactHistoryResponseDto>;
+  public getMemberBalanceImpactHistory(
+    groupId: string,
+    memberEmail: string,
+    observe?: 'response',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpResponse<MemberBalanceImpactHistoryResponseDto>>;
+  public getMemberBalanceImpactHistory(
+    groupId: string,
+    memberEmail: string,
+    observe?: 'events',
+    reportProgress?: boolean,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<HttpEvent<MemberBalanceImpactHistoryResponseDto>>;
+  public getMemberBalanceImpactHistory(
+    groupId: string,
+    memberEmail: string,
+    observe: any = 'body',
+    reportProgress: boolean = false,
+    options?: {
+      httpHeaderAccept?: 'application/json';
+      context?: HttpContext;
+      transferCache?: boolean;
+    },
+  ): Observable<any> {
+    if (groupId === null || groupId === undefined) {
+      throw new Error(
+        'Required parameter groupId was null or undefined when calling getMemberBalanceImpactHistory.',
+      );
+    }
+    if (memberEmail === null || memberEmail === undefined) {
+      throw new Error(
+        'Required parameter memberEmail was null or undefined when calling getMemberBalanceImpactHistory.',
+      );
+    }
+
+    let localVarHeaders = this.defaultHeaders;
+
+    const localVarHttpHeaderAcceptSelected: string | undefined =
+      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
+    if (localVarHttpHeaderAcceptSelected !== undefined) {
+      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+    }
+
+    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+    const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+    let responseType_: 'text' | 'json' | 'blob' = 'json';
+    if (localVarHttpHeaderAcceptSelected) {
+      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+        responseType_ = 'text';
+      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+        responseType_ = 'json';
+      } else {
+        responseType_ = 'blob';
+      }
+    }
+
+    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/members/${this.configuration.encodeParam({ name: 'memberEmail', value: memberEmail, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: undefined })}/balance-impacts`;
+    const { basePath, withCredentials } = this.configuration;
+    return this.httpClient.request<MemberBalanceImpactHistoryResponseDto>(
+      'get',
+      `${basePath}${localVarPath}`,
+      {
+        context: localVarHttpContext,
+        responseType: <any>responseType_,
+        ...(withCredentials ? { withCredentials } : {}),
+        headers: localVarHeaders,
+        observe: observe,
+        ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+        reportProgress: reportProgress,
+      },
+    );
+  }
+
+  /**
    * Get remaining common cash-pool shares by member for a group
    * @endpoint get /api/groups/{groupId}/cash-pool/shares
    * @param groupId
@@ -411,110 +515,6 @@ export class LedgerService extends BaseService {
     let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/cash-pool/shares`;
     const { basePath, withCredentials } = this.configuration;
     return this.httpClient.request<GroupMemberCashPoolSharesResponseDto>(
-      'get',
-      `${basePath}${localVarPath}`,
-      {
-        context: localVarHttpContext,
-        responseType: <any>responseType_,
-        ...(withCredentials ? { withCredentials } : {}),
-        headers: localVarHeaders,
-        observe: observe,
-        ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
-        reportProgress: reportProgress,
-      },
-    );
-  }
-
-  /**
-   * Get the operations that reduced a group member\&#39;s debt
-   * @endpoint get /api/groups/{groupId}/members/{memberEmail}/debt-reductions
-   * @param groupId
-   * @param memberEmail
-   * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-   * @param reportProgress flag to report request and response progress.
-   * @param options additional options
-   */
-  public getMemberDebtReductionHistory(
-    groupId: string,
-    memberEmail: string,
-    observe?: 'body',
-    reportProgress?: boolean,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<MemberDebtReductionHistoryResponseDto>;
-  public getMemberDebtReductionHistory(
-    groupId: string,
-    memberEmail: string,
-    observe?: 'response',
-    reportProgress?: boolean,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<HttpResponse<MemberDebtReductionHistoryResponseDto>>;
-  public getMemberDebtReductionHistory(
-    groupId: string,
-    memberEmail: string,
-    observe?: 'events',
-    reportProgress?: boolean,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<HttpEvent<MemberDebtReductionHistoryResponseDto>>;
-  public getMemberDebtReductionHistory(
-    groupId: string,
-    memberEmail: string,
-    observe: any = 'body',
-    reportProgress: boolean = false,
-    options?: {
-      httpHeaderAccept?: 'application/json';
-      context?: HttpContext;
-      transferCache?: boolean;
-    },
-  ): Observable<any> {
-    if (groupId === null || groupId === undefined) {
-      throw new Error(
-        'Required parameter groupId was null or undefined when calling getMemberDebtReductionHistory.',
-      );
-    }
-    if (memberEmail === null || memberEmail === undefined) {
-      throw new Error(
-        'Required parameter memberEmail was null or undefined when calling getMemberDebtReductionHistory.',
-      );
-    }
-
-    let localVarHeaders = this.defaultHeaders;
-
-    const localVarHttpHeaderAcceptSelected: string | undefined =
-      options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept(['application/json']);
-    if (localVarHttpHeaderAcceptSelected !== undefined) {
-      localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-    }
-
-    const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-    const localVarTransferCache: boolean = options?.transferCache ?? true;
-
-    let responseType_: 'text' | 'json' | 'blob' = 'json';
-    if (localVarHttpHeaderAcceptSelected) {
-      if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-        responseType_ = 'text';
-      } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-        responseType_ = 'json';
-      } else {
-        responseType_ = 'blob';
-      }
-    }
-
-    let localVarPath = `/api/groups/${this.configuration.encodeParam({ name: 'groupId', value: groupId, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: 'uuid' })}/members/${this.configuration.encodeParam({ name: 'memberEmail', value: memberEmail, in: 'path', style: 'simple', explode: false, dataType: 'string', dataFormat: undefined })}/debt-reductions`;
-    const { basePath, withCredentials } = this.configuration;
-    return this.httpClient.request<MemberDebtReductionHistoryResponseDto>(
       'get',
       `${basePath}${localVarPath}`,
       {

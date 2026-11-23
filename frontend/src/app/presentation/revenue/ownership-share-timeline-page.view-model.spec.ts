@@ -33,9 +33,11 @@ describe('OwnershipShareTimelinePageViewModel', () => {
       expect(viewModel.changes()).toEqual([
         {
           id: 'change-1',
-          effectiveDate: expect.stringContaining('2026'),
+          effectiveDate: '1 janv. 2026',
           recordedBy: 'alice@example.com',
-          recordedAt: expect.stringContaining('2025'),
+          recordedAt: new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' }).format(
+            new Date('2025-12-31T23:30:00Z'),
+          ),
           shares: [
             { member: 'alice@example.com', percentage: '60 %' },
             { member: 'bob@example.com', percentage: '40 %' },
@@ -90,7 +92,7 @@ class StubOwnershipShareTimelinePort extends OwnershipShareTimelinePort {
           id: 'change-1',
           effectiveDate: new Date(2026, 0, 1),
           recordedBy: 'alice@example.com',
-          recordedAt: new Date('2025-12-15T10:00:00Z'),
+          recordedAt: new Date('2025-12-31T23:30:00Z'),
           shares: [
             { member: 'alice@example.com', percentage: 60 },
             { member: 'bob@example.com', percentage: 40 },

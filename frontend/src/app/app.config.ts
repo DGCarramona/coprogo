@@ -28,7 +28,7 @@ import { HttpGroupRenamingGateway } from './infrastructure/group/http-group-rena
 import { HttpMemberGroupsGateway } from './infrastructure/group/http-member-groups.gateway';
 import { GroupFinancialDashboardPort } from './application/ledger/group-financial-dashboard.port';
 import { CashPoolHistoryPort } from './application/ledger/cash-pool-history.port';
-import { MemberDebtReductionHistoryPort } from './application/ledger/member-debt-reduction-history.port';
+import { MemberBalanceImpactHistoryPort } from './application/ledger/member-balance-impact-history.port';
 import { CashPoolWithdrawalPort } from './application/ledger/cash-pool-withdrawal.port';
 import {
   Sha256ChecksumPort,
@@ -57,7 +57,7 @@ import { HttpGroupCreationGateway } from './infrastructure/group/http-group-crea
 import { HttpGroupMembersGateway } from './infrastructure/group/http-group-members.gateway';
 import { HttpGroupFinancialDashboardGateway } from './infrastructure/ledger/http-group-financial-dashboard.gateway';
 import { HttpCashPoolHistoryGateway } from './infrastructure/ledger/http-cash-pool-history.gateway';
-import { HttpMemberDebtReductionHistoryGateway } from './infrastructure/ledger/http-member-debt-reduction-history.gateway';
+import { HttpMemberBalanceImpactHistoryGateway } from './infrastructure/ledger/http-member-balance-impact-history.gateway';
 import { HttpCashPoolWithdrawalGateway } from './infrastructure/ledger/http-cash-pool-withdrawal.gateway';
 import { HttpSignedSupportingDocumentUploaderGateway } from './infrastructure/supporting-document/http-signed-supporting-document-uploader.gateway';
 import { HttpSupportingDocumentUploadControlPlaneGateway } from './infrastructure/supporting-document/http-supporting-document-upload-control-plane.gateway';
@@ -107,8 +107,8 @@ export const appConfig: ApplicationConfig = {
       useExisting: HttpCashPoolHistoryGateway,
     },
     {
-      provide: MemberDebtReductionHistoryPort,
-      useExisting: HttpMemberDebtReductionHistoryGateway,
+      provide: MemberBalanceImpactHistoryPort,
+      useExisting: HttpMemberBalanceImpactHistoryGateway,
     },
     {
       provide: CashPoolWithdrawalPort,
